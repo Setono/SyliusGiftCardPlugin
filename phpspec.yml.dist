@@ -1,0 +1,4 @@
+suites:
+    main:
+        namespace: Setono\SyliusGiftCardPlugin
+        psr4_prefix: Setono\SyliusGiftCardPlugin
