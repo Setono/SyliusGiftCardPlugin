@@ -1,5 +1,5 @@
 {
-    "name": "setono/sylius-gift-card-Plugin",
+    "name": "setono/sylius-gift-card-plugin",
     "type": "sylius-plugin",
     "description": "Gift Card Plugin for Sylius.",
     "license": "MIT",

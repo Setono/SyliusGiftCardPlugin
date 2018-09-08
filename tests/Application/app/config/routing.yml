@@ -1,2 +1,5 @@
 sylius:
     resource: "../../../../vendor/sylius/sylius/app/config/routing.yml"
+
+setono_sylius_gift_card_plugin:
+    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routing.yml"

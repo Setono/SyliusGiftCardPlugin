@@ -1,0 +1,3 @@
+imports:
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/resources.yml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/services.xml" }

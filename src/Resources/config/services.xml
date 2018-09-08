@@ -2,6 +2,12 @@
 
 <container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
+        <defaults public="true" />
 
+        <service id="setono_sylius_gift_card_plugin.form.extension.type.product" class="Setono\SyliusGiftCardPlugin\Form\Extension\ProductTypeExtension">
+            <argument type="service" id="setono_sylius_gift_card_plugin.manager.gift_card"/>
+            <argument type="service" id="setono_sylius_gift_card_plugin.factory.gift_card"/>
+            <tag name="form.type_extension" extended-type="Sylius\Bundle\ProductBundle\Form\Type\ProductType" />
+        </service>
     </services>
 </container>
