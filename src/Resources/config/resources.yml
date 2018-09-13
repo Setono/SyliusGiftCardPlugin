@@ -5,6 +5,7 @@ sylius_resource:
             classes:
                 model: Setono\SyliusGiftCardPlugin\Entity\GiftCard
                 interface: Setono\SyliusGiftCardPlugin\Entity\GiftCardInterface
+                repository: Setono\SyliusGiftCardPlugin\Repository\GiftCardRepository
                 factory: Setono\SyliusGiftCardPlugin\Factory\GiftCardFactory
 
         setono_sylius_gift_card_plugin.gift_card_code:
@@ -12,3 +13,6 @@ sylius_resource:
             classes:
                 model: Setono\SyliusGiftCardPlugin\Entity\GiftCardCode
                 interface: Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface
+                repository: Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepository
+                factory: Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactory
+

@@ -1,0 +1,65 @@
+{% extends '@SyliusShop/layout.html.twig' %}
+
+{% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
+
+{% block content %}
+    <div class="ui breadcrumb">
+        <a href="{{ path('sylius_shop_homepage') }}" class="section">{{ 'sylius.ui.home'|trans }}</a>
+        <div class="divider"> /</div>
+        <div class="active section">{{ 'setono_sylius_gift_card_plugin.ui.gift_card'|trans }}</div>
+    </div>
+    <div class="ui segment">
+        <h1 class="ui dividing header">
+            {{ 'setono_sylius_gift_card_plugin.ui.gift_card_search'|trans }}
+        </h1>
+
+        <form method="get" action="{{ path('setono_sylius_gift_card_plugin_shop_search_gift_card') }}" class="ui loadable form">
+            <input type="hidden" value="{{ csrf_token('search_gift_card') }}" name="_csrf_token">
+
+            <div class="ui stackable grid">
+                <div class="eleven wide column">
+                    <div class="field">
+                        <input type="text" name="code" placeholder="{{ ('setono_sylius_gift_card_plugin.ui.enter_gift_card_code'|trans) ~ '...' }}" value="{{ app.request.get('code', '') }}">
+                    </div>
+                </div>
+                <div class="three wide column">
+                    <div class="ui buttons">
+                        <button type="submit" class="ui primary icon labeled button">
+                            <i class="search icon"></i>
+                            {{ 'sylius.ui.search'|trans }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        {% if giftCardCode %}
+            <table class="ui celled table">
+                <thead>
+                    <tr>
+                        <th>{{ 'setono_sylius_gift_card_plugin.ui.gift_card_code'|trans }}</th>
+                        <th>{{ 'setono_sylius_gift_card_plugin.email.balance'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ giftCardCode.code }}</td>
+                        <td>{{ money.format(giftCardCode.amount, channelGiftCardCode.baseCurrency.code) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        {% elseif app.request.get('code', null) is not null %}
+            <div class="ui icon info message">
+                <i class="info icon"></i>
+                <div class="content">
+                    <div class="header">
+                        {{ 'sylius.ui.info'|trans }}
+                    </div>
+                    <p>
+                        {{ 'setono_sylius_gift_card_plugin.ui.your_gift_card_will_only_be_charged_if_you_complete_your_order'|trans }}
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
