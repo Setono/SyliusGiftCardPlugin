@@ -127,14 +127,13 @@ final class ManagingGiftCardsContext implements Context
         Assert::true($this->giftCardProductResolver->isGiftCardProduct($product));
     }
 
-
     /**
      * @return CreateGiftCardPageInterface|SymfonyPageInterface
      */
     private function resolveCurrentPage()
     {
         return $this->currentPageResolver->getCurrentPageWithForm([
-            $this->createGiftCardPage
+            $this->createGiftCardPage,
         ]);
     }
 }

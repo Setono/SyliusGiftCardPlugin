@@ -30,7 +30,6 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
     public function process(OrderInterface $order): void
     {
         if (null === $order->getId()) {
-
             return;
         }
 
@@ -47,7 +46,6 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
             }
 
             if ($amount === 0) {
-
                 continue;
             }
 

@@ -14,7 +14,8 @@ use Sylius\Component\Mailer\Sender\SenderInterface;
 
 final class GiftCardOrderEmailManagerSpec extends ObjectBehavior
 {
-    function let(SenderInterface $sender): void {
+    function let(SenderInterface $sender): void
+    {
         $this->beConstructedWith($sender);
     }
 

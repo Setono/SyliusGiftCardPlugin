@@ -10,11 +10,11 @@ use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
 use Sylius\Behat\Context\Setup\OrderContext;
 use Sylius\Behat\Context\Ui\Shop\Checkout\CheckoutCompleteContext;
 use Sylius\Behat\Context\Ui\Shop\Checkout\CheckoutThankYouContext;
+use Sylius\Behat\Context\Ui\Shop\CheckoutContext as BaseCheckoutContext;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
 use Sylius\Component\Core\Repository\PaymentMethodRepositoryInterface;
 use Webmozart\Assert\Assert;
-use Sylius\Behat\Context\Ui\Shop\CheckoutContext as BaseCheckoutContext;
 
 final class CheckoutContext implements Context
 {
@@ -94,7 +94,6 @@ final class CheckoutContext implements Context
         $this->checkoutCompleteContext->iConfirmMyOrder();
         $this->checkoutThankYouContext->iShouldSeeTheThankYouPage();
     }
-
 
     /**
      * @Then The gift card with the code :code should be inactive
