@@ -1,0 +1,8 @@
+winzou_state_machine:
+    sylius_order_payment:
+        callbacks:
+            after:
+                setono_gift_card_code_assigner:
+                    on: ["pay"]
+                    do: ["@setono_sylius_gift_card_plugin.assigner.order_gift_card_code", "assignGiftCardCode"]
+                    args: ["object"]

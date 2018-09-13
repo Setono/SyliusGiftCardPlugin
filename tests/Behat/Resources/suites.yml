@@ -1,1 +1,4 @@
-
+imports:
+    - suites/ui/managing_gift_cards.yml
+    - suites/ui/buying_gift_card.yml
+    - suites/ui/applying_gift_card.yml

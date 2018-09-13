@@ -1,0 +1,58 @@
+{% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
+
+{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Entity\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
+
+{% set giftCardTotal = order.getAdjustmentsTotal(giftCardAdjustment) %}
+
+<tr>
+    <th colspan="4" class="right aligned" id="subtotal">
+        {{ 'sylius.ui.subtotal'|trans }}: {{ money.format(order.itemsTotal, order.currencyCode) }}
+    </th>
+</tr>
+<tr>
+    {% include '@SyliusShop/Common/Order/Table/_shipping.html.twig' with {'order': order} %}
+</tr>
+<tr>
+    <td colspan="4" class="right aligned" id="tax-total">
+        {{ 'sylius.ui.tax_total'|trans }}: {{ money.format(order.taxTotal, order.currencyCode) }}
+    </td>
+</tr>
+<tr>
+    {% include '@SyliusShop/Common/Order/Table/_promotion.html.twig' with {'order': order} %}
+</tr>
+{% if giftCardTotal %}
+    {% set giftCardAdjustments = order.getAdjustments(giftCardAdjustment) %}
+    <tr>
+        {% if giftCardAdjustments is not empty %}
+            <td colspan="2" id="gift-card-codes">
+                <div class="ui relaxed divided list">
+                    {% for giftCardAdjustment in giftCardAdjustments %}
+                        <div class="item">
+                            <div class="content">
+                                <span class="header">{{ giftCardAdjustment.label }} ({{ giftCardAdjustment.originCode }})</span>
+                                <div class="description">
+                                    {{ money.format(giftCardAdjustment.amount, order.currencyCode) }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </td>
+        {% endif %}
+        <td colspan="{% if not giftCardAdjustments is empty %}2{% else %}4{% endif %}" class="right aligned" id="setono-cart-gift-card-total">
+            {{ 'setono_sylius_gift_card_plugin.ui.gift_card_total'|trans }}: {{ money.format(giftCardTotal, order.currencyCode) }}
+        </td>
+    </tr>
+{% endif %}
+<tr>
+    <td colspan="4" class="right aligned" style="font-size: 1.5em;" id="total">
+        {{ 'sylius.ui.total'|trans }}: {{ money.format(order.total, order.currencyCode) }}
+    </td>
+</tr>
+{% if order.currencyCode is not same as(sylius.currencyCode) %}
+<tr>
+    <td colspan="4" class="right aligned" id="base-total">
+        {{ 'sylius.ui.total_in_base_currency'|trans }}: {{ money.format(order.total, order.currencyCode) }}
+    </td>
+</tr>
+{% endif %}

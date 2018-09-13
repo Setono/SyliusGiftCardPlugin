@@ -19,3 +19,18 @@ setono_sylius_gift_card_plugin_admin_product_create_gift_card:
                     form: SyliusAdminBundle:Product:_form.html.twig
                 route:
                     name: setono_sylius_gift_card_plugin_admin_product_create_gift_card
+
+setono_sylius_gift_card_plugin_shop_ajax_gift_card_add:
+    path: /ajax/cart/gift-card/add
+    methods: [POST]
+    defaults:
+        _controller: setono_sylius_gift_card_plugin.controller.action.add_gift_card_to_order
+        _format: json
+
+setono_sylius_gift_card_plugin_shop_search_gift_card:
+    path: /{_locale}/gift-card/search
+    methods: [GET]
+    defaults:
+        _controller: setono_sylius_gift_card_plugin.controller.action.search_gift_card
+    requirements:
+        _locale: ^[a-z]{2}(?:_[A-Z]{2})?$

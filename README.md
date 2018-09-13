@@ -1,83 +1,100 @@
-<p align="center">
-    <a href="https://sylius.com" target="_blank">
-        <img src="https://demo.sylius.com/assets/shop/img/logo.png" />
-    </a>
-</p>
-
-<h1 align="center">Plugin Skeleton</h1>
-
-<p align="center">Skeleton for starting Sylius plugins.</p>
-
 ## Installation
 
-1. Run `composer create-project sylius/plugin-skeleton ProjectName`.
-
-2. From the plugin skeleton root directory, run the following commands:
+1. Require plugin with composer:
 
     ```bash
-    $ (cd tests/Application && yarn install)
-    $ (cd tests/Application && yarn run gulp)
-    $ (cd tests/Application && bin/console assets:install web -e test)
-    
-    $ (cd tests/Application && bin/console doctrine:database:create -e test)
-    $ (cd tests/Application && bin/console doctrine:schema:create -e test)
+    composer require setono/gift-card-plugin
     ```
 
-## Usage
+2. Import configuration:
 
-### Running plugin tests
+    ```yaml
+    imports:
+        - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/config.yml" }
+    ```
+3. Import routing:
+   
+    ```yaml
+    setono_sylius_gift_card_plugin:
+        resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routing.yml"
+    ```
 
-  - PHPUnit
+4. Add plugin class to your `AppKernel`:
+
+    ```php
+    $bundles = [
+        new \Setono\SyliusGiftCardPlugin\SetonoSyliusGiftCardPlugin(),
+    ];
+    ```
+5. Update your database:
 
     ```bash
-    $ bin/phpunit
+    $ bin/console doctrine:migrations:diff
+    $ bin/console doctrine:migrations:migrate
     ```
 
-  - PHPSpec
+6. Copy templates from `vendor/setono/gift-card-plugin/src/Resources/views/SyliusShopBundle/` 
+   to `app/Resources/SyliusShopBundle/views/` and  `vendor/setono/gift-card-plugin/src/Resources/views/SyliusAdminBundle/` to `app/Resources/SyliusAdminBundle/views/`.
+   
+7. Overwrite the grid `sylius_admin_product`:
+
+    ```yml
+    sylius_grid:
+        grids:
+            sylius_admin_product:
+                actions:
+                    main:
+                        create:
+                            type: links
+                            label: sylius.ui.create
+                            options:
+                                class: primary
+                                icon: plus
+                                header:
+                                    icon: cube
+                                    label: sylius.ui.type
+                                links:
+                                    simple:
+                                        label: sylius.ui.simple_product
+                                        icon: plus
+                                        route: sylius_admin_product_create_simple
+                                    configurable:
+                                        label: sylius.ui.configurable_product
+                                        icon: plus
+                                        route: sylius_admin_product_create
+                                    gift_card:
+                                        label: setono_sylius_gift_card_plugin.ui.gift_card
+                                        icon: plus
+                                        route: setono_sylius_gift_card_plugin_admin_product_create_gift_card
+    ```
+
+8. Install assets:
 
     ```bash
-    $ bin/phpspec run
+    bin/console assets:install --symlink web
     ```
 
-  - Behat (non-JS scenarios)
+9. Clear cache:
 
     ```bash
-    $ bin/behat --tags="~@javascript"
-    ```
-
-  - Behat (JS scenarios)
- 
-    1. Download [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/)
-    
-    2. Run Selenium server with previously downloaded Chromedriver:
-    
-        ```bash
-        $ bin/selenium-server-standalone -Dwebdriver.chrome.driver=chromedriver
-        ```
-    3. Run test application's webserver on `localhost:8080`:
-    
-        ```bash
-        $ (cd tests/Application && bin/console server:run 127.0.0.1:8080 -d web -e test)
-        ```
-    
-    4. Run Behat:
-    
-        ```bash
-        $ bin/behat --tags="@javascript"
-        ```
-
-### Opening Sylius with your plugin
-
-- Using `test` environment:
-
-    ```bash
-    $ (cd tests/Application && bin/console sylius:fixtures:load -e test)
-    $ (cd tests/Application && bin/console server:run -d web -e test)
+    bin/console cache:clear
     ```
     
-- Using `dev` environment:
+## Testing
 
-    ```bash
-    $ (cd tests/Application && bin/console sylius:fixtures:load -e dev)
-    $ (cd tests/Application && bin/console server:run -d web -e dev)
-    ```
+```bash
+$ composer install
+$ cd tests/Application
+$ yarn install
+$ yarn run gulp
+$ bin/console assets:install web -e test
+$ bin/console doctrine:database:create -e test
+$ bin/console doctrine:schema:create -e test
+$ bin/console server:run 127.0.0.1:8080 -d web -e test
+$ bin/behat
+$ bin/phpspec run
+```
+
+## Contribution
+
+Learn more about our contribution workflow on http://docs.sylius.org/en/latest/contributing/.

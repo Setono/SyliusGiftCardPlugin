@@ -1,0 +1,15 @@
+setono_sylius_gift_card_plugin:
+    ui:
+        gift_card: Gift card
+        no_gift_card: No gift card applied
+        gift_card_total: Gift card total
+        apply_gift_card: Apply gift card
+        your_gift_card_will_only_be_charged_if_you_complete_your_order: Your gift card will only be charged if you complete your order
+        gift_card_code_is_invalid: Gift card code is invalid
+        enter_gift_card_code: Enter gift card code
+        gift_card_code: Gift card code
+        gift_card_search: Gift card search
+    email:
+        your_gift_card: Your gift card
+        balance: Balance
+        your_gift_cards_you_bought_in_the_order: Your gift cards you bought in the order
