@@ -30,13 +30,13 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
 
     /** @var GiftCardOrderEmailManagerInterface */
     private $giftCardOrderEmailManager;
-    
+
     /** @var EntityManagerInterface|EntityManager */
     private $giftCardEntityManager;
-    
+
     public function __construct(
-        GiftCardCodeFactoryInterface $giftCardCodeFactory, 
-        GiftCardCodeGeneratorInterface $giftCardCodeGenerator, 
+        GiftCardCodeFactoryInterface $giftCardCodeFactory,
+        GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         GiftCardProductResolverInterface $giftCardProductResolver,
         GiftCardRepositoryInterface $giftCardRepository,
         GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager,
@@ -61,7 +61,7 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
             if (true === $this->giftCardProductResolver->isGiftCardProduct($product)) {
                 $giftCard = $this->giftCardRepository->findOneByProduct($product);
 
-                for ($i = 0; $i < $orderItem->getQuantity(); $i++) {
+                for ($i = 0; $i < $orderItem->getQuantity(); ++$i) {
                     $giftCardCode = $this->giftCardCodeFactory->createWithGiftCardAndOrderItem($giftCard, $orderItem);
 
                     $giftCardCode->setAmount($orderItem->getUnitPrice());

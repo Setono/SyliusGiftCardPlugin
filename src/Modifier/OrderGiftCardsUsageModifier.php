@@ -14,10 +14,10 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
 {
     /** @var GiftCardCodeRepositoryInterface */
     private $giftCardCodeRepository;
-    
+
     /** @var EntityManagerInterface|EntityManager */
     private $giftCardCodeEntityManager;
-    
+
     public function __construct(GiftCardCodeRepositoryInterface $giftCardCodeRepository, EntityManagerInterface $giftCardCodeEntityManager)
     {
         $this->giftCardCodeRepository = $giftCardCodeRepository;
@@ -28,7 +28,7 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
     {
         foreach ($order->getAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT) as $adjustment) {
             $code = $adjustment->getOriginCode();
-            
+
             $giftCardCode = $this->giftCardCodeRepository->findOneByCode($code);
 
             $amount = abs($adjustment->getAmount());
@@ -37,7 +37,7 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
                 $giftCardCode->setIsActive(false);
                 $giftCardCode->setAmount(0);
             }
-            
+
             if ($amount < $giftCardCode->getAmount()) {
                 $giftCardCode->setIsActive(true);
 
@@ -45,7 +45,7 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
             }
 
             $giftCardCode->addUsedInOrder($order);
-            
+
             $this->giftCardCodeEntityManager->flush($giftCardCode);
         }
     }

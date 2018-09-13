@@ -37,7 +37,6 @@ final class ProductTypeExtension extends AbstractTypeExtension
                     $product = $event->getData();
 
                     if (null !== $product->getId()) {
-
                         return;
                     }
 
