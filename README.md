@@ -1,3 +1,21 @@
+<h1 align="center">
+    <a href="https://packagist.org/packages/setono/sylius-gift-card-plugin" title="License" target="_blank">
+        <img src="https://img.shields.io/packagist/l/setono/sylius-gift-card-plugin.svg" />
+    </a>
+    <a href="https://packagist.org/packages/setono/sylius-gift-card-plugin" title="Version" target="_blank">
+        <img src="https://img.shields.io/packagist/v/setono/sylius-gift-card-plugin.svg" />
+    </a>
+    <a href="http://travis-ci.org/Setono/SyliusGiftCardPlugin" title="Build status" target="_blank">
+            <img src="https://img.shields.io/travis/Setono/SyliusGiftCardPlugin/master.svg" />
+        </a>
+    <a href="https://scrutinizer-ci.com/g/Setono/SyliusGiftCardPlugin" title="Scrutinizer" target="_blank">
+        <img src="https://img.shields.io/scrutinizer/g/Setono/SyliusGiftCardPlugin.svg" />
+    </a>
+    <a href="https://packagist.org/packages/setono/sylius-gift-card-plugin" title="Total Downloads" target="_blank">
+        <img src="https://poser.pugx.org/setono/sylius-gift-card-plugin/downloads" />
+    </a>
+</h1>
+
 ## Installation
 
 1. Require plugin with composer:
