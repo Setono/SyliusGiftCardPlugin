@@ -43,6 +43,11 @@
         "bin-dir": "bin",
         "sort-packages": true
     },
+    "scripts": {
+        "check-style": "./bin/ecs check src",
+        "fix-style": "./bin/ecs check src --fix",
+        "analyse": "./bin/phpstan.phar analyse -c phpstan.neon -l max src/"
+    },
     "extra": {
         "branch-alias": {
             "dev-master": "1.0-dev"
