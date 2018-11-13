@@ -78,7 +78,7 @@ final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
         $giftCardCode->setCode('fehfekf')->shouldBeCalledTimes(2);
         $giftCardCode->setIsActive(true)->shouldBeCalledTimes(2);
         $giftCardEntityManager->persist($giftCardCode)->shouldBeCalledTimes(2);
-        $giftCardEntityManager->flush($giftCardCode)->shouldBeCalledTimes(2);
+        $giftCardEntityManager->flush()->shouldBeCalledTimes(2);
         $giftCardOrderEmailManager->sendEmailWithGiftCardCodes($order, [$giftCardCode, $giftCardCode])->shouldBeCalled();
 
         $this->assignGiftCardCode($order);
