@@ -27,7 +27,6 @@ final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
     function let(
         GiftCardCodeFactoryInterface $giftCardCodeFactory,
         GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
-        GiftCardProductResolverInterface $giftCardProductResolver,
         GiftCardRepositoryInterface $giftCardRepository,
         GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager,
         EntityManagerInterface $giftCardEntityManager
@@ -35,7 +34,6 @@ final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
         $this->beConstructedWith(
             $giftCardCodeFactory,
             $giftCardCodeGenerator,
-            $giftCardProductResolver,
             $giftCardRepository,
             $giftCardOrderEmailManager,
             $giftCardEntityManager
@@ -56,7 +54,6 @@ final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
         OrderInterface $order,
         OrderItemInterface $orderItem,
         ProductInterface $product,
-        GiftCardProductResolverInterface $giftCardProductResolver,
         GiftCardRepositoryInterface $giftCardRepository,
         GiftCardInterface $giftCard,
         GiftCardCodeFactoryInterface $giftCardCodeFactory,
@@ -73,7 +70,6 @@ final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
         $orderItem->getUnitPrice()->willReturn(100);
         $order->getItems()->willReturn(new ArrayCollection([$orderItem->getWrappedObject()]));
         $order->getChannel()->willReturn($channel);
-        $giftCardProductResolver->isGiftCardProduct($product)->willReturn(true);
         $giftCardRepository->findOneByProduct($product)->willReturn($giftCard);
         $giftCardCodeFactory->createWithGiftCardAndOrderItem($giftCard, $orderItem)->willReturn($giftCardCode);
 
