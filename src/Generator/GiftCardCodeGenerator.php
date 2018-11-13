@@ -21,6 +21,11 @@ final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
         $this->codeLength = $codeLength;
     }
 
+    /**
+     * @return string
+     *
+     * @throws \Exception
+     */
     public function generate(): string
     {
         Assert::nullOrRange($this->codeLength, 1, 40, 'Invalid %d code length should be between %d and %d');

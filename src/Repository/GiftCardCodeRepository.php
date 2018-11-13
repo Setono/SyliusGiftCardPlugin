@@ -10,6 +10,14 @@ use Sylius\Component\Order\Model\OrderInterface;
 
 final class GiftCardCodeRepository extends EntityRepository implements GiftCardCodeRepositoryInterface
 {
+    /**
+     * @param string $code
+     * @param string $channelCode
+     *
+     * @return GiftCardCodeInterface|null
+     *
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
     public function findOneActiveByCodeAndChannelCode(string $code, string $channelCode): ?GiftCardCodeInterface
     {
         return $this->createQueryBuilder('o')
@@ -23,6 +31,13 @@ final class GiftCardCodeRepository extends EntityRepository implements GiftCardC
         ;
     }
 
+    /**
+     * @param string $code
+     *
+     * @return GiftCardCodeInterface|null
+     *
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
     public function findOneByCode(string $code): ?GiftCardCodeInterface
     {
         return $this->createQueryBuilder('o')
@@ -33,6 +48,11 @@ final class GiftCardCodeRepository extends EntityRepository implements GiftCardC
         ;
     }
 
+    /**
+     * @param OrderInterface $order
+     *
+     * @return array
+     */
     public function findAllActiveByCurrentOrder(OrderInterface $order): array
     {
         return $this->createQueryBuilder('o')

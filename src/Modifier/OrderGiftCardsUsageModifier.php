@@ -24,12 +24,22 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
         $this->giftCardCodeEntityManager = $giftCardCodeEntityManager;
     }
 
+    /**
+     * @param OrderInterface $order
+     *
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
     public function increment(OrderInterface $order): void
     {
         foreach ($order->getAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT) as $adjustment) {
             $code = $adjustment->getOriginCode();
 
             $giftCardCode = $this->giftCardCodeRepository->findOneByCode($code);
+
+            if (null === $giftCardCode) {
+                continue;
+            }
 
             $amount = abs($adjustment->getAmount());
 
@@ -41,7 +51,7 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
             if ($amount < $giftCardCode->getAmount()) {
                 $giftCardCode->setIsActive(true);
 
-                $giftCardCode->setAmount(($giftCardCode->getAmount() - $amount));
+                $giftCardCode->setAmount($giftCardCode->getAmount() - $amount);
             }
 
             $giftCardCode->addUsedInOrder($order);
@@ -50,12 +60,22 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
         }
     }
 
+    /**
+     * @param OrderInterface $order
+     *
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
     public function decrement(OrderInterface $order): void
     {
         foreach ($order->getAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT) as $adjustment) {
             $code = $adjustment->getOriginCode();
 
             $giftCardCode = $this->giftCardCodeRepository->findOneByCode($code);
+
+            if (null === $giftCardCode) {
+                continue;
+            }
 
             $giftCardCode->setAmount($giftCardCode->getAmount() + abs($adjustment->getAmount()));
 

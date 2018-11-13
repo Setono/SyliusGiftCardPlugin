@@ -3,11 +3,11 @@
 
     $.fn.extend({
         addGiftCardToCart: function () {
-            var element = $(this);
-            var redirectUrl = $(element).data('redirect');
-            var csrfToken = $(element).data('csrf-token');
-            var inputElement = $('.gift-card input');
-            var validationElement = $('#setono-cart-validation-error');
+            let element = $(this);
+            let redirectUrl = $(element).data('redirect');
+            let csrfToken = $(element).data('csrf-token');
+            let inputElement = $('.gift-card input');
+            let validationElement = $('#setono-cart-validation-error');
 
             $(inputElement).on('keypress',function(e) {
                 if (e.keyCode === 13) {
@@ -28,7 +28,7 @@
 
                     return settings;
                 },
-                onSuccess: function (response) {
+                onSuccess: function () {
                     validationElement.addClass('hidden');
                     window.location.replace(redirectUrl);
                 },

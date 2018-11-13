@@ -54,7 +54,7 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
             $adjustment = $this->adjustmentFactory->createWithData(
                 AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT,
                 null !== $orderItem ? $orderItem->getProductName() : AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT,
-                (-1 * $amount)
+                -1 * $amount
             );
 
             $adjustment->setOriginCode($giftCardCode->getCode());

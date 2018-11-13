@@ -22,9 +22,6 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
     /** @var GiftCardCodeGeneratorInterface */
     private $giftCardCodeGenerator;
 
-    /** @var GiftCardProductResolverInterface */
-    private $giftCardProductResolver;
-
     /** @var GiftCardRepositoryInterface */
     private $giftCardRepository;
 
@@ -37,19 +34,23 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
     public function __construct(
         GiftCardCodeFactoryInterface $giftCardCodeFactory,
         GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
-        GiftCardProductResolverInterface $giftCardProductResolver,
         GiftCardRepositoryInterface $giftCardRepository,
         GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager,
         EntityManagerInterface $giftCardEntityManager
     ) {
         $this->giftCardCodeFactory = $giftCardCodeFactory;
         $this->giftCardCodeGenerator = $giftCardCodeGenerator;
-        $this->giftCardProductResolver = $giftCardProductResolver;
         $this->giftCardRepository = $giftCardRepository;
         $this->giftCardOrderEmailManager = $giftCardOrderEmailManager;
         $this->giftCardEntityManager = $giftCardEntityManager;
     }
 
+    /**
+     * @param OrderInterface $order
+     *
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
     public function assignGiftCardCode(OrderInterface $order): void
     {
         $giftCardCodes = [];
@@ -58,26 +59,32 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
         foreach ($order->getItems() as $orderItem) {
             $product = $orderItem->getProduct();
 
-            if (true === $this->giftCardProductResolver->isGiftCardProduct($product)) {
-                $giftCard = $this->giftCardRepository->findOneByProduct($product);
+            if (null === $product) {
+                continue;
+            }
 
-                for ($i = 0; $i < $orderItem->getQuantity(); ++$i) {
-                    $giftCardCode = $this->giftCardCodeFactory->createWithGiftCardAndOrderItem($giftCard, $orderItem);
+            $giftCard = $this->giftCardRepository->findOneByProduct($product);
 
-                    $giftCardCode->setAmount($orderItem->getUnitPrice());
-                    $giftCardCode->setChannelCode($order->getChannel()->getCode());
-                    $giftCardCode->setCode($this->giftCardCodeGenerator->generate());
-                    $giftCardCode->setIsActive(true);
+            if (null === $giftCard) {
+                continue;
+            }
 
-                    $this->giftCardEntityManager->persist($giftCardCode);
-                    $this->giftCardEntityManager->flush($giftCardCode);
+            for ($i = 0; $i < $orderItem->getQuantity(); ++$i) {
+                $giftCardCode = $this->giftCardCodeFactory->createWithGiftCardAndOrderItem($giftCard, $orderItem);
 
-                    $giftCardCodes[] = $giftCardCode;
-                }
+                $giftCardCode->setAmount($orderItem->getUnitPrice());
+                $giftCardCode->setChannelCode($order->getChannel()->getCode());
+                $giftCardCode->setCode($this->giftCardCodeGenerator->generate());
+                $giftCardCode->setIsActive(true);
+
+                $this->giftCardEntityManager->persist($giftCardCode);
+                $this->giftCardEntityManager->flush($giftCardCode);
+
+                $giftCardCodes[] = $giftCardCode;
             }
         }
 
-        if (count($giftCardCodes) > 0) {
+        if (\count($giftCardCodes) > 0) {
             $this->giftCardOrderEmailManager->sendEmailWithGiftCardCodes($order, $giftCardCodes);
         }
     }

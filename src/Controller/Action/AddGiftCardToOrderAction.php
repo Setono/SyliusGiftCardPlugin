@@ -67,6 +67,14 @@ final class AddGiftCardToOrderAction
         $this->giftCardCodeEntityManager = $giftCardCodeEntityManager;
     }
 
+    /**
+     * @param Request $request
+     *
+     * @return Response
+     *
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
     public function __invoke(Request $request): Response
     {
         /** @var OrderInterface $order */
@@ -78,6 +86,10 @@ final class AddGiftCardToOrderAction
 
         if (!$this->isCsrfTokenValid((string) $order->getId(), $request->request->get('_csrf_token'))) {
             throw new HttpException(Response::HTTP_FORBIDDEN, 'Invalid csrf token.');
+        }
+
+        if (null === $order->getChannel()) {
+            throw new NotFoundHttpException('The channel was not found on the order');
         }
 
         $giftCardCode = $this->giftCardCodeRepository->findOneActiveByCodeAndChannelCode(
