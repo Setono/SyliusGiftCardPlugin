@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Assigner;
 
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManagerInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
-use Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolverInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 
@@ -28,7 +26,7 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
     /** @var GiftCardOrderEmailManagerInterface */
     private $giftCardOrderEmailManager;
 
-    /** @var EntityManagerInterface|EntityManager */
+    /** @var EntityManagerInterface */
     private $giftCardEntityManager;
 
     public function __construct(
@@ -47,13 +45,14 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
 
     /**
      * @param OrderInterface $order
-     *
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function assignGiftCardCode(OrderInterface $order): void
     {
         $giftCardCodes = [];
+
+        if (null === $order->getChannel()) {
+            return;
+        }
 
         /** @var OrderItemInterface $orderItem */
         foreach ($order->getItems() as $orderItem) {
@@ -78,7 +77,7 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
                 $giftCardCode->setIsActive(true);
 
                 $this->giftCardEntityManager->persist($giftCardCode);
-                $this->giftCardEntityManager->flush($giftCardCode);
+                $this->giftCardEntityManager->flush();
 
                 $giftCardCodes[] = $giftCardCode;
             }

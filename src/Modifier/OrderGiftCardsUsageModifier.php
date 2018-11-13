@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Modifier;
 
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Setono\SyliusGiftCardPlugin\Entity\AdjustmentInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
@@ -15,7 +14,7 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
     /** @var GiftCardCodeRepositoryInterface */
     private $giftCardCodeRepository;
 
-    /** @var EntityManagerInterface|EntityManager */
+    /** @var EntityManagerInterface */
     private $giftCardCodeEntityManager;
 
     public function __construct(GiftCardCodeRepositoryInterface $giftCardCodeRepository, EntityManagerInterface $giftCardCodeEntityManager)
@@ -26,9 +25,6 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
 
     /**
      * @param OrderInterface $order
-     *
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function increment(OrderInterface $order): void
     {
@@ -56,15 +52,12 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
 
             $giftCardCode->addUsedInOrder($order);
 
-            $this->giftCardCodeEntityManager->flush($giftCardCode);
+            $this->giftCardCodeEntityManager->flush();
         }
     }
 
     /**
      * @param OrderInterface $order
-     *
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function decrement(OrderInterface $order): void
     {
@@ -85,7 +78,7 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
 
             $giftCardCode->removeUsedInOrder($order);
 
-            $this->giftCardCodeEntityManager->flush($giftCardCode);
+            $this->giftCardCodeEntityManager->flush();
         }
     }
 }

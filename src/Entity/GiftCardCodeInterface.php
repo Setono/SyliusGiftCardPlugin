@@ -19,7 +19,7 @@ interface GiftCardCodeInterface extends ResourceInterface
 
     public function setCode(?string $code): void;
 
-    public function getGiftCard(): GiftCardInterface;
+    public function getGiftCard(): ?GiftCardInterface;
 
     public function setGiftCard(?GiftCardInterface $giftCard): void;
 

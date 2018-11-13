@@ -68,7 +68,7 @@ class GiftCardCode implements GiftCardCodeInterface
         $this->code = $code;
     }
 
-    public function getGiftCard(): GiftCardInterface
+    public function getGiftCard(): ?GiftCardInterface
     {
         return $this->giftCard;
     }

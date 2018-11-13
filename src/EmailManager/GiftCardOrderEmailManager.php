@@ -19,6 +19,10 @@ final class GiftCardOrderEmailManager implements GiftCardOrderEmailManagerInterf
 
     public function sendEmailWithGiftCardCodes(OrderInterface $order, array $giftCardCodes): void
     {
+        if (null === $order->getCustomer() || null === $order->getCustomer()->getEmail()) {
+            return;
+        }
+
         $email = $order->getCustomer()->getEmail();
 
         $this->sender->send(

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandlerInterface;
@@ -44,7 +43,7 @@ final class AddGiftCardToOrderAction
     /** @var FlashBagInterface */
     private $flashBag;
 
-    /** @var EntityManagerInterface|EntityManager */
+    /** @var EntityManagerInterface */
     private $giftCardCodeEntityManager;
 
     public function __construct(
@@ -71,13 +70,10 @@ final class AddGiftCardToOrderAction
      * @param Request $request
      *
      * @return Response
-     *
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function __invoke(Request $request): Response
     {
-        /** @var OrderInterface $order */
+        /** @var OrderInterface|null $order */
         $order = $this->cartContext->getCart();
 
         if (null === $order) {
@@ -105,11 +101,11 @@ final class AddGiftCardToOrderAction
 
         $giftCardCode->setCurrentOrder($order);
 
-        $this->giftCardCodeEntityManager->flush($giftCardCode);
+        $this->giftCardCodeEntityManager->flush();
 
         $this->orderProcessor->process($order);
 
-        $this->giftCardCodeEntityManager->flush($order);
+        $this->giftCardCodeEntityManager->flush();
 
         $this->flashBag->add('success', 'sylius.cart.save');
 
