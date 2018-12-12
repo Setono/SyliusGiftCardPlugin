@@ -21,7 +21,7 @@
 1. Require plugin with composer:
 
     ```bash
-    composer require setono/gift-card-plugin
+    composer require setono/sylius-gift-card-plugin
     ```
 
 2. Import configuration:
