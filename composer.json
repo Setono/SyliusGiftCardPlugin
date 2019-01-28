@@ -1,7 +1,7 @@
 {
     "name": "setono/sylius-gift-card-plugin",
     "type": "sylius-plugin",
-    "description": "Gift Card Plugin for Sylius.",
+    "description": "Gift Card Plugin for Sylius",
     "license": "MIT",
     "require": {
         "php": "^7.2",
@@ -26,7 +26,23 @@
         "phpstan/phpstan-symfony": "^0.10",
         "phpstan/phpstan-webmozart-assert": "^0.10",
         "phpunit/phpunit": "^6.5",
-        "sylius-labs/coding-standard": "^2.0"
+        "roave/security-advisories": "dev-master",
+        "sensiolabs/security-checker": "^5.0",
+        "sylius-labs/coding-standard": "^2.0",
+        "symfony/browser-kit": "^3.4|^4.1",
+        "symfony/debug-bundle": "^3.4|^4.1",
+        "symfony/dotenv": "^3.4|^4.1",
+        "symfony/intl": "^3.4|^4.1",
+        "symfony/web-profiler-bundle": "^3.4|^4.1",
+        "symfony/web-server-bundle": "^3.4|^4.1",
+        "friends-of-behat/page-object-extension": "^0.2.1"
+    },
+    "conflict": {
+        "symfony/symfony": "4.1.8",
+        "symfony/browser-kit": "4.1.8",
+        "symfony/dependency-injection": "4.1.8",
+        "symfony/dom-crawler": "4.1.8",
+        "symfony/routing": "4.1.8"
     },
     "prefer-stable": true,
     "autoload": {
@@ -35,17 +51,13 @@
             "Tests\\Setono\\SyliusGiftCardPlugin\\": "tests/"
         }
     },
-    "autoload-dev": {
-        "classmap": ["tests/Application/app/AppKernel.php"]
-    },
     "config": {
-        "bin-dir": "bin",
         "sort-packages": true
     },
     "scripts": {
-        "check-style": "./bin/ecs check src",
-        "fix-style": "./bin/ecs check src --fix",
-        "analyse": "./bin/phpstan.phar analyse -c phpstan.neon -l max src/"
+        "check-style": "./vendor/bin/ecs check src",
+        "fix-style": "./vendor/bin/ecs check src --fix",
+        "analyse": "./vendor/bin/phpstan.phar analyse -c phpstan.neon -l max src/"
     },
     "extra": {
         "branch-alias": {
