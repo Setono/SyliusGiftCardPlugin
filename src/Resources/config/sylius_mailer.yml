@@ -2,4 +2,4 @@ sylius_mailer:
     emails:
         gift_card_order:
             subject: bitbag_voucher.email.your_voucher_order
-            template: "SetonoSyliusGiftCardPlugin:Email:giftCard.html.twig"
+            template: "@SetonoSyliusGiftCardPlugin/Email/giftCard.html.twig"
