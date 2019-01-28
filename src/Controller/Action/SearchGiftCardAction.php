@@ -52,7 +52,7 @@ final class SearchGiftCardAction
         $view = View::create();
 
         $view
-            ->setTemplate('SetonoSyliusGiftCardPlugin:Shop:giftCardSearch.html.twig')
+            ->setTemplate('@SetonoSyliusGiftCardPlugin/Shop/giftCardSearch.html.twig')
             ->setData([
                 'giftCardCode' => $giftCardCode,
                 'channelGiftCardCode' => $channelGiftCardCode,
