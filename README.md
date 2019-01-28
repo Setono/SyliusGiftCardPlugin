@@ -46,9 +46,10 @@ $ bin/console doctrine:migrations:migrate
 ### Copy templates
 Copy templates from
 
-`vendor/setono/gift-card-plugin/src/Resources/views/SyliusShopBundle/` to `app/Resources/SyliusShopBundle/views/`
+
+`vendor/setono/sylius-gift-card-plugin/tests/Application/templates/bundles/SyliusShopBundle/` to `templates/bundles/SyliusShopBundle/`
    
-and from `vendor/setono/gift-card-plugin/src/Resources/views/SyliusAdminBundle/` to `app/Resources/SyliusAdminBundle/views/`.
+and from `vendor/setono/sylius-gift-card-plugin/tests/Application/templates/bundles/SyliusAdminBundle/` to `templates/bundles/SyliusAdminBundle/`.
    
 ### Overwrite the grid `sylius_admin_product`:
 
