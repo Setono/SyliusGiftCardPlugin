@@ -1,0 +1,5 @@
+imports:
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/resources.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/state_machine.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/sylius_mailer.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/services.xml" }

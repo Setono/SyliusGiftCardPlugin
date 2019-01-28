@@ -1,0 +1,3 @@
+imports:
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/state_machine/sylius_order_payment.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/state_machine/sylius_order.yaml" }
