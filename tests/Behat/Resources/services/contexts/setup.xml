@@ -6,11 +6,11 @@
 
         <service id="setono_sylius_gift_card_plugin.behat.context.setup.gift_card" class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Setup\GiftCardContext">
             <argument type="service" id="sylius.behat.shared_storage" />
-            <argument type="service" id="__symfony__.setono_sylius_gift_card_plugin.repository.gift_card" />
-            <argument type="service" id="__symfony__.setono_sylius_gift_card_plugin.factory.gift_card" />
-            <argument type="service" id="__symfony__.setono_sylius_gift_card_plugin.manager.gift_card" />
-            <argument type="service" id="__symfony__.setono_sylius_gift_card_plugin.factory.gift_card_code" />
-            <argument type="service" id="__symfony__.setono_sylius_gift_card_plugin.manager.gift_card_code" />
+            <argument type="service" id="setono_sylius_gift_card_plugin.repository.gift_card" />
+            <argument type="service" id="setono_sylius_gift_card_plugin.factory.gift_card" />
+            <argument type="service" id="setono_sylius_gift_card_plugin.manager.gift_card" />
+            <argument type="service" id="setono_sylius_gift_card_plugin.factory.gift_card_code" />
+            <argument type="service" id="setono_sylius_gift_card_plugin.manager.gift_card_code" />
             <tag name="fob.context_service" />
         </service>
     </services>

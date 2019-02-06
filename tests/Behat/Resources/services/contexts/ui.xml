@@ -8,8 +8,7 @@
             <argument type="service" id="setono_sylius_gift_card_plugin.behat.page.admin.gift_card.create" />
             <argument type="service" id="sylius.behat.current_page_resolver" />
             <argument type="service" id="sylius.behat.page.admin.product.index" />
-            <argument type="service" id="__symfony__.setono_sylius_gift_card_plugin.resolver.gift_card" />
-            <tag name="fob.context_service" />
+            <argument type="service" id="setono_sylius_gift_card_plugin.resolver.gift_card" />
         </service>
 
         <service id="setono_sylius_gift_card_plugin.behat.context.ui.shop.checkout" class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Shop\CheckoutContext">
@@ -17,25 +16,22 @@
             <argument type="service" id="sylius.behat.context.setup.order" />
             <argument type="service" id="sylius.behat.context.ui.shop.checkout.thank_you" />
             <argument type="service" id="sylius.behat.context.ui.shop.checkout" />
-            <argument type="service" id="__symfony__.sylius.repository.order" />
-            <argument type="service" id="__symfony__.setono_sylius_gift_card_plugin.repository.gift_card_code" />
-            <argument type="service" id="__symfony__.setono_sylius_gift_card_plugin.manager.gift_card_code" />
-            <argument type="service" id="__symfony__.sylius.repository.payment_method" />
-            <tag name="fob.context_service" />
+            <argument type="service" id="sylius.repository.order" />
+            <argument type="service" id="setono_sylius_gift_card_plugin.repository.gift_card_code" />
+            <argument type="service" id="setono_sylius_gift_card_plugin.manager.gift_card_code" />
+            <argument type="service" id="sylius.repository.payment_method" />
         </service>
 
         <service id="setono_sylius_gift_card_plugin.behat.context.ui.email" class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\EmailContext">
             <argument type="service" id="sylius.behat.shared_storage" />
-            <argument type="service" id="__symfony__.sylius.behat.email_checker" />
-            <argument type="service" id="__symfony__.sylius.repository.order" />
-            <argument type="service" id="__symfony__.setono_sylius_gift_card_plugin.repository.gift_card_code" />
-            <argument type="service" id="__symfony__.setono_sylius_gift_card_plugin.resolver.gift_card" />
-            <tag name="fob.context_service" />
+            <argument type="service" id="sylius.behat.email_checker" />
+            <argument type="service" id="sylius.repository.order" />
+            <argument type="service" id="setono_sylius_gift_card_plugin.repository.gift_card_code" />
+            <argument type="service" id="setono_sylius_gift_card_plugin.resolver.gift_card" />
         </service>
 
         <service id="setono_sylius_gift_card_plugin.behat.context.ui.shop.cart" class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Shop\CartContext">
             <argument type="service" id="setono_sylius_gift_card_plugin.behat.page.shop.cart.cart_summary" />
-            <tag name="fob.context_service" />
         </service>
     </services>
 </container>
