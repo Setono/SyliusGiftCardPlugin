@@ -30,22 +30,23 @@ final class ProductTypeExtension extends AbstractTypeExtension
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        if (true === $options['is_gift_card']) {
-            $builder
-                ->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event): void {
-                    /** @var ProductInterface $product */
-                    $product = $event->getData();
-
-                    if (null !== $product->getId()) {
-                        return;
-                    }
-
-                    $giftCard = $this->giftCardFactory->createWithProduct($product);
-
-                    $this->giftCardEntityManager->persist($giftCard);
-                })
-            ;
+        if (false === $options['is_gift_card']) {
+            return;
         }
+
+        /** @var ProductInterface $product */
+        $product = $builder->getData();
+        $product->getVariants()->first()->setShippingRequired(false);
+
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function () use ($product): void {
+            if (null !== $product->getId()) {
+                return;
+            }
+
+            $giftCard = $this->giftCardFactory->createWithProduct($product);
+
+            $this->giftCardEntityManager->persist($giftCard);
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
