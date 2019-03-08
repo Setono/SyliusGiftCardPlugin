@@ -1,7 +1,7 @@
 default:
     suites:
         ui_buying_gift_card:
-            contexts_services:
+            contexts:
                 - sylius.behat.context.hook.doctrine_orm
                 - sylius.behat.context.hook.email_spool
 

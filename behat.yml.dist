@@ -1,14 +1,15 @@
 imports:
-    - vendor/sylius/sylius/behat.yml.dist
+    - vendor/sylius/sylius/src/Sylius/Behat/Resources/config/suites.yml
     - tests/Behat/Resources/suites.yml
 
 default:
-    extensions:
-        FriendsOfBehat\ContextServiceExtension:
-            imports:
-                - vendor/sylius/sylius/src/Sylius/Behat/Resources/config/services.xml
-                - tests/Behat/Resources/services.xml
+    formatters:
+        pretty:
+            verbose: true
+            paths: false
+            snippets: false
 
+    extensions:
         FriendsOfBehat\SymfonyExtension:
             env_file: tests/Application/.env.test
             kernel:
