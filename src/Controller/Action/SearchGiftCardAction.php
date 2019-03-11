@@ -42,7 +42,7 @@ final class SearchGiftCardAction
 
         if (null !== $code) {
             /** @var GiftCardCodeInterface $giftCardCode */
-            $giftCardCode = $this->giftCardCodeRepository->findOneBy(['code' => $code, 'isActive' => true]);
+            $giftCardCode = $this->giftCardCodeRepository->findOneBy(['code' => $code, 'active' => true]);
         }
 
         if (null !== $giftCardCode) {

@@ -39,7 +39,7 @@ final class OrderGiftCardCodeOperatorSpec extends ObjectBehavior
     ): void {
         $order->getItems()->willReturn(new ArrayCollection([$orderItem]));
         $giftCardCodeRepository->findBy(['orderItem' => $orderItem])->willReturn([$giftCardCode]);
-        $giftCardCode->setIsActive(false)->shouldBeCalledOnce();
+        $giftCardCode->setActive(false)->shouldBeCalledOnce();
 
         $this->cancel($order);
     }

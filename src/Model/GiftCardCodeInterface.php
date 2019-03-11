@@ -29,7 +29,7 @@ interface GiftCardCodeInterface extends ResourceInterface
 
     public function isActive(): bool;
 
-    public function setIsActive(bool $isActive): void;
+    public function setActive(bool $active): void;
 
     public function getChannelCode(): ?string;
 

@@ -23,7 +23,7 @@ final class GiftCardCodeRepository extends EntityRepository implements GiftCardC
         return $this->createQueryBuilder('o')
             ->where('o.code = :code')
             ->andWhere('o.channelCode = :channelCode')
-            ->andWhere('o.isActive = true')
+            ->andWhere('o.active = true')
             ->setParameter('code', $code)
             ->setParameter('channelCode', $channelCode)
             ->getQuery()
@@ -57,7 +57,7 @@ final class GiftCardCodeRepository extends EntityRepository implements GiftCardC
     {
         return $this->createQueryBuilder('o')
             ->where('o.currentOrder = :order')
-            ->andWhere('o.isActive = true')
+            ->andWhere('o.active = true')
             ->setParameter('order', $order)
             ->getQuery()
             ->getResult()

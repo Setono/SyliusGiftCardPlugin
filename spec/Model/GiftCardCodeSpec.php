@@ -47,7 +47,7 @@ class GiftCardCodeSpec extends ObjectBehavior
         $this->getGiftCard()->shouldReturn($giftCard);
 
         $this->isActive()->shouldReturn(false);
-        $this->setIsActive(true);
+        $this->setActive(true);
         $this->isActive()->shouldReturn(true);
 
         $this->setAmount(100);

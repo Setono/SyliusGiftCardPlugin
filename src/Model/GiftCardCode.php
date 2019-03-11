@@ -30,7 +30,7 @@ class GiftCardCode implements GiftCardCodeInterface
     protected $giftCard;
 
     /** @var bool */
-    protected $isActive = false;
+    protected $active = false;
 
     /** @var int */
     protected $amount = 0;
@@ -90,12 +90,12 @@ class GiftCardCode implements GiftCardCodeInterface
 
     public function isActive(): bool
     {
-        return $this->isActive;
+        return $this->active;
     }
 
-    public function setIsActive(bool $isActive): void
+    public function setActive(bool $active): void
     {
-        $this->isActive = $isActive;
+        $this->active = $active;
     }
 
     public function getChannelCode(): ?string

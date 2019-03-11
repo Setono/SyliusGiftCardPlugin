@@ -40,12 +40,12 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
             $amount = abs($adjustment->getAmount());
 
             if ($amount >= $giftCardCode->getAmount()) {
-                $giftCardCode->setIsActive(false);
+                $giftCardCode->setActive(false);
                 $giftCardCode->setAmount(0);
             }
 
             if ($amount < $giftCardCode->getAmount()) {
-                $giftCardCode->setIsActive(true);
+                $giftCardCode->setActive(true);
 
                 $giftCardCode->setAmount($giftCardCode->getAmount() - $amount);
             }
@@ -73,7 +73,7 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
             $giftCardCode->setAmount($giftCardCode->getAmount() + abs($adjustment->getAmount()));
 
             if ($giftCardCode->getAmount() > 0) {
-                $giftCardCode->setIsActive(true);
+                $giftCardCode->setActive(true);
             }
 
             $giftCardCode->removeUsedInOrder($order);

@@ -81,7 +81,7 @@ final class GiftCardContext implements Context
         /** @var GiftCardCodeInterface $giftCardCode */
         $giftCardCode = $this->giftCardCodeFactory->createNew();
 
-        $giftCardCode->setIsActive(true);
+        $giftCardCode->setActive(true);
         $giftCardCode->setAmount($channelPricing->getPrice());
         $giftCardCode->setCode($code);
         $giftCardCode->setGiftCard($giftCard);

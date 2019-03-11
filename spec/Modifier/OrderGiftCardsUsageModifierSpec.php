@@ -50,10 +50,10 @@ final class OrderGiftCardsUsageModifierSpec extends ObjectBehavior
         $giftCardCodeRepository->findOneByCode('code2')->willReturn($secondGiftCardCode);
 
         $oneGiftCardCode->setAmount(0)->shouldBeCalled();
-        $oneGiftCardCode->setIsActive(false)->shouldBeCalled();
+        $oneGiftCardCode->setActive(false)->shouldBeCalled();
         $oneGiftCardCode->addUsedInOrder($order)->shouldBeCalled();
         $secondGiftCardCode->setAmount(50)->shouldBeCalled();
-        $secondGiftCardCode->setIsActive(true)->shouldBeCalled();
+        $secondGiftCardCode->setActive(true)->shouldBeCalled();
         $secondGiftCardCode->addUsedInOrder($order)->shouldBeCalled();
 
         $this->increment($order);
@@ -78,10 +78,10 @@ final class OrderGiftCardsUsageModifierSpec extends ObjectBehavior
         $giftCardCodeRepository->findOneByCode('code2')->willReturn($secondGiftCardCode);
 
         $oneGiftCardCode->setAmount(150)->shouldBeCalled();
-        $oneGiftCardCode->setIsActive(true)->shouldBeCalled();
+        $oneGiftCardCode->setActive(true)->shouldBeCalled();
         $oneGiftCardCode->removeUsedInOrder($order)->shouldBeCalled();
         $secondGiftCardCode->setAmount(100)->shouldBeCalled();
-        $secondGiftCardCode->setIsActive(true)->shouldBeCalled();
+        $secondGiftCardCode->setActive(true)->shouldBeCalled();
         $secondGiftCardCode->removeUsedInOrder($order)->shouldBeCalled();
 
         $this->decrement($order);

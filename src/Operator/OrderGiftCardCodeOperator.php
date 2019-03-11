@@ -30,7 +30,7 @@ final class OrderGiftCardCodeOperator implements OrderGiftCardCodeOperatorInterf
             $giftCardCodes = $this->giftCardCodeRepository->findBy(['orderItem' => $orderItem]);
 
             foreach ($giftCardCodes as $giftCardCode) {
-                $giftCardCode->setIsActive(false);
+                $giftCardCode->setActive(false);
             }
         }
 

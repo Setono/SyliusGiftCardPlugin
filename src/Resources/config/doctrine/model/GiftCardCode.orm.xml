@@ -6,7 +6,7 @@
         </id>
 
         <field name="code" column="code" unique="true"/>
-        <field name="isActive" column="is_active" type="boolean" />
+        <field name="active" column="active" type="boolean" />
         <field name="amount" column="amount" type="integer" />
         <field name="channelCode" column="channel_code" />
 

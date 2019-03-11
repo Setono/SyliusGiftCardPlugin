@@ -74,7 +74,7 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
                 $giftCardCode->setAmount($orderItem->getUnitPrice());
                 $giftCardCode->setChannelCode($order->getChannel()->getCode());
                 $giftCardCode->setCode($this->giftCardCodeGenerator->generate());
-                $giftCardCode->setIsActive(true);
+                $giftCardCode->setActive(true);
 
                 $this->giftCardEntityManager->persist($giftCardCode);
                 $this->giftCardEntityManager->flush();
