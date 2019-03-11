@@ -34,7 +34,7 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
         }
 
         /** @var GiftCardCodeInterface[] $giftCardCodes */
-        $giftCardCodes = $this->giftCardCodeRepository->findAllActiveByCurrentOrder($order);
+        $giftCardCodes = $this->giftCardCodeRepository->findActiveByCurrentOrder($order);
 
         $order->removeAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT);
 

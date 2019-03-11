@@ -53,7 +53,7 @@ final class GiftCardCodeRepository extends EntityRepository implements GiftCardC
      *
      * @return array
      */
-    public function findAllActiveByCurrentOrder(OrderInterface $order): array
+    public function findActiveByCurrentOrder(OrderInterface $order): array
     {
         return $this->createQueryBuilder('o')
             ->where('o.currentOrder = :order')

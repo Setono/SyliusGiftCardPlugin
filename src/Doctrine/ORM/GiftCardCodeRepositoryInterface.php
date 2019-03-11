@@ -14,5 +14,5 @@ interface GiftCardCodeRepositoryInterface extends RepositoryInterface
 
     public function findOneByCode(string $code): ?GiftCardCodeInterface;
 
-    public function findAllActiveByCurrentOrder(OrderInterface $order): array;
+    public function findActiveByCurrentOrder(OrderInterface $order): array;
 }

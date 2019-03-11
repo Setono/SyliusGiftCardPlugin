@@ -50,7 +50,7 @@ final class OrderGiftCardProcessorSpec extends ObjectBehavior
         $secondGiftCardCode->getOrderItem()->willReturn($orderItem);
         $order->getId()->willReturn(1);
         $order->getTotal()->willReturn(100);
-        $giftCardCodeRepository->findAllActiveByCurrentOrder($order)->willReturn([$oneGiftCardCode, $secondGiftCardCode]);
+        $giftCardCodeRepository->findActiveByCurrentOrder($order)->willReturn([$oneGiftCardCode, $secondGiftCardCode]);
         $adjustmentFactory->createWithData(
             AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT,
             'Gift card',
