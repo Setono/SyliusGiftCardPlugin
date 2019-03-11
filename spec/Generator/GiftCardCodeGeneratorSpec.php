@@ -28,7 +28,7 @@ final class GiftCardCodeGeneratorSpec extends ObjectBehavior
         $this->shouldHaveType(GiftCardCodeGeneratorInterface::class);
     }
 
-    function it_generates(RepositoryInterface $giftCardCodeRepository, GiftCardCodeInterface $giftCardCode): void
+    function it_generates(RepositoryInterface $giftCardCodeRepository): void
     {
         $giftCardCodeRepository->findOneBy(Argument::type('array'))->willReturn(null);
 

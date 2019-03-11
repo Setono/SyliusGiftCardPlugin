@@ -9,36 +9,42 @@ use Webmozart\Assert\Assert;
 
 final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
 {
-    /** @var RepositoryInterface */
+    /**
+     * @var RepositoryInterface
+     */
     private $giftCardCodeRepository;
 
-    /** @var int */
-    private $codeLength;
-
-    public function __construct(RepositoryInterface $giftCardCodeRepository, int $codeLength = 9)
+    public function __construct(RepositoryInterface $giftCardCodeRepository)
     {
         $this->giftCardCodeRepository = $giftCardCodeRepository;
-        $this->codeLength = $codeLength;
     }
 
     /**
+     * @param int $codeLength
+     *
      * @return string
      *
+     * @throws \InvalidArgumentException
      * @throws \Exception
      */
-    public function generate(): string
+    public function generate(int $codeLength = self::DEFAULT_CODE_LENGTH): string
     {
-        Assert::nullOrRange($this->codeLength, 1, 40, 'Invalid %d code length should be between %d and %d');
+        Assert::range($codeLength, 1, 40, 'Invalid %d code length. Should be between %d and %d');
 
         do {
             $hash = bin2hex(random_bytes(20));
-            $code = strtoupper(substr($hash, 0, $this->codeLength));
-        } while ($this->isUsedCode($code));
+            $code = strtoupper(substr($hash, 0, $codeLength));
+        } while ($this->isCodeUsed($code));
 
         return $code;
     }
 
-    private function isUsedCode(string $code): bool
+    /**
+     * @param string $code
+     *
+     * @return bool
+     */
+    private function isCodeUsed(string $code): bool
     {
         return null !== $this->giftCardCodeRepository->findOneBy(['code' => $code]);
     }
