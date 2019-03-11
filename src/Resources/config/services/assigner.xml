@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <defaults public="true" />
+
+        <service id="setono_sylius_gift_card.assigner.order_gift_card_code"
+                 class="Setono\SyliusGiftCardPlugin\Assigner\OrderGiftCardCodeAssigner">
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_code" />
+            <argument type="service" id="setono_sylius_gift_card.generator.gift_card_code" />
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card" />
+            <argument type="service" id="setono_sylius_gift_card.email_manager.gift_card_order" />
+            <argument type="service" id="setono_sylius_gift_card.manager.gift_card_code" />
+        </service>
+
+    </services>
+
+</container>

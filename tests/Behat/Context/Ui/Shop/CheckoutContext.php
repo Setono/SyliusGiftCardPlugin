@@ -6,7 +6,7 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Doctrine\ORM\EntityManagerInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
 use Sylius\Behat\Context\Setup\OrderContext;
 use Sylius\Behat\Context\Ui\Shop\Checkout\CheckoutCompleteContext;
 use Sylius\Behat\Context\Ui\Shop\Checkout\CheckoutThankYouContext;

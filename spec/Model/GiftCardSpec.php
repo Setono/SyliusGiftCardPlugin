@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace spec\Setono\SyliusGiftCardPlugin\Entity;
+namespace spec\Setono\SyliusGiftCardPlugin\Model;
 
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCard;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCard;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Resource\Model\ResourceInterface;
 

@@ -6,10 +6,10 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Setup;
 
 use Behat\Behat\Context\Context;
 use Doctrine\ORM\EntityManagerInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\ChannelPricingInterface;
@@ -57,7 +57,7 @@ final class GiftCardContext implements Context
      */
     public function thisProductIsAGiftCard(ProductInterface $product): void
     {
-        $giftCard = $this->giftCardFactory->createWithProduct($product);
+        $giftCard = $this->giftCardFactory->createForProduct($product);
 
         $this->giftCardRepository->add($giftCard);
     }

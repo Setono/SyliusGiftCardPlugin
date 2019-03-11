@@ -11,11 +11,11 @@ use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Assigner\OrderGiftCardCodeAssigner;
 use Setono\SyliusGiftCardPlugin\Assigner\OrderGiftCardCodeAssignerInterface;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManagerInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolverInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -71,7 +71,7 @@ final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
         $order->getItems()->willReturn(new ArrayCollection([$orderItem->getWrappedObject()]));
         $order->getChannel()->willReturn($channel);
         $giftCardRepository->findOneByProduct($product)->willReturn($giftCard);
-        $giftCardCodeFactory->createWithGiftCardAndOrderItem($giftCard, $orderItem)->willReturn($giftCardCode);
+        $giftCardCodeFactory->createForGiftCardAndOrderItem($giftCard, $orderItem)->willReturn($giftCardCode);
 
         $giftCardCode->setAmount(100)->shouldBeCalledTimes(2);
         $giftCardCode->setChannelCode('WEB')->shouldBeCalledTimes(2);

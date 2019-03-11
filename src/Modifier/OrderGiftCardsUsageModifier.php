@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Modifier;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Setono\SyliusGiftCardPlugin\Entity\AdjustmentInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 
 final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierInterface

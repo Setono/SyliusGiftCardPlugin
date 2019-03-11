@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace spec\Setono\SyliusGiftCardPlugin\Resolver;
 
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolver;
 use Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolverInterface;
 use Sylius\Component\Core\Model\ProductInterface;

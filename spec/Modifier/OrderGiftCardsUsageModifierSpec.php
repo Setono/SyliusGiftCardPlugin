@@ -7,11 +7,11 @@ namespace spec\Setono\SyliusGiftCardPlugin\Modifier;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\Entity\AdjustmentInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardsUsageModifier;
 use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardsUsageModifierInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 
 final class OrderGiftCardsUsageModifierSpec extends ObjectBehavior

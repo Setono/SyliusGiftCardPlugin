@@ -4,15 +4,21 @@
          xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/5.6/phpunit.xsd"
          backupGlobals="false"
          colors="true"
-         bootstrap="vendor/autoload.php">
+         bootstrap="tests/Application/config/bootstrap.php">
+
     <testsuites>
-        <testsuite name="AcmeSyliusExamplePlugin Test Suite">
+        <testsuite name="SetonoSyliusGiftCardPlugin Test Suite">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
 
     <php>
-        <server name="KERNEL_CLASS_PATH" value="/tests/Application/AppKernel.php" />
+        <ini name="error_reporting" value="-1" />
+
+        <env name="APP_ENV" value="test"/>
+        <env name="SHELL_VERBOSITY" value="-1" />
+
+        <server name="KERNEL_CLASS" value="Tests\Setono\SyliusGiftCardPlugin\Application\Kernel" />
         <server name="IS_DOCTRINE_ORM_SUPPORTED" value="true" />
     </php>
 </phpunit>

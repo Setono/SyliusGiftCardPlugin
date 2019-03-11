@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Resolver;
 
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\ProductInterface;
 
 final class GiftCardProductResolver implements GiftCardProductResolverInterface

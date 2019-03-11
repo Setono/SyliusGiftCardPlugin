@@ -7,7 +7,7 @@ namespace spec\Setono\SyliusGiftCardPlugin\EmailManager;
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManager;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManagerInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;

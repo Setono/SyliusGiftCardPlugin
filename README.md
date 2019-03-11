@@ -17,14 +17,14 @@ $ composer require setono/sylius-gift-card-plugin
 
 ```yaml
 imports:
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/config.yml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
 ```
 
 ### Import routing:
    
 ```yaml
 setono_sylius_gift_card:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routing.yml"
+    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml"
 ```
 
 ### Add plugin class to your `bundles.php`:
@@ -32,7 +32,8 @@ setono_sylius_gift_card:
 ```php
 <?php
 $bundles = [
-    new \Setono\SyliusGiftCardPlugin\SetonoSyliusGiftCardPlugin(),
+    // ...
+    Setono\SyliusGiftCardPlugin\SetonoSyliusGiftCardPlugin::class => ['all' => true],
 ];
 ```
 
@@ -78,9 +79,9 @@ sylius_grid:
                                     icon: plus
                                     route: sylius_admin_product_create
                                 gift_card:
-                                    label: setono_sylius_gift_card_plugin.ui.gift_card
+                                    label: setono_sylius_gift_card.ui.gift_card
                                     icon: plus
-                                    route: setono_sylius_gift_card_plugin_admin_product_create_gift_card
+                                    route: setono_sylius_gift_card_admin_product_create_gift_card
 ```
 
 ### Install assets:

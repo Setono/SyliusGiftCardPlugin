@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Assigner;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManagerInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 
@@ -69,7 +69,7 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
             }
 
             for ($i = 0; $i < $orderItem->getQuantity(); ++$i) {
-                $giftCardCode = $this->giftCardCodeFactory->createWithGiftCardAndOrderItem($giftCard, $orderItem);
+                $giftCardCode = $this->giftCardCodeFactory->createForGiftCardAndOrderItem($giftCard, $orderItem);
 
                 $giftCardCode->setAmount($orderItem->getUnitPrice());
                 $giftCardCode->setChannelCode($order->getChannel()->getCode());

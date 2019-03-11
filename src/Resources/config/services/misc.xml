@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <defaults public="false" />
+
+        <service id="setono_sylius_gift_card.generator.gift_card_code"
+                 class="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_code" />
+        </service>
+
+        <service id="setono_sylius_gift_card.resolver.gift_card"
+                 class="Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolver">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card" />
+        </service>
+
+        <service id="setono_sylius_gift_card.email_manager.gift_card_order"
+                 class="Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManager">
+            <argument type="service" id="sylius.email_sender" />
+        </service>
+
+        <service id="setono_sylius_gift_card.order_processing.order_gift_card"
+                 class="Setono\SyliusGiftCardPlugin\OrderProcessing\OrderGiftCardProcessor">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_code" />
+            <argument type="service" id="sylius.custom_factory.adjustment" />
+            <tag name="sylius.order_processor" priority="0"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.modifier.order_gift_card_usage"
+                 class="Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardsUsageModifier"
+                 public="true">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_code" />
+            <argument type="service" id="setono_sylius_gift_card.manager.gift_card_code" />
+        </service>
+
+        <service id="setono_sylius_gift_card.operator.gift_card_code"
+                 class="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardCodeOperator">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_code" />
+            <argument type="service" id="setono_sylius_gift_card.manager.gift_card_code" />
+        </service>
+    </services>
+
+</container>

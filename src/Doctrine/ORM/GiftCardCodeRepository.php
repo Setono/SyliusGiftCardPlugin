@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\Repository;
+namespace Setono\SyliusGiftCardPlugin\Doctrine\ORM;
 
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Order\Model\OrderInterface;
 

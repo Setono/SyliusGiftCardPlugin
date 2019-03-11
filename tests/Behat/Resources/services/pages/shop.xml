@@ -4,6 +4,6 @@
     <services>
         <defaults public="true" />
 
-        <service id="setono_sylius_gift_card_plugin.behat.page.shop.cart.cart_summary" class="Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Shop\Cart\SummaryPage" parent="sylius.behat.page.shop.cart_summary" public="false" />
+        <service id="setono_sylius_gift_card.behat.page.shop.cart.cart_summary" class="Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Shop\Cart\SummaryPage" parent="sylius.behat.page.shop.cart_summary" public="false" />
     </services>
 </container>

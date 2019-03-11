@@ -1,16 +1,16 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
 
-    <mapped-superclass name="Setono\SyliusGiftCardPlugin\Entity\GiftCardCode" table="setono_gift_card_code">
+    <mapped-superclass name="Setono\SyliusGiftCardPlugin\Model\GiftCardCode" table="setono_gift_card_code">
         <id name="id" column="id" type="integer">
             <generator strategy="AUTO" />
         </id>
 
-        <field name="code" column="code" type="string" unique="true"/>
+        <field name="code" column="code" unique="true"/>
         <field name="isActive" column="is_active" type="boolean" />
         <field name="amount" column="amount" type="integer" />
-        <field name="channelCode" column="channel_code" length="3" type="string" />
+        <field name="channelCode" column="channel_code" />
 
-        <many-to-one field="giftCard" target-entity="Setono\SyliusGiftCardPlugin\Entity\GiftCardInterface" inversed-by="giftCardCodes">
+        <many-to-one field="giftCard" target-entity="Setono\SyliusGiftCardPlugin\Model\GiftCardInterface" inversed-by="giftCardCodes">
             <join-column name="gift_card_id" referenced-column-name="id" nullable="true" />
         </many-to-one>
 

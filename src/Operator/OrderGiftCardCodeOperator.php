@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Operator;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 
 final class OrderGiftCardCodeOperator implements OrderGiftCardCodeOperatorInterface

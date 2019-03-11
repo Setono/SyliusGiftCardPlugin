@@ -5,7 +5,7 @@ imports:
     - { resource: "@SyliusAdminApiBundle/Resources/config/app/config.yml" }
 
     - { resource: "@SyliusShopBundle/Resources/config/app/config.yml" }
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/config.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
 
 parameters:
     sylius_core.public_dir: '%kernel.project_dir%/public'
@@ -38,6 +38,6 @@ sylius_grid:
                                     icon: plus
                                     route: sylius_admin_product_create
                                 gift_card:
-                                    label: setono_sylius_gift_card_plugin.ui.gift_card
+                                    label: setono_sylius_gift_card.ui.gift_card
                                     icon: plus
-                                    route: setono_sylius_gift_card_plugin_admin_product_create_gift_card
+                                    route: setono_sylius_gift_card_admin_product_create_gift_card

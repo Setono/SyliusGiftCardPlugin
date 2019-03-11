@@ -43,6 +43,6 @@ default:
                 - sylius.behat.context.ui.admin.notification
                 - sylius.behat.context.ui.shop.locale
 
-                - setono_sylius_gift_card_plugin.behat.context.ui.admin.managing_gift_cards
+                - setono_sylius_gift_card.behat.context.ui.admin.managing_gift_cards
             filters:
                 tags: "@managing_gift_cards && @ui"

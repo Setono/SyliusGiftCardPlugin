@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\Entity;
+namespace Setono\SyliusGiftCardPlugin\Model;
 
 use Sylius\Component\Order\Model\AdjustmentInterface as BaseAdjustmentInterface;
 

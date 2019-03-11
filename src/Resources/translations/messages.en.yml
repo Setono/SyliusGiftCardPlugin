@@ -1,4 +1,4 @@
-setono_sylius_gift_card_plugin:
+setono_sylius_gift_card:
     ui:
         gift_card: Gift card
         no_gift_card: No gift card applied

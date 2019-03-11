@@ -10,7 +10,6 @@ use Sylius\Bundle\ProductBundle\Form\Type\ProductType;
 use Sylius\Component\Core\Model\ProductInterface;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -43,7 +42,7 @@ final class ProductTypeExtension extends AbstractTypeExtension
                 return;
             }
 
-            $giftCard = $this->giftCardFactory->createWithProduct($product);
+            $giftCard = $this->giftCardFactory->createForProduct($product);
 
             $this->giftCardEntityManager->persist($giftCard);
         });
@@ -54,8 +53,10 @@ final class ProductTypeExtension extends AbstractTypeExtension
         $resolver->setDefault('is_gift_card', false);
     }
 
-    public function getExtendedType(): string
+    public static function getExtendedTypes(): iterable
     {
-        return ProductType::class;
+        return [
+            ProductType::class,
+        ];
     }
 }

@@ -1,3 +1,9 @@
 imports:
     - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/state_machine/sylius_order_payment.yaml" }
     - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/state_machine/sylius_order.yaml" }
+
+sylius_mailer:
+    emails:
+        gift_card_order:
+            subject: bitbag_voucher.email.your_voucher_order
+            template: "@SetonoSyliusGiftCardPlugin/Email/giftCard.html.twig"

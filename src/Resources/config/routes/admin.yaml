@@ -1,0 +1,21 @@
+setono_sylius_gift_card_admin_product_create_gift_card:
+    path: /products/new/gift-card
+    methods: [GET, POST]
+    defaults:
+        _controller: sylius.controller.product:createAction
+        _sylius:
+            section: admin
+            permission: true
+            factory:
+                method: createWithVariant
+            template: SyliusAdminBundle:Crud:create.html.twig
+            redirect: sylius_admin_product_update
+            form:
+                options:
+                    is_gift_card: true
+            vars:
+                subheader: sylius.ui.manage_your_product_catalog
+                templates:
+                    form: SyliusAdminBundle:Product:_form.html.twig
+                route:
+                    name: setono_sylius_gift_card_admin_product_create_gift_card

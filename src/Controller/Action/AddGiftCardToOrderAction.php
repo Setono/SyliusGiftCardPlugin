@@ -7,7 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandlerInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
@@ -94,7 +94,7 @@ final class AddGiftCardToOrderAction
         );
 
         if (null === $giftCardCode) {
-            $message = $this->translator->trans('setono_sylius_gift_card_plugin.ui.gift_card_code_is_invalid');
+            $message = $this->translator->trans('setono_sylius_gift_card.ui.gift_card_code_is_invalid');
 
             return $this->viewHandler->handle(View::create(['error' => $message], Response::HTTP_BAD_REQUEST));
         }

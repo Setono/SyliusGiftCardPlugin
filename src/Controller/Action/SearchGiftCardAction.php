@@ -6,8 +6,8 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandlerInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

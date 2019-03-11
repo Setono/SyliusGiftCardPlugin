@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui;
 
 use Behat\Behat\Context\Context;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepository;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepository;
 use Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolverInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\OrderInterface;
