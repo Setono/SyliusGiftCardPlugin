@@ -16,13 +16,16 @@ $ composer require setono/sylius-gift-card-plugin
 ### Import configuration:
 
 ```yaml
+# config/packages/_sylius.yaml
 imports:
+    # ...
     - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
 ```
 
 ### Import routing:
    
 ```yaml
+# config/routes.yaml
 setono_sylius_gift_card:
     resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml"
 ```
@@ -45,14 +48,35 @@ $ bin/console doctrine:migrations:migrate
 ```
 
 ### Copy templates
-Copy templates from
 
+- For `SyliusShopBundle`:
 
-`vendor/setono/sylius-gift-card-plugin/tests/Application/templates/bundles/SyliusShopBundle/` to `templates/bundles/SyliusShopBundle/`
-   
-and from `vendor/setono/sylius-gift-card-plugin/tests/Application/templates/bundles/SyliusAdminBundle/` to `templates/bundles/SyliusAdminBundle/`.
-   
-### Overwrite the grid `sylius_admin_product`:
+    ```bash
+    mkdir -p templates/bundles/SyliusShopBundle
+    cp -r vendor/setono/sylius-gift-card-plugin/tests/Application/templates/bundles/SyliusShopBundle/ \
+       templates/bundles/SyliusShopBundle/
+    ```
+
+- For `SyliusAdminBundle`:
+
+    ```bash
+    mkdir -p templates/bundles/SyliusAdminBundle
+    cp -r vendor/setono/sylius-gift-card-plugin/tests/Application/templates/bundles/SyliusAdminBundle/ \
+       templates/bundles/SyliusAdminBundle/
+    ```   
+
+### Override the grid `sylius_admin_product`:
+
+- If you haven't override it in your app before - you can just import
+  ready-to-go grid configuration:
+
+    ```yaml
+    # config/packages/_sylius.yaml
+    imports:
+        - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/grids/sylius_admin_product.yaml" }
+    ```
+
+- But if you override it before - make sure you have next changes in place:
 
 ```yaml
 sylius_grid:
@@ -78,6 +102,8 @@ sylius_grid:
                                     label: sylius.ui.configurable_product
                                     icon: plus
                                     route: sylius_admin_product_create
+
+                                # This is what should be added:
                                 gift_card:
                                     label: setono_sylius_gift_card.ui.gift_card
                                     icon: plus
@@ -96,24 +122,27 @@ $ php bin/console assets:install --symlink web
 $ php bin/console cache:clear
 ```
     
+# Development
+
 ## Testing
 
 ```bash
-$ composer install
-$ cd tests/Application
-$ yarn install
-$ yarn run gulp
-$ bin/console assets:install web -e test
-$ bin/console doctrine:database:create -e test
-$ bin/console doctrine:schema:create -e test
-$ bin/console server:run 127.0.0.1:8080 -d web -e test
-$ bin/behat
-$ bin/phpspec run
+$ composer tests
+```
+
+## Playing
+
+To run built-in application showing plugin at work, just run:  
+
+```bash
+$ composer try
 ```
 
 ## Contribution
 
 Learn more about our contribution workflow on http://docs.sylius.org/en/latest/contributing/.
+
+Please, run `composer all` to run all checks and tests before making pull request.
 
 [ico-version]: https://img.shields.io/packagist/v/setono/sylius-gift-card-plugin.svg?style=flat-square
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
