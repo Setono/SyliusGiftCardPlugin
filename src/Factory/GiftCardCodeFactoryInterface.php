@@ -13,6 +13,12 @@ interface GiftCardCodeFactoryInterface extends FactoryInterface
 {
     /**
      * @param GiftCardInterface $giftCard
+     * @return GiftCardCodeInterface
+     */
+    public function createForGiftCard(GiftCardInterface $giftCard): GiftCardCodeInterface;
+
+    /**
+     * @param GiftCardInterface $giftCard
      * @param OrderItemInterface $orderItem
      *
      * @return GiftCardCodeInterface

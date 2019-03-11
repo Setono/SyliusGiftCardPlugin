@@ -35,11 +35,22 @@ final class GiftCardCodeFactory implements GiftCardCodeFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function createForGiftCardAndOrderItem(GiftCardInterface $giftCard, OrderItemInterface $orderItem): GiftCardCodeInterface
+    public function createForGiftCard(GiftCardInterface $giftCard): GiftCardCodeInterface
     {
         $giftCardCode = $this->createNew();
 
         $giftCardCode->setGiftCard($giftCard);
+
+        return $giftCardCode;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createForGiftCardAndOrderItem(GiftCardInterface $giftCard, OrderItemInterface $orderItem): GiftCardCodeInterface
+    {
+        $giftCardCode = $this->createForGiftCard($giftCard);
+
         $giftCardCode->setOrderItem($orderItem);
 
         return $giftCardCode;
