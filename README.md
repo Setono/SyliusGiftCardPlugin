@@ -22,6 +22,20 @@ imports:
     - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
 ```
 
+### (Optional) Import fixtures 
+
+If you wish to have some gift cards to play with in your application 
+during development.
+
+```yaml
+# config/packages/_sylius.yaml
+imports:
+    # ...
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
+```
+
+Or write your own ones.
+
 ### Import routing:
    
 ```yaml

@@ -1,0 +1,213 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Setono\SyliusGiftCardPlugin\Fixture\Factory;
+
+use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Sylius\Bundle\CoreBundle\Fixture\Factory\AbstractExampleFactory;
+use Sylius\Bundle\CoreBundle\Fixture\OptionsResolver\LazyOption;
+use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\ChannelPricingInterface;
+use Sylius\Component\Core\Model\ProductInterface;
+use Sylius\Component\Core\Model\ProductVariantInterface;
+use Sylius\Component\Core\Repository\ProductRepositoryInterface;
+use Sylius\Component\Product\Generator\ProductVariantGeneratorInterface;
+use Sylius\Component\Product\Model\ProductOptionInterface;
+use Sylius\Component\Product\Model\ProductOptionValueInterface;
+use Sylius\Component\Product\Repository\ProductOptionRepositoryInterface;
+use Sylius\Component\Resource\Factory\FactoryInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Webmozart\Assert\Assert;
+
+final class GiftCardExampleFactory extends AbstractExampleFactory
+{
+    /** @var \Faker\Generator */
+    private $faker;
+
+    /** @var OptionsResolver */
+    private $optionsResolver;
+
+    /** @var ChannelRepositoryInterface */
+    protected $channelRepository;
+
+    /** @var ProductRepositoryInterface */
+    protected $productRepository;
+
+    /** @var ProductOptionRepositoryInterface */
+    protected $productOptionRepository;
+
+    /** @var FactoryInterface */
+    protected $channelPricingFactory;
+
+    /** @var GiftCardFactoryInterface */
+    protected $giftCardFactory;
+
+    /** @var GiftCardCodeFactoryInterface */
+    protected $giftCardCodeFactory;
+
+    /** @var GiftCardCodeGeneratorInterface */
+    protected $giftCardCodeGenerator;
+
+    /** @var ProductVariantGeneratorInterface */
+    protected $productVariantGenerator;
+
+    public function __construct(
+        ChannelRepositoryInterface $channelRepository,
+        ProductRepositoryInterface $productRepository,
+        ProductOptionRepositoryInterface $productOptionRepository,
+        FactoryInterface $channelPricingFactory,
+        GiftCardFactoryInterface $giftCardFactory,
+        GiftCardCodeFactoryInterface $giftCardCodeFactory,
+        GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
+        ProductVariantGeneratorInterface $productVariantGenerator
+    ) {
+        $this->channelRepository = $channelRepository;
+        $this->productRepository = $productRepository;
+        $this->productOptionRepository = $productOptionRepository;
+        $this->channelPricingFactory = $channelPricingFactory;
+        $this->giftCardFactory = $giftCardFactory;
+        $this->giftCardCodeFactory = $giftCardCodeFactory;
+        $this->giftCardCodeGenerator = $giftCardCodeGenerator;
+        $this->productVariantGenerator = $productVariantGenerator;
+
+        $this->faker = \Faker\Factory::create();
+        $this->optionsResolver = new OptionsResolver();
+        $this->configureOptions($this->optionsResolver);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver
+            ->setRequired('product')
+            ->setAllowedTypes('product', ['string', ProductInterface::class])
+            ->setNormalizer('product', LazyOption::findOneBy($this->productRepository, 'code'))
+
+            ->setDefined('amount_product_option')
+            ->setAllowedTypes('amount_product_option', ['null', 'string', ProductOptionInterface::class])
+            ->setNormalizer('amount_product_option', LazyOption::findOneBy($this->productOptionRepository, 'code'))
+
+            ->setDefault('channels', LazyOption::all($this->channelRepository))
+            ->setAllowedTypes('channels', 'array')
+            ->setNormalizer('channels', LazyOption::findBy($this->channelRepository, 'code'))
+
+            ->setDefined('amount')
+            ->setRequired('amount')
+            ->setAllowedTypes('amount', ['null', 'numeric'])
+
+            ->setRequired('codes')
+            ->setAllowedTypes('codes', 'numeric')
+        ;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function create(array $options = []): GiftCardInterface
+    {
+        $options = $this->optionsResolver->resolve($options);
+
+        /** @var ProductInterface $product */
+        $product = $options['product'];
+
+        /** @var GiftCardInterface $giftCard */
+        $giftCard = $this->giftCardFactory->createForProduct($product);
+
+        if (!$product->isSimple()) {
+            Assert::isInstanceOf($options['amount_product_option'], ProductOptionInterface::class, sprintf(
+                'You should specify valid ProductOption code at amount_product_option option for not simple GiftCard Product %s',
+                $product->getCode()
+            ));
+
+            $this->productVariantGenerator->generate($product);
+
+            /** @var ProductOptionInterface $amountProductOption */
+            $amountProductOption = $options['amount_product_option'];
+
+            /** @var ProductVariantInterface $productVariant */
+            foreach ($product->getVariants()->toArray() as $productVariant) {
+                /** @var ChannelInterface $channel */
+                $channel = $this->faker->randomElement($options['channels']);
+
+                /** @var ProductOptionValueInterface $randomProductOptionValue */
+                $randomProductOptionValue = $this->faker->randomElement($productVariant->getOptionValues()->toArray());
+                $price = 100 * (int) $randomProductOptionValue->getValue();
+
+                // @todo Set price from option value
+                $channelPricing = $productVariant->getChannelPricingForChannel($channel);
+                if (!$channelPricing instanceof ChannelPricingInterface) {
+                    /** @var ChannelPricingInterface $channelPricing */
+                    $channelPricing = $this->channelPricingFactory->createNew();
+                    $channelPricing->setProductVariant($productVariant);
+                    $channelPricing->setChannelCode($channel->getCode());
+
+                    $productVariant->addChannelPricing($channelPricing);
+                }
+                $channelPricing->setPrice($price);
+            }
+            $this->productRepository->add($product);
+        }
+
+        $this->createGiftCardCodes($giftCard, $options);
+
+        return $giftCard;
+    }
+
+    /**
+     * @param GiftCardInterface $giftCard
+     * @param array $options
+     */
+    private function createGiftCardCodes(GiftCardInterface $giftCard, array $options): void
+    {
+        $codesCount = (int) $options['codes'];
+        if ($codesCount < 1) {
+            return;
+        }
+
+        /** @var ProductInterface $product */
+        $product = $options['product'];
+
+        do {
+            $giftCardCode = $this->giftCardCodeFactory->createForGiftCard($giftCard);
+
+            /** @var ChannelInterface $channel */
+            $channel = $this->faker->randomElement($options['channels']);
+
+            if ($product->isSimple()) {
+                Assert::numeric($options['amount'], sprintf(
+                    'You should specify amount for simple GiftCard Product %s',
+                    $product->getCode()
+                ));
+
+                $giftCardCode->setAmount((int) $options['amount']);
+            } else {
+                /** @var ProductVariantInterface $randomProductVariant */
+                $randomProductVariant = $this->faker->randomElement($product->getVariants()->toArray());
+
+                $channelPricing = $randomProductVariant->getChannelPricingForChannel($channel);
+                Assert::isInstanceOf($channelPricing, ChannelPricingInterface::class, sprintf(
+                    "Unable to generate GiftCardCode based on ProductVariant %s as it haven't price for channel %s.",
+                    $randomProductVariant->getCode(),
+                    $channel->getCode()
+                ));
+
+                $giftCardCode->setAmount(
+                    $channelPricing->getPrice()
+                );
+            }
+
+            $giftCardCode->setChannelCode($channel->getCode());
+            $giftCardCode->setCode(
+                $this->giftCardCodeGenerator->generate()
+            );
+            $giftCardCode->setActive(true);
+        } while (--$codesCount > 0);
+    }
+}
