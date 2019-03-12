@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use FriendsOfBehat\PageObjectExtension\Page\SymfonyPageInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolverInterface;
 use Sylius\Behat\Page\Admin\Product\IndexPageInterface;
-use Sylius\Behat\Page\SymfonyPageInterface;
 use Sylius\Behat\Service\Resolver\CurrentPageResolverInterface;
 use Sylius\Component\Core\Model\ProductInterface;
 use Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Admin\Product\CreateGiftCardPageInterface;

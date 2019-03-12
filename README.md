@@ -146,11 +146,14 @@ $ composer tests
 
 ## Playing
 
-To run built-in application showing plugin at work, just run:  
+- To run built-in application showing plugin at work, just run:  
 
-```bash
-$ composer try
-```
+    ```bash
+    $ composer try
+    ```
+
+- Open browser on page:  
+  http://localhost:8000/admin/products/?criteria%5Bsearch%5D%5Btype%5D=contains&criteria%5Bsearch%5D%5Bvalue%5D=gift
 
 ## Contribution
 
