@@ -46,11 +46,16 @@ setono_sylius_gift_card:
 
 ### Add plugin class to your `bundles.php`:
 
+Make sure you add it before `SyliusGridBundle`, otherwise you'll get
+`You have requested a non-existent parameter "setono_sylius_gift_card.model.gift_card_code.class".` exception.
+
 ```php
 <?php
 $bundles = [
     // ...
     Setono\SyliusGiftCardPlugin\SetonoSyliusGiftCardPlugin::class => ['all' => true],
+    Sylius\Bundle\GridBundle\SyliusGridBundle::class => ['all' => true],
+    // ...
 ];
 ```
 

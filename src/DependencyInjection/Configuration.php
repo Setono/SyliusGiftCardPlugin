@@ -8,6 +8,7 @@ namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepository;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepository;
+use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardCodeType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardCode;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
@@ -84,6 +85,7 @@ final class Configuration implements ConfigurationInterface
                                         ->scalarNode('interface')->defaultValue(GiftCardCodeInterface::class)->cannotBeEmpty()->end()
                                         ->scalarNode('controller')->defaultValue(ResourceController::class)->cannotBeEmpty()->end()
                                         ->scalarNode('repository')->defaultValue(GiftCardCodeRepository::class)->cannotBeEmpty()->end()
+                                        ->scalarNode('form')->defaultValue(GiftCardCodeType::class)->end()
                                         ->scalarNode('factory')->defaultValue(Factory::class)->end()
                                     ->end()
                                 ->end()

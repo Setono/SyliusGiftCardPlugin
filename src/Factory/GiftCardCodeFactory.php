@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Factory;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 
@@ -28,6 +29,18 @@ final class GiftCardCodeFactory implements GiftCardCodeFactoryInterface
     {
         /** @var GiftCardCodeInterface $giftCardCode */
         $giftCardCode = $this->factory->createNew();
+
+        return $giftCardCode;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createForChannel(ChannelInterface $channel): GiftCardCodeInterface
+    {
+        $giftCardCode = $this->createNew();
+
+        $giftCardCode->setChannel($channel);
 
         return $giftCardCode;
     }

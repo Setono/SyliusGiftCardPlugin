@@ -1,0 +1,15 @@
+{{ form_errors(form) }}
+<div class="ui two column stackable grid">
+    <div class="column">
+        <div class="ui segment">
+            {{ form_errors(form) }}
+            {{ form_row(form.code) }}
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="ui segment">
+            {{ form_row(form.amount) }}
+        </div>
+    </div>
+</div>
