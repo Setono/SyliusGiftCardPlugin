@@ -5,6 +5,22 @@
 [![Build Status][ico-travis]][link-travis]
 [![Quality Score][ico-code-quality]][link-code-quality]
 
+## Screenshots
+
+Menu:
+
+![Screenshot showing admin menu](docs/images/admin-menu.png)
+
+Gift card admin pages:
+
+![Screenshot showing gift card admin index page](docs/images/admin-gift-card-code-index.png)
+
+![Screenshot showing gift card admin create page](docs/images/admin-gift-card-code-create.png)
+
+Products admin pages:
+
+![Screenshot showing admin product create menu options](docs/images/admin-product-menu-create-gift-card.png)
+
 ## Installation
 
 ### Require plugin with composer:
