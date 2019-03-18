@@ -88,9 +88,9 @@ final class AddGiftCardToOrderAction
             throw new NotFoundHttpException('The channel was not found on the order');
         }
 
-        $giftCardCode = $this->giftCardCodeRepository->findOneActiveByCodeAndChannelCode(
+        $giftCardCode = $this->giftCardCodeRepository->findOneActiveByCodeAndChannel(
             $request->get('code'),
-            $order->getChannel()->getCode()
+            $order->getChannel()
         );
 
         if (null === $giftCardCode) {

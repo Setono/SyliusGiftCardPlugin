@@ -8,6 +8,7 @@ use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardCode;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Resource\Model\ResourceInterface;
@@ -32,6 +33,7 @@ class GiftCardCodeSpec extends ObjectBehavior
     function it_allows_access_via_properties(
         OrderItemInterface $orderItem,
         GiftCardInterface $giftCard,
+        ChannelInterface $channel,
         OrderInterface $order
     ): void {
         $this->setOrderItem($orderItem);
@@ -53,8 +55,11 @@ class GiftCardCodeSpec extends ObjectBehavior
         $this->setAmount(100);
         $this->getAmount()->shouldReturn(100);
 
-        $this->setChannelCode('web');
-        $this->getChannelCode()->shouldReturn('web');
+        $this->setCurrencyCode('USD');
+        $this->getCurrencyCode()->shouldReturn('USD');
+
+        $this->setChannel($channel);
+        $this->getChannel()->shouldReturn($channel);
     }
 
     function it_associates_used_in_orders(OrderInterface $order): void

@@ -11,6 +11,8 @@ use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
+use Sylius\Component\Currency\Model\CurrencyInterface;
+use Webmozart\Assert\Assert;
 
 final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterface
 {
@@ -54,6 +56,10 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
             return;
         }
 
+        /** @var CurrencyInterface $currency */
+        $currency = $order->getChannel()->getBaseCurrency();
+        Assert::isInstanceOf($currency, CurrencyInterface::class, "Channel haven't base currency");
+
         /** @var OrderItemInterface $orderItem */
         foreach ($order->getItems() as $orderItem) {
             $product = $orderItem->getProduct();
@@ -72,7 +78,8 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
                 $giftCardCode = $this->giftCardCodeFactory->createForGiftCardAndOrderItem($giftCard, $orderItem);
 
                 $giftCardCode->setAmount($orderItem->getUnitPrice());
-                $giftCardCode->setChannelCode($order->getChannel()->getCode());
+                $giftCardCode->setCurrencyCode($currency->getCode());
+                $giftCardCode->setChannel($order->getChannel());
                 $giftCardCode->setCode($this->giftCardCodeGenerator->generate());
                 $giftCardCode->setActive(true);
 

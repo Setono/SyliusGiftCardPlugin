@@ -21,6 +21,7 @@ use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Core\Model\ProductInterface;
+use Sylius\Component\Currency\Model\CurrencyInterface;
 
 final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
 {
@@ -61,20 +62,29 @@ final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
         ChannelInterface $channel,
         GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         EntityManager $giftCardEntityManager,
-        GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager
+        GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager,
+        CurrencyInterface $baseCurrency
     ): void {
         $giftCardCodeGenerator->generate()->willReturn('fehfekf');
+
+        $baseCurrency->getCode()->willReturn('USD');
+
         $channel->getCode()->willReturn('WEB');
+        $channel->getBaseCurrency()->willReturn($baseCurrency);
+
         $orderItem->getProduct()->willReturn($product);
         $orderItem->getQuantity()->willReturn(2);
         $orderItem->getUnitPrice()->willReturn(100);
+
         $order->getItems()->willReturn(new ArrayCollection([$orderItem->getWrappedObject()]));
         $order->getChannel()->willReturn($channel);
+
         $giftCardRepository->findOneByProduct($product)->willReturn($giftCard);
         $giftCardCodeFactory->createForGiftCardAndOrderItem($giftCard, $orderItem)->willReturn($giftCardCode);
 
         $giftCardCode->setAmount(100)->shouldBeCalledTimes(2);
-        $giftCardCode->setChannelCode('WEB')->shouldBeCalledTimes(2);
+        $giftCardCode->setCurrencyCode('USD')->shouldBeCalledTimes(2);
+        $giftCardCode->setChannel($channel)->shouldBeCalledTimes(2);
         $giftCardCode->setCode('fehfekf')->shouldBeCalledTimes(2);
         $giftCardCode->setActive(true)->shouldBeCalledTimes(2);
         $giftCardEntityManager->persist($giftCardCode)->shouldBeCalledTimes(2);

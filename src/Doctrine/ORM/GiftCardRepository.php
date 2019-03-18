@@ -11,11 +11,7 @@ use Sylius\Component\Core\Model\ProductInterface;
 final class GiftCardRepository extends EntityRepository implements GiftCardRepositoryInterface
 {
     /**
-     * @param ProductInterface $product
-     *
-     * @return GiftCardInterface|null
-     *
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * {@inheritdoc}
      */
     public function findOneByProduct(ProductInterface $product): ?GiftCardInterface
     {

@@ -4,39 +4,39 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Doctrine\ORM;
 
+use Doctrine\ORM\QueryBuilder;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
+use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Order\Model\OrderInterface;
 
 final class GiftCardCodeRepository extends EntityRepository implements GiftCardCodeRepositoryInterface
 {
+    public function createListQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('o')
+//            ->join('o.channel', 'channel')
+            ;
+    }
+
     /**
-     * @param string $code
-     * @param string $channelCode
-     *
-     * @return GiftCardCodeInterface|null
-     *
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * {@inheritdoc}
      */
-    public function findOneActiveByCodeAndChannelCode(string $code, string $channelCode): ?GiftCardCodeInterface
+    public function findOneActiveByCodeAndChannel(string $code, ChannelInterface $channel): ?GiftCardCodeInterface
     {
         return $this->createQueryBuilder('o')
             ->where('o.code = :code')
-            ->andWhere('o.channelCode = :channelCode')
+            ->andWhere('o.channel = :channel')
             ->andWhere('o.active = true')
             ->setParameter('code', $code)
-            ->setParameter('channelCode', $channelCode)
+            ->setParameter('channel', $channel)
             ->getQuery()
             ->getOneOrNullResult()
         ;
     }
 
     /**
-     * @param string $code
-     *
-     * @return GiftCardCodeInterface|null
-     *
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * {@inheritdoc}
      */
     public function findOneByCode(string $code): ?GiftCardCodeInterface
     {
@@ -49,9 +49,7 @@ final class GiftCardCodeRepository extends EntityRepository implements GiftCardC
     }
 
     /**
-     * @param OrderInterface $order
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function findActiveByCurrentOrder(OrderInterface $order): array
     {

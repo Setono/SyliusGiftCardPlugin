@@ -2,6 +2,40 @@ sylius_fixtures:
     suites:
         default:
             fixtures:
+                currency:
+                    options:
+                        currencies: 
+                            - "EUR"
+                channel:
+                    options:
+                        custom:
+                            eu_web_store:
+                                name: "EU Web Store"
+                                code: "EU_WEB"
+                                locales:
+                                    - "%locale%"
+                                currencies:
+                                    - "EUR"
+                                enabled: true
+                                hostname: "localhost"
+                payment_method:
+                    options:
+                        custom:
+                            bank:
+                                code: "bank"
+                                name: "Bank"
+                                channels:
+                                    - "EU_WEB"
+                                enabled: true
+                shipping_method:
+                    options:
+                        custom:
+                            ukrposhta:
+                                code: "ukrposhta"
+                                name: "UkrPoshta"
+                                channels:
+                                    - "EU_WEB"
+                                enabled: true
                 taxon:
                     options:
                         custom:
@@ -32,6 +66,7 @@ sylius_fixtures:
                                 taxons: [gift_cards]
                                 channels:
                                     - US_WEB
+                                    - EU_WEB
                                 product_options: [gift_card_basic_amount]
                             product_platinum_gift_card:
                                 name: Platinum Gift Card
@@ -50,10 +85,12 @@ sylius_fixtures:
                                 # Amounts will be taken from related product option
                                 amount_product_option: gift_card_basic_amount
                                 codes: 10 # How much gift card codes should be created?
+                                codes_used: 6
                             gift_card_platinum:
                                 product: gift_card_platinum
                                 channels: 
                                     - US_WEB
+                                    - EU_WEB
                                 # Amount will be taken from `amount` option as related product is simple
                                 amount: 10000
-                                codes: 10
+                                codes: 4

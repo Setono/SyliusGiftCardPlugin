@@ -32,5 +32,6 @@ final class GiftCardFixture extends AbstractResourceFixture
         $node->scalarNode('amount_product_option')->defaultValue(null);
         $node->scalarNode('amount')->defaultValue(null);
         $node->scalarNode('codes')->defaultValue(3)->cannotBeEmpty();
+        $node->scalarNode('codes_used')->defaultValue(0)->cannotBeEmpty();
     }
 }

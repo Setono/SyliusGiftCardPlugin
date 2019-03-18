@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Fixture\Factory;
 
+use Doctrine\Common\Collections\Collection;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
@@ -16,6 +19,7 @@ use Sylius\Component\Core\Model\ChannelPricingInterface;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Model\ProductVariantInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
+use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Product\Generator\ProductVariantGeneratorInterface;
 use Sylius\Component\Product\Model\ProductOptionInterface;
 use Sylius\Component\Product\Model\ProductOptionValueInterface;
@@ -47,11 +51,17 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
     /** @var GiftCardFactoryInterface */
     protected $giftCardFactory;
 
+    /** @var GiftCardRepositoryInterface */
+    protected $giftCardRepository;
+
     /** @var GiftCardCodeFactoryInterface */
     protected $giftCardCodeFactory;
 
     /** @var GiftCardCodeGeneratorInterface */
     protected $giftCardCodeGenerator;
+
+    /** @var GiftCardCodeRepositoryInterface */
+    protected $giftCardCodeRepository;
 
     /** @var ProductVariantGeneratorInterface */
     protected $productVariantGenerator;
@@ -62,8 +72,10 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
         ProductOptionRepositoryInterface $productOptionRepository,
         FactoryInterface $channelPricingFactory,
         GiftCardFactoryInterface $giftCardFactory,
+        GiftCardRepositoryInterface $giftCardRepository,
         GiftCardCodeFactoryInterface $giftCardCodeFactory,
         GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
+        GiftCardCodeRepositoryInterface $giftCardCodeRepository,
         ProductVariantGeneratorInterface $productVariantGenerator
     ) {
         $this->channelRepository = $channelRepository;
@@ -71,8 +83,10 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
         $this->productOptionRepository = $productOptionRepository;
         $this->channelPricingFactory = $channelPricingFactory;
         $this->giftCardFactory = $giftCardFactory;
+        $this->giftCardRepository = $giftCardRepository;
         $this->giftCardCodeFactory = $giftCardCodeFactory;
         $this->giftCardCodeGenerator = $giftCardCodeGenerator;
+        $this->giftCardCodeRepository = $giftCardCodeRepository;
         $this->productVariantGenerator = $productVariantGenerator;
 
         $this->faker = \Faker\Factory::create();
@@ -104,6 +118,9 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
 
             ->setRequired('codes')
             ->setAllowedTypes('codes', 'numeric')
+
+            ->setRequired('codes_used')
+            ->setAllowedTypes('codes_used', 'numeric')
         ;
     }
 
@@ -136,8 +153,13 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
                 /** @var ChannelInterface $channel */
                 $channel = $this->faker->randomElement($options['channels']);
 
+                /** @var Collection|ProductOptionValueInterface[] $amountOptionValues */
+                $amountOptionValues = $productVariant->getOptionValues()->filter(function (ProductOptionValueInterface $productOptionValue) use ($amountProductOption) {
+                    return $productOptionValue->getOption() === $amountProductOption;
+                });
+
                 /** @var ProductOptionValueInterface $randomProductOptionValue */
-                $randomProductOptionValue = $this->faker->randomElement($productVariant->getOptionValues()->toArray());
+                $randomProductOptionValue = $this->faker->randomElement($amountOptionValues->toArray());
                 $price = 100 * (int) $randomProductOptionValue->getValue();
 
                 // @todo Set price from option value
@@ -155,6 +177,8 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
             $this->productRepository->add($product);
         }
 
+        $this->giftCardRepository->add($giftCard);
+
         $this->createGiftCardCodes($giftCard, $options);
 
         return $giftCard;
@@ -171,6 +195,8 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
             return;
         }
 
+        $codesUsedCount = (int) $options['codes_used'];
+
         /** @var ProductInterface $product */
         $product = $options['product'];
 
@@ -179,6 +205,14 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
 
             /** @var ChannelInterface $channel */
             $channel = $this->faker->randomElement($options['channels']);
+
+            $currency = $channel->getBaseCurrency();
+            if (!$currency instanceof CurrencyInterface) {
+                /** @var CurrencyInterface $randomCurrency */
+                $currency = $this->faker->randomElement(
+                    $channel->getCurrencies()->toArray()
+                );
+            }
 
             if ($product->isSimple()) {
                 Assert::numeric($options['amount'], sprintf(
@@ -203,11 +237,16 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
                 );
             }
 
-            $giftCardCode->setChannelCode($channel->getCode());
+            $giftCardCode->setChannel($channel);
             $giftCardCode->setCode(
                 $this->giftCardCodeGenerator->generate()
             );
-            $giftCardCode->setActive(true);
+            $giftCardCode->setCurrencyCode(
+                $currency->getCode()
+            );
+            $giftCardCode->setActive(--$codesUsedCount > 0);
+
+            $this->giftCardCodeRepository->add($giftCardCode);
         } while (--$codesCount > 0);
     }
 }

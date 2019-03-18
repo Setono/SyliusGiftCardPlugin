@@ -23,7 +23,7 @@
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\SearchGiftCardAction">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_code" />
             <argument type="service" id="fos_rest.view_handler.default" />
-            <argument type="service" id="sylius.repository.channel" />
+            <argument type="service" id="sylius.context.channel" />
         </service>
 
     </services>
