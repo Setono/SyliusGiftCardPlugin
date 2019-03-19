@@ -98,7 +98,109 @@ $ bin/console doctrine:migrations:migrate
     mkdir -p templates/bundles/SyliusAdminBundle
     cp -r vendor/setono/sylius-gift-card-plugin/tests/Application/templates/bundles/SyliusAdminBundle/ \
        templates/bundles/SyliusAdminBundle/
-    ```   
+    ```
+
+### Override core `Order` and `OrderRepository`
+
+- Override `Order`:
+
+  - If you use `annotations` mapping:
+
+    ```php
+    <?php
+    
+    # src/Entity/Order.php
+    
+    declare(strict_types=1);
+    
+    namespace App\Entity;
+    
+    use Setono\SyliusGiftCardPlugin\Model\OrderInterface as SetonoSyliusGiftCardPluginOrderInterface;
+    use Setono\SyliusGiftCardPlugin\Model\OrderTrait as SetonoSyliusGiftCardPluginOrderTrait;
+    use Sylius\Component\Core\Model\Order as BaseOrder;
+    use Doctrine\ORM\Mapping as ORM;
+    
+    /**
+     * @ORM\Entity
+     * @ORM\Table(name="sylius_order")
+     */
+    class Order extends BaseOrder implements SetonoSyliusGiftCardPluginOrderInterface
+    {
+        use SetonoSyliusGiftCardPluginOrderTrait;
+    }
+    ```
+    
+  - If you use `xml` mapping:
+  
+    ```php
+    <?php
+    
+    # src/Model/Order.php
+
+    declare(strict_types=1);
+    
+    namespace App\Model;
+    
+    use Setono\SyliusGiftCardPlugin\Model\OrderInterface as SetonoSyliusGiftCardPluginOrderInterface;
+    use Setono\SyliusGiftCardPlugin\Model\OrderTrait as SetonoSyliusGiftCardPluginOrderTrait;
+    use Sylius\Component\Core\Model\Order as BaseOrder;
+    
+    class Order extends BaseOrder implements SetonoSyliusGiftCardPluginOrderInterface
+    {
+        use SetonoSyliusGiftCardPluginOrderTrait;
+    }
+    ```
+    
+    ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    
+    <!-- config/doctrine/model/Order.orm.xml -->
+    
+    <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                                          http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    
+        <mapped-superclass name="App\Model\Order" table="sylius_order">
+            <many-to-many field="payedByGiftCardCodes" target-entity="Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface" mapped-by="usedInOrders" />
+        </mapped-superclass>
+    </doctrine-mapping>
+    ```
+
+- Override `OrderRepository`:
+
+    ```php
+    <?php
+  
+    # src/Doctrine/ORM/OrderRepository.php
+    
+    declare(strict_types=1);
+    
+    namespace App\Doctrine\ORM;
+    
+    use Setono\SyliusGiftCardPlugin\Doctrine\ORM\OrderRepositoryInterface as SetonoSyliusGiftCardPluginOrderRepositoryInterface;
+    use Setono\SyliusGiftCardPlugin\Doctrine\ORM\OrderRepositoryTrait as SetonoSyliusGiftCardPluginOrderRepositoryTrait;
+    use Sylius\Bundle\CoreBundle\Doctrine\ORM\OrderRepository as BaseOrderRepository;
+    
+    class OrderRepository extends BaseOrderRepository implements SetonoSyliusGiftCardPluginOrderRepositoryInterface
+    {
+        use SetonoSyliusGiftCardPluginOrderRepositoryTrait;
+    }
+    ```
+
+- Add configuration:
+
+    ```yaml
+    # config/services.yaml
+    
+    sylius_order:
+        resources:
+            order:
+                classes:
+                    model: App\Entity\Order
+                    repository: App\Doctrine\ORM\OrderRepository
+    
+    ```
 
 ### Override the grid `sylius_admin_product`:
 
