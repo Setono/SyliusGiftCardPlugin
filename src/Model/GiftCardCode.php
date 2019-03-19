@@ -33,7 +33,7 @@ class GiftCardCode implements GiftCardCodeInterface
     /** @var bool */
     protected $active = false;
 
-    /** @var int */
+    /** @var int|null */
     protected $amount = 0;
 
     /** @var string|null */
@@ -114,7 +114,7 @@ class GiftCardCode implements GiftCardCodeInterface
     /**
      * {@inheritdoc}
      */
-    public function getAmount(): int
+    public function getAmount(): ?int
     {
         return $this->amount;
     }
@@ -122,7 +122,7 @@ class GiftCardCode implements GiftCardCodeInterface
     /**
      * {@inheritdoc}
      */
-    public function setAmount(int $amount): void
+    public function setAmount(?int $amount): void
     {
         $this->amount = $amount;
     }

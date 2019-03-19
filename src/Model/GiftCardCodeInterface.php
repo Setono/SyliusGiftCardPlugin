@@ -41,14 +41,14 @@ interface GiftCardCodeInterface extends ResourceInterface, CodeAwareInterface, C
     public function setGiftCard(?GiftCardInterface $giftCard): void;
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getAmount(): int;
+    public function getAmount(): ?int;
 
     /**
-     * @param int $amount
+     * @param int|null $amount
      */
-    public function setAmount(int $amount): void;
+    public function setAmount(?int $amount): void;
 
     /**
      * @return bool

@@ -6,7 +6,7 @@
 
     <parameters>
         <parameter key="setono_sylius_gift_card.form.type.gift_card_code.validation_groups" type="collection">
-            <parameter>sylius</parameter>
+            <parameter>setono_sylius_gift_card</parameter>
         </parameter>
     </parameters>
 
