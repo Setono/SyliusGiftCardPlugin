@@ -3,6 +3,7 @@ sylius_grid:
         action:
             create_gift_card_code: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Action/create.html.twig"
             delete_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Action/delete_conditional.html.twig"
+            list_orders: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Action/list_orders.html.twig"
     grids:
         setono_sylius_gift_card_admin_gift_card_code:
             driver:
@@ -65,6 +66,14 @@ sylius_grid:
                     create:
                         type: create_gift_card_code
                 item:
+                    list_orders:
+                        type: list_orders
+                        label: setono_sylius_gift_card.ui.list_orders
+                        options:
+                            link:
+                                route: setono_sylius_gift_card_admin_gift_card_code_orders_index
+                                parameters:
+                                    id: resource.id
                     delete:
                         type: delete_conditional
                         options:

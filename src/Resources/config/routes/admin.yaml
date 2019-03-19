@@ -70,3 +70,18 @@ setono_sylius_gift_card_admin_gift_card_code_create:
                         channelCode: $channelCode
                 templates:
                     form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/_form.html.twig"
+
+setono_sylius_gift_card_admin_gift_card_code_orders_index:
+    path: /gift-card-codes/{id}/orders
+    methods: [GET, POST]
+    defaults:
+        _controller: sylius.controller.order:indexAction
+        _sylius:
+            vars:
+                route:
+                    parameters:
+                        id: $id
+            template: SyliusAdminBundle:Crud:index.html.twig
+            grid: setono_sylius_gift_card_admin_gift_card_code_order
+            section: admin
+            permission: true

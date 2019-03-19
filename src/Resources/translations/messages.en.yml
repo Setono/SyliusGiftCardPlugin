@@ -12,6 +12,7 @@ setono_sylius_gift_card:
         gift_card_codes: Gift card codes
         new_gift_card_code: New gift card code
         create_for_channel: Create for %channel%
+        list_orders: List orders
         gift_card_search: Gift card search
         
         code: Code
