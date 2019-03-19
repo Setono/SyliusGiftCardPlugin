@@ -2,6 +2,7 @@ sylius_grid:
     templates:
         action:
             create_gift_card_code: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Action/create.html.twig"
+            delete_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Action/delete_conditional.html.twig"
     grids:
         setono_sylius_gift_card_admin_gift_card_code:
             driver:
@@ -65,4 +66,6 @@ sylius_grid:
                         type: create_gift_card_code
                 item:
                     delete:
-                        type: delete
+                        type: delete_conditional
+                        options:
+                            visible: resource.deletable

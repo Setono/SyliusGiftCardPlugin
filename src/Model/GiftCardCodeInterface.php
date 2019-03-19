@@ -14,6 +14,13 @@ use Sylius\Component\Resource\Model\ResourceInterface;
 interface GiftCardCodeInterface extends ResourceInterface, CodeAwareInterface, ChannelAwareInterface
 {
     /**
+     * Admin can't remove items that was purchased
+     *
+     * @return bool
+     */
+    public function isDeletable(): bool;
+
+    /**
      * @return OrderItemInterface|null
      */
     public function getOrderItem(): ?OrderItemInterface;

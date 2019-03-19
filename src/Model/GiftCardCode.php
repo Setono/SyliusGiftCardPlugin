@@ -50,6 +50,14 @@ class GiftCardCode implements GiftCardCodeInterface
     /**
      * {@inheritdoc}
      */
+    public function isDeletable(): bool
+    {
+        return null === $this->orderItem;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getId(): ?int
     {
         return $this->id;
