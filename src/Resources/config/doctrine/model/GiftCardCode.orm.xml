@@ -7,6 +7,7 @@
 
         <field name="code" column="code" unique="true"/>
         <field name="active" column="active" type="boolean" />
+        <field name="initialAmount" column="initial_amount" type="integer" />
         <field name="amount" column="amount" type="integer" />
         <field name="currencyCode" column="currency_code" length="3" />
 

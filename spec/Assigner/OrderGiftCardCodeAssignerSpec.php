@@ -82,6 +82,7 @@ final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
         $giftCardRepository->findOneByProduct($product)->willReturn($giftCard);
         $giftCardCodeFactory->createForGiftCardAndOrderItem($giftCard, $orderItem)->willReturn($giftCardCode);
 
+        $giftCardCode->setInitialAmount(100)->shouldBeCalledTimes(2);
         $giftCardCode->setAmount(100)->shouldBeCalledTimes(2);
         $giftCardCode->setCurrencyCode('USD')->shouldBeCalledTimes(2);
         $giftCardCode->setChannel($channel)->shouldBeCalledTimes(2);

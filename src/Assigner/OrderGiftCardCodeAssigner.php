@@ -77,6 +77,7 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
             for ($i = 0; $i < $orderItem->getQuantity(); ++$i) {
                 $giftCardCode = $this->giftCardCodeFactory->createForGiftCardAndOrderItem($giftCard, $orderItem);
 
+                $giftCardCode->setInitialAmount($orderItem->getUnitPrice());
                 $giftCardCode->setAmount($orderItem->getUnitPrice());
                 $giftCardCode->setCurrencyCode($currency->getCode());
                 $giftCardCode->setChannel($order->getChannel());

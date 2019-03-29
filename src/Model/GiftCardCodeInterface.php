@@ -43,6 +43,16 @@ interface GiftCardCodeInterface extends ResourceInterface, CodeAwareInterface, C
     /**
      * @return int|null
      */
+    public function getInitialAmount(): ?int;
+
+    /**
+     * @param int|null $initialAmount
+     */
+    public function setInitialAmount(?int $initialAmount): void;
+
+    /**
+     * @return int|null
+     */
     public function getAmount(): ?int;
 
     /**

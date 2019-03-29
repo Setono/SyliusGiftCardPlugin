@@ -220,6 +220,7 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
                     $product->getCode()
                 ));
 
+                $giftCardCode->setInitialAmount((int) $options['amount']);
                 $giftCardCode->setAmount((int) $options['amount']);
             } else {
                 /** @var ProductVariantInterface $randomProductVariant */
@@ -232,6 +233,9 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
                     $channel->getCode()
                 ));
 
+                $giftCardCode->setInitialAmount(
+                    $channelPricing->getPrice()
+                );
                 $giftCardCode->setAmount(
                     $channelPricing->getPrice()
                 );

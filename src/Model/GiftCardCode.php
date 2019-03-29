@@ -33,7 +33,18 @@ class GiftCardCode implements GiftCardCodeInterface
     /** @var bool */
     protected $active = false;
 
-    /** @var int|null */
+    /**
+     * Initial amount. Not changeable
+     *
+     * @var int|null
+     */
+    protected $initialAmount = 0;
+
+    /**
+     * Current amount (initial minus spent). Changeable
+     *
+     * @var int|null
+     */
     protected $amount = 0;
 
     /** @var string|null */
@@ -109,6 +120,22 @@ class GiftCardCode implements GiftCardCodeInterface
     public function setGiftCard(?GiftCardInterface $giftCard): void
     {
         $this->giftCard = $giftCard;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getInitialAmount(): ?int
+    {
+        return $this->initialAmount;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setInitialAmount(?int $initialAmount): void
+    {
+        $this->initialAmount = $initialAmount;
     }
 
     /**
