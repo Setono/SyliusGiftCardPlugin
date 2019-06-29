@@ -7,5 +7,5 @@ imports:
 sylius_mailer:
     emails:
         gift_card_order:
-            subject: bitbag_voucher.email.your_voucher_order
+            subject: setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order
             template: "@SetonoSyliusGiftCardPlugin/Email/giftCard.html.twig"
