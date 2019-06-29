@@ -78,4 +78,4 @@ sylius_grid:
                     delete:
                         type: delete_conditional
                         options:
-                            visible: resource.deletable
+                            visible: resource.isDeletable
