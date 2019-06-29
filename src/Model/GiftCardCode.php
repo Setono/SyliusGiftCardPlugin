@@ -173,6 +173,14 @@ class GiftCardCode implements GiftCardCodeInterface
     /**
      * {@inheritdoc}
      */
+    public function isUsedInOrders(): bool
+    {
+        return $this->usedInOrders->count() > 0;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getUsedInOrders(): Collection
     {
         return $this->usedInOrders;

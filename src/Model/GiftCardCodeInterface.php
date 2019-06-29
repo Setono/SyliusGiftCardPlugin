@@ -81,6 +81,11 @@ interface GiftCardCodeInterface extends ResourceInterface, CodeAwareInterface, C
     public function setCurrencyCode(?string $currencyCode): void;
 
     /**
+     * @return bool
+     */
+    public function isUsedInOrders(): bool;
+
+    /**
      * @return Collection
      */
     public function getUsedInOrders(): Collection;
