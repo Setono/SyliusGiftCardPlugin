@@ -188,7 +188,7 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
      * @param GiftCardInterface $giftCard
      * @param array $options
      */
-    private function createGiftCardCodes(GiftCardInterface $giftCard, array $options): void
+    protected function createGiftCardCodes(GiftCardInterface $giftCard, array $options): void
     {
         $codesCount = (int) $options['codes'];
         if ($codesCount < 1) {
