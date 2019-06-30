@@ -116,11 +116,11 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
             ->setRequired('amount')
             ->setAllowedTypes('amount', ['null', 'numeric'])
 
-            ->setRequired('codes')
-            ->setAllowedTypes('codes', 'numeric')
+            ->setRequired('codes_count')
+            ->setAllowedTypes('codes_count', 'numeric')
 
-            ->setRequired('codes_used')
-            ->setAllowedTypes('codes_used', 'numeric')
+            ->setRequired('codes_used_count')
+            ->setAllowedTypes('codes_used_count', 'numeric')
         ;
     }
 
@@ -190,12 +190,12 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
      */
     protected function createGiftCardCodes(GiftCardInterface $giftCard, array $options): void
     {
-        $codesCount = (int) $options['codes'];
+        $codesCount = (int) $options['codes_count'];
         if ($codesCount < 1) {
             return;
         }
 
-        $codesUsedCount = (int) $options['codes_used'];
+        $codesUsedCount = (int) $options['codes_used_count'];
 
         /** @var ProductInterface $product */
         $product = $options['product'];
