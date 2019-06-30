@@ -52,10 +52,10 @@ sylius_fixtures:
                                 name: Gift card amount
                                 code: gift_card_basic_amount
                                 values:
-                                    gift_card_amount_100: "100"
-                                    gift_card_amount_200: "200"
-                                    gift_card_amount_500: "500"
-                                    gift_card_amount_1000: "1000"
+                                    gift_card_amount_100: "100.00"
+                                    gift_card_amount_200: "200.00"
+                                    gift_card_amount_500: "500.00"
+                                    gift_card_amount_1000: "1000.00"
                 product:
                     options:
                         custom:
@@ -95,5 +95,5 @@ sylius_fixtures:
                                     - "US_WEB"
                                     - "EU_WEB"
                                 # Amount will be taken from `amount` option as related product is simple
-                                amount: 10000
+                                amount: 10000.00
                                 codes: 4

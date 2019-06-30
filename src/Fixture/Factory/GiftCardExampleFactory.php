@@ -160,7 +160,7 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
 
                 /** @var ProductOptionValueInterface $randomProductOptionValue */
                 $randomProductOptionValue = $this->faker->randomElement($amountOptionValues->toArray());
-                $price = 100 * (int) $randomProductOptionValue->getValue();
+                $price = (int) ($randomProductOptionValue->getValue() * 100);
 
                 // @todo Set price from option value
                 $channelPricing = $productVariant->getChannelPricingForChannel($channel);
@@ -220,8 +220,8 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
                     $product->getCode()
                 ));
 
-                $giftCardCode->setInitialAmount((int) $options['amount']);
-                $giftCardCode->setAmount((int) $options['amount']);
+                $giftCardCode->setInitialAmount((int) ($options['amount'] * 100));
+                $giftCardCode->setAmount((int) ($options['amount'] * 100));
             } else {
                 /** @var ProductVariantInterface $randomProductVariant */
                 $randomProductVariant = $this->faker->randomElement($product->getVariants()->toArray());
