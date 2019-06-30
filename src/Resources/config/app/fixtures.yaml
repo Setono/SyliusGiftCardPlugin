@@ -60,37 +60,40 @@ sylius_fixtures:
                     options:
                         custom:
                             product_gift_card_basic:
-                                name: Basic Gift Card
-                                code: gift_card_basic
-                                main_taxon: gift_cards
-                                taxons: [gift_cards]
+                                name: "Basic Gift Card"
+                                code: "gift_card_basic"
+                                main_taxon: "gift_cards"
+                                taxons: 
+                                    - "gift_cards"
                                 channels:
-                                    - US_WEB
-                                    - EU_WEB
-                                product_options: [gift_card_basic_amount]
+                                    - "US_WEB"
+                                    - "EU_WEB"
+                                product_options: 
+                                    - "gift_card_basic_amount"
                             product_platinum_gift_card:
-                                name: Platinum Gift Card
-                                code: gift_card_platinum
-                                main_taxon: gift_cards
-                                taxons: [gift_cards]
+                                name: "Platinum Gift Card"
+                                code: "gift_card_platinum"
+                                main_taxon: "gift_cards"
+                                taxons: 
+                                    - "gift_cards"
                                 channels:
-                                    - US_WEB
+                                    - "US_WEB"
                 setono_sylius_gift_card:
                     options:
                         custom:
                             gift_card_basic:
-                                product: gift_card_basic
+                                product: "gift_card_basic"
                                 channels: 
-                                    - US_WEB
+                                    - "US_WEB"
                                 # Amounts will be taken from related product option
-                                amount_product_option: gift_card_basic_amount
+                                amount_product_option: "gift_card_basic_amount"
                                 codes: 10 # How much gift card codes should be created?
                                 codes_used: 6
                             gift_card_platinum:
-                                product: gift_card_platinum
+                                product: "gift_card_platinum"
                                 channels: 
-                                    - US_WEB
-                                    - EU_WEB
+                                    - "US_WEB"
+                                    - "EU_WEB"
                                 # Amount will be taken from `amount` option as related product is simple
                                 amount: 10000
                                 codes: 4
