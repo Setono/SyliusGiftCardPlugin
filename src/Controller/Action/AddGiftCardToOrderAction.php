@@ -7,7 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandlerInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
@@ -22,7 +22,7 @@ use Symfony\Component\Translation\TranslatorInterface;
 
 final class AddGiftCardToOrderAction
 {
-    /** @var GiftCardCodeRepositoryInterface */
+    /** @var GiftCardRepositoryInterface */
     private $giftCardCodeRepository;
 
     /** @var OrderProcessorInterface */
@@ -47,7 +47,7 @@ final class AddGiftCardToOrderAction
     private $giftCardCodeEntityManager;
 
     public function __construct(
-        GiftCardCodeRepositoryInterface $giftCardCodeRepository,
+        GiftCardRepositoryInterface $giftCardCodeRepository,
         OrderProcessorInterface $orderProcessor,
         ViewHandlerInterface $viewHandler,
         CartContextInterface $cartContext,
@@ -83,7 +83,7 @@ final class AddGiftCardToOrderAction
             throw new NotFoundHttpException('The channel was not found on the order');
         }
 
-        $giftCardCode = $this->giftCardCodeRepository->findOneActiveByCodeAndChannel(
+        $giftCardCode = $this->giftCardCodeRepository->findOneEnabledByCodeAndChannel(
             $request->get('code'),
             $order->getChannel()
         );

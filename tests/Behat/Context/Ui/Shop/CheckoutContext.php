@@ -6,7 +6,7 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Doctrine\ORM\EntityManagerInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Sylius\Behat\Context\Setup\OrderContext;
 use Sylius\Behat\Context\Ui\Shop\Checkout\CheckoutCompleteContext;
 use Sylius\Behat\Context\Ui\Shop\Checkout\CheckoutThankYouContext;
@@ -33,7 +33,7 @@ final class CheckoutContext implements Context
     /** @var OrderRepositoryInterface */
     private $orderRepository;
 
-    /** @var GiftCardCodeRepositoryInterface */
+    /** @var GiftCardRepositoryInterface */
     private $giftCardCodeRepository;
 
     /** @var EntityManagerInterface */
@@ -48,7 +48,7 @@ final class CheckoutContext implements Context
         CheckoutThankYouContext $checkoutThankYouContext,
         BaseCheckoutContext $checkoutContext,
         OrderRepositoryInterface $orderRepository,
-        GiftCardCodeRepositoryInterface $giftCardCodeRepository,
+        GiftCardRepositoryInterface $giftCardCodeRepository,
         EntityManagerInterface $giftCardCodeEntityManager,
         PaymentMethodRepositoryInterface $paymentMethodRepository
     ) {

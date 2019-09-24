@@ -6,7 +6,7 @@ namespace spec\Setono\SyliusGiftCardPlugin\Generator;
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;

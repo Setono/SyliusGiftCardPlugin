@@ -15,12 +15,8 @@
             <join-column name="channel_id" referenced-column-name="id" nullable="true" />
         </many-to-one>
 
-        <many-to-one field="giftCard" target-entity="Setono\SyliusGiftCardPlugin\Model\GiftCardInterface" inversed-by="giftCardCodes">
-            <join-column name="gift_card_id" referenced-column-name="id" nullable="true" />
-        </many-to-one>
-
-        <many-to-one field="orderItem" target-entity="Sylius\Component\Order\Model\OrderItemInterface">
-            <join-column name="order_item_id" referenced-column-name="id" nullable="true"  />
+        <many-to-one field="orderItemUnit" target-entity="Sylius\Component\Order\Model\OrderItemUnitInterface">
+            <join-column name="order_item_unit_id" referenced-column-name="id" nullable="true"  />
         </many-to-one>
 
         <many-to-one field="currentOrder" target-entity="Sylius\Component\Order\Model\OrderInterface">

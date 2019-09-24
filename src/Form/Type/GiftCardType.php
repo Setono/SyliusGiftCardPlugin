@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Bundle\MoneyBundle\Form\Type\MoneyType;
 use Sylius\Bundle\ResourceBundle\Form\EventSubscriber\AddCodeFormSubscriber;
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
@@ -14,14 +14,14 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 
-final class GiftCardCodeType extends AbstractResourceType
+final class GiftCardType extends AbstractResourceType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
             ->addEventSubscriber(new AddCodeFormSubscriber())
-            ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
-                /** @var GiftCardCodeInterface $giftCardCode */
+            ->addEventListener(FormEvents::PRE_SET_DATA, static function (FormEvent $event) {
+                /** @var GiftCardInterface $giftCardCode */
                 $giftCardCode = $event->getData();
 
                 /** @var ChannelInterface $channel */
@@ -38,8 +38,8 @@ final class GiftCardCodeType extends AbstractResourceType
                     ])
                 ;
             })
-            ->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
-                /** @var GiftCardCodeInterface $giftCardCode */
+            ->addEventListener(FormEvents::POST_SUBMIT, static function (FormEvent $event) {
+                /** @var GiftCardInterface $giftCardCode */
                 $giftCardCode = $event->getData();
 
                 /** @var ChannelInterface $channel */
@@ -52,7 +52,7 @@ final class GiftCardCodeType extends AbstractResourceType
                     $currency->getCode()
                 );
 
-                $giftCardCode->setActive(true);
+                $giftCardCode->enable();
             })
         ;
     }

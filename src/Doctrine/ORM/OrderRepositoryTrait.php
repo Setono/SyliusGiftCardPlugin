@@ -16,6 +16,7 @@ trait OrderRepositoryTrait
      */
     abstract public function createQueryBuilder($alias, $indexBy = null);
 
+    // todo doesnt work
     public function createQueryBuilderByGiftCardCodeId(string $giftCardCodeId): QueryBuilder
     {
         return $this->createQueryBuilder('o')

@@ -12,8 +12,8 @@ use Faker\Factory;
 use Faker\Generator;
 use RuntimeException;
 use function Safe\sprintf;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use SM\Factory\FactoryInterface as StateMachineFactoryInterface;
 use Sylius\Bundle\CoreBundle\Fixture\Factory\AbstractExampleFactory;
 use Sylius\Bundle\CoreBundle\Fixture\OptionsResolver\LazyOption;
@@ -68,7 +68,7 @@ final class OrderExampleFactory extends AbstractExampleFactory
     /** @var RepositoryInterface */
     private $customerRepository;
 
-    /** @var GiftCardCodeRepositoryInterface */
+    /** @var GiftCardRepositoryInterface */
     private $giftCardCodeRepository;
 
     /** @var RepositoryInterface */
@@ -112,7 +112,7 @@ final class OrderExampleFactory extends AbstractExampleFactory
         RepositoryInterface $localeRepository,
         RepositoryInterface $currencyRepository,
         RepositoryInterface $customerRepository,
-        GiftCardCodeRepositoryInterface $giftCardCodeRepository,
+        GiftCardRepositoryInterface $giftCardCodeRepository,
         RepositoryInterface $productRepository,
         RepositoryInterface $productVariantRepository,
         RepositoryInterface $countryRepository,
@@ -342,7 +342,7 @@ final class OrderExampleFactory extends AbstractExampleFactory
 
     protected function addGiftCards(OrderInterface $order, array $orderOptions = []): void
     {
-        /** @var GiftCardCodeInterface $giftCardCode */
+        /** @var GiftCardInterface $giftCardCode */
         foreach ($orderOptions['gift_card_codes'] as $giftCardCode) {
             $giftCardCode->setCurrentOrder($order);
         }

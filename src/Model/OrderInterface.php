@@ -10,13 +10,13 @@ use Sylius\Component\Core\Model\OrderInterface as BaseOrderInterface;
 interface OrderInterface extends BaseOrderInterface
 {
     /**
-     * @return Collection|GiftCardCodeInterface[]
+     * @return Collection|GiftCardInterface[]
      */
     public function getPayedByGiftCardCodes(): Collection;
 
-    public function hasPayedByGiftCardCode(GiftCardCodeInterface $giftCardCode): bool;
+    public function hasPayedByGiftCardCode(GiftCardInterface $giftCardCode): bool;
 
-    public function addPayedByGiftCardCode(GiftCardCodeInterface $giftCardCode): void;
+    public function addPayedByGiftCardCode(GiftCardInterface $giftCardCode): void;
 
-    public function removePayedByGiftCardCode(GiftCardCodeInterface $giftCardCode): void;
+    public function removePayedByGiftCardCode(GiftCardInterface $giftCardCode): void;
 }

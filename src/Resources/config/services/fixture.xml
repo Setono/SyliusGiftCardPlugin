@@ -1,31 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<container xmlns="http://symfony.com/schema/dic/services"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-
-        <service id="setono_sylius_gift_card.fixture.gift_card"
-                 class="Setono\SyliusGiftCardPlugin\Fixture\GiftCardFixture">
-            <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.fixture.example_factory.gift_card"/>
-            <tag name="sylius_fixtures.fixture"/>
-        </service>
-
-        <service id="setono_sylius_gift_card.fixture.example_factory.gift_card"
-                 class="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardExampleFactory">
-            <argument type="service" id="sylius.repository.channel"/>
-            <argument type="service" id="sylius.repository.product"/>
-            <argument type="service" id="sylius.repository.product_option"/>
-            <argument type="service" id="sylius.factory.channel_pricing"/>
-            <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_code"/>
-            <argument type="service" id="setono_sylius_gift_card.generator.gift_card_code"/>
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_code"/>
-            <argument type="service" id="sylius.generator.product_variant"/>
-        </service>
 
         <service id="setono_sylius_gift_card.fixture.order"
                  class="Setono\SyliusGiftCardPlugin\Fixture\OrderFixture">
@@ -36,23 +15,23 @@
 
         <service id="setono_sylius_gift_card.fixture.example_factory.order"
                  class="Setono\SyliusGiftCardPlugin\Fixture\Factory\OrderExampleFactory">
-            <argument type="service" id="sylius.factory.order" />
-            <argument type="service" id="sylius.factory.order_item" />
-            <argument type="service" id="sylius.order_item_quantity_modifier" />
-            <argument type="service" id="sylius.repository.channel" />
-            <argument type="service" id="sylius.repository.locale" />
-            <argument type="service" id="sylius.repository.currency" />
-            <argument type="service" id="sylius.repository.customer" />
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_code" />
-            <argument type="service" id="sylius.repository.product" />
-            <argument type="service" id="sylius.repository.product_variant" />
-            <argument type="service" id="sylius.repository.country" />
-            <argument type="service" id="sylius.repository.payment_method" />
-            <argument type="service" id="sylius.repository.shipping_method" />
-            <argument type="service" id="sylius.factory.address" />
-            <argument type="service" id="sm.factory" />
-            <argument type="service" id="sylius.checker.order_shipping_method_selection_requirement" />
-            <argument type="service" id="sylius.checker.order_payment_method_selection_requirement" />
+            <argument type="service" id="sylius.factory.order"/>
+            <argument type="service" id="sylius.factory.order_item"/>
+            <argument type="service" id="sylius.order_item_quantity_modifier"/>
+            <argument type="service" id="sylius.repository.channel"/>
+            <argument type="service" id="sylius.repository.locale"/>
+            <argument type="service" id="sylius.repository.currency"/>
+            <argument type="service" id="sylius.repository.customer"/>
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_code"/>
+            <argument type="service" id="sylius.repository.product"/>
+            <argument type="service" id="sylius.repository.product_variant"/>
+            <argument type="service" id="sylius.repository.country"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
+            <argument type="service" id="sylius.repository.shipping_method"/>
+            <argument type="service" id="sylius.factory.address"/>
+            <argument type="service" id="sm.factory"/>
+            <argument type="service" id="sylius.checker.order_shipping_method_selection_requirement"/>
+            <argument type="service" id="sylius.checker.order_payment_method_selection_requirement"/>
         </service>
 
     </services>

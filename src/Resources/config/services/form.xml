@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<container xmlns="http://symfony.com/schema/dic/services"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <parameters>
@@ -12,18 +12,16 @@
 
     <services>
 
-        <service id="setono_sylius_gift_card.form.extension.type.product"
+        <service id="setono_sylius_gift_card.form.type.extension.product"
                  class="Setono\SyliusGiftCardPlugin\Form\Extension\ProductTypeExtension">
-            <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
-            <tag name="form.type_extension" extended-type="Sylius\Bundle\ProductBundle\Form\Type\ProductType" />
+            <tag name="form.type_extension" extended-type="Sylius\Bundle\ProductBundle\Form\Type\ProductType"/>
         </service>
 
         <service id="setono_sylius_gift_card.form.type.gift_card_code"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardCodeType">
+                 class="GiftCardType">
             <argument>%setono_sylius_gift_card.model.gift_card_code.class%</argument>
             <argument>%setono_sylius_gift_card.form.type.gift_card_code.validation_groups%</argument>
-            <tag name="form.type" />
+            <tag name="form.type"/>
         </service>
 
     </services>

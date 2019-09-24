@@ -1,2 +1,5 @@
 imports:
     - { resource: 'vendor/sylius-labs/coding-standard/easy-coding-standard.yml' }
+
+services:
+    PhpCsFixer\Fixer\ClassNotation\ClassAttributesSeparationFixer: ~

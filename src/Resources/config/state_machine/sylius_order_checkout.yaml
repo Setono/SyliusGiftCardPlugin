@@ -1,0 +1,8 @@
+winzou_state_machine:
+    sylius_order_checkout:
+        callbacks:
+            after:
+                setono_create_gift_card:
+                    on: ["complete"]
+                    do: ["@setono_sylius_gift_card.manager.gift_card", "createFromOrder"]
+                    args: ["object"]

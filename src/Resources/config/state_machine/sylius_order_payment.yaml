@@ -4,5 +4,5 @@ winzou_state_machine:
             after:
                 setono_gift_card_code_assigner:
                     on: ["pay"]
-                    do: ["@setono_sylius_gift_card.assigner.order_gift_card_code", "assignGiftCardCode"]
+                    do: ["@setono_sylius_gift_card.manager.gift_card", "enableGiftCard"]
                     args: ["object"]

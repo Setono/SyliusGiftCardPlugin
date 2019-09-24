@@ -11,11 +11,6 @@
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_code" />
         </service>
 
-        <service id="setono_sylius_gift_card.resolver.gift_card"
-                 class="Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolver">
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card" />
-        </service>
-
         <service id="setono_sylius_gift_card.email_manager.gift_card_order"
                  class="Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManager">
             <argument type="service" id="sylius.email_sender" />

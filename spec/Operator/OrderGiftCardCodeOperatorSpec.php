@@ -7,16 +7,16 @@ namespace spec\Setono\SyliusGiftCardPlugin\Operator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardCodeOperator;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardCodeOperatorInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 
 final class OrderGiftCardCodeOperatorSpec extends ObjectBehavior
 {
-    function let(GiftCardCodeRepositoryInterface $giftCardCodeRepository, EntityManagerInterface $giftCardEntityManager): void
+    function let(GiftCardRepositoryInterface $giftCardCodeRepository, EntityManagerInterface $giftCardEntityManager): void
     {
         $this->beConstructedWith($giftCardCodeRepository, $giftCardEntityManager);
     }
@@ -33,8 +33,8 @@ final class OrderGiftCardCodeOperatorSpec extends ObjectBehavior
 
     function it_cancels(
         OrderInterface $order,
-        GiftCardCodeRepositoryInterface $giftCardCodeRepository,
-        GiftCardCodeInterface $giftCardCode,
+        GiftCardRepositoryInterface $giftCardCodeRepository,
+        GiftCardInterface $giftCardCode,
         OrderItemInterface $orderItem
     ): void {
         $order->getItems()->willReturn(new ArrayCollection([$orderItem]));

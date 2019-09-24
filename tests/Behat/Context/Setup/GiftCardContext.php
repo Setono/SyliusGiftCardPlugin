@@ -6,8 +6,8 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Setup;
 
 use Behat\Behat\Context\Context;
 use Doctrine\ORM\EntityManagerInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
@@ -30,7 +30,7 @@ final class GiftCardContext implements Context
     /** @var EntityManagerInterface */
     private $giftCardEntityManager;
 
-    /** @var GiftCardCodeFactoryInterface */
+    /** @var GiftCardFactoryInterface */
     private $giftCardCodeFactory;
 
     /** @var EntityManagerInterface */
@@ -41,7 +41,7 @@ final class GiftCardContext implements Context
         GiftCardRepositoryInterface $giftCardRepository,
         GiftCardFactoryInterface $giftCardFactory,
         EntityManagerInterface $giftCardEntityManager,
-        GiftCardCodeFactoryInterface $giftCardCodeFactory,
+        GiftCardFactoryInterface $giftCardCodeFactory,
         EntityManagerInterface $giftCardCodeEntityManager
     ) {
         $this->sharedStorage = $sharedStorage;
@@ -78,7 +78,7 @@ final class GiftCardContext implements Context
 
         $giftCard = $this->giftCardRepository->findOneByProduct($product);
 
-        /** @var GiftCardCodeInterface $giftCardCode */
+        /** @var GiftCardInterface $giftCardCode */
         $giftCardCode = $this->giftCardCodeFactory->createNew();
 
         $giftCardCode->setActive(true);

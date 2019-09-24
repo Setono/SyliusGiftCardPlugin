@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace spec\Setono\SyliusGiftCardPlugin\Model;
 
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCode;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCard;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -17,7 +17,7 @@ class GiftCardCodeSpec extends ObjectBehavior
 {
     function it_is_initializable(): void
     {
-        $this->shouldHaveType(GiftCardCode::class);
+        $this->shouldHaveType(GiftCard::class);
     }
 
     function it_is_a_resource(): void
@@ -27,7 +27,7 @@ class GiftCardCodeSpec extends ObjectBehavior
 
     function it_implements_gift_card_interface(): void
     {
-        $this->shouldHaveType(GiftCardCodeInterface::class);
+        $this->shouldHaveType(GiftCardInterface::class);
     }
 
     function it_allows_access_via_properties(
@@ -36,8 +36,8 @@ class GiftCardCodeSpec extends ObjectBehavior
         ChannelInterface $channel,
         OrderInterface $order
     ): void {
-        $this->setOrderItem($orderItem);
-        $this->getOrderItem()->shouldReturn($orderItem);
+        $this->setOrderItemUnit($orderItem);
+        $this->getOrderItemUnit()->shouldReturn($orderItem);
 
         $this->setCurrentOrder($order);
         $this->getCurrentOrder()->shouldReturn($order);

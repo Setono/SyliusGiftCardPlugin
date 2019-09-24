@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui;
 
 use Behat\Behat\Context\Context;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepository;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepository;
 use Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolverInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -25,7 +25,7 @@ final class EmailContext implements Context
     /** @var OrderRepositoryInterface */
     private $orderRepository;
 
-    /** @var GiftCardCodeRepository */
+    /** @var GiftCardRepository */
     private $giftCardCodeRepository;
 
     /** @var GiftCardProductResolverInterface */
@@ -35,7 +35,7 @@ final class EmailContext implements Context
         SharedStorageInterface $sharedStorage,
         EmailCheckerInterface $emailChecker,
         OrderRepositoryInterface $orderRepository,
-        GiftCardCodeRepository $giftCardCodeRepository,
+        GiftCardRepository $giftCardCodeRepository,
         GiftCardProductResolverInterface $giftCardProductResolver
     ) {
         $this->sharedStorage = $sharedStorage;
@@ -55,7 +55,7 @@ final class EmailContext implements Context
 
         foreach ($order->getItems() as $orderItem) {
             if (true === $this->giftCardProductResolver->isGiftCardProduct($orderItem->getProduct())) {
-                /** @var GiftCardCodeInterface $giftCardCode */
+                /** @var GiftCardInterface $giftCardCode */
                 $giftCardCode = $this->giftCardCodeRepository->findOneBy(['orderItem' => $orderItem]);
 
                 Assert::true($giftCardCode->isActive());
