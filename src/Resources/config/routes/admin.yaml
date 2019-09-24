@@ -37,6 +37,7 @@ setono_sylius_gift_card_admin_gift_card_code:
                 icon: 'gift'
     type: sylius.resource
 
+# todo what is this route doing?
 setono_sylius_gift_card_admin_gift_card_code_create_for_channel:
     path: /gift-card-codes/create
     methods: [GET]
