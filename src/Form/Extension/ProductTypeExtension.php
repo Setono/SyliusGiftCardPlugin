@@ -12,6 +12,7 @@ use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Webmozart\Assert\Assert;
 
 final class ProductTypeExtension extends AbstractTypeExtension
 {
@@ -33,9 +34,9 @@ final class ProductTypeExtension extends AbstractTypeExtension
             return;
         }
 
-        /** @var ProductInterface $product */
+        /** @var ProductInterface|mixed $product */
         $product = $builder->getData();
-        $product->getVariants()->first()->setShippingRequired(false);
+        Assert::isInstanceOf($product, ProductInterface::class);
 
         $builder->addEventListener(FormEvents::POST_SUBMIT, function () use ($product): void {
             if (null !== $product->getId()) {
