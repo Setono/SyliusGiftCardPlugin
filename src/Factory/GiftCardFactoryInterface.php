@@ -10,5 +10,5 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 
 interface GiftCardFactoryInterface extends FactoryInterface
 {
-    public function createForProduct(ProductInterface $product): GiftCardInterface;
+    public function createWithProduct(ProductInterface $product): GiftCardInterface;
 }

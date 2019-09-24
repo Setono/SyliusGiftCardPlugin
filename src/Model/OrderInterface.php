@@ -14,19 +14,9 @@ interface OrderInterface extends BaseOrderInterface
      */
     public function getPayedByGiftCardCodes(): Collection;
 
-    /**
-     * @param GiftCardCodeInterface $giftCardCode
-     * @return bool
-     */
     public function hasPayedByGiftCardCode(GiftCardCodeInterface $giftCardCode): bool;
 
-    /**
-     * @param GiftCardCodeInterface $giftCardCode
-     */
     public function addPayedByGiftCardCode(GiftCardCodeInterface $giftCardCode): void;
 
-    /**
-     * @param GiftCardCodeInterface $giftCardCode
-     */
     public function removePayedByGiftCardCode(GiftCardCodeInterface $giftCardCode): void;
 }

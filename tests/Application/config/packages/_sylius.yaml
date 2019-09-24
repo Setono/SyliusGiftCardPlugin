@@ -5,9 +5,6 @@ imports:
     - { resource: "@SyliusAdminApiBundle/Resources/config/app/config.yml" }
 
     - { resource: "@SyliusShopBundle/Resources/config/app/config.yml" }
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/grids/sylius_admin_product.yaml" }
 
 parameters:
     sylius_core.public_dir: '%kernel.project_dir%/public'

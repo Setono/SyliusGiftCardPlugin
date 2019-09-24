@@ -16,11 +16,6 @@ trait OrderRepositoryTrait
      */
     abstract public function createQueryBuilder($alias, $indexBy = null);
 
-    /**
-     * @param string $giftCardCodeId
-     *
-     * @return QueryBuilder
-     */
     public function createQueryBuilderByGiftCardCodeId(string $giftCardCodeId): QueryBuilder
     {
         return $this->createQueryBuilder('o')

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Doctrine\ORM;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\QueryBuilder;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
@@ -14,13 +15,11 @@ final class GiftCardCodeRepository extends EntityRepository implements GiftCardC
 {
     public function createListQueryBuilder(): QueryBuilder
     {
-        return $this->createQueryBuilder('o')
-//            ->join('o.channel', 'channel')
-            ;
+        return $this->createQueryBuilder('o');
     }
 
     /**
-     * {@inheritdoc}
+     * @throws NonUniqueResultException
      */
     public function findOneActiveByCodeAndChannel(string $code, ChannelInterface $channel): ?GiftCardCodeInterface
     {
@@ -36,7 +35,7 @@ final class GiftCardCodeRepository extends EntityRepository implements GiftCardC
     }
 
     /**
-     * {@inheritdoc}
+     * @throws NonUniqueResultException
      */
     public function findOneByCode(string $code): ?GiftCardCodeInterface
     {
@@ -48,9 +47,6 @@ final class GiftCardCodeRepository extends EntityRepository implements GiftCardC
         ;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function findActiveByCurrentOrder(OrderInterface $order): array
     {
         return $this->createQueryBuilder('o')

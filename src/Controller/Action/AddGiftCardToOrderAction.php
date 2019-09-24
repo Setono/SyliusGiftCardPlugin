@@ -66,11 +66,6 @@ final class AddGiftCardToOrderAction
         $this->giftCardCodeEntityManager = $giftCardCodeEntityManager;
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return Response
-     */
     public function __invoke(Request $request): Response
     {
         /** @var OrderInterface|null $order */

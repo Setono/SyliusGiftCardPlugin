@@ -1,11 +1,10 @@
 <?php
 
-/** @noinspection PhpUnusedLocalVariableInspection */
-
 declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
+use Exception;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -14,9 +13,7 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
 {
     /**
-     * {@inheritdoc}
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     public function load(array $config, ContainerBuilder $container): void
     {

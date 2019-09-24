@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection NullPointerExceptionInspection */
-
 declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Fixture;
@@ -12,17 +10,11 @@ use Symfony\Component\Config\Tests\Fixtures\Builder\NodeBuilder;
 
 final class GiftCardFixture extends AbstractResourceFixture
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getName(): string
     {
         return 'setono_sylius_gift_card';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function configureResourceNode(ArrayNodeDefinition $resourceNode): void
     {
         /** @var NodeBuilder $node */

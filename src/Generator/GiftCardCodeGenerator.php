@@ -4,47 +4,46 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Generator;
 
+use Exception;
+use Safe\Exceptions\PcreException;
+use Safe\Exceptions\StringsException;
+use function Safe\preg_replace;
+use function Safe\substr;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
-use Webmozart\Assert\Assert;
 
 final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
 {
-    /**
-     * @var RepositoryInterface
-     */
+    /** @var RepositoryInterface */
     private $giftCardCodeRepository;
 
-    public function __construct(RepositoryInterface $giftCardCodeRepository)
+    /** @var int */
+    private $codeLength;
+
+    public function __construct(RepositoryInterface $giftCardCodeRepository, int $codeLength = 12)
     {
         $this->giftCardCodeRepository = $giftCardCodeRepository;
+        $this->codeLength = $codeLength;
     }
 
     /**
-     * @param int $codeLength
-     *
-     * @return string
-     *
-     * @throws \InvalidArgumentException
-     * @throws \Exception
+     * @throws Exception
+     * @throws PcreException
+     * @throws StringsException
      */
-    public function generate(int $codeLength = self::DEFAULT_CODE_LENGTH): string
+    public function generate(): string
     {
-        Assert::range($codeLength, 1, 40, 'Invalid %d code length. Should be between %d and %d');
-
         do {
-            $hash = bin2hex(random_bytes(20));
-            $code = strtoupper(substr($hash, 0, $codeLength));
-        } while ($this->isCodeUsed($code));
+            // if we didn't remove the 'hard to read' characters we would only have to
+            // generate codeLength / 2 bytes because hex uses two characters to represent one byte
+            $code = bin2hex(random_bytes($this->codeLength));
+            $code = preg_replace('/[01]/', '', $code); // remove hard to read characters
+            $code = strtoupper(substr($code, 0, $this->codeLength));
+        } while (strlen($code) !== $this->codeLength || $this->exists($code));
 
         return $code;
     }
 
-    /**
-     * @param string $code
-     *
-     * @return bool
-     */
-    private function isCodeUsed(string $code): bool
+    private function exists(string $code): bool
     {
         return null !== $this->giftCardCodeRepository->findOneBy(['code' => $code]);
     }

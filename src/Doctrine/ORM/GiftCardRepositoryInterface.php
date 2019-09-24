@@ -10,10 +10,5 @@ use Sylius\Component\Resource\Repository\RepositoryInterface;
 
 interface GiftCardRepositoryInterface extends RepositoryInterface
 {
-    /**
-     * @param ProductInterface $product
-     *
-     * @return GiftCardInterface|null
-     */
     public function findOneByProduct(ProductInterface $product): ?GiftCardInterface;
 }

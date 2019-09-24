@@ -12,25 +12,9 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 
 interface GiftCardCodeFactoryInterface extends FactoryInterface
 {
-    /**
-     * @param ChannelInterface $channel
-     *
-     * @return GiftCardCodeInterface
-     */
     public function createForChannel(ChannelInterface $channel): GiftCardCodeInterface;
 
-    /**
-     * @param GiftCardInterface $giftCard
-     *
-     * @return GiftCardCodeInterface
-     */
     public function createForGiftCard(GiftCardInterface $giftCard): GiftCardCodeInterface;
 
-    /**
-     * @param GiftCardInterface $giftCard
-     * @param OrderItemInterface $orderItem
-     *
-     * @return GiftCardCodeInterface
-     */
     public function createForGiftCardAndOrderItem(GiftCardInterface $giftCard, OrderItemInterface $orderItem): GiftCardCodeInterface;
 }

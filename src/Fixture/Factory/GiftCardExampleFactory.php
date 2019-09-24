@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Fixture\Factory;
 
 use Doctrine\Common\Collections\Collection;
+use function Safe\sprintf;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
@@ -100,9 +101,6 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
         $this->configureOptions($this->optionsResolver);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function configureOptions(OptionsResolver $resolver): void
     {
         $resolver
@@ -130,9 +128,6 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
         ;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function create(array $options = []): GiftCardInterface
     {
         $options = $this->optionsResolver->resolve($options);
@@ -141,7 +136,7 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
         $product = $options['product'];
 
         /** @var GiftCardInterface $giftCard */
-        $giftCard = $this->giftCardFactory->createForProduct($product);
+        $giftCard = $this->giftCardFactory->createWithProduct($product);
 
         if (!$product->isSimple()) {
             Assert::isInstanceOf($options['amount_product_option'], ProductOptionInterface::class, sprintf(
@@ -171,7 +166,7 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
 
                 /** @var ProductOptionValueInterface $randomProductOptionValue */
                 $randomProductOptionValue = $this->faker->randomElement($amountOptionValues->toArray());
-                $price = (int) ($randomProductOptionValue->getValue() * 100);
+                $price = (int) $randomProductOptionValue->getValue() * 100;
 
                 $channelPricing = $productVariant->getChannelPricingForChannel($channel);
                 if (!$channelPricing instanceof ChannelPricingInterface) {
@@ -194,10 +189,6 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
         return $giftCard;
     }
 
-    /**
-     * @param GiftCardInterface $giftCard
-     * @param array $options
-     */
     protected function createGiftCardCodes(GiftCardInterface $giftCard, array $options): void
     {
         $codesCount = (int) $options['codes_count'];
@@ -230,8 +221,8 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
                     $giftCardProduct->getCode()
                 ));
 
-                $giftCardCode->setInitialAmount((int) ($options['amount'] * 100));
-                $giftCardCode->setAmount((int) ($options['amount'] * 100));
+                $giftCardCode->setInitialAmount((int) $options['amount'] * 100);
+                $giftCardCode->setAmount((int) $options['amount'] * 100);
             } else {
                 // Gift card with random option/amount was bought...
                 /** @var ProductVariantInterface $randomProductVariant */

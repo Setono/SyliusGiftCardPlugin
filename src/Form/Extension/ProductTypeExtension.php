@@ -16,14 +16,14 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 final class ProductTypeExtension extends AbstractTypeExtension
 {
     /** @var EntityManagerInterface */
-    private $giftCardEntityManager;
+    private $giftCardManager;
 
     /** @var GiftCardFactoryInterface */
     private $giftCardFactory;
 
-    public function __construct(EntityManagerInterface $giftCardEntityManager, GiftCardFactoryInterface $giftCardFactory)
+    public function __construct(EntityManagerInterface $giftCardManager, GiftCardFactoryInterface $giftCardFactory)
     {
-        $this->giftCardEntityManager = $giftCardEntityManager;
+        $this->giftCardManager = $giftCardManager;
         $this->giftCardFactory = $giftCardFactory;
     }
 
@@ -42,15 +42,18 @@ final class ProductTypeExtension extends AbstractTypeExtension
                 return;
             }
 
-            $giftCard = $this->giftCardFactory->createForProduct($product);
+            $giftCard = $this->giftCardFactory->createWithProduct($product);
 
-            $this->giftCardEntityManager->persist($giftCard);
+            $this->giftCardManager->persist($giftCard);
         });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefault('is_gift_card', false);
+        $resolver
+            ->setDefault('is_gift_card', false)
+            ->setAllowedTypes('is_gift_card', 'bool')
+        ;
     }
 
     public static function getExtendedTypes(): iterable

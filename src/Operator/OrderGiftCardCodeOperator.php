@@ -26,8 +26,6 @@ final class OrderGiftCardCodeOperator implements OrderGiftCardCodeOperatorInterf
     /**
      * Calls when Order this GiftCardCode was bought at
      * become cancelled
-     *
-     * @param OrderInterface $order
      */
     public function cancel(OrderInterface $order): void
     {

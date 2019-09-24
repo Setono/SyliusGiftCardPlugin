@@ -13,17 +13,11 @@ use Symfony\Component\Config\Definition\Builder\NodeBuilder;
  */
 class OrderFixture extends AbstractResourceFixture
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getName(): string
     {
         return 'setono_sylius_gift_card_payed_order';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function configureResourceNode(ArrayNodeDefinition $resourceNode): void
     {
         /** @var NodeBuilder $node */
@@ -53,5 +47,4 @@ class OrderFixture extends AbstractResourceFixture
 
         $node->scalarNode('checkout_completed_at');
     }
-
 }

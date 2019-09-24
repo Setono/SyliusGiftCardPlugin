@@ -24,18 +24,11 @@ trait OrderTrait
         return $this->payedByGiftCardCodes;
     }
 
-    /**
-     * @param GiftCardCodeInterface $giftCardCode
-     * @return bool
-     */
     public function hasPayedByGiftCardCode(GiftCardCodeInterface $giftCardCode): bool
     {
         return $this->payedByGiftCardCodes->contains($giftCardCode);
     }
 
-    /**
-     * @param GiftCardCodeInterface $giftCardCode
-     */
     public function addPayedByGiftCardCode(GiftCardCodeInterface $giftCardCode): void
     {
         if (!$this->hasPayedByGiftCardCode($giftCardCode)) {
@@ -43,9 +36,6 @@ trait OrderTrait
         }
     }
 
-    /**
-     * @param GiftCardCodeInterface $giftCardCode
-     */
     public function removePayedByGiftCardCode(GiftCardCodeInterface $giftCardCode): void
     {
         if ($this->hasPayedByGiftCardCode($giftCardCode)) {

@@ -12,8 +12,6 @@ final class GiftCardCodeDeletionListener
 {
     /**
      * Prevent gift card code deletion if it not deletable
-     *
-     * @param ResourceControllerEvent $event
      */
     public function onGiftCardCodePreDelete(ResourceControllerEvent $event): void
     {

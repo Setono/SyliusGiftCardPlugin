@@ -45,9 +45,6 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
         $this->giftCardEntityManager = $giftCardEntityManager;
     }
 
-    /**
-     * @param OrderInterface $order
-     */
     public function assignGiftCardCode(OrderInterface $order): void
     {
         $giftCardCodes = [];
@@ -56,9 +53,9 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
             return;
         }
 
-        /** @var CurrencyInterface $currency */
+        /** @var CurrencyInterface|null $currency */
         $currency = $order->getChannel()->getBaseCurrency();
-        Assert::isInstanceOf($currency, CurrencyInterface::class, "Channel haven't base currency");
+        Assert::isInstanceOf($currency, CurrencyInterface::class);
 
         /** @var OrderItemInterface $orderItem */
         foreach ($order->getItems() as $orderItem) {

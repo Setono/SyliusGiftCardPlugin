@@ -25,8 +25,6 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
 
     /**
      * Calls on order creation
-     *
-     * @param OrderInterface $order
      */
     public function increment(OrderInterface $order): void
     {
@@ -60,8 +58,6 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
 
     /**
      * Calls on Order cancellation
-     *
-     * @param OrderInterface $order
      */
     public function decrement(OrderInterface $order): void
     {

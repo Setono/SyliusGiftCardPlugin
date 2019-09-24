@@ -12,9 +12,7 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 
 final class GiftCardCodeFactory implements GiftCardCodeFactoryInterface
 {
-    /**
-     * @var FactoryInterface
-     */
+    /** @var FactoryInterface */
     private $factory;
 
     public function __construct(FactoryInterface $factory)
@@ -22,9 +20,6 @@ final class GiftCardCodeFactory implements GiftCardCodeFactoryInterface
         $this->factory = $factory;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function createNew(): GiftCardCodeInterface
     {
         /** @var GiftCardCodeInterface $giftCardCode */
@@ -33,9 +28,6 @@ final class GiftCardCodeFactory implements GiftCardCodeFactoryInterface
         return $giftCardCode;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function createForChannel(ChannelInterface $channel): GiftCardCodeInterface
     {
         $giftCardCode = $this->createNew();
@@ -45,9 +37,6 @@ final class GiftCardCodeFactory implements GiftCardCodeFactoryInterface
         return $giftCardCode;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function createForGiftCard(GiftCardInterface $giftCard): GiftCardCodeInterface
     {
         $giftCardCode = $this->createNew();
@@ -57,9 +46,6 @@ final class GiftCardCodeFactory implements GiftCardCodeFactoryInterface
         return $giftCardCode;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function createForGiftCardAndOrderItem(GiftCardInterface $giftCard, OrderItemInterface $orderItem): GiftCardCodeInterface
     {
         $giftCardCode = $this->createForGiftCard($giftCard);

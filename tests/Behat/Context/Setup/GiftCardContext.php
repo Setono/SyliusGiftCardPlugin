@@ -57,7 +57,7 @@ final class GiftCardContext implements Context
      */
     public function thisProductIsAGiftCard(ProductInterface $product): void
     {
-        $giftCard = $this->giftCardFactory->createForProduct($product);
+        $giftCard = $this->giftCardFactory->createWithProduct($product);
 
         $this->giftCardRepository->add($giftCard);
     }

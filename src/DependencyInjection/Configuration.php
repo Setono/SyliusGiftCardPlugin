@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection PhpUnusedLocalVariableInspection */
-
 declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
@@ -22,9 +20,6 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 final class Configuration implements ConfigurationInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         if (method_exists(TreeBuilder::class, 'getRootNode')) {
@@ -48,9 +43,6 @@ final class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addResourcesSection(ArrayNodeDefinition $node): void
     {
         $node

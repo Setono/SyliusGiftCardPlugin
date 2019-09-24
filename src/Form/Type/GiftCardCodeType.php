@@ -16,9 +16,6 @@ use Symfony\Component\Form\FormEvents;
 
 final class GiftCardCodeType extends AbstractResourceType
 {
-    /**
-     * {@inheritdoc}
-     */
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -60,9 +57,6 @@ final class GiftCardCodeType extends AbstractResourceType
         ;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getBlockPrefix(): string
     {
         return 'setono_sylius_gift_card_gift_card_code';

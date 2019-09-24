@@ -4,25 +4,24 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Fixture\Factory;
 
+use DateTime;
+use DateTimeInterface;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Persistence\ObjectManager;
+use Faker\Factory;
+use Faker\Generator;
+use RuntimeException;
+use function Safe\sprintf;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
-use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use SM\Factory\FactoryInterface as StateMachineFactoryInterface;
 use Sylius\Bundle\CoreBundle\Fixture\Factory\AbstractExampleFactory;
 use Sylius\Bundle\CoreBundle\Fixture\OptionsResolver\LazyOption;
 use Sylius\Component\Addressing\Model\CountryInterface;
-use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Checker\OrderPaymentMethodSelectionRequirementCheckerInterface;
 use Sylius\Component\Core\Checker\OrderShippingMethodSelectionRequirementCheckerInterface;
 use Sylius\Component\Core\Model\AddressInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
-use Sylius\Component\Core\Model\ChannelPricingInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
@@ -33,15 +32,10 @@ use Sylius\Component\Core\Model\ShippingMethodInterface;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Core\OrderCheckoutTransitions;
 use Sylius\Component\Core\Repository\PaymentMethodRepositoryInterface;
-use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Sylius\Component\Core\Repository\ShippingMethodRepositoryInterface;
 use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Locale\Model\LocaleInterface;
 use Sylius\Component\Order\Modifier\OrderItemQuantityModifierInterface;
-use Sylius\Component\Product\Generator\ProductVariantGeneratorInterface;
-use Sylius\Component\Product\Model\ProductOptionInterface;
-use Sylius\Component\Product\Model\ProductOptionValueInterface;
-use Sylius\Component\Product\Repository\ProductOptionRepositoryInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\OptionsResolver\Options;
@@ -104,14 +98,16 @@ final class OrderExampleFactory extends AbstractExampleFactory
     /** @var OrderPaymentMethodSelectionRequirementCheckerInterface */
     private $orderPaymentMethodSelectionRequirementChecker;
 
-    /** @var \Faker\Generator */
+    /** @var Generator */
     private $faker;
+
+    /** @var OptionsResolver */
+    private $optionsResolver;
 
     public function __construct(
         FactoryInterface $orderFactory,
         FactoryInterface $orderItemFactory,
         OrderItemQuantityModifierInterface $orderItemQuantityModifier,
-        ObjectManager $orderManager,
         RepositoryInterface $channelRepository,
         RepositoryInterface $localeRepository,
         RepositoryInterface $currencyRepository,
@@ -130,7 +126,6 @@ final class OrderExampleFactory extends AbstractExampleFactory
         $this->orderFactory = $orderFactory;
         $this->orderItemFactory = $orderItemFactory;
         $this->orderItemQuantityModifier = $orderItemQuantityModifier;
-        $this->orderManager = $orderManager;
         $this->channelRepository = $channelRepository;
         $this->localeRepository = $localeRepository;
         $this->currencyRepository = $currencyRepository;
@@ -146,14 +141,11 @@ final class OrderExampleFactory extends AbstractExampleFactory
         $this->orderShippingMethodSelectionRequirementChecker = $orderShippingMethodSelectionRequirementChecker;
         $this->orderPaymentMethodSelectionRequirementChecker = $orderPaymentMethodSelectionRequirementChecker;
 
-        $this->faker = \Faker\Factory::create();
+        $this->faker = Factory::create();
         $this->optionsResolver = new OptionsResolver();
         $this->configureOptions($this->optionsResolver);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function configureOptions(OptionsResolver $resolver): void
     {
         $resolver
@@ -201,8 +193,8 @@ final class OrderExampleFactory extends AbstractExampleFactory
             ->setDefault('items', [])
             ->setAllowedTypes('items', ['array'])
 
-            ->setDefault('gift_card_codes', function(Options $options){
-                $amount = rand(1, 3);
+            ->setDefault('gift_card_codes', function (Options $options) {
+                $amount = random_int(1, 3);
 
                 /** @var ChannelInterface $channel */
                 $channel = $options['channel'];
@@ -251,9 +243,9 @@ final class OrderExampleFactory extends AbstractExampleFactory
             ->setNormalizer('payment_method', LazyOption::findOneBy($this->paymentMethodRepository, 'code'))
 
             ->setDefault('checkout_completed_at', $this->faker->dateTimeBetween('-1 years', 'now'))
-            ->setAllowedTypes('checkout_completed_at', ['null', 'string', \DateTimeInterface::class])
-            ->setNormalizer('checkout_completed_at', function(Options $options, $value): \DateTimeInterface{
-                return new \DateTime($value);
+            ->setAllowedTypes('checkout_completed_at', ['null', 'string', DateTimeInterface::class])
+            ->setNormalizer('checkout_completed_at', static function (Options $options, $value): DateTimeInterface {
+                return new DateTime($value);
             })
         ;
     }
@@ -265,14 +257,15 @@ final class OrderExampleFactory extends AbstractExampleFactory
             ->setAllowedTypes('product', ['string', ProductInterface::class])
             ->setNormalizer('product', LazyOption::findOneBy($this->productRepository, 'code'))
 
-            ->setDefault('variant', function(Options $options): ProductVariantInterface {
+            ->setDefault('variant', function (Options $options): ProductVariantInterface {
                 $product = $options['product'];
                 if (!$product instanceof ProductInterface) {
-                    throw new \RuntimeException(sprintf(
+                    throw new RuntimeException(sprintf(
                         "You should specify 'product' or 'variant' option with valid code, but only %s options specified.",
                         implode(' ,', array_keys($options))
                     ));
                 }
+
                 return $this->faker->randomElement($product->getVariants()->toArray());
             })
             ->setAllowedTypes('variant', ['string', ProductVariantInterface::class])
@@ -289,8 +282,9 @@ final class OrderExampleFactory extends AbstractExampleFactory
             ->setDefault('last_name', $this->faker->lastName)
             ->setDefault('street', $this->faker->streetAddress)
 
-            ->setDefault('country', function(Options $options): CountryInterface {
+            ->setDefault('country', function (Options $options): CountryInterface {
                 $countries = $this->countryRepository->findAll();
+
                 return $this->faker->randomElement($countries);
             })
             ->setAllowedTypes('country', ['string', CountryInterface::class])
@@ -301,9 +295,6 @@ final class OrderExampleFactory extends AbstractExampleFactory
         ;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function create(array $options = []): OrderInterface
     {
         $options = $this->optionsResolver->resolve($options);
@@ -324,7 +315,7 @@ final class OrderExampleFactory extends AbstractExampleFactory
         /** @var CurrencyInterface $currency */
         $currency = $orderOptions['currency'];
 
-        /** @var Locale $locale */
+        /** @var LocaleInterface $locale */
         $locale = $orderOptions['locale'];
 
         /** @var OrderInterface $order */
@@ -398,7 +389,6 @@ final class OrderExampleFactory extends AbstractExampleFactory
 
         $this->applyCheckoutStateTransition($order, OrderCheckoutTransitions::TRANSITION_ADDRESS);
     }
-
 
     private function selectShipping(OrderInterface $order, array $options = []): void
     {
