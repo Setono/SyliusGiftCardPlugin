@@ -12,3 +12,10 @@ parameters:
 sylius_shop:
     product_grid:
         include_all_descendants: true
+
+sylius_product:
+    resources:
+        product:
+            classes:
+                model: Tests\Setono\SyliusGiftCardPlugin\Application\Model\Product
+            
