@@ -7,10 +7,10 @@ namespace spec\Setono\SyliusGiftCardPlugin\Operator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardCodeOperator;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardCodeOperatorInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 
@@ -39,7 +39,7 @@ final class OrderGiftCardCodeOperatorSpec extends ObjectBehavior
     ): void {
         $order->getItems()->willReturn(new ArrayCollection([$orderItem]));
         $giftCardCodeRepository->findBy(['orderItem' => $orderItem])->willReturn([$giftCardCode]);
-        $giftCardCode->setIsActive(false)->shouldBeCalledOnce();
+        $giftCardCode->setActive(false)->shouldBeCalledOnce();
 
         $this->cancel($order);
     }

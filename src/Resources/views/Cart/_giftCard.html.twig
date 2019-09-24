@@ -6,7 +6,7 @@
                 {{ 'sylius.ui.info'|trans }}
             </div>
             <p>
-                {{ 'setono_sylius_gift_card_plugin.ui.your_gift_card_will_only_be_charged_if_you_complete_your_order'|trans }}
+                {{ 'setono_sylius_gift_card.ui.your_gift_card_will_only_be_charged_if_you_complete_your_order'|trans }}
             </p>
         </div>
     </div>
@@ -16,11 +16,11 @@
                 type="submit"
                 class="ui teal icon labeled button"
                 data-redirect="{{ path('sylius_shop_cart_summary') }}"
-                data-url="{{ path('setono_sylius_gift_card_plugin_shop_ajax_gift_card_add') }}"
+                data-url="{{ path('setono_sylius_gift_card_shop_ajax_gift_card_add') }}"
                 data-csrf-token="{{ csrf_token(order.id) }}"
         >
             <i class="gift icon"></i>
-            {{ 'setono_sylius_gift_card_plugin.ui.apply_gift_card'|trans }}
+            {{ 'setono_sylius_gift_card.ui.apply_gift_card'|trans }}
         </button>
     </div>
     <br>

@@ -1,0 +1,5 @@
+setono_sylius_gift_card_shop_search_gift_card:
+    path: /gift-card/search
+    methods: [GET]
+    defaults:
+        _controller: setono_sylius_gift_card.controller.action.search_gift_card

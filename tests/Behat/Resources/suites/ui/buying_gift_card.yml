@@ -41,7 +41,7 @@ default:
                 - sylius.behat.context.setup.user
                 - sylius.behat.context.setup.zone
 
-                - setono_sylius_gift_card_plugin.behat.context.setup.gift_card
+                - setono_sylius_gift_card.behat.context.setup.gift_card
 
                 - sylius.behat.context.ui.admin.managing_orders
                 - sylius.behat.context.ui.channel
@@ -58,7 +58,7 @@ default:
                 - sylius.behat.context.ui.shop.homepage
                 - sylius.behat.context.ui.shop.locale
 
-                - setono_sylius_gift_card_plugin.behat.context.ui.shop.checkout
-                - setono_sylius_gift_card_plugin.behat.context.ui.email
+                - setono_sylius_gift_card.behat.context.ui.shop.checkout
+                - setono_sylius_gift_card.behat.context.ui.email
             filters:
                 tags: "@buying_gift_card && @ui"

@@ -1,6 +1,6 @@
 {% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
 
-{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Entity\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
+{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
 
 {% set giftCardTotal = cart.getAdjustmentsTotal(giftCardAdjustment) %}
 
@@ -27,7 +27,7 @@
         {% endif %}
         {% if giftCardTotal %}
             <tr>
-                <td>{{ 'setono_sylius_gift_card_plugin.ui.gift_card_total'|trans }}:</td>
+                <td>{{ 'setono_sylius_gift_card.ui.gift_card_total'|trans }}:</td>
                 <td id="setono-cart-gift-card-total" class="right aligned">{{ money.convertAndFormat(giftCardTotal) }}</td>
             </tr>
         {% endif %}

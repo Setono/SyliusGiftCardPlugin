@@ -10,21 +10,21 @@ use Sylius\Bundle\ProductBundle\Form\Type\ProductType;
 use Sylius\Component\Core\Model\ProductInterface;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Webmozart\Assert\Assert;
 
 final class ProductTypeExtension extends AbstractTypeExtension
 {
     /** @var EntityManagerInterface */
-    private $giftCardEntityManager;
+    private $giftCardManager;
 
     /** @var GiftCardFactoryInterface */
     private $giftCardFactory;
 
-    public function __construct(EntityManagerInterface $giftCardEntityManager, GiftCardFactoryInterface $giftCardFactory)
+    public function __construct(EntityManagerInterface $giftCardManager, GiftCardFactoryInterface $giftCardFactory)
     {
-        $this->giftCardEntityManager = $giftCardEntityManager;
+        $this->giftCardManager = $giftCardManager;
         $this->giftCardFactory = $giftCardFactory;
     }
 
@@ -34,9 +34,9 @@ final class ProductTypeExtension extends AbstractTypeExtension
             return;
         }
 
-        /** @var ProductInterface $product */
+        /** @var ProductInterface|mixed $product */
         $product = $builder->getData();
-        $product->getVariants()->first()->setShippingRequired(false);
+        Assert::isInstanceOf($product, ProductInterface::class);
 
         $builder->addEventListener(FormEvents::POST_SUBMIT, function () use ($product): void {
             if (null !== $product->getId()) {
@@ -45,17 +45,22 @@ final class ProductTypeExtension extends AbstractTypeExtension
 
             $giftCard = $this->giftCardFactory->createWithProduct($product);
 
-            $this->giftCardEntityManager->persist($giftCard);
+            $this->giftCardManager->persist($giftCard);
         });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefault('is_gift_card', false);
+        $resolver
+            ->setDefault('is_gift_card', false)
+            ->setAllowedTypes('is_gift_card', 'bool')
+        ;
     }
 
-    public function getExtendedType(): string
+    public static function getExtendedTypes(): iterable
     {
-        return ProductType::class;
+        return [
+            ProductType::class,
+        ];
     }
 }

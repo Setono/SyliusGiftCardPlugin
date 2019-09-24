@@ -10,6 +10,6 @@ final class CreateGiftCardPage extends CreateSimpleProductPage implements Create
 {
     public function getRouteName(): string
     {
-        return 'setono_sylius_gift_card_plugin_admin_product_create_gift_card';
+        return 'setono_sylius_gift_card_admin_product_create_gift_card';
     }
 }

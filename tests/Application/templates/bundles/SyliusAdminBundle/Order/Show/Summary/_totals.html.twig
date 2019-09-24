@@ -5,7 +5,7 @@
 {% set itemPromotionAdjustment = constant('Sylius\\Component\\Core\\Model\\AdjustmentInterface::ORDER_ITEM_PROMOTION_ADJUSTMENT') %}
 {% set shippingAdjustment = constant('Sylius\\Component\\Core\\Model\\AdjustmentInterface::SHIPPING_ADJUSTMENT') %}
 {% set taxAdjustment = constant('Sylius\\Component\\Core\\Model\\AdjustmentInterface::TAX_ADJUSTMENT') %}
-{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Entity\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
+{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
 
 {% set orderShippingPromotions = sylius_aggregate_adjustments(order.getAdjustmentsRecursively(orderShippingPromotionAdjustment)) %}
 
@@ -122,11 +122,11 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p>{{ 'setono_sylius_gift_card_plugin.ui.no_gift_card'|trans }}.</p>
+            <p>{{ 'setono_sylius_gift_card.ui.no_gift_card'|trans }}.</p>
         {% endif %}
     </td>
     <td colspan="4" id="gift-card-total" class="right aligned">
-        <strong>{{ 'setono_sylius_gift_card_plugin.ui.gift_card_total'|trans }}</strong>:
+        <strong>{{ 'setono_sylius_gift_card.ui.gift_card_total'|trans }}</strong>:
         {{ money.format(order.getAdjustmentsTotal(giftCardAdjustment), order.currencyCode) }}
     </td>
 </tr>

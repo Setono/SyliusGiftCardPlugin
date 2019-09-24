@@ -4,8 +4,8 @@
     <services>
         <defaults public="true" />
 
-        <service id="setono_sylius_gift_card_plugin.behat.page.admin.gift_card.create" class="Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Admin\Product\CreateGiftCardPage" parent="sylius.behat.page.admin.crud.create" public="false">
-            <argument type="string">setono_sylius_gift_card_plugin_admin_product_create_gift_card</argument>
+        <service id="setono_sylius_gift_card.behat.page.admin.gift_card.create" class="Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Admin\Product\CreateGiftCardPage" parent="sylius.behat.page.admin.crud.create" public="false">
+            <argument type="string">setono_sylius_gift_card_admin_product_create_gift_card</argument>
         </service>
     </services>
 </container>

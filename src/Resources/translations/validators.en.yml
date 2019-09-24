@@ -1,0 +1,10 @@
+setono_sylius_gift_card:
+    gift_card_code:
+        code:
+            not_blank: Please enter code.
+            unique: Code must be unique.
+            max_length: Code must not be longer than {{ limit }} characters|Code must not be longer than {{ limit }} characters.
+        amount:
+            not_blank: Please enter amount.
+            integer: Amount must be an integer.  
+            min: Amount cannot be lower than 1.

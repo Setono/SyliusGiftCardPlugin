@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\OrderProcessing;
 
-use Setono\SyliusGiftCardPlugin\Entity\AdjustmentInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Sylius\Component\Order\Factory\AdjustmentFactoryInterface;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
@@ -34,7 +34,7 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
         }
 
         /** @var GiftCardCodeInterface[] $giftCardCodes */
-        $giftCardCodes = $this->giftCardCodeRepository->findAllActiveByCurrentOrder($order);
+        $giftCardCodes = $this->giftCardCodeRepository->findActiveByCurrentOrder($order);
 
         $order->removeAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT);
 

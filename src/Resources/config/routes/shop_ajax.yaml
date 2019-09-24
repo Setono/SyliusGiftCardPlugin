@@ -1,0 +1,6 @@
+setono_sylius_gift_card_shop_ajax_gift_card_add:
+    path: /cart/gift-card/add
+    methods: [POST]
+    defaults:
+        _controller: setono_sylius_gift_card.controller.action.add_gift_card_to_order
+        _format: json

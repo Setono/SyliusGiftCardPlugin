@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace spec\Setono\SyliusGiftCardPlugin\OrderProcessing;
 
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\Entity\AdjustmentInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Setono\SyliusGiftCardPlugin\OrderProcessing\OrderGiftCardProcessor;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Order\Factory\AdjustmentFactoryInterface;
 use Sylius\Component\Order\Model\OrderInterface;
@@ -50,7 +50,7 @@ final class OrderGiftCardProcessorSpec extends ObjectBehavior
         $secondGiftCardCode->getOrderItem()->willReturn($orderItem);
         $order->getId()->willReturn(1);
         $order->getTotal()->willReturn(100);
-        $giftCardCodeRepository->findAllActiveByCurrentOrder($order)->willReturn([$oneGiftCardCode, $secondGiftCardCode]);
+        $giftCardCodeRepository->findActiveByCurrentOrder($order)->willReturn([$oneGiftCardCode, $secondGiftCardCode]);
         $adjustmentFactory->createWithData(
             AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT,
             'Gift card',

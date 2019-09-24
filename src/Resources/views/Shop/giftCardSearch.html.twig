@@ -6,20 +6,20 @@
     <div class="ui breadcrumb">
         <a href="{{ path('sylius_shop_homepage') }}" class="section">{{ 'sylius.ui.home'|trans }}</a>
         <div class="divider"> /</div>
-        <div class="active section">{{ 'setono_sylius_gift_card_plugin.ui.gift_card'|trans }}</div>
+        <div class="active section">{{ 'setono_sylius_gift_card.ui.gift_card'|trans }}</div>
     </div>
     <div class="ui segment">
         <h1 class="ui dividing header">
-            {{ 'setono_sylius_gift_card_plugin.ui.gift_card_search'|trans }}
+            {{ 'setono_sylius_gift_card.ui.gift_card_search'|trans }}
         </h1>
 
-        <form method="get" action="{{ path('setono_sylius_gift_card_plugin_shop_search_gift_card') }}" class="ui loadable form">
+        <form method="get" action="{{ path('setono_sylius_gift_card_shop_search_gift_card') }}" class="ui loadable form">
             <input type="hidden" value="{{ csrf_token('search_gift_card') }}" name="_csrf_token">
 
             <div class="ui stackable grid">
                 <div class="eleven wide column">
                     <div class="field">
-                        <input type="text" name="code" placeholder="{{ ('setono_sylius_gift_card_plugin.ui.enter_gift_card_code'|trans) ~ '...' }}" value="{{ app.request.get('code', '') }}">
+                        <input type="text" name="code" placeholder="{{ ('setono_sylius_gift_card.ui.enter_gift_card_code'|trans) ~ '...' }}" value="{{ app.request.get('code', '') }}">
                     </div>
                 </div>
                 <div class="three wide column">
@@ -37,14 +37,14 @@
             <table class="ui celled table">
                 <thead>
                     <tr>
-                        <th>{{ 'setono_sylius_gift_card_plugin.ui.gift_card_code'|trans }}</th>
-                        <th>{{ 'setono_sylius_gift_card_plugin.email.balance'|trans }}</th>
+                        <th>{{ 'setono_sylius_gift_card.ui.gift_card_code'|trans }}</th>
+                        <th>{{ 'setono_sylius_gift_card.email.balance'|trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>{{ giftCardCode.code }}</td>
-                        <td>{{ money.format(giftCardCode.amount, channelGiftCardCode.baseCurrency.code) }}</td>
+                        <td>{{ money.format(giftCardCode.amount, giftCardCode.currencyCode) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -56,7 +56,7 @@
                         {{ 'sylius.ui.info'|trans }}
                     </div>
                     <p>
-                        {{ 'setono_sylius_gift_card_plugin.ui.the_gift_card_does_not_exist'|trans }}
+                        {{ 'setono_sylius_gift_card.ui.the_gift_card_does_not_exist'|trans }}
                     </p>
                 </div>
             </div>

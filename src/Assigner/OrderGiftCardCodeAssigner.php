@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Assigner;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManagerInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
+use Sylius\Component\Currency\Model\CurrencyInterface;
+use Webmozart\Assert\Assert;
 
 final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterface
 {
@@ -43,9 +45,6 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
         $this->giftCardEntityManager = $giftCardEntityManager;
     }
 
-    /**
-     * @param OrderInterface $order
-     */
     public function assignGiftCardCode(OrderInterface $order): void
     {
         $giftCardCodes = [];
@@ -53,6 +52,10 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
         if (null === $order->getChannel()) {
             return;
         }
+
+        /** @var CurrencyInterface|null $currency */
+        $currency = $order->getChannel()->getBaseCurrency();
+        Assert::isInstanceOf($currency, CurrencyInterface::class);
 
         /** @var OrderItemInterface $orderItem */
         foreach ($order->getItems() as $orderItem) {
@@ -69,12 +72,14 @@ final class OrderGiftCardCodeAssigner implements OrderGiftCardCodeAssignerInterf
             }
 
             for ($i = 0; $i < $orderItem->getQuantity(); ++$i) {
-                $giftCardCode = $this->giftCardCodeFactory->createWithGiftCardAndOrderItem($giftCard, $orderItem);
+                $giftCardCode = $this->giftCardCodeFactory->createForGiftCardAndOrderItem($giftCard, $orderItem);
 
+                $giftCardCode->setInitialAmount($orderItem->getUnitPrice());
                 $giftCardCode->setAmount($orderItem->getUnitPrice());
-                $giftCardCode->setChannelCode($order->getChannel()->getCode());
+                $giftCardCode->setCurrencyCode($currency->getCode());
+                $giftCardCode->setChannel($order->getChannel());
                 $giftCardCode->setCode($this->giftCardCodeGenerator->generate());
-                $giftCardCode->setIsActive(true);
+                $giftCardCode->setActive(true);
 
                 $this->giftCardEntityManager->persist($giftCardCode);
                 $this->giftCardEntityManager->flush();

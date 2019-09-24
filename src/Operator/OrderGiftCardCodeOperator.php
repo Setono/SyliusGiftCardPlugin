@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Operator;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 
 final class OrderGiftCardCodeOperator implements OrderGiftCardCodeOperatorInterface
@@ -23,6 +23,10 @@ final class OrderGiftCardCodeOperator implements OrderGiftCardCodeOperatorInterf
         $this->giftCardEntityManager = $giftCardEntityManager;
     }
 
+    /**
+     * Calls when Order this GiftCardCode was bought at
+     * become cancelled
+     */
     public function cancel(OrderInterface $order): void
     {
         foreach ($order->getItems() as $orderItem) {
@@ -30,7 +34,7 @@ final class OrderGiftCardCodeOperator implements OrderGiftCardCodeOperatorInterf
             $giftCardCodes = $this->giftCardCodeRepository->findBy(['orderItem' => $orderItem]);
 
             foreach ($giftCardCodes as $giftCardCode) {
-                $giftCardCode->setIsActive(false);
+                $giftCardCode->setActive(false);
             }
         }
 

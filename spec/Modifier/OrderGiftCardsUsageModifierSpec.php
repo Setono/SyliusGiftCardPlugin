@@ -7,11 +7,11 @@ namespace spec\Setono\SyliusGiftCardPlugin\Modifier;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\Entity\AdjustmentInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardsUsageModifier;
 use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardsUsageModifierInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 
 final class OrderGiftCardsUsageModifierSpec extends ObjectBehavior
@@ -50,10 +50,10 @@ final class OrderGiftCardsUsageModifierSpec extends ObjectBehavior
         $giftCardCodeRepository->findOneByCode('code2')->willReturn($secondGiftCardCode);
 
         $oneGiftCardCode->setAmount(0)->shouldBeCalled();
-        $oneGiftCardCode->setIsActive(false)->shouldBeCalled();
+        $oneGiftCardCode->setActive(false)->shouldBeCalled();
         $oneGiftCardCode->addUsedInOrder($order)->shouldBeCalled();
         $secondGiftCardCode->setAmount(50)->shouldBeCalled();
-        $secondGiftCardCode->setIsActive(true)->shouldBeCalled();
+        $secondGiftCardCode->setActive(true)->shouldBeCalled();
         $secondGiftCardCode->addUsedInOrder($order)->shouldBeCalled();
 
         $this->increment($order);
@@ -78,10 +78,10 @@ final class OrderGiftCardsUsageModifierSpec extends ObjectBehavior
         $giftCardCodeRepository->findOneByCode('code2')->willReturn($secondGiftCardCode);
 
         $oneGiftCardCode->setAmount(150)->shouldBeCalled();
-        $oneGiftCardCode->setIsActive(true)->shouldBeCalled();
+        $oneGiftCardCode->setActive(true)->shouldBeCalled();
         $oneGiftCardCode->removeUsedInOrder($order)->shouldBeCalled();
         $secondGiftCardCode->setAmount(100)->shouldBeCalled();
-        $secondGiftCardCode->setIsActive(true)->shouldBeCalled();
+        $secondGiftCardCode->setActive(true)->shouldBeCalled();
         $secondGiftCardCode->removeUsedInOrder($order)->shouldBeCalled();
 
         $this->decrement($order);

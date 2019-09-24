@@ -1,0 +1,81 @@
+sylius_grid:
+    templates:
+        action:
+            create_gift_card_code: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Action/create.html.twig"
+            delete_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Action/delete_conditional.html.twig"
+            list_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Action/list_conditional.html.twig"
+    grids:
+        setono_sylius_gift_card_admin_gift_card_code:
+            driver:
+                name: doctrine/orm
+                options:
+                    class: "%setono_sylius_gift_card.model.gift_card_code.class%"
+                    repository:
+                        method: createListQueryBuilder
+            sorting:
+                code: asc
+            fields:
+                code:
+                    type: string
+                    label: setono_sylius_gift_card.ui.code
+                    sortable: ~
+                amount:
+                    type: twig
+                    label: setono_sylius_gift_card.ui.amount
+                    path: .
+                    sortable: amount
+                    options:
+                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Field/amount.html.twig"
+                channel:
+                    type: twig
+                    label: sylius.ui.channel
+                    sortable: channel.code
+                    options:
+                        template: "@SyliusAdmin/Order/Grid/Field/channel.html.twig"
+                currencyCode:
+                    type: string
+                    label: sylius.ui.currency
+                    sortable: ~
+                active:
+                    type: twig
+                    label: setono_sylius_gift_card.ui.active
+                    sortable: ~
+                    options:
+                        template: "@SyliusUi/Grid/Field/yesNo.html.twig"
+            filters:
+                search:
+                    type: string
+                    label: sylius.ui.search
+                    options:
+                        fields: [code]
+                channel:
+                    type: entity
+                    label: sylius.ui.channel
+                    form_options:
+                        class: "%sylius.model.channel.class%"
+                amount:
+                    type: money
+                    label: sylius.ui.amount
+                    options:
+                        currency_field: currencyCode
+                active:
+                    label: setono_sylius_gift_card.ui.active
+                    type: boolean
+            actions:
+                main:
+                    create:
+                        type: create_gift_card_code
+                item:
+                    list_orders:
+                        type: list_conditional
+                        label: setono_sylius_gift_card.ui.list_orders
+                        options:
+                            visible: resource.isUsedInOrders
+                            link:
+                                route: setono_sylius_gift_card_admin_gift_card_code_orders_index
+                                parameters:
+                                    id: resource.id
+                    delete:
+                        type: delete_conditional
+                        options:
+                            visible: resource.isDeletable

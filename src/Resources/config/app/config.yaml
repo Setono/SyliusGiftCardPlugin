@@ -1,0 +1,11 @@
+imports:
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/grids/setono_sylius_gift_card_admin_gift_card_code.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/grids/setono_sylius_gift_card_admin_gift_card_code_order.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/state_machine/sylius_order_payment.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/state_machine/sylius_order.yaml" }
+
+sylius_mailer:
+    emails:
+        gift_card_order:
+            subject: setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order
+            template: "@SetonoSyliusGiftCardPlugin/Email/giftCard.html.twig"

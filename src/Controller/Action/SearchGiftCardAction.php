@@ -6,9 +6,9 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandlerInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardCodeRepositoryInterface;
-use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,42 +20,38 @@ final class SearchGiftCardAction
     /** @var ViewHandlerInterface */
     private $viewHandler;
 
-    /** @var ChannelRepositoryInterface */
-    private $channelRepository;
+    /** @var ChannelContextInterface */
+    private $channelContext;
 
     public function __construct(
         GiftCardCodeRepositoryInterface $giftCardCodeRepository,
         ViewHandlerInterface $viewHandler,
-        ChannelRepositoryInterface $channelRepository
+        ChannelContextInterface $channelContext
     ) {
         $this->giftCardCodeRepository = $giftCardCodeRepository;
         $this->viewHandler = $viewHandler;
-        $this->channelRepository = $channelRepository;
+        $this->channelContext = $channelContext;
     }
 
     public function __invoke(Request $request): Response
     {
         $giftCardCode = null;
-        $channelGiftCardCode = null;
 
+        /** @var string|null $code */
         $code = $request->get('code', null);
-
         if (null !== $code) {
             /** @var GiftCardCodeInterface $giftCardCode */
-            $giftCardCode = $this->giftCardCodeRepository->findOneBy(['code' => $code, 'isActive' => true]);
-        }
-
-        if (null !== $giftCardCode) {
-            $channelGiftCardCode = $this->channelRepository->findOneByCode($giftCardCode->getChannelCode());
+            $giftCardCode = $this->giftCardCodeRepository->findOneActiveByCodeAndChannel(
+                $code,
+                $this->channelContext->getChannel()
+            );
         }
 
         $view = View::create();
-
         $view
             ->setTemplate('@SetonoSyliusGiftCardPlugin/Shop/giftCardSearch.html.twig')
             ->setData([
                 'giftCardCode' => $giftCardCode,
-                'channelGiftCardCode' => $channelGiftCardCode,
             ])
         ;
 

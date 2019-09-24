@@ -11,16 +11,17 @@ use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Assigner\OrderGiftCardCodeAssigner;
 use Setono\SyliusGiftCardPlugin\Assigner\OrderGiftCardCodeAssignerInterface;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManagerInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardCodeInterface;
-use Setono\SyliusGiftCardPlugin\Entity\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolverInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Core\Model\ProductInterface;
+use Sylius\Component\Currency\Model\CurrencyInterface;
 
 final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
 {
@@ -61,22 +62,32 @@ final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
         ChannelInterface $channel,
         GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         EntityManager $giftCardEntityManager,
-        GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager
+        GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager,
+        CurrencyInterface $baseCurrency
     ): void {
         $giftCardCodeGenerator->generate()->willReturn('fehfekf');
+
+        $baseCurrency->getCode()->willReturn('USD');
+
         $channel->getCode()->willReturn('WEB');
+        $channel->getBaseCurrency()->willReturn($baseCurrency);
+
         $orderItem->getProduct()->willReturn($product);
         $orderItem->getQuantity()->willReturn(2);
         $orderItem->getUnitPrice()->willReturn(100);
+
         $order->getItems()->willReturn(new ArrayCollection([$orderItem->getWrappedObject()]));
         $order->getChannel()->willReturn($channel);
-        $giftCardRepository->findOneByProduct($product)->willReturn($giftCard);
-        $giftCardCodeFactory->createWithGiftCardAndOrderItem($giftCard, $orderItem)->willReturn($giftCardCode);
 
+        $giftCardRepository->findOneByProduct($product)->willReturn($giftCard);
+        $giftCardCodeFactory->createForGiftCardAndOrderItem($giftCard, $orderItem)->willReturn($giftCardCode);
+
+        $giftCardCode->setInitialAmount(100)->shouldBeCalledTimes(2);
         $giftCardCode->setAmount(100)->shouldBeCalledTimes(2);
-        $giftCardCode->setChannelCode('WEB')->shouldBeCalledTimes(2);
+        $giftCardCode->setCurrencyCode('USD')->shouldBeCalledTimes(2);
+        $giftCardCode->setChannel($channel)->shouldBeCalledTimes(2);
         $giftCardCode->setCode('fehfekf')->shouldBeCalledTimes(2);
-        $giftCardCode->setIsActive(true)->shouldBeCalledTimes(2);
+        $giftCardCode->setActive(true)->shouldBeCalledTimes(2);
         $giftCardEntityManager->persist($giftCardCode)->shouldBeCalledTimes(2);
         $giftCardEntityManager->flush()->shouldBeCalledTimes(2);
         $giftCardOrderEmailManager->sendEmailWithGiftCardCodes($order, [$giftCardCode, $giftCardCode])->shouldBeCalled();
