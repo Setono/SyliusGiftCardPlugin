@@ -15,13 +15,26 @@ class GiftCardCode implements GiftCardCodeInterface
     /** @var int|null */
     protected $id;
 
-    /** @var OrderItemInterface|null */
+    /**
+     * Item of currentOrder related to this GiftCardCode
+     * (orderItem's amount === GiftCardCode's amount)
+     *
+     * @var OrderItemInterface|null
+     */
     protected $orderItem;
 
-    /** @var Collection|OrderInterface[] */
+    /**
+     * Orders payed by this GiftCardCode
+     *
+     * @var Collection|OrderInterface[]
+     */
     protected $usedInOrders;
 
-    /** @var OrderInterface|null */
+    /**
+     * Cart/Order this GiftCardCode is currently applying
+     *
+     * @var OrderInterface|null
+     */
     protected $currentOrder;
 
     /** @var string|null */

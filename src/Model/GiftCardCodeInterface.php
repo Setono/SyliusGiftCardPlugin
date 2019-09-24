@@ -15,6 +15,7 @@ interface GiftCardCodeInterface extends ResourceInterface, CodeAwareInterface, C
 {
     /**
      * Admin can't remove items that was purchased
+     * with real money. Only generated items can be removed.
      *
      * @return bool
      */

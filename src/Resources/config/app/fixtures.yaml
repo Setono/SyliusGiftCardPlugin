@@ -6,6 +6,11 @@ sylius_fixtures:
                     options:
                         currencies: 
                             - "EUR"
+                geographical:
+                    options:
+                        countries:
+                            - "US"
+                            - "DK"
                 channel:
                     options:
                         custom:
@@ -59,6 +64,12 @@ sylius_fixtures:
                 product:
                     options:
                         custom:
+                            product_setono_sticker:
+                                name: "Setono Sticker"
+                                code: "setono_sticker"
+                                channels:
+                                    - "US_WEB"
+                                    - "EU_WEB"
                             product_gift_card_basic:
                                 name: "Basic Gift Card"
                                 code: "gift_card_basic"
@@ -87,8 +98,8 @@ sylius_fixtures:
                                     - "US_WEB"
                                 # Amounts will be taken from related product option
                                 amount_product_option: "gift_card_basic_amount"
-                                codes: 10 # How much gift card codes should be created?
-                                codes_used: 6
+                                codes_count: 10 # How much gift card codes should be created?
+                                # codes_used_count: 6
                             gift_card_platinum:
                                 product: "gift_card_platinum"
                                 channels: 
@@ -96,4 +107,22 @@ sylius_fixtures:
                                     - "EU_WEB"
                                 # Amount will be taken from `amount` option as related product is simple
                                 amount: 10000.00
-                                codes: 4
+                                codes_count: 4
+                setono_sylius_gift_card_payed_order:
+                    options:
+                        custom:
+                            gift_card_payed_orders:
+                                customer: "shop@example.com"
+                                channel: "US_WEB"
+                                locale: "%locale%"
+                                currency: "EUR"
+                                # gift_card_codes_count: 2
+                                address:
+                                    first_name: "Igor"
+                                    country: "DK"
+                                shipping_method: "ukrposhta"
+                                payment_method: "bank"
+                                items:
+                                    - product: "setono_sticker"
+                                      quantity: 3
+                                checkout_completed_at: "-1 days"

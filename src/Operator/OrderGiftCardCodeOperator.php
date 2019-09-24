@@ -23,6 +23,12 @@ final class OrderGiftCardCodeOperator implements OrderGiftCardCodeOperatorInterf
         $this->giftCardEntityManager = $giftCardEntityManager;
     }
 
+    /**
+     * Calls when Order this GiftCardCode was bought at
+     * become cancelled
+     *
+     * @param OrderInterface $order
+     */
     public function cancel(OrderInterface $order): void
     {
         foreach ($order->getItems() as $orderItem) {

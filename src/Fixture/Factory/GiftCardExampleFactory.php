@@ -10,6 +10,7 @@ use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Bundle\CoreBundle\Fixture\Factory\AbstractExampleFactory;
 use Sylius\Bundle\CoreBundle\Fixture\OptionsResolver\LazyOption;
@@ -30,11 +31,8 @@ use Webmozart\Assert\Assert;
 
 final class GiftCardExampleFactory extends AbstractExampleFactory
 {
-    /** @var \Faker\Generator */
-    private $faker;
-
-    /** @var OptionsResolver */
-    private $optionsResolver;
+    /** @var OrderExampleFactory */
+    protected $orderExampleFactory;
 
     /** @var ChannelRepositoryInterface */
     protected $channelRepository;
@@ -66,7 +64,14 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
     /** @var ProductVariantGeneratorInterface */
     protected $productVariantGenerator;
 
+    /** @var \Faker\Generator */
+    private $faker;
+
+    /** @var OptionsResolver */
+    private $optionsResolver;
+
     public function __construct(
+//        OrderExampleFactory $orderExampleFactory,
         ChannelRepositoryInterface $channelRepository,
         ProductRepositoryInterface $productRepository,
         ProductOptionRepositoryInterface $productOptionRepository,
@@ -78,6 +83,7 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
         GiftCardCodeRepositoryInterface $giftCardCodeRepository,
         ProductVariantGeneratorInterface $productVariantGenerator
     ) {
+//        $this->orderExampleFactory = $orderExampleFactory;
         $this->channelRepository = $channelRepository;
         $this->productRepository = $productRepository;
         $this->productOptionRepository = $productOptionRepository;
@@ -158,11 +164,15 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
                     return $productOptionValue->getOption() === $amountProductOption;
                 });
 
+                Assert::notEmpty($amountOptionValues, sprintf(
+                    "Product option '%s' should have at least one value.",
+                    $amountProductOption
+                ));
+
                 /** @var ProductOptionValueInterface $randomProductOptionValue */
                 $randomProductOptionValue = $this->faker->randomElement($amountOptionValues->toArray());
                 $price = (int) ($randomProductOptionValue->getValue() * 100);
 
-                // @todo Set price from option value
                 $channelPricing = $productVariant->getChannelPricingForChannel($channel);
                 if (!$channelPricing instanceof ChannelPricingInterface) {
                     /** @var ChannelPricingInterface $channelPricing */
@@ -198,33 +208,34 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
         $codesUsedCount = (int) $options['codes_used_count'];
 
         /** @var ProductInterface $product */
-        $product = $options['product'];
+        $giftCardProduct = $options['product'];
+
+        /** @var ChannelInterface $channel */
+        $channel = $this->faker->randomElement($options['channels']);
+
+        $currency = $channel->getBaseCurrency();
+        if (!$currency instanceof CurrencyInterface) {
+            /** @var CurrencyInterface $currency */
+            $currency = $this->faker->randomElement(
+                $channel->getCurrencies()->toArray()
+            );
+        }
 
         do {
             $giftCardCode = $this->giftCardCodeFactory->createForGiftCard($giftCard);
 
-            /** @var ChannelInterface $channel */
-            $channel = $this->faker->randomElement($options['channels']);
-
-            $currency = $channel->getBaseCurrency();
-            if (!$currency instanceof CurrencyInterface) {
-                /** @var CurrencyInterface $randomCurrency */
-                $currency = $this->faker->randomElement(
-                    $channel->getCurrencies()->toArray()
-                );
-            }
-
-            if ($product->isSimple()) {
+            if ($giftCardProduct->isSimple()) {
                 Assert::numeric($options['amount'], sprintf(
                     'You should specify amount for simple GiftCard Product %s',
-                    $product->getCode()
+                    $giftCardProduct->getCode()
                 ));
 
                 $giftCardCode->setInitialAmount((int) ($options['amount'] * 100));
                 $giftCardCode->setAmount((int) ($options['amount'] * 100));
             } else {
+                // Gift card with random option/amount was bought...
                 /** @var ProductVariantInterface $randomProductVariant */
-                $randomProductVariant = $this->faker->randomElement($product->getVariants()->toArray());
+                $randomProductVariant = $this->faker->randomElement($giftCardProduct->getVariants()->toArray());
 
                 $channelPricing = $randomProductVariant->getChannelPricingForChannel($channel);
                 Assert::isInstanceOf($channelPricing, ChannelPricingInterface::class, sprintf(
@@ -248,9 +259,37 @@ final class GiftCardExampleFactory extends AbstractExampleFactory
             $giftCardCode->setCurrencyCode(
                 $currency->getCode()
             );
-            $giftCardCode->setActive(--$codesUsedCount > 0);
+            $giftCardCode->setActive(true);
+
+            // Should we use this gift card code (e.g. create order payed by this gift card code)?
+            if ($codesUsedCount-- > 0) {
+//                // Is it was used fully (no amount remains)
+//                if ($this->faker->boolean(25)) {
+//                    $usedAmount = $giftCardCode->getInitialAmount();
+//                } else {
+//                    $usedAmount = (int) rand(1, $giftCardCode->getInitialAmount());
+//                }
+//                $remainsAmount = $giftCardCode->getInitialAmount() - $usedAmount;
+//
+//                $giftCardCode->setAmount($remainsAmount);
+//
+//                // Not active gift card code have zero amount
+//                if ($giftCardCode->getAmount() == 0) {
+//                    $giftCardCode->setActive(false);
+//                }
+
+//                $this->createOrder($giftCardCode, $usedAmount);
+            }
 
             $this->giftCardCodeRepository->add($giftCardCode);
         } while (--$codesCount > 0);
     }
+
+//    protected function createOrder(GiftCardCodeInterface $giftCardCode, int $usedAmount)
+//    {
+//        $order = $this->orderExampleFactory->create([
+//            'channel' => $giftCardCode->getChannel(),
+//            'currency' => $giftCardCode->getCurrencyCode(),
+//        ]);
+//    }
 }
