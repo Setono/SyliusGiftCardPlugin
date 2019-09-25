@@ -7,8 +7,10 @@ namespace Setono\SyliusGiftCardPlugin\Doctrine\ORM;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\QueryBuilder;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Channel\Model\ChannelInterface;
+use Sylius\Component\Core\Model\OrderItemUnitInterface;
 use Sylius\Component\Order\Model\OrderInterface;
 
 final class GiftCardRepository extends EntityRepository implements GiftCardRepositoryInterface
@@ -55,6 +57,19 @@ final class GiftCardRepository extends EntityRepository implements GiftCardRepos
             ->setParameter('order', $order)
             ->getQuery()
             ->getResult()
+        ;
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     */
+    public function findOneByOrderItemUnit(OrderItemUnitInterface $orderItemUnit): ?GiftCardInterface
+    {
+        return $this->createQueryBuilder('o')
+            ->where('o.orderItemUnit = :orderItemUnit')
+            ->setParameter('orderItemUnit', $orderItemUnit)
+            ->getQuery()
+            ->getOneOrNullResult()
         ;
     }
 }

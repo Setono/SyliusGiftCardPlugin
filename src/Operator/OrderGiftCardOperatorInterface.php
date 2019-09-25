@@ -6,7 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Operator;
 
 use Sylius\Component\Core\Model\OrderInterface;
 
-interface OrderGiftCardCodeOperatorInterface
+interface OrderGiftCardOperatorInterface
 {
     public function cancel(OrderInterface $order): void;
 }

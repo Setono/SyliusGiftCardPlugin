@@ -9,7 +9,7 @@ sylius_grid:
             driver:
                 name: doctrine/orm
                 options:
-                    class: "%setono_sylius_gift_card.model.gift_card_code.class%"
+                    class: "%setono_sylius_gift_card.model.gift_card.class%"
                     repository:
                         method: createListQueryBuilder
             sorting:
