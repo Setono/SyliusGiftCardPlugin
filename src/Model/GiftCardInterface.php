@@ -8,18 +8,14 @@ use Doctrine\Common\Collections\Collection;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemUnitInterface;
+use Sylius\Component\Resource\Model\CodeAwareInterface;
 use Sylius\Component\Resource\Model\ResourceInterface;
 use Sylius\Component\Resource\Model\ToggleableInterface;
 
-interface GiftCardInterface extends ResourceInterface, ToggleableInterface
+interface GiftCardInterface extends ResourceInterface, ToggleableInterface, CodeAwareInterface
 {
-    public function getCode(): ?string;
-
-    public function setCode(string $code): void;
-
     /**
-     * Admin can't remove items that was purchased
-     * with real money. Only generated items can be removed.
+     * Admin can't remove items that was purchased with real money. Only generated items can be removed
      */
     public function isDeletable(): bool;
 
@@ -30,8 +26,18 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface
      */
     public function getOrderItemUnit(): ?OrderItemUnitInterface;
 
-    public function setOrderItemUnit(?OrderItemUnitInterface $orderItem): void;
+    public function setOrderItemUnit(OrderItemUnitInterface $orderItem): void;
 
+    /**
+     * This is the current amount available on this gift card
+     */
+    public function getAmount(): ?int;
+
+    public function setAmount(int $amount): void;
+
+    /**
+     * This is the original value of the gift card
+     */
     public function getInitialAmount(): ?int;
 
     /**
@@ -39,29 +45,36 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface
      */
     public function setInitialAmount(int $initialAmount): void;
 
-    public function getAmount(): ?int;
-
-    public function setAmount(int $amount): void;
-
     public function isEnabled(): bool;
 
     public function getCurrencyCode(): ?string;
 
     public function setCurrencyCode(string $currencyCode): void;
 
-    public function isUsedInOrders(): bool;
-
-    public function getUsedInOrders(): Collection;
-
-    public function addUsedInOrder(OrderInterface $order): void;
-
-    public function removeUsedInOrder(OrderInterface $order): void;
-
-    public function hasUsedInOrder(OrderInterface $order): bool;
-
+    /**
+     * The order where this gift card is being applied right now
+     */
     public function getCurrentOrder(): ?OrderInterface;
 
     public function setCurrentOrder(?OrderInterface $currentOrder): void;
+
+    /**
+     * Orders where this gift card was applied
+     *
+     * @return Collection|OrderInterface[]
+     */
+    public function getAppliedOrders(): Collection;
+
+    /**
+     * Returns true if this gift card ever been applied to an order
+     */
+    public function hasAppliedOrders(): bool;
+
+    public function addAppliedOrder(OrderInterface $order): void;
+
+    public function removeAppliedOrder(OrderInterface $order): void;
+
+    public function hasAppliedOrder(OrderInterface $order): bool;
 
     public function getChannel(): ?ChannelInterface;
 

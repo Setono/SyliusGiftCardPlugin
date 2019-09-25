@@ -1,6 +1,6 @@
 sylius_grid:
     grids:
-        setono_sylius_gift_card_admin_gift_card_code_order:
+        setono_sylius_gift_card_admin_gift_card_order:
             extends: sylius_admin_order
             driver:
                 options:

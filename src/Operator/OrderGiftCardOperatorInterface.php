@@ -8,5 +8,12 @@ use Sylius\Component\Core\Model\OrderInterface;
 
 interface OrderGiftCardOperatorInterface
 {
-    public function cancel(OrderInterface $order): void;
+    /**
+     * Will create and persist all gift cards on the given order
+     */
+    public function create(OrderInterface $order): void;
+
+    public function enable(OrderInterface $order): void;
+
+    public function disable(OrderInterface $order): void;
 }

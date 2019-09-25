@@ -7,15 +7,21 @@ namespace Setono\SyliusGiftCardPlugin\EventListener;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Bundle\ResourceBundle\Event\ResourceControllerEvent;
 use Sylius\Component\Resource\Exception\UnexpectedTypeException;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-final class GiftCardCodeDeletionListener
+final class GiftCardDeletionSubscriber implements EventSubscriberInterface
 {
-    // todo make this a subscriber
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            'setono_sylius_gift_card.gift_card.pre_delete' => 'onGiftCardPreDelete',
+        ];
+    }
 
     /**
      * Prevent gift card code deletion if it not deletable
      */
-    public function onGiftCardCodePreDelete(ResourceControllerEvent $event): void
+    public function onGiftCardPreDelete(ResourceControllerEvent $event): void
     {
         $giftCardCode = $event->getSubject();
 
@@ -27,7 +33,7 @@ final class GiftCardCodeDeletionListener
         }
 
         if (!$giftCardCode->isDeletable()) {
-            $event->stop('setono_sylius_gift_card.gift_card_code.delete_error');
+            $event->stop('setono_sylius_gift_card.gift_card.delete_error');
         }
     }
 }

@@ -12,5 +12,5 @@ winzou_state_machine:
                     args: ["object"]
                 setono_cancellation_gift_card_codes:
                     on: ["cancel"]
-                    do: ["@setono_sylius_gift_card.operator.gift_card_code", "cancel"]
+                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "disable"]
                     args: ["object"]

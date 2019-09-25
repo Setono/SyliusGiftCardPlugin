@@ -1,5 +1,5 @@
 setono_sylius_gift_card:
-    gift_card_code:
+    gift_card:
         code:
             not_blank: Please enter code.
             unique: Code must be unique.

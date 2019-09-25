@@ -35,10 +35,14 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
             return;
         }
 
+        $order->removeAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT);
+
+        if ($order->isEmpty()) {
+            return;
+        }
+
         /** @var GiftCardInterface[] $giftCardCodes */
         $giftCardCodes = $this->giftCardRepository->findActiveByCurrentOrder($order);
-
-        $order->removeAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT);
 
         foreach ($giftCardCodes as $giftCardCode) {
             $amount = $giftCardCode->getAmount();
@@ -47,7 +51,7 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
                 $amount = $order->getTotal();
             }
 
-            if ($amount === 0) {
+            if (0 === $amount) {
                 continue;
             }
 

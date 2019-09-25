@@ -10,7 +10,6 @@
         <import resource="services/factory.xml"/>
         <import resource="services/fixture.xml"/>
         <import resource="services/form.xml"/>
-        <import resource="services/manager.xml"/>
         <import resource="services/menu.xml"/>
         <import resource="services/misc.xml"/>
     </imports>

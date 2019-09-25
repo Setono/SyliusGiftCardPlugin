@@ -50,7 +50,7 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
                 $giftCardCode->setAmount($giftCardCode->getAmount() - $amount);
             }
 
-            $giftCardCode->addUsedInOrder($order);
+            $giftCardCode->addAppliedOrder($order);
 
             $this->giftCardCodeEntityManager->flush();
         }
@@ -76,7 +76,7 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
                 $giftCardCode->enable();
             }
 
-            $giftCardCode->removeUsedInOrder($order);
+            $giftCardCode->removeAppliedOrder($order);
 
             $this->giftCardCodeEntityManager->flush();
         }

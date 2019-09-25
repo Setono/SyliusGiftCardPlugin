@@ -30,8 +30,9 @@
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
         </service>
 
-        <service id="setono_sylius_gift_card.operator.gift_card_code"
+        <service id="setono_sylius_gift_card.operator.order_gift_card"
                  class="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator">
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
         </service>

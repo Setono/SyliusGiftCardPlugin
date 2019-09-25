@@ -16,48 +16,36 @@ class GiftCard implements GiftCardInterface
 {
     use ToggleableTrait;
 
-    /** @var int|null */
+    /** @var int */
     protected $id;
 
     /** @var OrderItemUnitInterface|null */
     protected $orderItemUnit;
 
-    /**
-     * Orders payed by this GiftCardCode
-     *
-     * @var Collection|OrderInterface[]
-     */
-    protected $usedInOrders;
-
-    /**
-     * Cart/Order this GiftCardCode is currently applying
-     *
-     * @var OrderInterface|null
-     */
+    /** @var OrderInterface|null */
     protected $currentOrder;
+
+    /** @var Collection|OrderInterface[] */
+    protected $appliedOrders;
 
     /** @var string|null */
     protected $code;
 
-    /** @var int|null */
+    /** @var int */
     protected $initialAmount;
 
-    /**
-     * Current amount (initial minus spent)
-     *
-     * @var int|null
-     */
+    /** @var int|null */
     protected $amount;
 
-    /** @var string|null */
+    /** @var string */
     protected $currencyCode;
 
-    /** @var ChannelInterface|null */
+    /** @var ChannelInterface */
     protected $channel;
 
     public function __construct()
     {
-        $this->usedInOrders = new ArrayCollection();
+        $this->appliedOrders = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -75,7 +63,7 @@ class GiftCard implements GiftCardInterface
         return $this->orderItemUnit;
     }
 
-    public function setOrderItemUnit(?OrderItemUnitInterface $orderItem): void
+    public function setOrderItemUnit(OrderItemUnitInterface $orderItem): void
     {
         $this->orderItemUnit = $orderItem;
     }
@@ -102,6 +90,7 @@ class GiftCard implements GiftCardInterface
         }
 
         $this->initialAmount = $initialAmount;
+        $this->setAmount($initialAmount);
     }
 
     public function getAmount(): ?int
@@ -114,35 +103,6 @@ class GiftCard implements GiftCardInterface
         $this->amount = $amount;
     }
 
-    public function isUsedInOrders(): bool
-    {
-        return $this->usedInOrders->count() > 0;
-    }
-
-    public function getUsedInOrders(): Collection
-    {
-        return $this->usedInOrders;
-    }
-
-    public function addUsedInOrder(OrderInterface $order): void
-    {
-        if (!$this->hasUsedInOrder($order)) {
-            $this->usedInOrders->add($order);
-        }
-    }
-
-    public function removeUsedInOrder(OrderInterface $order): void
-    {
-        if ($this->hasUsedInOrder($order)) {
-            $this->usedInOrders->removeElement($order);
-        }
-    }
-
-    public function hasUsedInOrder(OrderInterface $order): bool
-    {
-        return $this->usedInOrders->contains($order);
-    }
-
     public function getCurrentOrder(): ?OrderInterface
     {
         return $this->currentOrder;
@@ -151,6 +111,35 @@ class GiftCard implements GiftCardInterface
     public function setCurrentOrder(?OrderInterface $currentOrder): void
     {
         $this->currentOrder = $currentOrder;
+    }
+
+    public function getAppliedOrders(): Collection
+    {
+        return $this->appliedOrders;
+    }
+
+    public function hasAppliedOrders(): bool
+    {
+        return !$this->getAppliedOrders()->isEmpty();
+    }
+
+    public function addAppliedOrder(OrderInterface $order): void
+    {
+        if (!$this->hasAppliedOrder($order)) {
+            $this->appliedOrders->add($order);
+        }
+    }
+
+    public function removeAppliedOrder(OrderInterface $order): void
+    {
+        if ($this->hasAppliedOrder($order)) {
+            $this->appliedOrders->removeElement($order);
+        }
+    }
+
+    public function hasAppliedOrder(OrderInterface $order): bool
+    {
+        return $this->appliedOrders->contains($order);
     }
 
     public function getCurrencyCode(): ?string

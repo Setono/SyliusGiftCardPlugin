@@ -1,56 +1,56 @@
-setono_sylius_gift_card_admin_gift_card_code:
+setono_sylius_gift_card_admin_gift_card:
     resource: |
-        alias: setono_sylius_gift_card.gift_card_code
+        alias: setono_sylius_gift_card.gift_card
         section: admin
         only: [index, delete, bulkDelete]
         templates: SyliusAdminBundle:Crud
         redirect: index
-        grid: setono_sylius_gift_card_admin_gift_card_code
+        grid: setono_sylius_gift_card_admin_gift_card
         vars:
             all:
-                subheader: setono_sylius_gift_card.ui.gift_card_code
+                subheader: setono_sylius_gift_card.ui.gift_card
                 templates:
-                    form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/_form.html.twig"
+                    form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/_form.html.twig"
             index:
                 icon: 'gift'
     type: sylius.resource
 
 # todo what is this route doing?
-setono_sylius_gift_card_admin_gift_card_code_create_for_channel:
-    path: /gift-card-codes/create
+setono_sylius_gift_card_admin_gift_card_create_for_channel:
+    path: /gift-cards/create
     methods: [GET]
     defaults:
         _controller: sylius.controller.channel:indexAction
         _sylius:
             repository:
                 method: findAll
-            template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/create.html.twig"
+            template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/create.html.twig"
             permission: true
 
-setono_sylius_gift_card_admin_gift_card_code_create:
-    path: /gift-card-codes/create/{channelCode}
+setono_sylius_gift_card_admin_gift_card_create:
+    path: /gift-cards/create/{channelCode}
     methods: [GET, POST]
     defaults:
-        _controller: setono_sylius_gift_card.controller.gift_card_code:createAction
+        _controller: setono_sylius_gift_card.controller.gift_card:createAction
         _sylius:
             factory:
                 method: createForChannel
                 arguments:
                     channel: "expr:service('sylius.repository.channel').findOneByCode($channelCode)"
             template: SyliusAdminBundle:Crud:create.html.twig
-            grid: setono_sylius_gift_card_admin_gift_card_code
+            grid: setono_sylius_gift_card_admin_gift_card
             section: admin
             redirect:
-                route: setono_sylius_gift_card_admin_gift_card_code_index
+                route: setono_sylius_gift_card_admin_gift_card_index
             permission: true
             vars:
                 route:
                     parameters:
                         channelCode: $channelCode
                 templates:
-                    form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/_form.html.twig"
+                    form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/_form.html.twig"
 
-setono_sylius_gift_card_admin_gift_card_code_orders_index:
+setono_sylius_gift_card_admin_gift_card_orders_index:
     path: /gift-card-codes/{id}/orders
     methods: [GET, POST]
     defaults:
@@ -61,6 +61,6 @@ setono_sylius_gift_card_admin_gift_card_code_orders_index:
                     parameters:
                         id: $id
             template: SyliusAdminBundle:Crud:index.html.twig
-            grid: setono_sylius_gift_card_admin_gift_card_code_order
+            grid: setono_sylius_gift_card_admin_gift_card_order
             section: admin
             permission: true
