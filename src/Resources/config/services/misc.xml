@@ -17,7 +17,7 @@
         </service>
 
         <service id="setono_sylius_gift_card.order_processing.order_gift_card"
-                 class="Setono\SyliusGiftCardPlugin\OrderProcessing\OrderGiftCardProcessor">
+                 class="Setono\SyliusGiftCardPlugin\OrderProcessor\OrderGiftCardProcessor">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="sylius.custom_factory.adjustment"/>
             <tag name="sylius.order_processor" priority="0"/>

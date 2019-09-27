@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace spec\Setono\SyliusGiftCardPlugin\OrderProcessing;
+namespace spec\Setono\SyliusGiftCardPlugin\OrderProcessor;
 
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
-use Setono\SyliusGiftCardPlugin\OrderProcessing\OrderGiftCardProcessor;
+use Setono\SyliusGiftCardPlugin\OrderProcessor\OrderGiftCardProcessor;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Order\Factory\AdjustmentFactoryInterface;
