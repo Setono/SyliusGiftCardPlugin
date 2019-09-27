@@ -7,39 +7,62 @@ namespace spec\Setono\SyliusGiftCardPlugin\Model;
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
-use Sylius\Component\Core\Model\ProductInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\OrderItemUnitInterface;
 use Sylius\Component\Resource\Model\ResourceInterface;
 
 class GiftCardSpec extends ObjectBehavior
 {
-    function it_is_initializable(): void
+    public function it_is_initializable(): void
     {
         $this->shouldHaveType(GiftCard::class);
     }
 
-    function it_is_a_resource(): void
+    public function it_is_a_resource(): void
     {
         $this->shouldHaveType(ResourceInterface::class);
     }
 
-    function it_implements_gift_card_interface(): void
+    public function it_implements_gift_card_interface(): void
     {
         $this->shouldHaveType(GiftCardInterface::class);
     }
 
-    function it_allows_access_via_properties(ProductInterface $product): void
-    {
-        $this->setProduct($product);
-        $this->getProduct()->shouldReturn($product);
+    public function it_allows_access_via_properties(
+        OrderItemUnitInterface $orderItemUnit,
+        ChannelInterface $channel,
+        OrderInterface $order
+    ): void {
+        $this->setOrderItemUnit($orderItemUnit);
+        $this->getOrderItemUnit()->shouldReturn($orderItemUnit);
+
+        $this->setCurrentOrder($order);
+        $this->getCurrentOrder()->shouldReturn($order);
+
+        $this->setCode('code');
+        $this->getCode()->shouldReturn('code');
+
+        $this->isEnabled()->shouldReturn(true);
+        $this->disable();
+        $this->isEnabled()->shouldReturn(false);
+
+        $this->setAmount(100);
+        $this->getAmount()->shouldReturn(100);
+
+        $this->setCurrencyCode('USD');
+        $this->getCurrencyCode()->shouldReturn('USD');
+
+        $this->setChannel($channel);
+        $this->getChannel()->shouldReturn($channel);
     }
 
-    function it_associates_gift_card_codes(GiftCardInterface $giftCardCode): void
+    public function it_associates_used_in_orders(OrderInterface $order): void
     {
-        $this->addGiftCardCode($giftCardCode);
-        $this->hasGiftCardCode($giftCardCode)->shouldReturn(true);
+        $this->addAppliedOrder($order);
+        $this->hasAppliedOrder($order)->shouldReturn(true);
 
-        $this->removeGiftCardCode($giftCardCode);
-        $this->hasGiftCardCode($giftCardCode)->shouldReturn(false);
+        $this->removeAppliedOrder($order);
+        $this->hasAppliedOrder($order)->shouldReturn(false);
     }
 }

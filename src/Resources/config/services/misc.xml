@@ -23,8 +23,8 @@
             <tag name="sylius.order_processor" priority="0"/>
         </service>
 
-        <service id="setono_sylius_gift_card.modifier.order_gift_card_usage"
-                 class="Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardsUsageModifier"
+        <service id="setono_sylius_gift_card.modifier.order_gift_card_amount"
+                 class="Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardAmountModifier"
                  public="true">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>

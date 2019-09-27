@@ -14,36 +14,36 @@ use Sylius\Component\Mailer\Sender\SenderInterface;
 
 final class GiftCardOrderEmailManagerSpec extends ObjectBehavior
 {
-    function let(SenderInterface $sender): void
+    public function let(SenderInterface $sender): void
     {
         $this->beConstructedWith($sender);
     }
 
-    function it_is_initializable(): void
+    public function it_is_initializable(): void
     {
         $this->shouldHaveType(GiftCardOrderEmailManager::class);
     }
 
-    function it_implements_gift_card_order_email_manager_interface(): void
+    public function it_implements_gift_card_order_email_manager_interface(): void
     {
         $this->shouldHaveType(GiftCardOrderEmailManagerInterface::class);
     }
 
-    function it_sends_email_with_gift_card_codes(
+    public function it_sends_email_with_gift_card_codes(
         OrderInterface $order,
         CustomerInterface $customer,
-        GiftCardInterface $giftCardCode,
+        GiftCardInterface $giftCard,
         SenderInterface $sender
     ): void {
-        $customer->getEmail()->willReturn('exmaple@shop.com');
+        $customer->getEmail()->willReturn('example@shop.com');
         $order->getCustomer()->willReturn($customer);
 
         $sender->send(
             GiftCardOrderEmailManagerInterface::EMAIL_CONFIG_NAME,
-            ['exmaple@shop.com'],
-            ['giftCardCodes' => [$giftCardCode], 'order' => $order]
+            ['example@shop.com'],
+            ['giftCards' => [$giftCard], 'order' => $order]
         )->shouldBeCalled();
 
-        $this->sendEmailWithGiftCardCodes($order, [$giftCardCode]);
+        $this->sendEmailWithGiftCardCodes($order, [$giftCard]);
     }
 }

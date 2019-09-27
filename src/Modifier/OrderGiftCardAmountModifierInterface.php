@@ -6,7 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Modifier;
 
 use Sylius\Component\Core\Model\OrderInterface;
 
-interface OrderGiftCardsUsageModifierInterface
+interface OrderGiftCardAmountModifierInterface
 {
     public function increment(OrderInterface $order): void;
 

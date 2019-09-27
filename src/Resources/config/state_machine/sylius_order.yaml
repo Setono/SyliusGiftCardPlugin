@@ -2,15 +2,15 @@ winzou_state_machine:
     sylius_order:
         callbacks:
             after:
-                setono_increment_gift_cards_usages:
+                setono_increment_gift_card_amount:
                     on: ["create"]
-                    do: ["@setono_sylius_gift_card.modifier.order_gift_card_usage", "increment"]
+                    do: ["@setono_sylius_gift_card.modifier.order_gift_card_amount", "increment"]
                     args: ["object"]
-                setono_decrement_gift_cards_usages:
+                setono_decrement_gift_card_amount:
                     on: ["cancel"]
-                    do: ["@setono_sylius_gift_card.modifier.order_gift_card_usage", "decrement"]
+                    do: ["@setono_sylius_gift_card.modifier.order_gift_card_amount", "decrement"]
                     args: ["object"]
-                setono_cancellation_gift_card_codes:
+                setono_order_cancellation_gift_card:
                     on: ["cancel"]
                     do: ["@setono_sylius_gift_card.operator.order_gift_card", "disable"]
                     args: ["object"]

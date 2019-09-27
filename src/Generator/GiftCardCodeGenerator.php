@@ -9,19 +9,19 @@ use Safe\Exceptions\PcreException;
 use Safe\Exceptions\StringsException;
 use function Safe\preg_replace;
 use function Safe\substr;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 
 final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
 {
-    /** @var RepositoryInterface */
-    private $giftCardCodeRepository;
+    /** @var GiftCardRepositoryInterface */
+    private $giftCardRepository;
 
     /** @var int */
     private $codeLength;
 
-    public function __construct(RepositoryInterface $giftCardCodeRepository, int $codeLength = 12)
+    public function __construct(GiftCardRepositoryInterface $giftCardRepository, int $codeLength = 12)
     {
-        $this->giftCardCodeRepository = $giftCardCodeRepository;
+        $this->giftCardRepository = $giftCardRepository;
         $this->codeLength = $codeLength;
     }
 
@@ -45,6 +45,6 @@ final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
 
     private function exists(string $code): bool
     {
-        return null !== $this->giftCardCodeRepository->findOneBy(['code' => $code]);
+        return null !== $this->giftCardRepository->findOneByCode($code);
     }
 }

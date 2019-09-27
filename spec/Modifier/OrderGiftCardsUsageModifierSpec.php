@@ -9,8 +9,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
-use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardsUsageModifier;
-use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardsUsageModifierInterface;
+use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardAmountModifier;
+use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardAmountModifierInterface;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 
@@ -23,12 +23,12 @@ final class OrderGiftCardsUsageModifierSpec extends ObjectBehavior
 
     function it_is_initializable(): void
     {
-        $this->shouldHaveType(OrderGiftCardsUsageModifier::class);
+        $this->shouldHaveType(OrderGiftCardAmountModifier::class);
     }
 
     function it_implements_order_gift_cards_usage_interface(): void
     {
-        $this->shouldHaveType(OrderGiftCardsUsageModifierInterface::class);
+        $this->shouldHaveType(OrderGiftCardAmountModifierInterface::class);
     }
 
     function it_increments(

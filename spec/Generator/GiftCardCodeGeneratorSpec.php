@@ -6,31 +6,30 @@ namespace spec\Setono\SyliusGiftCardPlugin\Generator;
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 
 final class GiftCardCodeGeneratorSpec extends ObjectBehavior
 {
-    function let(RepositoryInterface $giftCardCodeRepository): void
+    public function let(GiftCardRepositoryInterface $giftCardRepository): void
     {
-        $this->beConstructedWith($giftCardCodeRepository);
+        $this->beConstructedWith($giftCardRepository);
     }
 
-    function it_is_initializable(): void
+    public function it_is_initializable(): void
     {
         $this->shouldHaveType(GiftCardCodeGenerator::class);
     }
 
-    function it_implements_gift_card_code_generator_interface(): void
+    public function it_implements_gift_card_code_generator_interface(): void
     {
         $this->shouldHaveType(GiftCardCodeGeneratorInterface::class);
     }
 
-    function it_generates(RepositoryInterface $giftCardCodeRepository): void
+    public function it_generates(GiftCardRepositoryInterface $giftCardRepository): void
     {
-        $giftCardCodeRepository->findOneBy(Argument::type('array'))->willReturn(null);
+        $giftCardRepository->findOneByCode(Argument::type('string'))->willReturn(null);
 
         $this->generate()->shouldBeString();
     }
