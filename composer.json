@@ -30,15 +30,22 @@
         "roave/security-advisories": "dev-master",
         "sensiolabs/security-checker": "^5.0",
         "sylius-labs/coding-standard": "^3.0",
-        "symfony/browser-kit": "^3.4|^4.3",
-        "symfony/debug-bundle": "^3.4|^4.3",
+        "symfony/browser-kit": "^3.4 || ^4.3",
+        "symfony/debug-bundle": "^3.4 || ^4.3",
         "symfony/dotenv": "^4.3",
-        "symfony/intl": "^3.4|^4.3",
-        "symfony/web-profiler-bundle": "^3.4|^4.3",
-        "symfony/web-server-bundle": "^3.4|^4.3",
+        "symfony/intl": "^3.4 || ^4.3",
+        "symfony/web-profiler-bundle": "^3.4 || ^4.3",
+        "symfony/web-server-bundle": "^3.4 || ^4.3",
         "thecodingmachine/phpstan-safe-rule": "^0.1"
     },
-    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    },
     "autoload": {
         "psr-4": {
             "Setono\\SyliusGiftCardPlugin\\": "src/",
@@ -46,46 +53,21 @@
         }
     },
     "autoload-dev": {
-        "classmap": ["tests/Application/Kernel.php"]
+        "classmap": [
+            "tests/Application/Kernel.php"
+        ]
     },
-    "config": {
-        "sort-packages": true
-    },
+    "prefer-stable": true,
     "scripts": {
-        "try": [
-            "@ensure-vendors-installed",
-            "@assets",
-            "@fixtures",
-            "@run"
-        ],
-        "assets": [
-            "@ensure-assets-installed",
-            "@ensure-assets-compiled"
-        ],
-        "fixtures": [
-            "@ensure-database-created",
-            "@ensure-schema-updated",
-            "(cd tests/Application && php -d memory_limit=-1 bin/console sylius:fixtures:load --no-interaction -e ${SYMFONY_ENV:-'dev'})"
-        ],
-        "run": [
-            "@ensure-env-copied",
-            "(cd tests/Application && bin/console server:run -d public -e ${SYMFONY_ENV:-'dev'})"
-        ],
         "all": [
             "@checks",
             "@tests"
         ],
-        "checks": [
-            "@check-style",
-            "@analyse"
+        "analyse": "vendor/bin/phpstan analyse -c phpstan.neon -l max src",
+        "assets": [
+            "@ensure-assets-installed",
+            "@ensure-assets-compiled"
         ],
-        "tests": [
-            "@phpspec",
-            "@phpunit",
-            "@behat"
-        ],
-        "phpspec": "vendor/bin/phpspec run -vvv",
-        "phpunit": "vendor/bin/phpunit",
         "behat": [
             "SYMFONY_ENV=test composer ensure-database-created",
             "SYMFONY_ENV=test composer ensure-schema-updated",
@@ -93,20 +75,40 @@
             "php -d memory_limit=-1 vendor/bin/behat --tags=\"~@javascript\" --no-interaction --format=progress"
         ],
         "check-style": "vendor/bin/ecs check src",
-        "fix-style": "vendor/bin/ecs check src --fix",
-        "analyse": "vendor/bin/phpstan analyse -c phpstan.neon -l max src",
-        "ensure-vendors-installed": "[[ -f vendor/autoload.php ]] || php -d memory_limit=-1 /usr/local/bin/composer install",
-        "ensure-assets-installed": "[[ -d tests/Application/node_modules ]] || (cd tests/Application && yarn install)",
+        "checks": [
+            "@check-style",
+            "@analyse"
+        ],
         "ensure-assets-compiled": "[[ -d tests/Application/public/assets ]] || (cd tests/Application && yarn build && composer ensure-env-copied && bin/console assets:install public -e ${SYMFONY_ENV:-'dev'})",
+        "ensure-assets-installed": "[[ -d tests/Application/node_modules ]] || (cd tests/Application && yarn install)",
         "ensure-database-created": "composer ensure-env-copied && (cd tests/Application && bin/console doctrine:database:create --if-not-exists -e ${SYMFONY_ENV:-'dev'})",
-        "ensure-schema-updated": "composer ensure-env-copied && (cd tests/Application && bin/console doctrine:schema:update --force -e ${SYMFONY_ENV:-'dev'})",
         "ensure-env-copied": "([[ ${SYMFONY_ENV:-'dev'} == 'dev' ]] && composer ensure-env-dev-copied) || ([[ ${SYMFONY_ENV:-'dev'} == 'test' ]] && composer ensure-env-test-copied) || echo 'Unknown environment ${SYMFONY_ENV}'",
+        "ensure-env-dev-copied": "(cd tests/Application && ([[ -f .env.local ]] || cp .env .env.local))",
         "ensure-env-test-copied": "(cd tests/Application && ([[ -f .env.test.local ]] || cp .env.test .env.test.local))",
-        "ensure-env-dev-copied":  "(cd tests/Application && ([[ -f .env.local ]] || cp .env .env.local))"
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0-dev"
-        }
+        "ensure-schema-updated": "composer ensure-env-copied && (cd tests/Application && bin/console doctrine:schema:update --force -e ${SYMFONY_ENV:-'dev'})",
+        "ensure-vendors-installed": "[[ -f vendor/autoload.php ]] || php -d memory_limit=-1 /usr/local/bin/composer install",
+        "fix-style": "vendor/bin/ecs check src --fix",
+        "fixtures": [
+            "@ensure-database-created",
+            "@ensure-schema-updated",
+            "(cd tests/Application && php -d memory_limit=-1 bin/console sylius:fixtures:load --no-interaction -e ${SYMFONY_ENV:-'dev'})"
+        ],
+        "phpspec": "vendor/bin/phpspec run -vvv",
+        "phpunit": "vendor/bin/phpunit",
+        "run": [
+            "@ensure-env-copied",
+            "(cd tests/Application && bin/console server:run -d public -e ${SYMFONY_ENV:-'dev'})"
+        ],
+        "tests": [
+            "@phpspec",
+            "@phpunit",
+            "@behat"
+        ],
+        "try": [
+            "@ensure-vendors-installed",
+            "@assets",
+            "@fixtures",
+            "@run"
+        ]
     }
 }
