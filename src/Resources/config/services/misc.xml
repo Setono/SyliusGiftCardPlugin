@@ -23,6 +23,7 @@
             <tag name="sylius.order_processor" priority="0"/>
         </service>
 
+        <!-- Needs to be public because it is called from the state machine -->
         <service id="setono_sylius_gift_card.modifier.order_gift_card_amount"
                  class="Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardAmountModifier"
                  public="true">
@@ -30,6 +31,7 @@
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
         </service>
 
+        <!-- Needs to be public because it is called from the state machine -->
         <service id="setono_sylius_gift_card.operator.order_gift_card"
                  class="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator" public="true">
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>

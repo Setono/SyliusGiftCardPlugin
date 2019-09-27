@@ -38,8 +38,7 @@ final class SearchGiftCardAction
         // todo missing a form here
         $giftCardCode = null;
 
-        /** @var string|null $code */
-        $code = $request->get('code', null);
+        $code = $request->get('code');
         if (null !== $code) {
             /** @var GiftCardInterface $giftCardCode */
             $giftCardCode = $this->giftCardCodeRepository->findOneEnabledByCodeAndChannel(
