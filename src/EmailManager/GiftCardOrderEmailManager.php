@@ -17,18 +17,22 @@ final class GiftCardOrderEmailManager implements GiftCardOrderEmailManagerInterf
         $this->sender = $sender;
     }
 
-    public function sendEmailWithGiftCardCodes(OrderInterface $order, array $giftCardCodes): void
+    public function sendEmailWithGiftCardCodes(OrderInterface $order, array $giftCards): void
     {
-        if (null === $order->getCustomer() || null === $order->getCustomer()->getEmail()) {
+        $customer = $order->getCustomer();
+        if (null === $customer) {
             return;
         }
 
-        $email = $order->getCustomer()->getEmail();
+        $email = $customer->getEmail();
+        if (null === $email) {
+            return;
+        }
 
         $this->sender->send(
             self::EMAIL_CONFIG_NAME,
             [$email],
-            ['giftCardCodes' => $giftCardCodes, 'order' => $order]
+            ['giftCards' => $giftCards, 'order' => $order]
         );
     }
 }

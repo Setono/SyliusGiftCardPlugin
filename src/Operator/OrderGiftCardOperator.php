@@ -100,11 +100,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
             return;
         }
 
-        $codes = array_map(static function (GiftCardInterface $giftCard) {
-            return $giftCard->getCode();
-        }, $giftCards);
-
-        $this->giftCardOrderEmailManager->sendEmailWithGiftCardCodes($order, $codes);
+        $this->giftCardOrderEmailManager->sendEmailWithGiftCardCodes($order, $giftCards);
     }
 
     /**

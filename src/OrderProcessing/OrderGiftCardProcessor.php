@@ -7,11 +7,9 @@ namespace Setono\SyliusGiftCardPlugin\OrderProcessing;
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
-use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Order\Factory\AdjustmentFactoryInterface;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
-use Webmozart\Assert\Assert;
 
 final class OrderGiftCardProcessor implements OrderProcessorInterface
 {
@@ -41,11 +39,11 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
             return;
         }
 
-        /** @var GiftCardInterface[] $giftCardCodes */
-        $giftCardCodes = $this->giftCardRepository->findActiveByCurrentOrder($order);
+        /** @var GiftCardInterface[] $giftCards */
+        $giftCards = $this->giftCardRepository->findActiveByCurrentOrder($order);
 
-        foreach ($giftCardCodes as $giftCardCode) {
-            $amount = $giftCardCode->getAmount();
+        foreach ($giftCards as $giftCard) {
+            $amount = $giftCard->getAmount();
 
             if ($order->getTotal() < $amount) {
                 $amount = $order->getTotal();
@@ -55,19 +53,13 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
                 continue;
             }
 
-            $orderItemUnit = $giftCardCode->getOrderItemUnit();
-            Assert::notNull($orderItemUnit);
-
-            /** @var OrderItemInterface $orderItem */
-            $orderItem = $orderItemUnit->getOrderItem();
-
             $adjustment = $this->adjustmentFactory->createWithData(
                 AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT,
-                $orderItem->getProductName(),
+                $giftCard->getCode(), // todo probably prepend 'Gift card' as a translated string
                 -1 * $amount
             );
 
-            $adjustment->setOriginCode($giftCardCode->getCode());
+            $adjustment->setOriginCode($giftCard->getCode());
             $adjustment->setAdjustable($order);
 
             $order->addAdjustment($adjustment);
