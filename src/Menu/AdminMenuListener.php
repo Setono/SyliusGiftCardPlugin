@@ -24,10 +24,10 @@ final class AdminMenuListener
     private function addChild(ItemInterface $item): void
     {
         $item
-            ->addChild('gift_card_codes', [
-                'route' => 'setono_sylius_gift_card_admin_gift_card_code_index',
+            ->addChild('gift_cards', [
+                'route' => 'setono_sylius_gift_card_admin_gift_card_index',
             ])
-            ->setLabel('setono_sylius_gift_card.ui.gift_card_codes')
+            ->setLabel('setono_sylius_gift_card.ui.gift_cards')
             ->setLabelAttribute('icon', 'gift')
         ;
     }

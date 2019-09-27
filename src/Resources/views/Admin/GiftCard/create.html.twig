@@ -1,5 +1,5 @@
 {% for channel in channels %}
-    <a href="{{ path('setono_sylius_gift_card_admin_gift_card_code_create', { 'channelCode': channel.code }) }}" id="{{ channel.id }}" class="item">
+    <a href="{{ path('setono_sylius_gift_card_admin_gift_card_create', { 'channelCode': channel.code }) }}" id="{{ channel.id }}" class="item">
         {{ 'setono_sylius_gift_card.ui.create_for_channel'|trans({ '%channel%': channel.name }) }}
     </a>
 {% endfor %}

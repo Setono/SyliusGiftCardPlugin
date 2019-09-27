@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Modifier;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 
 final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierInterface
 {
-    /** @var GiftCardCodeRepositoryInterface */
+    /** @var GiftCardRepositoryInterface */
     private $giftCardCodeRepository;
 
     /** @var EntityManagerInterface */
     private $giftCardCodeEntityManager;
 
-    public function __construct(GiftCardCodeRepositoryInterface $giftCardCodeRepository, EntityManagerInterface $giftCardCodeEntityManager)
+    public function __construct(GiftCardRepositoryInterface $giftCardCodeRepository, EntityManagerInterface $giftCardCodeEntityManager)
     {
         $this->giftCardCodeRepository = $giftCardCodeRepository;
         $this->giftCardCodeEntityManager = $giftCardCodeEntityManager;
@@ -40,17 +40,17 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
             $amount = abs($adjustment->getAmount());
 
             if ($amount >= $giftCardCode->getAmount()) {
-                $giftCardCode->setActive(false);
+                $giftCardCode->disable();
                 $giftCardCode->setAmount(0);
             }
 
             if ($amount < $giftCardCode->getAmount()) {
-                $giftCardCode->setActive(true);
+                $giftCardCode->enable();
 
                 $giftCardCode->setAmount($giftCardCode->getAmount() - $amount);
             }
 
-            $giftCardCode->addUsedInOrder($order);
+            $giftCardCode->addAppliedOrder($order);
 
             $this->giftCardCodeEntityManager->flush();
         }
@@ -73,10 +73,10 @@ final class OrderGiftCardsUsageModifier implements OrderGiftCardsUsageModifierIn
             $giftCardCode->setAmount($giftCardCode->getAmount() + abs($adjustment->getAmount()));
 
             if ($giftCardCode->getAmount() > 0) {
-                $giftCardCode->setActive(true);
+                $giftCardCode->enable();
             }
 
-            $giftCardCode->removeUsedInOrder($order);
+            $giftCardCode->removeAppliedOrder($order);
 
             $this->giftCardCodeEntityManager->flush();
         }

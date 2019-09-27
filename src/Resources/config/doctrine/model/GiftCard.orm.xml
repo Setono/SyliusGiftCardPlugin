@@ -1,15 +1,38 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
 
-    <mapped-superclass name="Setono\SyliusGiftCardPlugin\Model\GiftCard" table="setono_gift_card">
+    <mapped-superclass name="Setono\SyliusGiftCardPlugin\Model\GiftCard" table="setono_gift_card__gift_card">
         <id name="id" column="id" type="integer">
             <generator strategy="AUTO" />
         </id>
 
-        <many-to-one field="product" target-entity="Sylius\Component\Product\Model\ProductInterface">
-            <join-column name="product_id" referenced-column-name="id" nullable="false" />
+        <field name="code" unique="true"/>
+        <field name="enabled" type="boolean" />
+        <field name="initialAmount" type="integer" />
+        <field name="amount" type="integer" />
+        <field name="currencyCode" length="3" />
+
+        <many-to-one field="channel" target-entity="Sylius\Component\Channel\Model\ChannelInterface">
+            <join-column name="channel_id" referenced-column-name="id" nullable="false" />
         </many-to-one>
 
-        <one-to-many field="giftCardCodes" target-entity="Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface" mapped-by="giftCard" />
+        <many-to-one field="orderItemUnit" target-entity="Sylius\Component\Order\Model\OrderItemUnitInterface">
+            <join-column name="order_item_unit_id" referenced-column-name="id"  />
+        </many-to-one>
+
+        <many-to-one field="currentOrder" target-entity="Sylius\Component\Order\Model\OrderInterface">
+            <join-column name="current_order_id" referenced-column-name="id" nullable="true" />
+        </many-to-one>
+
+        <many-to-many field="appliedOrders" target-entity="Sylius\Component\Order\Model\OrderInterface">
+            <join-table name="setono_gift_card__gift_card_applied_orders">
+                <join-columns>
+                    <join-column name="gift_card_id" referenced-column-name="id" nullable="false" on-delete="CASCADE" />
+                </join-columns>
+                <inverse-join-columns>
+                    <join-column name="order_id" referenced-column-name="id" nullable="false" on-delete="CASCADE" />
+                </inverse-join-columns>
+            </join-table>
+        </many-to-many>
     </mapped-superclass>
 
 </doctrine-mapping>

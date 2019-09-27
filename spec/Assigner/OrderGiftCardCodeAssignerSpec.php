@@ -8,15 +8,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\Assigner\OrderGiftCardCodeAssigner;
-use Setono\SyliusGiftCardPlugin\Assigner\OrderGiftCardCodeAssignerInterface;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManagerInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
-use Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolverInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
@@ -26,7 +22,7 @@ use Sylius\Component\Currency\Model\CurrencyInterface;
 final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
 {
     function let(
-        GiftCardCodeFactoryInterface $giftCardCodeFactory,
+        GiftCardFactoryInterface $giftCardCodeFactory,
         GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         GiftCardRepositoryInterface $giftCardRepository,
         GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager,
@@ -57,8 +53,8 @@ final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
         ProductInterface $product,
         GiftCardRepositoryInterface $giftCardRepository,
         GiftCardInterface $giftCard,
-        GiftCardCodeFactoryInterface $giftCardCodeFactory,
-        GiftCardCodeInterface $giftCardCode,
+        GiftCardFactoryInterface $giftCardCodeFactory,
+        GiftCardInterface $giftCardCode,
         ChannelInterface $channel,
         GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         EntityManager $giftCardEntityManager,
@@ -80,7 +76,7 @@ final class OrderGiftCardCodeAssignerSpec extends ObjectBehavior
         $order->getChannel()->willReturn($channel);
 
         $giftCardRepository->findOneByProduct($product)->willReturn($giftCard);
-        $giftCardCodeFactory->createForGiftCardAndOrderItem($giftCard, $orderItem)->willReturn($giftCardCode);
+        $giftCardCodeFactory->createForOrderItem($giftCard, $orderItem)->willReturn($giftCardCode);
 
         $giftCardCode->setInitialAmount(100)->shouldBeCalledTimes(2);
         $giftCardCode->setAmount(100)->shouldBeCalledTimes(2);

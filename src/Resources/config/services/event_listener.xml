@@ -1,23 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<container xmlns="http://symfony.com/schema/dic/services"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
-
     <services>
-        <defaults public="true" />
-
-        <service id="setono_sylius_gift_card.listener.gift_card_code_deletion"
-                 class="Setono\SyliusGiftCardPlugin\EventListener\GiftCardCodeDeletionListener">
-            <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_code.pre_delete" method="onGiftCardCodePreDelete" />
+        <service id="setono_sylius_gift_card.subscriber.gift_card_deletion"
+                 class="Setono\SyliusGiftCardPlugin\EventListener\GiftCardDeletionSubscriber">
+            <tag name="kernel.event_subscriber"/>
         </service>
-
-        <service id="setono_sylius_gift_card.listener.order_complete"
-                 class="Sylius\Bundle\ShopBundle\EventListener\OrderCompleteListener">
-            <argument type="service" id="sylius.email_manager.order" />
-            <tag name="kernel.event_listener" event="sylius.order.post_complete" method="sendConfirmationEmail" />
-        </service>
-
     </services>
-
 </container>

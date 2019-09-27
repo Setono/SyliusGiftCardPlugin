@@ -4,12 +4,14 @@
         <div class="ui segment">
             {{ form_errors(form) }}
             {{ form_row(form.code) }}
+            {{ form_row(form.enabled) }}
         </div>
     </div>
 
     <div class="column">
         <div class="ui segment">
-            {{ form_row(form.amount) }}
+            {{ form_row(form.currencyCode) }}
+            {{ form_row(form.initialAmount) }}
         </div>
     </div>
 </div>

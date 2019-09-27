@@ -7,7 +7,7 @@ namespace spec\Setono\SyliusGiftCardPlugin\EmailManager;
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManager;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManagerInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
@@ -32,7 +32,7 @@ final class GiftCardOrderEmailManagerSpec extends ObjectBehavior
     function it_sends_email_with_gift_card_codes(
         OrderInterface $order,
         CustomerInterface $customer,
-        GiftCardCodeInterface $giftCardCode,
+        GiftCardInterface $giftCardCode,
         SenderInterface $sender
     ): void {
         $customer->getEmail()->willReturn('exmaple@shop.com');

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\Doctrine\ORM;
+namespace Setono\SyliusGiftCardPlugin\Repository;
 
 use Doctrine\ORM\QueryBuilder;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface as BaseOrderRepositoryInterface;

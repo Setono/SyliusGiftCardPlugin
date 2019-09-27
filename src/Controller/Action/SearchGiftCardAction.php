@@ -6,15 +6,15 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandlerInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 final class SearchGiftCardAction
 {
-    /** @var GiftCardCodeRepositoryInterface */
+    /** @var GiftCardRepositoryInterface */
     private $giftCardCodeRepository;
 
     /** @var ViewHandlerInterface */
@@ -24,7 +24,7 @@ final class SearchGiftCardAction
     private $channelContext;
 
     public function __construct(
-        GiftCardCodeRepositoryInterface $giftCardCodeRepository,
+        GiftCardRepositoryInterface $giftCardCodeRepository,
         ViewHandlerInterface $viewHandler,
         ChannelContextInterface $channelContext
     ) {
@@ -35,13 +35,14 @@ final class SearchGiftCardAction
 
     public function __invoke(Request $request): Response
     {
+        // todo missing a form here
         $giftCardCode = null;
 
         /** @var string|null $code */
         $code = $request->get('code', null);
         if (null !== $code) {
-            /** @var GiftCardCodeInterface $giftCardCode */
-            $giftCardCode = $this->giftCardCodeRepository->findOneActiveByCodeAndChannel(
+            /** @var GiftCardInterface $giftCardCode */
+            $giftCardCode = $this->giftCardCodeRepository->findOneEnabledByCodeAndChannel(
                 $code,
                 $this->channelContext->getChannel()
             );

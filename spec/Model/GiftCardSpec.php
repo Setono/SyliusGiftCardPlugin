@@ -6,7 +6,7 @@ namespace spec\Setono\SyliusGiftCardPlugin\Model;
 
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Resource\Model\ResourceInterface;
@@ -34,7 +34,7 @@ class GiftCardSpec extends ObjectBehavior
         $this->getProduct()->shouldReturn($product);
     }
 
-    function it_associates_gift_card_codes(GiftCardCodeInterface $giftCardCode): void
+    function it_associates_gift_card_codes(GiftCardInterface $giftCardCode): void
     {
         $this->addGiftCardCode($giftCardCode);
         $this->hasGiftCardCode($giftCardCode)->shouldReturn(true);

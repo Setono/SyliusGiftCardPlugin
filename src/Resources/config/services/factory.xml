@@ -1,27 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<container xmlns="http://symfony.com/schema/dic/services"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
-
     <services>
-
         <service id="setono_sylius_gift_card.custom_factory.gift_card"
                  class="Setono\SyliusGiftCardPlugin\Factory\GiftCardFactory"
-                 decorates="setono_sylius_gift_card.factory.gift_card"
-                 decoration-priority="256"
-                 public="false">
-            <argument type="service" id="setono_sylius_gift_card.custom_factory.gift_card.inner" />
+                 decorates="setono_sylius_gift_card.factory.gift_card">
+            <argument type="service" id="setono_sylius_gift_card.custom_factory.gift_card.inner"/>
+            <argument type="service" id="setono_sylius_gift_card.generator.gift_card_code"/>
         </service>
-
-        <service id="setono_sylius_gift_card.custom_factory.gift_card_code"
-                 class="Setono\SyliusGiftCardPlugin\Factory\GiftCardCodeFactory"
-                 decorates="setono_sylius_gift_card.factory.gift_card_code"
-                 decoration-priority="256"
-                 public="false">
-            <argument type="service" id="setono_sylius_gift_card.custom_factory.gift_card_code.inner" />
-        </service>
-
     </services>
-
 </container>

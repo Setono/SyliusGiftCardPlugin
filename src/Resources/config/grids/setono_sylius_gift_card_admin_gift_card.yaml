@@ -1,15 +1,15 @@
 sylius_grid:
     templates:
         action:
-            create_gift_card_code: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Action/create.html.twig"
-            delete_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Action/delete_conditional.html.twig"
-            list_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Action/list_conditional.html.twig"
+            create_gift_card: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/create.html.twig"
+            delete_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/delete_conditional.html.twig"
+            list_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/list_conditional.html.twig"
     grids:
-        setono_sylius_gift_card_admin_gift_card_code:
+        setono_sylius_gift_card_admin_gift_card:
             driver:
                 name: doctrine/orm
                 options:
-                    class: "%setono_sylius_gift_card.model.gift_card_code.class%"
+                    class: "%setono_sylius_gift_card.model.gift_card.class%"
                     repository:
                         method: createListQueryBuilder
             sorting:
@@ -17,7 +17,7 @@ sylius_grid:
             fields:
                 code:
                     type: string
-                    label: setono_sylius_gift_card.ui.code
+                    label: sylius.ui.code
                     sortable: ~
                 amount:
                     type: twig
@@ -25,7 +25,7 @@ sylius_grid:
                     path: .
                     sortable: amount
                     options:
-                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardCode/Grid/Field/amount.html.twig"
+                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/amount.html.twig"
                 channel:
                     type: twig
                     label: sylius.ui.channel
@@ -36,9 +36,9 @@ sylius_grid:
                     type: string
                     label: sylius.ui.currency
                     sortable: ~
-                active:
+                enabled:
                     type: twig
-                    label: setono_sylius_gift_card.ui.active
+                    label: sylius.ui.enabled
                     sortable: ~
                     options:
                         template: "@SyliusUi/Grid/Field/yesNo.html.twig"
@@ -58,21 +58,21 @@ sylius_grid:
                     label: sylius.ui.amount
                     options:
                         currency_field: currencyCode
-                active:
-                    label: setono_sylius_gift_card.ui.active
+                enabled:
+                    label: sylius.ui.enabled
                     type: boolean
             actions:
                 main:
                     create:
-                        type: create_gift_card_code
+                        type: create_gift_card
                 item:
                     list_orders:
                         type: list_conditional
                         label: setono_sylius_gift_card.ui.list_orders
                         options:
-                            visible: resource.isUsedInOrders
+                            visible: resource.hasAppliedOrders
                             link:
-                                route: setono_sylius_gift_card_admin_gift_card_code_orders_index
+                                route: setono_sylius_gift_card_admin_gift_card_orders_index
                                 parameters:
                                     id: resource.id
                     delete:

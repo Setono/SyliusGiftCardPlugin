@@ -4,23 +4,58 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Doctrine\ORM;
 
-use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\QueryBuilder;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
-use Sylius\Component\Core\Model\ProductInterface;
+use Sylius\Component\Channel\Model\ChannelInterface;
+use Sylius\Component\Core\Model\OrderItemUnitInterface;
+use Sylius\Component\Order\Model\OrderInterface;
 
 final class GiftCardRepository extends EntityRepository implements GiftCardRepositoryInterface
 {
-    /**
-     * @throws NonUniqueResultException
-     */
-    public function findOneByProduct(ProductInterface $product): ?GiftCardInterface
+    public function createListQueryBuilder(): QueryBuilder
     {
-        return $this->createQueryBuilder('o')
-            ->andWhere('o.product = :product')
-            ->setParameter('product', $product)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $this->createQueryBuilder('o');
+    }
+
+    public function findOneEnabledByCodeAndChannel(string $code, ChannelInterface $channel): ?GiftCardInterface
+    {
+        /** @var GiftCardInterface|null $giftCard */
+        $giftCard = $this->findOneBy([
+            'code' => $code,
+            'channel' => $channel,
+            'enabled' => true,
+        ]);
+
+        return $giftCard;
+    }
+
+    public function findOneByCode(string $code): ?GiftCardInterface
+    {
+        /** @var GiftCardInterface|null $giftCard */
+        $giftCard = $this->findOneBy([
+            'code' => $code,
+        ]);
+
+        return $giftCard;
+    }
+
+    public function findActiveByCurrentOrder(OrderInterface $order): array
+    {
+        return $this->findBy([
+            'enabled' => true,
+            'currentOrder' => $order,
+        ]);
+    }
+
+    public function findOneByOrderItemUnit(OrderItemUnitInterface $orderItemUnit): ?GiftCardInterface
+    {
+        /** @var GiftCardInterface|null $giftCard */
+        $giftCard = $this->findOneBy([
+            'orderItemUnit' => $orderItemUnit,
+        ]);
+
+        return $giftCard;
     }
 }

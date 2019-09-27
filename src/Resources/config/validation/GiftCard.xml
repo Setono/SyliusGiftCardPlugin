@@ -1,46 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<constraint-mapping xmlns="http://symfony.com/schema/dic/constraint-mapping"
-                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<constraint-mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://symfony.com/schema/dic/constraint-mapping"
                     xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/services/constraint-mapping-1.0.xsd">
 
-    <class name="Setono\SyliusGiftCardPlugin\Model\GiftCardCode">
-
+    <class name="Setono\SyliusGiftCardPlugin\Model\GiftCard">
         <constraint name="Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity">
             <option name="fields">code</option>
-            <option name="message">setono_sylius_gift_card.gift_card_code.code.unique</option>
+            <option name="message">setono_sylius_gift_card.gift_card.code.unique</option>
             <option name="groups">setono_sylius_gift_card</option>
         </constraint>
-
         <property name="code">
             <constraint name="NotBlank">
-                <option name="message">setono_sylius_gift_card.gift_card_code.code.not_blank</option>
+                <option name="message">setono_sylius_gift_card.gift_card.code.not_blank</option>
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
             <constraint name="Length">
                 <option name="max">255</option>
-                <option name="maxMessage">setono_sylius_gift_card.gift_card_code.code.max_length</option>
+                <option name="maxMessage">setono_sylius_gift_card.gift_card.code.max_length</option>
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>
-
         <property name="amount">
             <constraint name="NotBlank">
-                <option name="message">setono_sylius_gift_card.gift_card_code.amount.not_blank</option>
+                <option name="message">setono_sylius_gift_card.gift_card.amount.not_blank</option>
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
             <constraint name="Type">
                 <option name="type">integer</option>
-                <option name="message">setono_sylius_gift_card.gift_card_code.amount.integer</option>
+                <option name="message">setono_sylius_gift_card.gift_card.amount.integer</option>
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
-            <constraint name="Range">
-                <option name="min">1</option>
-                <option name="minMessage">setono_sylius_gift_card.gift_card_code.amount.min</option>
+            <constraint name="GreaterThanOrEqual">
+                <option name="value">1</option>
+                <option name="message">setono_sylius_gift_card.gift_card.amount.greater_than_or_equal</option>
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>
-
     </class>
-
 </constraint-mapping>

@@ -2,10 +2,3 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: en_US
-
-sylius_order:
-    resources:
-        order:
-            classes:
-                model: Tests\Setono\SyliusGiftCardPlugin\Application\Model\Order
-                repository: Tests\Setono\SyliusGiftCardPlugin\Application\Doctrine\ORM\OrderRepository

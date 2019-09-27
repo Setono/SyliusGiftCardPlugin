@@ -8,15 +8,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardCodeInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardsUsageModifier;
 use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardsUsageModifierInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardCodeRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 
 final class OrderGiftCardsUsageModifierSpec extends ObjectBehavior
 {
-    function let(GiftCardCodeRepositoryInterface $giftCardCodeRepository, EntityManagerInterface $giftCardCodeEntityManager): void
+    function let(GiftCardRepositoryInterface $giftCardCodeRepository, EntityManagerInterface $giftCardCodeEntityManager): void
     {
         $this->beConstructedWith($giftCardCodeRepository, $giftCardCodeEntityManager);
     }
@@ -35,9 +35,9 @@ final class OrderGiftCardsUsageModifierSpec extends ObjectBehavior
         OrderInterface $order,
         AdjustmentInterface $oneAdjustment,
         AdjustmentInterface $secondAdjustment,
-        GiftCardCodeRepositoryInterface $giftCardCodeRepository,
-        GiftCardCodeInterface $oneGiftCardCode,
-        GiftCardCodeInterface $secondGiftCardCode
+        GiftCardRepositoryInterface $giftCardCodeRepository,
+        GiftCardInterface $oneGiftCardCode,
+        GiftCardInterface $secondGiftCardCode
     ): void {
         $oneAdjustment->getOriginCode()->willReturn('code1');
         $oneAdjustment->getAmount()->willReturn(-100);
@@ -63,9 +63,9 @@ final class OrderGiftCardsUsageModifierSpec extends ObjectBehavior
         OrderInterface $order,
         AdjustmentInterface $oneAdjustment,
         AdjustmentInterface $secondAdjustment,
-        GiftCardCodeRepositoryInterface $giftCardCodeRepository,
-        GiftCardCodeInterface $oneGiftCardCode,
-        GiftCardCodeInterface $secondGiftCardCode
+        GiftCardRepositoryInterface $giftCardCodeRepository,
+        GiftCardInterface $oneGiftCardCode,
+        GiftCardInterface $secondGiftCardCode
     ): void {
         $oneAdjustment->getOriginCode()->willReturn('code1');
         $oneAdjustment->getAmount()->willReturn(-100);
