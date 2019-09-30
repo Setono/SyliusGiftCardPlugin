@@ -29,9 +29,14 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
     public function setOrderItemUnit(OrderItemUnitInterface $orderItem): void;
 
     /**
+     * This is a helper method that will return the order where the gift was bought
+     */
+    public function getOrder(): ?OrderInterface;
+
+    /**
      * This is the current amount available on this gift card
      */
-    public function getAmount(): ?int;
+    public function getAmount(): int;
 
     public function setAmount(int $amount): void;
 
@@ -50,13 +55,6 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
     public function getCurrencyCode(): ?string;
 
     public function setCurrencyCode(string $currencyCode): void;
-
-    /**
-     * The order where this gift card is being applied right now
-     */
-    public function getCurrentOrder(): ?OrderInterface;
-
-    public function setCurrentOrder(?OrderInterface $currentOrder): void;
 
     /**
      * Orders where this gift card was applied

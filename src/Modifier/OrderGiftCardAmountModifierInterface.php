@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Modifier;
 
-use Sylius\Component\Core\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 
 interface OrderGiftCardAmountModifierInterface
 {

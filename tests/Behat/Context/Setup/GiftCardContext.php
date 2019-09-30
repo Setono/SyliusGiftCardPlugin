@@ -5,16 +5,12 @@ declare(strict_types=1);
 namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Setup;
 
 use Behat\Behat\Context\Context;
-use Doctrine\ORM\EntityManagerInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Doctrine\Common\Persistence\ObjectManager;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
-use Sylius\Component\Core\Model\ChannelPricingInterface;
-use Sylius\Component\Core\Model\ProductInterface;
-use Sylius\Component\Core\Model\ProductVariantInterface;
 
 final class GiftCardContext implements Context
 {
@@ -27,70 +23,47 @@ final class GiftCardContext implements Context
     /** @var GiftCardFactoryInterface */
     private $giftCardFactory;
 
-    /** @var EntityManagerInterface */
-    private $giftCardEntityManager;
-
-    /** @var GiftCardFactoryInterface */
-    private $giftCardCodeFactory;
-
-    /** @var EntityManagerInterface */
-    private $giftCardCodeEntityManager;
+    /** @var ObjectManager */
+    private $productManager;
 
     public function __construct(
         SharedStorageInterface $sharedStorage,
         GiftCardRepositoryInterface $giftCardRepository,
         GiftCardFactoryInterface $giftCardFactory,
-        EntityManagerInterface $giftCardEntityManager,
-        GiftCardFactoryInterface $giftCardCodeFactory,
-        EntityManagerInterface $giftCardCodeEntityManager
+        ObjectManager $productManager
     ) {
         $this->sharedStorage = $sharedStorage;
         $this->giftCardRepository = $giftCardRepository;
         $this->giftCardFactory = $giftCardFactory;
-        $this->giftCardEntityManager = $giftCardEntityManager;
-        $this->giftCardCodeFactory = $giftCardCodeFactory;
-        $this->giftCardCodeEntityManager = $giftCardCodeEntityManager;
+        $this->productManager = $productManager;
     }
 
     /**
+     * todo this should probably be moved to a ProductContext instead
+     *
      * @Given /^(this product) is a gift card$/
      */
     public function thisProductIsAGiftCard(ProductInterface $product): void
     {
-        $giftCard = $this->giftCardFactory->createWithProduct($product);
+        $product->setGiftCard(true);
 
-        $this->giftCardRepository->add($giftCard);
+        $this->productManager->flush();
     }
 
     /**
-     * @Given the store has gift card :product with code :code
+     * @Given /^the store has a gift card with code "([^"]+)" valued at ("[^"]+")$/
      */
-    public function theStoreHasGiftCardWithCode(ProductInterface $product, string $code): void
+    public function theStoreHasGiftCardWithCode(string $code, int $price): void
     {
-        /** @var ProductVariantInterface $productVariant */
-        $productVariant = $product->getVariants()->first();
-
-        /** @var ChannelPricingInterface $channelPricing */
-        $channelPricing = $productVariant->getChannelPricings()->first();
-
         /** @var ChannelInterface $channel */
         $channel = $this->sharedStorage->get('channel');
 
-        $giftCard = $this->giftCardRepository->findOneByProduct($product);
+        $giftCard = $this->giftCardFactory->createNew();
+        $giftCard->setCode($code);
+        $giftCard->setChannel($channel);
+        $giftCard->setInitialAmount($price);
+        $giftCard->setCurrencyCode($channel->getBaseCurrency()->getCode());
 
-        /** @var GiftCardInterface $giftCardCode */
-        $giftCardCode = $this->giftCardCodeFactory->createNew();
-
-        $giftCardCode->setActive(true);
-        $giftCardCode->setAmount($channelPricing->getPrice());
-        $giftCardCode->setCurrencyCode(
-            $channel->getBaseCurrency()->getCode()
-        );
-        $giftCardCode->setCode($code);
-        $giftCardCode->setGiftCard($giftCard);
-        $giftCardCode->setChannel($channel);
-
-        $this->giftCardCodeEntityManager->persist($giftCardCode);
-        $this->giftCardCodeEntityManager->flush();
+        $this->giftCardRepository->add($giftCard);
     }
 }

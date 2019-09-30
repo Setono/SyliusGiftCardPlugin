@@ -74,7 +74,7 @@
             "SYMFONY_ENV=test composer ensure-env-copied",
             "php -d memory_limit=-1 vendor/bin/behat --tags=\"~@javascript\" --no-interaction --format=progress"
         ],
-        "check-style": "vendor/bin/ecs check src",
+        "check-style": "vendor/bin/ecs check src/ spec/ tests/",
         "checks": [
             "@check-style",
             "@analyse"
@@ -87,7 +87,7 @@
         "ensure-env-test-copied": "(cd tests/Application && ([[ -f .env.test.local ]] || cp .env.test .env.test.local))",
         "ensure-schema-updated": "composer ensure-env-copied && (cd tests/Application && bin/console doctrine:schema:update --force -e ${SYMFONY_ENV:-'dev'})",
         "ensure-vendors-installed": "[[ -f vendor/autoload.php ]] || php -d memory_limit=-1 /usr/local/bin/composer install",
-        "fix-style": "vendor/bin/ecs check src --fix",
+        "fix-style": "vendor/bin/ecs check src/ spec/ tests/ --fix",
         "fixtures": [
             "@ensure-database-created",
             "@ensure-schema-updated",

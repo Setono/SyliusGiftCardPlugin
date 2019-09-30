@@ -16,6 +16,10 @@ use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Core\Model\OrderItemUnitInterface;
 use Webmozart\Assert\Assert;
 
+/**
+ * This class' responsibility is to operate on gift cards bought on an order
+ * It does NOT handle gift cards used to buy an order
+ */
 final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
 {
     /** @var GiftCardFactoryInterface */

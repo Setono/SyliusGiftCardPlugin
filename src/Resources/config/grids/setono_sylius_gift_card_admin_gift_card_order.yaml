@@ -5,6 +5,6 @@ sylius_grid:
             driver:
                 options:
                     repository:
-                        method: createQueryBuilderByGiftCardCodeId
+                        method: createQueryBuilderByGiftCard
                         arguments:
-                            giftCardCodeId: $id
+                            giftCard: $id

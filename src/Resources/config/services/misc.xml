@@ -16,21 +16,6 @@
             <argument type="service" id="sylius.email_sender"/>
         </service>
 
-        <service id="setono_sylius_gift_card.order_processing.order_gift_card"
-                 class="Setono\SyliusGiftCardPlugin\OrderProcessor\OrderGiftCardProcessor">
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-            <argument type="service" id="sylius.custom_factory.adjustment"/>
-            <tag name="sylius.order_processor" priority="0"/>
-        </service>
-
-        <!-- Needs to be public because it is called from the state machine -->
-        <service id="setono_sylius_gift_card.modifier.order_gift_card_amount"
-                 class="Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardAmountModifier"
-                 public="true">
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
-        </service>
-
         <!-- Needs to be public because it is called from the state machine -->
         <service id="setono_sylius_gift_card.operator.order_gift_card"
                  class="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator" public="true">

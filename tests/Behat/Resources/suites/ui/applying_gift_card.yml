@@ -5,8 +5,10 @@ default:
                 - sylius.behat.context.hook.doctrine_orm
 
                 - sylius.behat.context.transform.address
+                - sylius.behat.context.transform.country
                 - sylius.behat.context.transform.coupon
                 - sylius.behat.context.transform.lexical
+                - sylius.behat.context.transform.order
                 - sylius.behat.context.transform.payment
                 - sylius.behat.context.transform.product
                 - sylius.behat.context.transform.shared_storage
@@ -15,6 +17,7 @@ default:
                 - sylius.behat.context.transform.user
 
                 - sylius.behat.context.setup.channel
+                - sylius.behat.context.setup.customer
                 - sylius.behat.context.setup.order
                 - sylius.behat.context.setup.payment
                 - sylius.behat.context.setup.product
@@ -22,6 +25,7 @@ default:
                 - sylius.behat.context.setup.shop_security
                 - sylius.behat.context.setup.shipping
                 - sylius.behat.context.setup.taxonomy
+                - sylius.behat.context.setup.user
 
                 - sylius.behat.context.ui.shop.checkout
                 - sylius.behat.context.ui.shop.checkout.addressing
@@ -30,7 +34,9 @@ default:
                 - sylius.behat.context.ui.shop.checkout.shipping
                 - sylius.behat.context.ui.shop.checkout.thank_you
 
+                - setono_sylius_gift_card.behat.context.transform.gift_card
                 - setono_sylius_gift_card.behat.context.setup.gift_card
+                - setono_sylius_gift_card.behat.context.ui.shop.gift_card
                 - setono_sylius_gift_card.behat.context.ui.shop.cart
                 - setono_sylius_gift_card.behat.context.ui.shop.checkout
 

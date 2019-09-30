@@ -1,29 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<container xmlns="http://symfony.com/schema/dic/services"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <defaults public="true" />
+        <defaults public="true"/>
 
         <service id="setono_sylius_gift_card.controller.action.add_gift_card_to_order"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction">
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card" />
-            <argument type="service" id="sylius.order_processing.order_processor.composite" />
-            <argument type="service" id="fos_rest.view_handler.default" />
-            <argument type="service" id="sylius.context.cart.composite" />
-            <argument type="service" id="security.csrf.token_manager" />
-            <argument type="service" id="translator.default" />
-            <argument type="service" id="session.flash_bag" />
-            <argument type="service" id="setono_sylius_gift_card.manager.gift_card" />
+            <argument type="service" id="fos_rest.view_handler.default"/>
+            <argument type="service" id="sylius.context.cart.composite"/>
+            <argument type="service" id="security.csrf.token_manager"/>
+            <argument type="service" id="translator.default"/>
+            <argument type="service" id="session.flash_bag"/>
+            <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
         </service>
 
         <service id="setono_sylius_gift_card.controller.action.search_gift_card"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\SearchGiftCardAction">
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card" />
-            <argument type="service" id="fos_rest.view_handler.default" />
-            <argument type="service" id="sylius.context.channel" />
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+            <argument type="service" id="fos_rest.view_handler.default"/>
+            <argument type="service" id="sylius.context.channel"/>
         </service>
 
     </services>

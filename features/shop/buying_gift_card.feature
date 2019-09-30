@@ -1,8 +1,8 @@
 @buying_gift_card
 Feature: Buying a gift card
-    In order to buy a gift card
+    In order to make my wife happy
     As a Customer
-    I want to be able to buy a gift card
+    I want to be able to buy a gift card instead of the wrong size pants
 
     Background:
         Given the store operates on a single channel in "United States"
@@ -18,4 +18,4 @@ Feature: Buying a gift card
         When I proceed selecting "Offline" payment method
         And I confirm my order and pay successfully
         Then I should see the thank you page
-        And I should be notified that email with gift card code
+        And I should receive an email with gift card code

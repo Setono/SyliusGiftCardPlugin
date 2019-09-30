@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
-use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandlerInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
-use Sylius\Component\Core\Model\OrderInterface;
+use RuntimeException;
+use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
+use Setono\SyliusGiftCardPlugin\Exception\ChannelMismatchException;
+use Setono\SyliusGiftCardPlugin\Exception\GiftCardNotFoundException;
+use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
-use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
@@ -22,12 +23,6 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class AddGiftCardToOrderAction
 {
-    /** @var GiftCardRepositoryInterface */
-    private $giftCardCodeRepository;
-
-    /** @var OrderProcessorInterface */
-    private $orderProcessor;
-
     /** @var ViewHandlerInterface */
     private $viewHandler;
 
@@ -43,27 +38,23 @@ final class AddGiftCardToOrderAction
     /** @var FlashBagInterface */
     private $flashBag;
 
-    /** @var EntityManagerInterface */
-    private $giftCardCodeEntityManager;
+    /** @var GiftCardApplicatorInterface */
+    private $giftCardApplicator;
 
     public function __construct(
-        GiftCardRepositoryInterface $giftCardCodeRepository,
-        OrderProcessorInterface $orderProcessor,
         ViewHandlerInterface $viewHandler,
         CartContextInterface $cartContext,
         CsrfTokenManagerInterface $csrfTokenManager,
         TranslatorInterface $translator,
         FlashBagInterface $flashBag,
-        EntityManagerInterface $giftCardCodeEntityManager
+        GiftCardApplicatorInterface $giftCardApplicator
     ) {
-        $this->giftCardCodeRepository = $giftCardCodeRepository;
-        $this->orderProcessor = $orderProcessor;
         $this->viewHandler = $viewHandler;
         $this->cartContext = $cartContext;
         $this->csrfTokenManager = $csrfTokenManager;
         $this->translator = $translator;
         $this->flashBag = $flashBag;
-        $this->giftCardCodeEntityManager = $giftCardCodeEntityManager;
+        $this->giftCardApplicator = $giftCardApplicator;
     }
 
     public function __invoke(Request $request): Response
@@ -79,28 +70,22 @@ final class AddGiftCardToOrderAction
             throw new HttpException(Response::HTTP_FORBIDDEN, 'Invalid csrf token.');
         }
 
-        if (null === $order->getChannel()) {
-            throw new NotFoundHttpException('The channel was not found on the order');
+        $orderChannel = $order->getChannel();
+        if (null === $orderChannel) {
+            throw new RuntimeException('The order does not have a channel');
         }
 
-        $giftCardCode = $this->giftCardCodeRepository->findOneEnabledByCodeAndChannel(
-            $request->get('code'),
-            $order->getChannel()
-        );
-
-        if (null === $giftCardCode) {
+        try {
+            $this->giftCardApplicator->apply($order, $request->get('code', ''));
+        } catch (GiftCardNotFoundException $e) {
             $message = $this->translator->trans('setono_sylius_gift_card.ui.gift_card_code_is_invalid');
 
             return $this->viewHandler->handle(View::create(['error' => $message], Response::HTTP_BAD_REQUEST));
+        } catch (ChannelMismatchException $e) {
+            $message = $this->translator->trans('setono_sylius_gift_card.ui.gift_card_channel_does_not_match_channel', ['%channel%' => $orderChannel->getName()]);
+
+            return $this->viewHandler->handle(View::create(['error' => $message], Response::HTTP_BAD_REQUEST));
         }
-
-        $giftCardCode->setCurrentOrder($order);
-
-        $this->giftCardCodeEntityManager->flush();
-
-        $this->orderProcessor->process($order);
-
-        $this->giftCardCodeEntityManager->flush();
 
         $this->flashBag->add('success', 'sylius.cart.save');
 
