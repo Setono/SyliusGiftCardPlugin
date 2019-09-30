@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="setono_sylius_gift_card.applicator.gift_card"
+                 class="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card" />
+            <argument type="service" id="sylius.order_processing.order_processor.composite" />
+            <argument type="service" id="sylius.manager.order" />
+        </service>
+
+    </services>
+
+</container>

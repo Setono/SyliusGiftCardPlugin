@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <!-- Needs to be public because it is called from the state machine -->
+        <service id="setono_sylius_gift_card.modifier.order_gift_card_amount"
+                 class="Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardAmountModifier"
+                 public="true">
+            <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
+        </service>
+    </services>
+</container>

@@ -6,10 +6,9 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use FriendsOfBehat\PageObjectExtension\Page\SymfonyPageInterface;
-use Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolverInterface;
+use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
 use Sylius\Behat\Page\Admin\Product\IndexPageInterface;
 use Sylius\Behat\Service\Resolver\CurrentPageResolverInterface;
-use Sylius\Component\Core\Model\ProductInterface;
 use Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Admin\Product\CreateGiftCardPageInterface;
 use Webmozart\Assert\Assert;
 
@@ -24,19 +23,14 @@ final class ManagingGiftCardsContext implements Context
     /** @var IndexPageInterface */
     private $indexPage;
 
-    /** @var GiftCardProductResolverInterface */
-    private $giftCardProductResolver;
-
     public function __construct(
         CreateGiftCardPageInterface $createGiftCardPage,
         CurrentPageResolverInterface $currentPageResolver,
-        IndexPageInterface $indexPage,
-        GiftCardProductResolverInterface $giftCardProductResolver
+        IndexPageInterface $indexPage
     ) {
         $this->createGiftCardPage = $createGiftCardPage;
         $this->currentPageResolver = $currentPageResolver;
         $this->indexPage = $indexPage;
-        $this->giftCardProductResolver = $giftCardProductResolver;
     }
 
     /**
@@ -124,7 +118,7 @@ final class ManagingGiftCardsContext implements Context
      */
     public function theProductShouldBeAGiftCard(ProductInterface $product): void
     {
-        Assert::true($this->giftCardProductResolver->isGiftCardProduct($product));
+        Assert::true($product->isGiftCard());
     }
 
     /**

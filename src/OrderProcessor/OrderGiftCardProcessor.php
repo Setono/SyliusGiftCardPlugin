@@ -5,33 +5,33 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\OrderProcessor;
 
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Sylius\Component\Order\Factory\AdjustmentFactoryInterface;
-use Sylius\Component\Order\Model\OrderInterface;
+use Sylius\Component\Order\Model\OrderInterface as BaseOrderInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Webmozart\Assert\Assert;
 
 final class OrderGiftCardProcessor implements OrderProcessorInterface
 {
-    /** @var GiftCardRepositoryInterface */
-    private $giftCardRepository;
+    /** @var TranslatorInterface */
+    private $translator;
 
     /** @var AdjustmentFactoryInterface */
     private $adjustmentFactory;
 
     public function __construct(
-        GiftCardRepositoryInterface $giftCardRepository,
+        TranslatorInterface $translator,
         AdjustmentFactoryInterface $adjustmentFactory
     ) {
-        $this->giftCardRepository = $giftCardRepository;
+        $this->translator = $translator;
         $this->adjustmentFactory = $adjustmentFactory;
     }
 
-    public function process(OrderInterface $order): void
+    public function process(BaseOrderInterface $order): void
     {
-        if (null === $order->getId()) {
-            return;
-        }
+        /** @var OrderInterface $order */
+        Assert::isInstanceOf($order, OrderInterface::class);
 
         $order->removeAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT);
 
@@ -39,14 +39,16 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
             return;
         }
 
-        /** @var GiftCardInterface[] $giftCards */
-        $giftCards = $this->giftCardRepository->findActiveByCurrentOrder($order);
+        if (!$order->hasGiftCards()) {
+            return;
+        }
 
-        foreach ($giftCards as $giftCard) {
+        foreach ($order->getGiftCards() as $giftCard) {
             $amount = $giftCard->getAmount();
+            $total = $order->getTotal();
 
-            if ($order->getTotal() < $amount) {
-                $amount = $order->getTotal();
+            if ($total < $amount) {
+                $amount = $total;
             }
 
             if (0 === $amount) {
@@ -55,12 +57,11 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
 
             $adjustment = $this->adjustmentFactory->createWithData(
                 AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT,
-                $giftCard->getCode(), // todo probably prepend 'Gift card' as a translated string
+                $this->translator->trans('setono_sylius_gift_card.ui.gift_card') . ': ' . $giftCard->getCode(),
                 -1 * $amount
             );
 
             $adjustment->setOriginCode($giftCard->getCode());
-            $adjustment->setAdjustable($order);
 
             $order->addAdjustment($adjustment);
         }

@@ -22,9 +22,6 @@ class GiftCard implements GiftCardInterface
     /** @var OrderItemUnitInterface|null */
     protected $orderItemUnit;
 
-    /** @var OrderInterface|null */
-    protected $currentOrder;
-
     /** @var Collection|OrderInterface[] */
     protected $appliedOrders;
 
@@ -34,8 +31,8 @@ class GiftCard implements GiftCardInterface
     /** @var int */
     protected $initialAmount;
 
-    /** @var int|null */
-    protected $amount;
+    /** @var int */
+    protected $amount = 0;
 
     /** @var string */
     protected $currencyCode;
@@ -68,6 +65,22 @@ class GiftCard implements GiftCardInterface
         $this->orderItemUnit = $orderItem;
     }
 
+    public function getOrder(): ?OrderInterface
+    {
+        $orderItemUnit = $this->getOrderItemUnit();
+        if (null === $orderItemUnit) {
+            return null;
+        }
+
+        /** @var OrderInterface|null $order */
+        $order = $orderItemUnit->getOrderItem()->getOrder();
+        if (null === $order) {
+            return null;
+        }
+
+        return $order;
+    }
+
     public function getCode(): ?string
     {
         return $this->code;
@@ -93,7 +106,7 @@ class GiftCard implements GiftCardInterface
         $this->setAmount($initialAmount);
     }
 
-    public function getAmount(): ?int
+    public function getAmount(): int
     {
         return $this->amount;
     }
@@ -101,16 +114,6 @@ class GiftCard implements GiftCardInterface
     public function setAmount(int $amount): void
     {
         $this->amount = $amount;
-    }
-
-    public function getCurrentOrder(): ?OrderInterface
-    {
-        return $this->currentOrder;
-    }
-
-    public function setCurrentOrder(?OrderInterface $currentOrder): void
-    {
-        $this->currentOrder = $currentOrder;
     }
 
     public function getAppliedOrders(): Collection

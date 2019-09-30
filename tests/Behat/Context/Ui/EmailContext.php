@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui;
 
 use Behat\Behat\Context\Context;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepository;
-use Setono\SyliusGiftCardPlugin\Resolver\GiftCardProductResolverInterface;
-use Sylius\Behat\Service\SharedStorageInterface;
+use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
 use Sylius\Component\Core\Test\Services\EmailCheckerInterface;
@@ -16,9 +14,6 @@ use Webmozart\Assert\Assert;
 
 final class EmailContext implements Context
 {
-    /** @var SharedStorageInterface */
-    private $sharedStorage;
-
     /** @var EmailCheckerInterface */
     private $emailChecker;
 
@@ -26,41 +21,40 @@ final class EmailContext implements Context
     private $orderRepository;
 
     /** @var GiftCardRepository */
-    private $giftCardCodeRepository;
-
-    /** @var GiftCardProductResolverInterface */
-    private $giftCardProductResolver;
+    private $giftCardRepository;
 
     public function __construct(
-        SharedStorageInterface $sharedStorage,
         EmailCheckerInterface $emailChecker,
         OrderRepositoryInterface $orderRepository,
-        GiftCardRepository $giftCardCodeRepository,
-        GiftCardProductResolverInterface $giftCardProductResolver
+        GiftCardRepository $giftCardCodeRepository
     ) {
-        $this->sharedStorage = $sharedStorage;
         $this->emailChecker = $emailChecker;
         $this->orderRepository = $orderRepository;
-        $this->giftCardCodeRepository = $giftCardCodeRepository;
-        $this->giftCardProductResolver = $giftCardProductResolver;
+        $this->giftCardRepository = $giftCardCodeRepository;
     }
 
     /**
-     * @Then I should be notified that email with gift card code
+     * @Then I should receive an email with gift card code
      */
-    public function iShouldBeNotifiedThatEmailWithGiftCardCode(): void
+    public function iShouldReceiveAnEmailWithGiftCardCode(): void
     {
         /** @var OrderInterface $order */
         $order = $this->orderRepository->findAll()[0];
 
         foreach ($order->getItems() as $orderItem) {
-            if (true === $this->giftCardProductResolver->isGiftCardProduct($orderItem->getProduct())) {
-                /** @var GiftCardInterface $giftCardCode */
-                $giftCardCode = $this->giftCardCodeRepository->findOneBy(['orderItem' => $orderItem]);
+            /** @var ProductInterface $product */
+            $product = $orderItem->getProduct();
 
-                Assert::true($giftCardCode->isActive());
+            if (!$product->isGiftCard()) {
+                continue;
+            }
 
-                $this->assertEmailContainsMessageTo($giftCardCode->getCode(), $order->getCustomer()->getEmail());
+            foreach ($orderItem->getUnits() as $orderItemUnit) {
+                $giftCard = $this->giftCardRepository->findOneByOrderItemUnit($orderItemUnit);
+
+                Assert::true($giftCard->isEnabled());
+
+                $this->assertEmailContainsMessageTo($giftCard->getCode(), $order->getCustomer()->getEmail());
             }
         }
     }

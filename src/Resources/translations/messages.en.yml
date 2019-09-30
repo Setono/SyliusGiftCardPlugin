@@ -11,6 +11,7 @@ setono_sylius_gift_card:
         create_for_channel: Create for %channel%
         enter_gift_card_code: Enter gift card code
         gift_card: Gift card
+        gift_card_channel_does_not_match_channel: The gift card was bought on another channel, please use the gift card on %channel%
         gift_card_code_is_invalid: Gift card code is invalid
         gift_cards: Gift cards
         gift_card_search: Gift card search

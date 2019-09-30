@@ -6,7 +6,8 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Doctrine\ORM\EntityManagerInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Behat\Context\Setup\OrderContext;
 use Sylius\Behat\Context\Ui\Shop\Checkout\CheckoutCompleteContext;
 use Sylius\Behat\Context\Ui\Shop\Checkout\CheckoutThankYouContext;
@@ -63,6 +64,20 @@ final class CheckoutContext implements Context
     }
 
     /**
+     * @When I place the order and pay successfully
+     */
+    public function iPlaceTheOrderAndPaySuccessfully(): void
+    {
+        $order = $this->orderRepository->findAll()[0];
+
+        $this->checkoutContext->iProceedSelectingShippingCountryAndShippingMethod();
+        $this->checkoutCompleteContext->iConfirmMyOrder();
+        $this->checkoutThankYouContext->iShouldSeeTheThankYouPage();
+
+        $this->orderContext->thisOrderIsAlreadyPaid($order);
+    }
+
+    /**
      * @When I confirm my order and pay successfully
      */
     public function iConfirmMyOrderAndPaySuccessfully(): void
@@ -96,16 +111,12 @@ final class CheckoutContext implements Context
     }
 
     /**
-     * @Then The gift card with the code :code should be inactive
+     * @Then The gift card :giftCard should be disabled
      */
-    public function theGiftCardWithTheCodeShouldBeInactive(string $code): void
+    public function theGiftCardWithTheCodeShouldBeInactive(GiftCardInterface $giftCard): void
     {
-        $giftCardCode = $this->giftCardCodeRepository->findOneByCode($code);
-
-        $this->giftCardCodeEntityManager->refresh($giftCardCode);
-
-        Assert::same($giftCardCode->getAmount(), 0);
-        Assert::false($giftCardCode->isActive());
+        Assert::same($giftCard->getAmount(), 0);
+        Assert::false($giftCard->isEnabled());
     }
 
     /**
@@ -116,9 +127,6 @@ final class CheckoutContext implements Context
         $giftCardCode = $this->giftCardCodeRepository->findOneByCode($code);
 
         $order = $this->orderRepository->findAll()[0];
-
-        /** @var PaymentMethodInterface $paymentMethod */
-        $paymentMethod = $this->paymentMethodRepository->findAll()[0];
 
         $giftCardCode->setCurrentOrder($order);
 

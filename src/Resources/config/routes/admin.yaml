@@ -51,7 +51,7 @@ setono_sylius_gift_card_admin_gift_card_create:
                     form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/_form.html.twig"
 
 setono_sylius_gift_card_admin_gift_card_orders_index:
-    path: /gift-card-codes/{id}/orders
+    path: /gift-cards/{id}/orders
     methods: [GET, POST]
     defaults:
         _controller: sylius.controller.order:indexAction
