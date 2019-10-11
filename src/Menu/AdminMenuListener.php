@@ -13,7 +13,7 @@ final class AdminMenuListener
     {
         $menu = $event->getMenu();
 
-        $submenu = $menu->getChild('marketing');
+        $submenu = $menu->getChild('catalog');
         if ($submenu instanceof ItemInterface) {
             $this->addChild($submenu);
         } else {
