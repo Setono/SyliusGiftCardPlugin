@@ -28,7 +28,7 @@ final class OrderGiftCardAmountModifier implements OrderGiftCardAmountModifierIn
     /**
      * @throws StringsException
      */
-    public function increment(OrderInterface $order): void
+    public function decrement(OrderInterface $order): void
     {
         foreach ($order->getAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT) as $adjustment) {
             $giftCard = self::getGiftCard($order, $adjustment->getOriginCode());
@@ -53,7 +53,7 @@ final class OrderGiftCardAmountModifier implements OrderGiftCardAmountModifierIn
     /**
      * @throws StringsException
      */
-    public function decrement(OrderInterface $order): void
+    public function increment(OrderInterface $order): void
     {
         foreach ($order->getAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT) as $adjustment) {
             $giftCard = self::getGiftCard($order, $adjustment->getOriginCode());

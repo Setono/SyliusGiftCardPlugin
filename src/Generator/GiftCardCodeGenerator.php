@@ -6,9 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Generator;
 
 use Exception;
 use Safe\Exceptions\PcreException;
-use Safe\Exceptions\StringsException;
 use function Safe\preg_replace;
-use function Safe\substr;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 
 final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
@@ -28,7 +26,6 @@ final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
     /**
      * @throws Exception
      * @throws PcreException
-     * @throws StringsException
      */
     public function generate(): string
     {
@@ -37,8 +34,8 @@ final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
             // generate codeLength / 2 bytes because hex uses two characters to represent one byte
             $code = bin2hex(random_bytes($this->codeLength));
             $code = preg_replace('/[01]/', '', $code); // remove hard to read characters
-            $code = strtoupper(substr($code, 0, $this->codeLength));
-        } while (strlen($code) !== $this->codeLength || $this->exists($code));
+            $code = mb_strtoupper(mb_substr($code, 0, $this->codeLength));
+        } while (mb_strlen($code) !== $this->codeLength || $this->exists($code));
 
         return $code;
     }

@@ -37,9 +37,6 @@ class GiftCardSpec extends ObjectBehavior
         $this->setOrderItemUnit($orderItemUnit);
         $this->getOrderItemUnit()->shouldReturn($orderItemUnit);
 
-        $this->setCurrentOrder($order);
-        $this->getCurrentOrder()->shouldReturn($order);
-
         $this->setCode('code');
         $this->getCode()->shouldReturn('code');
 

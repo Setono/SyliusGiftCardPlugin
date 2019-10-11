@@ -1,8 +1,9 @@
 includes:
-    - vendor/phpstan/phpstan-doctrine/extension.neon
-    - vendor/phpstan/phpstan-strict-rules/rules.neon
-    - vendor/phpstan/phpstan-webmozart-assert/extension.neon
-    - vendor/thecodingmachine/phpstan-safe-rule/phpstan-safe-rule.neon
+	- vendor/korbeil/phpstan-generic-rules/extension.neon
+	- vendor/phpstan/phpstan-doctrine/extension.neon
+	- vendor/phpstan/phpstan-strict-rules/rules.neon
+	- vendor/phpstan/phpstan-webmozart-assert/extension.neon
+	- vendor/thecodingmachine/phpstan-safe-rule/phpstan-safe-rule.neon
 
 parameters:
     reportUnmatchedIgnoredErrors: true
