@@ -87,7 +87,30 @@ cp -r vendor/setono/sylius-gift-card-plugin/tests/Application/templates/bundles/
    templates/bundles/SyliusAdminBundle/
 ```
 
-### Override `Order` and `OrderRepository`
+### Override `Product`, `Order` and `OrderRepository`
+
+**Override `Product`**
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Setono\SyliusGiftCardPlugin\Model\ProductInterface as SetonoSyliusGiftCardProductInterface;
+use Setono\SyliusGiftCardPlugin\Model\ProductTrait as SetonoSyliusGiftCardProductTrait;
+use Sylius\Component\Core\Model\Product as BaseProduct;
+
+/**
+ * @ORM\Entity
+ * @ORM\Table(name="sylius_product")
+ */
+class Product extends BaseProduct implements SetonoSyliusGiftCardProductInterface
+{
+    use SetonoSyliusGiftCardProductTrait;
+}
+```
 
 **Override `Order`**
 
@@ -147,13 +170,18 @@ sylius_order:
             classes:
                 model: App\Entity\Order
                 repository: App\Doctrine\ORM\OrderRepository
-
+                
+sylius_product:
+    resources:
+        product:
+            classes:
+                model: App\Entity\Product
 ```
 
 ### Install assets:
 
 ```bash
-$ php bin/console assets:install --symlink web
+$ php bin/console assets:install
 ```
 
 ### Clear cache:
@@ -172,7 +200,7 @@ $ composer tests
 
 ## Playing
 
-- To run built-in application showing plugin at work, just run:  
+To run built-in application showing plugin at work, just run:  
 
 ```bash
 $ composer try
