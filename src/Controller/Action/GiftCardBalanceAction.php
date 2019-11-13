@@ -33,7 +33,7 @@ final class GiftCardBalanceAction
     public function __invoke(Request $request): Response
     {
         $giftCardBalanceCollection = GiftCardBalanceCollection::createFromGiftCards(
-            $this->giftCardCodeRepository->findAll()
+            $this->giftCardCodeRepository->findEnabled()
         );
 
         $view = View::create();

@@ -49,4 +49,11 @@ final class GiftCardRepository extends EntityRepository implements GiftCardRepos
 
         return $giftCard;
     }
+
+    public function findEnabled(): array
+    {
+        return $this->findBy([
+            'enabled' => true
+        ]);
+    }
 }

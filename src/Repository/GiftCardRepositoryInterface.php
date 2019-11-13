@@ -19,4 +19,9 @@ interface GiftCardRepositoryInterface extends RepositoryInterface
     public function findOneByCode(string $code): ?GiftCardInterface;
 
     public function findOneByOrderItemUnit(OrderItemUnitInterface $orderItemUnit): ?GiftCardInterface;
+
+    /**
+     * @return GiftCardInterface[]
+     */
+    public function findEnabled(): array;
 }
