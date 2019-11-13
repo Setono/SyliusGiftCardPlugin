@@ -2,7 +2,7 @@
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE)
-[![Build Status][ico-travis]][link-travis]
+[![Build Status][ico-github-actions]][link-github-actions]
 [![Quality Score][ico-code-quality]][link-code-quality]
 
 ## Screenshots
@@ -200,9 +200,9 @@ Please, run `composer all` to run all checks and tests before making pull reques
 
 [ico-version]: https://img.shields.io/packagist/v/setono/sylius-gift-card-plugin.svg?style=flat-square
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[ico-travis]: https://img.shields.io/travis/Setono/SyliusGiftCardPlugin/master.svg?style=flat-square
+[ico-github-actions]: https://github.com/Setono/SyliusGiftCardPlugin/workflows/Build/badge.svg
 [ico-code-quality]: https://img.shields.io/scrutinizer/g/Setono/SyliusGiftCardPlugin.svg?style=flat-square
 
 [link-packagist]: https://packagist.org/packages/setono/sylius-gift-card-plugin
-[link-travis]: https://travis-ci.org/Setono/SyliusGiftCardPlugin
+[link-github-actions]: https://github.com/Setono/SyliusGiftCardPlugin/actions
 [link-code-quality]: https://scrutinizer-ci.com/g/Setono/SyliusGiftCardPlugin
