@@ -14,7 +14,7 @@ final class GiftCardCodeGeneratorSpec extends ObjectBehavior
 {
     public function let(GiftCardRepositoryInterface $giftCardRepository): void
     {
-        $this->beConstructedWith($giftCardRepository);
+        $this->beConstructedWith($giftCardRepository, 20);
     }
 
     public function it_is_initializable(): void
