@@ -52,7 +52,7 @@ final class EmailContext implements Context
             foreach ($orderItem->getUnits() as $orderItemUnit) {
                 $giftCard = $this->giftCardRepository->findOneByOrderItemUnit($orderItemUnit);
 
-                Assert::true($giftCard->isEnabled());
+                Assert::true($giftCard->isEnabled(), 'Gift card is not enabled');
 
                 $this->assertEmailContainsMessageTo($giftCard->getCode(), $order->getCustomer()->getEmail());
             }
@@ -61,6 +61,6 @@ final class EmailContext implements Context
 
     private function assertEmailContainsMessageTo(string $message, string $recipient): void
     {
-        Assert::true($this->emailChecker->hasMessageTo($message, $recipient));
+        Assert::true($this->emailChecker->hasMessageTo($message, $recipient), 'The email is wrong');
     }
 }
