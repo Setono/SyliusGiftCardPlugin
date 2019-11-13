@@ -124,7 +124,7 @@ class Order extends BaseOrder implements SetonoSyliusGiftCardPluginOrderInterfac
 }
 ```
     
-**Override `OrderRepository`:*
+**Override `OrderRepository`:**
 
 ```php
 <?php
