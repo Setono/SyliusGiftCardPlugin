@@ -1,25 +1,35 @@
-<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
+<doctrine-mapping xmlns:gedmo="http://gediminasm.org/schemas/orm/doctrine-extensions-mapping"
+                  xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
 
     <mapped-superclass name="Setono\SyliusGiftCardPlugin\Model\GiftCard" table="setono_sylius_gift_card__gift_card">
         <id name="id" column="id" type="integer">
-            <generator strategy="AUTO" />
+            <generator strategy="AUTO"/>
         </id>
 
         <field name="code" unique="true"/>
-        <field name="enabled" type="boolean" />
-        <field name="initialAmount" type="integer" />
-        <field name="amount" type="integer" />
-        <field name="currencyCode" length="3" />
+        <field name="enabled" type="boolean"/>
+        <field name="initialAmount" type="integer"/>
+        <field name="amount" type="integer"/>
+        <field name="currencyCode" length="3"/>
+
+        <field name="createdAt" column="created_at" type="datetime">
+            <gedmo:timestampable on="create"/>
+        </field>
+
+        <field name="updatedAt" column="updated_at" type="datetime" nullable="true">
+            <gedmo:timestampable on="update"/>
+        </field>
 
         <many-to-one field="channel" target-entity="Sylius\Component\Channel\Model\ChannelInterface">
-            <join-column name="channel_id" referenced-column-name="id" nullable="false" />
+            <join-column name="channel_id" referenced-column-name="id" nullable="false"/>
         </many-to-one>
 
         <many-to-one field="orderItemUnit" target-entity="Sylius\Component\Order\Model\OrderItemUnitInterface">
-            <join-column name="order_item_unit_id" referenced-column-name="id"  />
+            <join-column name="order_item_unit_id" referenced-column-name="id"/>
         </many-to-one>
 
-        <many-to-many field="appliedOrders" target-entity="Sylius\Component\Order\Model\OrderInterface" mapped-by="giftCards"/>
+        <many-to-many field="appliedOrders" target-entity="Sylius\Component\Order\Model\OrderInterface"
+                      mapped-by="giftCards"/>
     </mapped-superclass>
 
 </doctrine-mapping>

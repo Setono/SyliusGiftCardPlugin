@@ -10,10 +10,12 @@ use RuntimeException;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemUnitInterface;
+use Sylius\Component\Resource\Model\TimestampableTrait;
 use Sylius\Component\Resource\Model\ToggleableTrait;
 
 class GiftCard implements GiftCardInterface
 {
+    use TimestampableTrait;
     use ToggleableTrait;
 
     /** @var int */
