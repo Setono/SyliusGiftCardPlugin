@@ -71,21 +71,7 @@ $ bin/console doctrine:migrations:migrate
 
 ### Copy templates
 
-- For `SyliusShopBundle`:
-
-```bash
-mkdir -p templates/bundles/SyliusShopBundle
-cp -r vendor/setono/sylius-gift-card-plugin/tests/Application/templates/bundles/SyliusShopBundle/ \
-   templates/bundles/SyliusShopBundle/
-```
-
-- For `SyliusAdminBundle`:
-
-```bash
-mkdir -p templates/bundles/SyliusAdminBundle
-cp -r vendor/setono/sylius-gift-card-plugin/tests/Application/templates/bundles/SyliusAdminBundle/ \
-   templates/bundles/SyliusAdminBundle/
-```
+You will find the templates you need to override in the [test application](https://github.com/Setono/SyliusGiftCardPlugin/tree/master/tests/Application/templates).
 
 ### Override `Product`, `Order` and `OrderRepository`
 
