@@ -7,9 +7,11 @@
 
 ## Screenshots
 
+▶▶ [Skip screenshots and go to installation](#Installation)
+
 ![Screenshot showing admin menu and index](docs/images/admin-menu.png)
 
-![Screenshot showing gift card admin create page](docs/images/admin-gift-card-code-create.png)
+![Screenshot showing gift card admin create page](docs/images/admin-gift-card-create.png)
 
 ## Installation
 
