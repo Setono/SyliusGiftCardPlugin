@@ -50,12 +50,16 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
     {
         $items = self::getOrderItemsThatAreGiftCards($order);
 
+        if (count($items) === 0) {
+            return;
+        }
+
         foreach ($items as $item) {
             /** @var OrderItemUnitInterface $unit */
             foreach ($item->getUnits() as $unit) {
-                $giftCardCode = $this->giftCardFactory->createFromOrderItemUnit($unit);
+                $giftCard = $this->giftCardFactory->createFromOrderItemUnit($unit);
 
-                $this->giftCardManager->persist($giftCardCode);
+                $this->giftCardManager->persist($giftCard);
             }
         }
 
@@ -90,7 +94,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         }
 
         foreach ($giftCards as $giftCard) {
-            $giftCard->enable();
+            $giftCard->disable();
         }
 
         $this->giftCardManager->flush();
@@ -108,6 +112,8 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
     }
 
     /**
+     * Returns all the gift cards that were bought on the given order
+     *
      * @return GiftCardInterface[]
      */
     private function getGiftCards(OrderInterface $order): array
