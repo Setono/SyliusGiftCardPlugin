@@ -1,7 +1,10 @@
 {% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
 
-{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
+{% set itemsSubtotal = sylius_order_items_subtotal(cart) %}
+{% set taxIncluded = sylius_order_tax_included(cart) %}
+{% set taxExcluded = sylius_order_tax_excluded(cart) %}
 
+{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
 {% set giftCardTotal = cart.getAdjustmentsTotal(giftCardAdjustment) %}
 
 <div class="ui segment">
@@ -12,12 +15,8 @@
     <table class="ui very basic table">
         <tbody>
         <tr>
-            <td>{{ 'sylius.ui.tax'|trans }}:</td>
-            <td id="sylius-cart-tax-total" class="right aligned">{{ money.convertAndFormat(cart.taxTotal) }}</td>
-        </tr>
-        <tr>
-            <td>{{ 'sylius.ui.shipping'|trans }}:</td>
-            <td id="sylius-cart-shipping-total" class="right aligned">{{ money.convertAndFormat(cart.shippingTotal) }}</td>
+            <td>{{ 'sylius.ui.items_total'|trans }}:</td>
+            <td class="right aligned">{{ money.convertAndFormat(itemsSubtotal) }}</td>
         </tr>
         {% if cart.orderPromotionTotal %}
             <tr>
@@ -31,7 +30,33 @@
                 <td id="setono-cart-gift-card-total" class="right aligned">{{ money.convertAndFormat(giftCardTotal) }}</td>
             </tr>
         {% endif %}
-        <tr style="font-size: 2em;">
+        <tr>
+            <td>{{ 'sylius.ui.shipping_estimated_cost'|trans }}:</td>
+            <td class="right aligned">
+                {% if cart.getAdjustmentsTotal('shipping') > cart.shippingTotal %}
+                    <span class="old-price">{{ money.convertAndFormat(cart.getAdjustmentsTotal('shipping')) }}</span>
+                {% endif %}
+                <span id="sylius-cart-shipping-total">{{ money.convertAndFormat(cart.shippingTotal) }}</span>
+            </td>
+        </tr>
+        <tr {% if taxIncluded and not taxExcluded %}class="tax-disabled"{% endif %}>
+            <td>{{ 'sylius.ui.taxes_total'|trans }}:</td>
+            <td class="right aligned">
+                {% if not taxIncluded and not taxExcluded %}
+                    <div id="sylius-cart-tax-none">{{ money.convertAndFormat(0) }}</div>
+                {% endif %}
+                {% if taxExcluded %}
+                    <div id="sylius-cart-tax-excluded">{{ money.convertAndFormat(taxExcluded) }}</div>
+                {% endif %}
+                {% if taxIncluded %}
+                    <div class="tax-disabled">
+                        <small>({{ 'sylius.ui.included_in_price'|trans }})</small>
+                        <span id="sylius-cart-tax-included">{{ money.convertAndFormat(taxIncluded) }}</span>
+                    </div>
+                {% endif %}
+            </td>
+        </tr>
+        <tr class="ui large header">
             <td>{{ 'sylius.ui.order_total'|trans }}:</td>
             <td id="sylius-cart-grand-total" class="right aligned">{{ money.convertAndFormat(cart.total) }}</td>
         </tr>
