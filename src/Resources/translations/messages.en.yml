@@ -22,6 +22,7 @@ setono_sylius_gift_card:
         initial_amount: Initial amount
         list_orders: List orders
         new_gift_card: New gift card
+        not_available: Not available
         no_gift_card: No gift card applied
         the_gift_card_does_not_exist: The gift card does not exist or not active
         total: Total
