@@ -1,0 +1,9 @@
+{# @var \Sylius\Component\Core\Model\OrderItemUnitInterface data #}
+
+{% if data is not null %}
+    {% set order = data.orderItem.order %}
+
+    <a href="{{ path('sylius_admin_order_show', {'id' : order.id }) }}">#{{ order.number }}</a>
+{% else %}
+    {{ 'setono_sylius_gift_card.ui.not_available'|trans }}
+{% endif %}
