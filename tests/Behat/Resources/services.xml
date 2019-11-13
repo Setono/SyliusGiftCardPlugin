@@ -24,9 +24,7 @@
         <!-- UI -->
         <service id="setono_sylius_gift_card.behat.context.ui.admin.managing_gift_cards"
                  class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Admin\ManagingGiftCardsContext">
-            <argument type="service" id="setono_sylius_gift_card.behat.page.admin.gift_card.create"/>
-            <argument type="service" id="sylius.behat.current_page_resolver"/>
-            <argument type="service" id="sylius.behat.page.admin.product.index"/>
+            <argument type="service" id="setono_sylius_gift_card.behat.page.admin.product.create"/>
         </service>
 
         <service id="setono_sylius_gift_card.behat.context.ui.shop.gift_card"
@@ -60,8 +58,8 @@
         </service>
 
         <!-- Pages -->
-        <service id="setono_sylius_gift_card.behat.page.admin.gift_card.create"
-                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Admin\Product\CreateGiftCardPage"
+        <service id="setono_sylius_gift_card.behat.page.admin.product.create"
+                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Admin\Product\CreateSimpleProductPage"
                  parent="sylius.behat.page.admin.crud.create" public="false">
             <argument type="string">setono_sylius_gift_card_admin_product_create_gift_card</argument>
         </service>
