@@ -17,6 +17,12 @@
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
         </service>
 
+        <service id="setono_sylius_gift_card.controller.action.gift_card_balance"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\GiftCardBalanceAction">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+            <argument type="service" id="fos_rest.view_handler.default"/>
+        </service>
+
         <service id="setono_sylius_gift_card.controller.action.search_gift_card"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\SearchGiftCardAction">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>

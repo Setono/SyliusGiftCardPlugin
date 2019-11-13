@@ -1,0 +1,62 @@
+{# @var \Setono\SyliusGiftCardPlugin\Model\GiftCardBalanceCollection giftCardBalanceCollection #}
+
+{% extends '@SyliusAdmin/layout.html.twig' %}
+
+{% import '@SyliusAdmin/Macro/breadcrumb.html.twig' as breadcrumb %}
+{% import "@SyliusAdmin/Common/Macro/money.html.twig" as money %}
+
+{% block title %}{{ 'setono_sylius_gift_card.ui.gift_card_balance'|trans }} {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="ui stackable two column grid">
+        <div class="ten wide column">
+            <h1 class="ui header">
+                <i class="circular cart icon"></i>
+                <div class="content">
+                    {{ 'setono_sylius_gift_card.ui.gift_card_balance'|trans }}
+                </div>
+            </h1>
+        </div>
+    </div>
+
+    {% set breadcrumbs = [
+        { label: 'sylius.ui.administration'|trans, url: path('sylius_admin_dashboard') },
+        { label: 'setono_sylius_gift_card.ui.gift_cards'|trans, url: path('setono_sylius_gift_card_admin_gift_card_index') },
+        { label: 'setono_sylius_gift_card.ui.gift_card_balance'|trans }
+    ]
+    %}
+
+    {{ breadcrumb.crumble(breadcrumbs) }}
+
+
+    <div class="ui stackable grid">
+        <div class="sixteen wide column">
+            <div class="ui segment">
+                <table class="ui celled table">
+                    <thead>
+                        <tr>
+                            <th class="center aligned">{{ 'setono_sylius_gift_card.ui.total'|trans }}</th>
+                            <th class="center aligned">{{ 'setono_sylius_gift_card.ui.count'|trans }}</th>
+                            <th class="center aligned">{{ 'setono_sylius_gift_card.ui.average_amount'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for giftCardBalance in giftCardBalanceCollection %}
+                        <tr>
+                            <td class="center aligned">
+                                {{ money.format(giftCardBalance.total, giftCardBalance.currencyCode) }}
+                            </td>
+                            <td class="center aligned">
+                                {{ giftCardBalance.count }}
+                            </td>
+                            <td class="center aligned">
+                                {{ money.format(giftCardBalance.averageAmount, giftCardBalance.currencyCode) }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

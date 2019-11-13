@@ -3,6 +3,7 @@ sylius_grid:
         action:
             create_gift_card: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/create.html.twig"
             delete_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/delete_conditional.html.twig"
+            gift_card_balance: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/gift_card_balance.html.twig"
             list_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/list_conditional.html.twig"
     grids:
         setono_sylius_gift_card_admin_gift_card:
@@ -76,6 +77,8 @@ sylius_grid:
                     type: boolean
             actions:
                 main:
+                    balance:
+                        type: gift_card_balance
                     create:
                         type: create_gift_card
                 item:

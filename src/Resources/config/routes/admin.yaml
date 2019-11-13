@@ -64,3 +64,11 @@ setono_sylius_gift_card_admin_gift_card_orders_index:
             grid: setono_sylius_gift_card_admin_gift_card_order
             section: admin
             permission: true
+
+setono_sylius_gift_card_admin_gift_card_balance:
+    path: /gift-cards/balance
+    methods: [GET]
+    defaults:
+        _controller: setono_sylius_gift_card.controller.action.gift_card_balance
+        _sylius:
+            section: admin
