@@ -21,6 +21,8 @@
         "korbeil/phpstan-generic-rules": "^0.2.1",
         "lakion/mink-debug-extension": "^1.2.3",
         "localheinz/composer-normalize": "^1.3",
+        "matthiasnoback/symfony-config-test": "^4.0",
+        "matthiasnoback/symfony-dependency-injection-test": "^4.0",
         "phpspec/phpspec": "^5.0",
         "phpstan/phpstan": "^0.11",
         "phpstan/phpstan-doctrine": "^0.11",
