@@ -22,7 +22,7 @@ $ composer require setono/sylius-gift-card-plugin
 ### Import configuration:
 
 ```yaml
-# config/packages/_sylius.yaml
+# config/packages/setono_sylius_gift_card.yaml
 imports:
     # ...
     - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
@@ -33,7 +33,7 @@ imports:
 If you wish to have some gift cards to play with in your application during development.
 
 ```yaml
-# config/packages/_sylius.yaml
+# config/packages/setono_sylius_gift_card.yaml
 imports:
     # ...
     - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
@@ -73,9 +73,9 @@ $ bin/console doctrine:migrations:migrate
 
 You will find the templates you need to override in the [test application](https://github.com/Setono/SyliusGiftCardPlugin/tree/master/tests/Application/templates).
 
-### Override `Product`, `Order` and `OrderRepository`
+### Extend `Product`, `Order` and `OrderRepository`
 
-**Override `Product`**
+**Extend `Product`**
 ```php
 <?php
 
@@ -98,7 +98,7 @@ class Product extends BaseProduct implements SetonoSyliusGiftCardProductInterfac
 }
 ```
 
-**Override `Order`**
+**Extend `Order`**
 
 ```php
 <?php
@@ -124,7 +124,7 @@ class Order extends BaseOrder implements SetonoSyliusGiftCardPluginOrderInterfac
 }
 ```
     
-**Override `OrderRepository`:**
+**Extend `OrderRepository`:**
 
 ```php
 <?php
