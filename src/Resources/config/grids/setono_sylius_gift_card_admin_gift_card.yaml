@@ -14,7 +14,8 @@ sylius_grid:
                     repository:
                         method: createListQueryBuilder
             sorting:
-                code: asc
+                createdAt: desc
+            limits: [25, 50, 100]
             fields:
                 code:
                     type: string
