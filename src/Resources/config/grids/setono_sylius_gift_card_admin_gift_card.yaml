@@ -61,7 +61,7 @@ sylius_grid:
                     label: sylius.ui.order
                     path: orderItemUnit
                     options:
-                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/order.html.twig"
+                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/item_units_order.html.twig"
             filters:
                 search:
                     type: string
