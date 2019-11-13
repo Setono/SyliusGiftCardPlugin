@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="setono_sylius_gift_card.validator.gift_card_exists"
+                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardExistsValidator">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+            <argument type="service" id="sylius.context.channel"/>
+            <tag name="validator.constraint_validator" alias="setono_sylius_gift_card_gift_exists_validator"/>
+        </service>
+    </services>
+</container>

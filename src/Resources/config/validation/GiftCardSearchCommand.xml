@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<constraint-mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://symfony.com/schema/dic/constraint-mapping"
+                    xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/services/constraint-mapping-1.0.xsd">
+    <class name="Setono\SyliusGiftCardPlugin\Controller\Action\SearchGiftCardCommand">
+        <property name="code">
+            <constraint name="NotBlank">
+                <option name="message">setono_sylius_gift_card.gift_card_search_command.code.not_blank</option>
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardExists">
+                <option name="message">setono_sylius_gift_card.gift_card_search_command.code.does_not_exist</option>
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
+    </class>
+</constraint-mapping>
