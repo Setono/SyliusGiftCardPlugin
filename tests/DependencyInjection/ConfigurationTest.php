@@ -32,6 +32,7 @@ final class ConfigurationTest extends TestCase
         $this->assertProcessedConfigurationEquals([
             'setono_sylius_gift_card' => [],
         ], [
+            'code_length' => 20,
             'driver' => SyliusResourceBundle::DRIVER_DOCTRINE_ORM,
             'resources' => [
                 'gift_card' => [

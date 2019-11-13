@@ -32,6 +32,13 @@ final class Configuration implements ConfigurationInterface
             ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('driver')->defaultValue(SyliusResourceBundle::DRIVER_DOCTRINE_ORM)->end()
+                ->integerNode('code_length')
+                    ->defaultValue(20)
+                    ->info('The length of the generated gift card code')
+                    ->min(1)
+                    ->max(255)
+                    ->example(16)
+                ->end()
             ->end()
         ;
 

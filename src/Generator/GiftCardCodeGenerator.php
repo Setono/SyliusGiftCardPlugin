@@ -17,7 +17,7 @@ final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
     /** @var int */
     private $codeLength;
 
-    public function __construct(GiftCardRepositoryInterface $giftCardRepository, int $codeLength = 12)
+    public function __construct(GiftCardRepositoryInterface $giftCardRepository, int $codeLength)
     {
         $this->giftCardRepository = $giftCardRepository;
         $this->codeLength = $codeLength;

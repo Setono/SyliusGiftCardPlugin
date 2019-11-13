@@ -22,6 +22,7 @@ final class SetonoSyliusGiftCardExtensionTest extends AbstractExtensionTestCase
     {
         $this->load();
 
+        $this->assertContainerBuilderHasParameter('setono_sylius_gift_card.code_length', 20);
         $this->assertContainerBuilderHasParameter('setono_sylius_gift_card.driver', SyliusResourceBundle::DRIVER_DOCTRINE_ORM);
     }
 }

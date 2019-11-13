@@ -20,6 +20,8 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
         $config = $this->processConfiguration($this->getConfiguration([], $container), $config);
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
 
+        $container->setParameter('setono_sylius_gift_card.code_length', $config['code_length']);
+
         $this->registerResources('setono_sylius_gift_card', $config['driver'], $config['resources'], $container);
 
         $loader->load('services.xml');
