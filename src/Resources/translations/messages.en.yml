@@ -16,6 +16,7 @@ setono_sylius_gift_card:
         gift_cards: Gift cards
         gift_card_search: Gift card search
         gift_card_total: Gift card total
+        initial_amount: Initial amount
         list_orders: List orders
         new_gift_card: New gift card
         no_gift_card: No gift card applied
