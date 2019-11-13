@@ -8,7 +8,7 @@ setono_sylius_gift_card_admin_gift_card:
         grid: setono_sylius_gift_card_admin_gift_card
         vars:
             all:
-                subheader: setono_sylius_gift_card.ui.gift_card
+                subheader: setono_sylius_gift_card.ui.manage_gift_cards
                 templates:
                     form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/_form.html.twig"
             index:
