@@ -18,7 +18,7 @@
 
         {{ form_start(form, {'attr': {'class': 'ui form', 'novalidate': 'novalidate'}}) }}
         {{ form_errors(form) }}
-        {{ form_row(form.code) }}
+        {{ form_row(form.giftCard) }}
         <button type="submit" class="ui primary icon labeled button"><i class="search icon"></i> {{ 'sylius.ui.search'|trans }}</button>
         {{ form_row(form._token) }}
         {{ form_end(form, {'render_rest': false}) }}

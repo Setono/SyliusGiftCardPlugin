@@ -6,7 +6,6 @@ namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
-use Sylius\Bundle\CoreBundle\Form\Extension\CartTypeExtension;
 use Sylius\Bundle\ResourceBundle\Form\EventSubscriber\AddCodeFormSubscriber;
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -20,9 +19,6 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 
-/**
- * todo should this be added a CartTypeExtension just as the promotionCoupon? @see CartTypeExtension
- */
 final class GiftCardType extends AbstractResourceType
 {
     /** @var RepositoryInterface */

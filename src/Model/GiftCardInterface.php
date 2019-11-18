@@ -15,6 +15,8 @@ use Sylius\Component\Resource\Model\ToggleableInterface;
 
 interface GiftCardInterface extends ResourceInterface, ToggleableInterface, CodeAwareInterface, TimestampableInterface
 {
+    public function __toString(): string;
+
     /**
      * Admin can't remove items that was purchased with real money. Only generated items can be removed
      */

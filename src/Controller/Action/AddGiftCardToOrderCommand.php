@@ -6,7 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 
-final class SearchGiftCardCommand
+final class AddGiftCardToOrderCommand
 {
     /** @var GiftCardInterface|null */
     private $giftCard;

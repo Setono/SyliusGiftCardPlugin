@@ -10,19 +10,21 @@ use function Safe\sprintf;
 
 final class GiftCardNotFoundException extends InvalidArgumentException implements ExceptionInterface
 {
+    /** @var string */
+    private $giftCard;
+
     /**
-     * @param object|string|mixed $giftCard
-     *
      * @throws StringsException
      */
-    public function __construct($giftCard)
+    public function __construct(string $giftCard)
     {
-        $message = 'The gift card was not found';
-
-        if (is_string($giftCard)) {
-            $message = sprintf('The gift card with code "%s" was not found', $giftCard);
-        }
+        $message = sprintf('The gift card with code "%s" was not found', $giftCard);
 
         parent::__construct($message);
+    }
+
+    public function getGiftCard(): string
+    {
+        return $this->giftCard;
     }
 }

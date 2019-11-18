@@ -6,54 +6,51 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandlerInterface;
-use RuntimeException;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
-use Setono\SyliusGiftCardPlugin\Exception\ChannelMismatchException;
-use Setono\SyliusGiftCardPlugin\Exception\GiftCardNotFoundException;
+use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
+use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Security\Csrf\CsrfToken;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class AddGiftCardToOrderAction
 {
     /** @var ViewHandlerInterface */
     private $viewHandler;
 
+    /** @var FormFactoryInterface */
+    private $formFactory;
+
     /** @var CartContextInterface */
     private $cartContext;
 
-    /** @var CsrfTokenManagerInterface */
-    private $csrfTokenManager;
-
-    /** @var TranslatorInterface */
-    private $translator;
-
     /** @var FlashBagInterface */
     private $flashBag;
+
+    /** @var UrlGeneratorInterface */
+    private $urlGenerator;
 
     /** @var GiftCardApplicatorInterface */
     private $giftCardApplicator;
 
     public function __construct(
         ViewHandlerInterface $viewHandler,
+        FormFactoryInterface $formFactory,
         CartContextInterface $cartContext,
-        CsrfTokenManagerInterface $csrfTokenManager,
-        TranslatorInterface $translator,
         FlashBagInterface $flashBag,
+        UrlGeneratorInterface $urlGenerator,
         GiftCardApplicatorInterface $giftCardApplicator
     ) {
         $this->viewHandler = $viewHandler;
+        $this->formFactory = $formFactory;
         $this->cartContext = $cartContext;
-        $this->csrfTokenManager = $csrfTokenManager;
-        $this->translator = $translator;
         $this->flashBag = $flashBag;
+        $this->urlGenerator = $urlGenerator;
         $this->giftCardApplicator = $giftCardApplicator;
     }
 
@@ -66,34 +63,35 @@ final class AddGiftCardToOrderAction
             throw new NotFoundHttpException();
         }
 
-        if (!$this->isCsrfTokenValid((string) $order->getId(), $request->request->get('_csrf_token'))) {
-            throw new HttpException(Response::HTTP_FORBIDDEN, 'Invalid csrf token.');
+        $addGiftCardToOrderCommand = new AddGiftCardToOrderCommand();
+        $form = $this->formFactory->create(AddGiftCardToOrderType::class, $addGiftCardToOrderCommand);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->giftCardApplicator->apply($order, $addGiftCardToOrderCommand->getGiftCard());
+
+            $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_added');
+
+            if ($request->isXmlHttpRequest()) {
+                return $this->viewHandler->handle(View::create([], Response::HTTP_CREATED));
+            }
+
+            return new RedirectResponse($this->urlGenerator->generate('sylius_shop_cart_summary'));
         }
 
-        $orderChannel = $order->getChannel();
-        if (null === $orderChannel) {
-            throw new RuntimeException('The order does not have a channel');
+        if ($request->isXmlHttpRequest()) {
+            return $this->viewHandler->handle(View::create($form, Response::HTTP_BAD_REQUEST)->setData([
+                'errors' => $form->getErrors(true, true),
+            ]));
         }
 
-        try {
-            $this->giftCardApplicator->apply($order, $request->get('code', ''));
-        } catch (GiftCardNotFoundException $e) {
-            $message = $this->translator->trans('setono_sylius_gift_card.ui.gift_card_code_is_invalid');
+        $view = View::create()
+            ->setData([
+                'form' => $form->createView(),
+            ])
+            ->setTemplate('@SetonoSyliusGiftCardPlugin/Shop/addGiftCardToOrder.html.twig')
+        ;
 
-            return $this->viewHandler->handle(View::create(['error' => $message], Response::HTTP_BAD_REQUEST));
-        } catch (ChannelMismatchException $e) {
-            $message = $this->translator->trans('setono_sylius_gift_card.ui.gift_card_channel_does_not_match_channel', ['%channel%' => $orderChannel->getName()]);
-
-            return $this->viewHandler->handle(View::create(['error' => $message], Response::HTTP_BAD_REQUEST));
-        }
-
-        $this->flashBag->add('success', 'sylius.cart.save');
-
-        return $this->viewHandler->handle(View::create(null, Response::HTTP_NO_CONTENT));
-    }
-
-    private function isCsrfTokenValid(string $id, ?string $token): bool
-    {
-        return $this->csrfTokenManager->isTokenValid(new CsrfToken($id, $token));
+        return $this->viewHandler->handle($view);
     }
 }

@@ -10,10 +10,10 @@
         <service id="setono_sylius_gift_card.controller.action.add_gift_card_to_order"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction">
             <argument type="service" id="fos_rest.view_handler.default"/>
-            <argument type="service" id="sylius.context.cart.composite"/>
-            <argument type="service" id="security.csrf.token_manager"/>
-            <argument type="service" id="translator.default"/>
+            <argument type="service" id="form.factory"/>
+            <argument type="service" id="sylius.context.cart"/>
             <argument type="service" id="session.flash_bag"/>
+            <argument type="service" id="router"/>
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
         </service>
 
@@ -27,8 +27,6 @@
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\SearchGiftCardAction">
             <argument type="service" id="fos_rest.view_handler.default"/>
             <argument type="service" id="form.factory"/>
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-            <argument type="service" id="sylius.context.channel"/>
         </service>
 
     </services>

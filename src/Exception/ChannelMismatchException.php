@@ -11,6 +11,12 @@ use Sylius\Component\Channel\Model\ChannelInterface;
 
 final class ChannelMismatchException extends InvalidArgumentException implements ExceptionInterface
 {
+    /** @var ChannelInterface */
+    private $actualChannel;
+
+    /** @var ChannelInterface */
+    private $expectedChannel;
+
     /**
      * @throws StringsException
      */
@@ -19,5 +25,17 @@ final class ChannelMismatchException extends InvalidArgumentException implements
         parent::__construct(sprintf(
             'Expected channel was "%s", given "%s"', $expectedChannel->getName(), $actualChannel->getName()
         ));
+        $this->actualChannel = $actualChannel;
+        $this->expectedChannel = $expectedChannel;
+    }
+
+    public function getActualChannel(): ChannelInterface
+    {
+        return $this->actualChannel;
+    }
+
+    public function getExpectedChannel(): ChannelInterface
+    {
+        return $this->expectedChannel;
     }
 }

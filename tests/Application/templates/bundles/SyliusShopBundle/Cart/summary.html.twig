@@ -4,8 +4,8 @@
 {% block javascripts %}
     {{ parent() }}
 
-    <script src="{{ asset('bundles/setonosyliusgiftcardplugin/setono-gift-card-add-to-cart.js') }}"></script>
+    <script src="{{ asset('bundles/setonosyliusgiftcardplugin/setono-sylius-gift-card-add-gift-card-to-order.js') }}"></script>
     <script>
-        $('#setono-gift-card button').addGiftCardToCart();
+        $('#setono-sylius-gift-card-add-gift-card-to-order').addGiftCardToOrder();
     </script>
 {% endblock %}

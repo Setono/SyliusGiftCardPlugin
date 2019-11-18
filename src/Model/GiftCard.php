@@ -47,6 +47,11 @@ class GiftCard implements GiftCardInterface
         $this->appliedOrders = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return (string) $this->code;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

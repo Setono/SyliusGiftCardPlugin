@@ -9,18 +9,16 @@ Feature: Applying gift card
     And the store has a product "PHP T-Shirt" priced at "$100.00"
     And the store has a product "Javascript T-Shirt" priced at "$1"
     And the store has a gift card with code "GIFT-CARD-100" valued at "$100"
-    And the store has a gift card with code "GIFT-CARD-200" valued at "$200"
     And the store ships everywhere for free
     And the store allows paying offline
-    And there is a user "john@example.com" identified by "password123"
-    And I am logged in as "john@example.com"
 
   @ui
-  Scenario: Placing an order with a gift card
-    Given I have product "PHP T-Shirt" in the cart
-    And I have applied gift card "GIFT-CARD-100"
-    And I proceed selecting "United States" as shipping country
-    And I complete the shipping step
+  Scenario: Buying a gift card
+    Given I am a logged in customer
+    And I have product "PHP T-Shirt" in the cart
+    And I have product "Javascript T-Shirt" in the cart
+    And I apply gift card with code "GIFT-CARD-100"
+    When I proceed selecting "Offline" payment method
     And I confirm my order
     Then I should see the thank you page
-    And The gift card "GIFT-CARD-100" should be disabled
+    And the gift card "GIFT-CARD-100" should be disabled

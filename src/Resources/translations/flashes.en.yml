@@ -1,3 +1,4 @@
 setono_sylius_gift_card:
     gift_card:
         delete_error: The gift card code can't be removed.
+    gift_card_added: Gift card was added to your order

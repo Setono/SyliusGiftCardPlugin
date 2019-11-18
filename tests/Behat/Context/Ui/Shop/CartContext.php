@@ -19,7 +19,7 @@ final class CartContext implements Context
     }
 
     /**
-     * @When I use gift card with code :code
+     * @When I apply gift card with code :code
      */
     public function iUseGiftCardWithCode(string $code): void
     {

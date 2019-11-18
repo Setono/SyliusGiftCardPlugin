@@ -3,10 +3,10 @@
 <constraint-mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                     xmlns="http://symfony.com/schema/dic/constraint-mapping"
                     xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/services/constraint-mapping-1.0.xsd">
-    <class name="Setono\SyliusGiftCardPlugin\Controller\Action\SearchGiftCardCommand">
+    <class name="Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderCommand">
         <property name="giftCard">
             <constraint name="NotBlank">
-                <option name="message">setono_sylius_gift_card.gift_card_search_command.gift_card.not_blank</option>
+                <option name="message">setono_sylius_gift_card.add_gift_card_to_order_command.gift_card.not_blank</option>
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>

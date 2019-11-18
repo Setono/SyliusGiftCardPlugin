@@ -36,7 +36,6 @@ default:
 
                 - setono_sylius_gift_card.behat.context.transform.gift_card
                 - setono_sylius_gift_card.behat.context.setup.gift_card
-                - setono_sylius_gift_card.behat.context.ui.shop.gift_card
                 - setono_sylius_gift_card.behat.context.ui.shop.cart
                 - setono_sylius_gift_card.behat.context.ui.shop.checkout
 

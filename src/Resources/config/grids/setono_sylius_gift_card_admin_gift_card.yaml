@@ -34,7 +34,7 @@ sylius_grid:
                     path: .
                     sortable: initialAmount
                     options:
-                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/amount.html.twig"
+                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/initial_amount.html.twig"
                 channel:
                     type: twig
                     label: sylius.ui.channel

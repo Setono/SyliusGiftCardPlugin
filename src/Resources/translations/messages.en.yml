@@ -6,8 +6,8 @@ setono_sylius_gift_card:
             gift_card: Gift card
     ui:
         active: Active
+        add_gift_card_to_order: Add gift card
         amount: Amount
-        apply_gift_card: Apply gift card
         average_amount: Average amount
         count: Count
         create_for_channel: Create for %channel%
