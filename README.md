@@ -209,10 +209,10 @@ Learn more about our contribution workflow on http://docs.sylius.org/en/latest/c
 
 Please, run `composer all` to run all checks and tests before making pull request.
 
-[ico-version]: https://img.shields.io/packagist/v/setono/sylius-gift-card-plugin.svg?style=flat-square
-[ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
+[ico-version]: https://img.shields.io/packagist/v/setono/sylius-gift-card-plugin.svg
+[ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg
 [ico-github-actions]: https://github.com/Setono/SyliusGiftCardPlugin/workflows/Build/badge.svg
-[ico-code-quality]: https://img.shields.io/scrutinizer/g/Setono/SyliusGiftCardPlugin.svg?style=flat-square
+[ico-code-quality]: https://img.shields.io/scrutinizer/g/Setono/SyliusGiftCardPlugin.svg
 
 [link-packagist]: https://packagist.org/packages/setono/sylius-gift-card-plugin
 [link-github-actions]: https://github.com/Setono/SyliusGiftCardPlugin/actions
