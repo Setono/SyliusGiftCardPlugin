@@ -25,7 +25,7 @@
         </many-to-one>
 
         <many-to-one field="orderItemUnit" target-entity="Sylius\Component\Order\Model\OrderItemUnitInterface">
-            <join-column name="order_item_unit_id" referenced-column-name="id"/>
+            <join-column name="order_item_unit_id" referenced-column-name="id" on-delete="SET NULL"/>
         </many-to-one>
 
         <many-to-many field="appliedOrders" target-entity="Sylius\Component\Order\Model\OrderInterface"
