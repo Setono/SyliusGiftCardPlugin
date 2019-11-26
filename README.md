@@ -5,6 +5,15 @@
 [![Build Status][ico-github-actions]][link-github-actions]
 [![Quality Score][ico-code-quality]][link-code-quality]
 
+Add gift card functionality to your store:
+
+- Buy gift cards
+- Use gift cards to purchase products
+- See the balance of a gift card by looking up the gift card code
+
+The administrator will have access to a dashboard showing the total outstanding balance of gift cards which
+can be used for auditing.
+
 ## Screenshots
 
 ▶▶ [Skip screenshots and go to installation](#Installation)
