@@ -1,12 +1,15 @@
 name: Build
-on: [push, pull_request]
+on:
+    push: ~
+    pull_request: ~
+    schedule:
+        - cron: 5 8 * * 3
 jobs:
     checks:
-        name: Sylius (PHP ${{ matrix.php-versions }} on ${{ matrix.operating-system }})
+        name: PHP ${{ matrix.php-versions }}
         runs-on: ${{ matrix.operating-system }}
         strategy:
             fail-fast: false
-            max-parallel: 3
             matrix:
                 operating-system: [ubuntu-latest]
                 php-versions: ['7.2', '7.3']
@@ -19,7 +22,7 @@ jobs:
                     php-version: ${{ matrix.php-versions }}
                     extension-csv: intl
             -   name: Install Composer dependencies
-                run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+                run: composer update --no-progress --no-suggest --prefer-dist --no-interaction ${{ matrix.composer-args }}
             -   name: Validate composer
                 run: composer validate --strict
             -   name: Check composer normalized
@@ -40,5 +43,9 @@ jobs:
                     (cd tests/Application && bin/console cache:warmup -vvv)
                 env:
                     APP_ENV: test
+                    DATABASE_URL: mysql://root:root@127.0.0.1/setono_sylius_analytics?serverVersion=5.7
             -   name: Run behat
                 run: vendor/bin/behat --strict -vvv --no-interaction || vendor/bin/behat --strict -vvv --no-interaction --rerun
+                env:
+                    APP_ENV: test
+                    DATABASE_URL: mysql://root:root@127.0.0.1/setono_sylius_analytics?serverVersion=5.7
