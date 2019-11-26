@@ -9,6 +9,7 @@ use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
+use Webmozart\Assert\Assert;
 
 final class GiftCardToCodeDataTransformer implements DataTransformerInterface
 {
@@ -26,9 +27,16 @@ final class GiftCardToCodeDataTransformer implements DataTransformerInterface
         $this->channelContext = $channelContext;
     }
 
-    public function transform($value): string
+    public function transform($value): ?string
     {
-        return (string) $value;
+        if (null === $value || '' === $value) {
+            return $value;
+        }
+
+        /** @var GiftCardInterface|mixed $value */
+        Assert::isInstanceOf($value, GiftCardInterface::class);
+
+        return $value->getCode();
     }
 
     public function reverseTransform($value): ?GiftCardInterface
