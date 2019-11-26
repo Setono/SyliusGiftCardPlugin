@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="setono_sylius_gift_card.fixture.gift_card"
+                 class="Setono\SyliusGiftCardPlugin\Fixture\GiftCardFixture">
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
+            <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
+            <argument type="service" id="setono_sylius_gift_card.generator.gift_card_code"/>
+            <argument type="service" id="sylius.repository.channel"/>
+
+            <tag name="sylius_fixtures.fixture"/>
+        </service>
+    </services>
+</container>

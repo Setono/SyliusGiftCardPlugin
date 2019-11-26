@@ -1,0 +1,7 @@
+sylius_fixtures:
+    suites:
+        default:
+            fixtures:
+                setono_gift_card:
+                    options:
+                        amount: 20
