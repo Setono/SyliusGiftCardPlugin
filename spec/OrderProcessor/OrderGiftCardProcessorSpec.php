@@ -42,8 +42,6 @@ final class OrderGiftCardProcessorSpec extends ObjectBehavior
     ): void {
         $order->getId()->willReturn(1);
 
-        $order->removeAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT)->shouldBeCalled();
-
         $order->isEmpty()->willReturn(false);
         $order->hasGiftCards()->willReturn(true);
 

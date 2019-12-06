@@ -33,8 +33,6 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
         /** @var OrderInterface $order */
         Assert::isInstanceOf($order, OrderInterface::class);
 
-        $order->removeAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT);
-
         if ($order->isEmpty()) {
             return;
         }
