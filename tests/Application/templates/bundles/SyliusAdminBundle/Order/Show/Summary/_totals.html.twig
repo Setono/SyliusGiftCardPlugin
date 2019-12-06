@@ -5,7 +5,9 @@
 {% set itemPromotionAdjustment = constant('Sylius\\Component\\Core\\Model\\AdjustmentInterface::ORDER_ITEM_PROMOTION_ADJUSTMENT') %}
 {% set shippingAdjustment = constant('Sylius\\Component\\Core\\Model\\AdjustmentInterface::SHIPPING_ADJUSTMENT') %}
 {% set taxAdjustment = constant('Sylius\\Component\\Core\\Model\\AdjustmentInterface::TAX_ADJUSTMENT') %}
+
 {% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
+{% set giftCardAdjustments = order.getAdjustments(giftCardAdjustment) %}
 
 {% set orderShippingPromotions = sylius_aggregate_adjustments(order.getAdjustmentsRecursively(orderShippingPromotionAdjustment)) %}
 
@@ -61,13 +63,17 @@
 </tr>
 <tr>
     <td colspan="5" id="gift-cards">
-        {% set giftCardAdjustments = order.getAdjustments(giftCardAdjustment) %}
         {% if giftCardAdjustments is not empty %}
             <div class="ui relaxed divided list">
                 {% for giftCardAdjustment in giftCardAdjustments %}
                     <div class="item">
                         <div class="content">
-                            <span class="header">{{ giftCardAdjustment.label }} ({{ giftCardAdjustment.originCode }})</span>
+                            <span class="header">
+                                {{ giftCardAdjustment.label }}
+                                <a href="{{ path('setono_sylius_gift_card_admin_gift_card_index', {'criteria': {'search': {'type': 'equal', 'value': giftCardAdjustment.originCode} }}) }}">
+                                    {{ giftCardAdjustment.originCode }}
+                                </a>
+                            </span>
                             <div class="description">
                                 {{ money.format(giftCardAdjustment.amount, order.currencyCode) }}
                             </div>
