@@ -36,9 +36,7 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
     }
 
     /**
-     * @param string|GiftCardInterface|mixed $giftCard
-     *
-     * @throws StringsException
+     * @param string|GiftCardInterface $giftCard
      */
     public function apply(OrderInterface $order, $giftCard): void
     {
@@ -72,8 +70,25 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
     }
 
     /**
-     * @throws StringsException
+     * @param string|GiftCardInterface $giftCard
      */
+    public function remove(OrderInterface $order, $giftCard): void
+    {
+        if (is_string($giftCard)) {
+            $giftCard = $this->getGiftCard($giftCard);
+        }
+
+        if (!$giftCard instanceof GiftCardInterface) {
+            throw new GiftCardNotFoundException($giftCard);
+        }
+
+        $order->removeGiftCard($giftCard);
+
+        $this->orderProcessor->process($order);
+
+        $this->orderManager->flush();
+    }
+
     private function getGiftCard(string $giftCardCode): GiftCardInterface
     {
         $giftCard = $this->giftCardRepository->findOneByCode($giftCardCode);

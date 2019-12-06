@@ -1,3 +1,4 @@
+{# @var \Setono\SyliusGiftCardPlugin\Model\OrderInterface cart #}
 {% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
 
 {% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
@@ -18,6 +19,10 @@
                     <tr>
                         <td>
                             {{ adjustment.originCode }}
+
+                            <a href="{{ path('setono_sylius_gift_card_shop_remove_gift_card_from_order', {'giftCard': adjustment.originCode}) }}">
+                                <i class="remove icon red"></i>
+                            </a>
                         </td>
                         <td id="setono-cart-gift-card-applied-amount" class="right aligned">
                             {{ money.convertAndFormat(-adjustment.amount) }}
