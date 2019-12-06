@@ -133,6 +133,17 @@ class GiftCard implements GiftCardInterface
         return !$this->getAppliedOrders()->isEmpty();
     }
 
+    public function hasAppliedCompletedOrders(): bool
+    {
+        foreach ($this->appliedOrders as $appliedOrder) {
+            if ($appliedOrder->isCheckoutCompleted()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function addAppliedOrder(OrderInterface $order): void
     {
         if (!$this->hasAppliedOrder($order)) {

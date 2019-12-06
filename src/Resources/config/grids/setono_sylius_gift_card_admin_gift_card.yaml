@@ -93,7 +93,7 @@ sylius_grid:
                         type: list_conditional
                         label: setono_sylius_gift_card.ui.list_orders
                         options:
-                            visible: resource.hasAppliedOrders
+                            visible: resource.hasAppliedCompletedOrders
                             link:
                                 route: setono_sylius_gift_card_admin_gift_card_orders_index
                                 parameters:

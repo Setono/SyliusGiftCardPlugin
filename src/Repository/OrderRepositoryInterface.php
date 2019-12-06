@@ -10,4 +10,6 @@ use Sylius\Component\Core\Repository\OrderRepositoryInterface as BaseOrderReposi
 interface OrderRepositoryInterface extends BaseOrderRepositoryInterface
 {
     public function createQueryBuilderByGiftCard(string $giftCardId): QueryBuilder;
+
+    public function createCompletedQueryBuilderByGiftCard(string $giftCardId): QueryBuilder;
 }
