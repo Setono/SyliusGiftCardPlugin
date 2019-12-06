@@ -18,6 +18,7 @@ setono_sylius_gift_card:
         gift_card_code_is_invalid: Gift card code is invalid
         gift_cards: Gift cards
         gift_card_search: Gift card search
+        applied_gift_cards: Applied gift cards
         gift_cards_adjustment_total: Gift cards total
         initial_amount: Initial amount
         list_orders: List orders
