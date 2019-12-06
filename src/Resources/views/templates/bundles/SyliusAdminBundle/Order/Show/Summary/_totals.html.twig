@@ -13,7 +13,7 @@
                         <div class="content">
                             <span class="header">
                                 {{ adjustment.label }}
-                                <a href="{{ path('setono_sylius_gift_card_admin_gift_card_index', {'criteria': {'search': {'type': 'equal', 'value': giftCardAdjustment.originCode} }}) }}">
+                                <a href="{{ path('setono_sylius_gift_card_admin_gift_card_index', {'criteria': {'search': {'type': 'equal', 'value': adjustment.originCode} }}) }}">
                                     {{ adjustment.originCode }}
                                 </a>
                             </span>
