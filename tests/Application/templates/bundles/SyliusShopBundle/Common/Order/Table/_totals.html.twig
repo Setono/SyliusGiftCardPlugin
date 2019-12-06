@@ -70,7 +70,7 @@
             </td>
         {% endif %}
         <td colspan="{% if not giftCardAdjustments is empty %}2{% else %}4{% endif %}" class="right aligned" id="setono-cart-gift-card-total">
-            {{ 'setono_sylius_gift_card.ui.gift_card_total'|trans }}: {{ money.convertAndFormat(giftCardTotal) }}
+            {{ 'setono_sylius_gift_card.ui.gift_cards_adjustment_total'|trans }}: {{ money.convertAndFormat(giftCardTotal) }}
         </td>
     </tr>
 {% endif %}
