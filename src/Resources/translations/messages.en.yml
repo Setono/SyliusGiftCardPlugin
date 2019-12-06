@@ -7,6 +7,7 @@ setono_sylius_gift_card:
     ui:
         active: Active
         add_gift_card_to_order: Add gift card
+        covered_by_gift_cards: Covered by gift cards
         amount: Amount
         average_amount: Average amount
         count: Count

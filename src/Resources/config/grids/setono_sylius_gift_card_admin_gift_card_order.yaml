@@ -8,3 +8,10 @@ sylius_grid:
                         method: createCompletedQueryBuilderByGiftCard
                         arguments:
                             giftCard: $id
+            fields:
+                coveredByGiftCards:
+                    type: twig
+                    label: setono_sylius_gift_card.ui.covered_by_gift_cards
+                    path: .
+                    options:
+                        template: "@SetonoSyliusGiftCardPlugin/Admin/Order/Grid/Field/coveredByGiftCards.html.twig"

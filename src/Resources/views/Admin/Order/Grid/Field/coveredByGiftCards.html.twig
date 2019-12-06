@@ -1,0 +1,7 @@
+{# @var \Setono\SyliusGiftCardPlugin\Model\OrderInterface data #}
+{% import "@SyliusAdmin/Common/Macro/money.html.twig" as money %}
+
+{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
+{% set giftCardAdjustmentsTotal = data.getAdjustmentsTotal(giftCardAdjustment) %}
+
+{{ money.format(-giftCardAdjustmentsTotal, data.currencyCode) }}
