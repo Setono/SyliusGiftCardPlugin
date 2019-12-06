@@ -33,6 +33,7 @@ final class OrderGiftCardProcessorSpec extends ObjectBehavior
     }
 
     public function it_processes(
+        TranslatorInterface $translator,
         OrderInterface $order,
         GiftCardInterface $giftCard1,
         GiftCardInterface $giftCard2,
@@ -52,6 +53,8 @@ final class OrderGiftCardProcessorSpec extends ObjectBehavior
         $order->getGiftCards()->willReturn(new ArrayCollection([$giftCard1->getWrappedObject(), $giftCard2->getWrappedObject()]));
 
         $order->getTotal()->willReturn(180, 130);
+
+        $translator->trans(Argument::type('string'))->willReturn('Gift card');
 
         $adjustmentFactory->createWithData(
             AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT,
