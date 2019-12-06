@@ -4,9 +4,6 @@
 {% set taxIncluded = sylius_order_tax_included(cart) %}
 {% set taxExcluded = sylius_order_tax_excluded(cart) %}
 
-{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
-{% set giftCardTotal = cart.getAdjustmentsTotal(giftCardAdjustment) %}
-
 <div class="ui segment">
     <h2 class="ui dividing header">{{ 'sylius.ui.summary'|trans }}</h2>
 
@@ -24,12 +21,7 @@
                 <td id="sylius-cart-promotion-total" class="right aligned">{{ money.convertAndFormat(cart.orderPromotionTotal) }}</td>
             </tr>
         {% endif %}
-        {% if giftCardTotal %}
-            <tr>
-                <td>{{ 'setono_sylius_gift_card.ui.gift_cards_adjustment_total'|trans }}:</td>
-                <td id="setono-cart-gift-card-total" class="right aligned">{{ money.convertAndFormat(giftCardTotal) }}</td>
-            </tr>
-        {% endif %}
+        {% include '@SetonoSyliusGiftCardPlugin/templates/bundles/SyliusShopBundle/Cart/Summary/_totals.html.twig' %}
         <tr>
             <td>{{ 'sylius.ui.shipping_estimated_cost'|trans }}:</td>
             <td class="right aligned">
