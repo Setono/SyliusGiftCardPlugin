@@ -54,7 +54,12 @@
                     {% for giftCardAdjustment in giftCardAdjustments %}
                         <div class="item">
                             <div class="content">
-                                <span class="header">{{ giftCardAdjustment.label }} ({{ giftCardAdjustment.originCode }})</span>
+                                <span class="header">
+                                    {{ giftCardAdjustment.label }}
+                                    <a href="{{ path('setono_sylius_gift_card_shop_search_gift_card', {'setono_sylius_gift_card_gift_card_search': {'giftCard': giftCardAdjustment.originCode }}) }}" target="_blank">
+                                        {{ giftCardAdjustment.originCode }}
+                                    </a>
+                                </span>
                                 <div class="description">
                                     {{ money.convertAndFormat(giftCardAdjustment.amount) }}
                                 </div>
