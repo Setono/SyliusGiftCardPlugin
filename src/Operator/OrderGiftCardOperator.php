@@ -26,7 +26,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
     private $giftCardFactory;
 
     /** @var GiftCardRepositoryInterface */
-    private $giftCardCodeRepository;
+    private $giftCardRepository;
 
     /** @var EntityManagerInterface */
     private $giftCardManager;
@@ -36,12 +36,12 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
 
     public function __construct(
         GiftCardFactoryInterface $giftCardFactory,
-        GiftCardRepositoryInterface $giftCardCodeRepository,
+        GiftCardRepositoryInterface $giftCardRepository,
         EntityManagerInterface $giftCardManager,
         GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager
     ) {
         $this->giftCardFactory = $giftCardFactory;
-        $this->giftCardCodeRepository = $giftCardCodeRepository;
+        $this->giftCardRepository = $giftCardRepository;
         $this->giftCardManager = $giftCardManager;
         $this->giftCardOrderEmailManager = $giftCardOrderEmailManager;
     }
@@ -108,7 +108,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
             return;
         }
 
-        $this->giftCardOrderEmailManager->sendEmailWithGiftCardCodes($order, $giftCards);
+        $this->giftCardOrderEmailManager->sendEmailWithGiftCards($order, $giftCards);
     }
 
     /**
@@ -124,7 +124,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         foreach ($items as $item) {
             /** @var OrderItemUnitInterface $unit */
             foreach ($item->getUnits() as $unit) {
-                $giftCard = $this->giftCardCodeRepository->findOneByOrderItemUnit($unit);
+                $giftCard = $this->giftCardRepository->findOneByOrderItemUnit($unit);
                 if (null === $giftCard) {
                     continue;
                 }

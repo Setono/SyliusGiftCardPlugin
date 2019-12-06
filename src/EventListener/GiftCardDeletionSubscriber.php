@@ -23,16 +23,16 @@ final class GiftCardDeletionSubscriber implements EventSubscriberInterface
      */
     public function onGiftCardPreDelete(ResourceControllerEvent $event): void
     {
-        $giftCardCode = $event->getSubject();
+        $giftCard = $event->getSubject();
 
-        if (!$giftCardCode instanceof GiftCardInterface) {
+        if (!$giftCard instanceof GiftCardInterface) {
             throw new UnexpectedTypeException(
-                $giftCardCode,
+                $giftCard,
                 GiftCardInterface::class
             );
         }
 
-        if (!$giftCardCode->isDeletable()) {
+        if (!$giftCard->isDeletable()) {
             $event->stop('setono_sylius_gift_card.gift_card.delete_error');
         }
     }

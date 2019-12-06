@@ -17,23 +17,23 @@ use Symfony\Component\HttpFoundation\Response;
 final class GiftCardBalanceAction
 {
     /** @var GiftCardRepositoryInterface */
-    private $giftCardCodeRepository;
+    private $giftCardRepository;
 
     /** @var ViewHandlerInterface */
     private $viewHandler;
 
     public function __construct(
-        GiftCardRepositoryInterface $giftCardCodeRepository,
+        GiftCardRepositoryInterface $giftCardRepository,
         ViewHandlerInterface $viewHandler
     ) {
-        $this->giftCardCodeRepository = $giftCardCodeRepository;
+        $this->giftCardRepository = $giftCardRepository;
         $this->viewHandler = $viewHandler;
     }
 
     public function __invoke(Request $request): Response
     {
         $giftCardBalanceCollection = GiftCardBalanceCollection::createFromGiftCards(
-            $this->giftCardCodeRepository->findEnabled()
+            $this->giftCardRepository->findEnabled()
         );
 
         $view = View::create();

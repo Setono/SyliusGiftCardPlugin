@@ -22,13 +22,13 @@ class OrderGiftCardOperatorSpec extends ObjectBehavior
 {
     public function let(
         GiftCardFactoryInterface $giftCardFactory,
-        GiftCardRepositoryInterface $giftCardCodeRepository,
+        GiftCardRepositoryInterface $giftCardRepository,
         EntityManagerInterface $giftCardManager,
         GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager
     ): void {
         $this->beConstructedWith(
             $giftCardFactory,
-            $giftCardCodeRepository,
+            $giftCardRepository,
             $giftCardManager,
             $giftCardOrderEmailManager
         );
@@ -73,7 +73,7 @@ class OrderGiftCardOperatorSpec extends ObjectBehavior
         ProductInterface $product,
         OrderItemUnitInterface $orderItemUnit,
         GiftCardInterface $giftCard,
-        GiftCardRepositoryInterface $giftCardCodeRepository,
+        GiftCardRepositoryInterface $giftCardRepository,
         EntityManagerInterface $giftCardManager
     ): void {
         $product->isGiftCard()->willReturn(true);
@@ -82,7 +82,7 @@ class OrderGiftCardOperatorSpec extends ObjectBehavior
         $orderItem->getUnits()->willReturn(new ArrayCollection([$orderItemUnit->getWrappedObject()]));
         $order->getItems()->willReturn(new ArrayCollection([$orderItem->getWrappedObject()]));
 
-        $giftCardCodeRepository->findOneByOrderItemUnit($orderItemUnit)->willReturn($giftCard);
+        $giftCardRepository->findOneByOrderItemUnit($orderItemUnit)->willReturn($giftCard);
 
         $giftCard->enable()->shouldBeCalled();
 
@@ -97,7 +97,7 @@ class OrderGiftCardOperatorSpec extends ObjectBehavior
         ProductInterface $product,
         OrderItemUnitInterface $orderItemUnit,
         GiftCardInterface $giftCard,
-        GiftCardRepositoryInterface $giftCardCodeRepository,
+        GiftCardRepositoryInterface $giftCardRepository,
         EntityManagerInterface $giftCardManager
     ): void {
         $product->isGiftCard()->willReturn(true);
@@ -106,7 +106,7 @@ class OrderGiftCardOperatorSpec extends ObjectBehavior
         $orderItem->getUnits()->willReturn(new ArrayCollection([$orderItemUnit->getWrappedObject()]));
         $order->getItems()->willReturn(new ArrayCollection([$orderItem->getWrappedObject()]));
 
-        $giftCardCodeRepository->findOneByOrderItemUnit($orderItemUnit)->willReturn($giftCard);
+        $giftCardRepository->findOneByOrderItemUnit($orderItemUnit)->willReturn($giftCard);
 
         $giftCard->disable()->shouldBeCalled();
 
@@ -121,7 +121,7 @@ class OrderGiftCardOperatorSpec extends ObjectBehavior
         ProductInterface $product,
         OrderItemUnitInterface $orderItemUnit,
         GiftCardInterface $giftCard,
-        GiftCardRepositoryInterface $giftCardCodeRepository,
+        GiftCardRepositoryInterface $giftCardRepository,
         GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager
     ): void {
         $product->isGiftCard()->willReturn(true);
@@ -130,9 +130,9 @@ class OrderGiftCardOperatorSpec extends ObjectBehavior
         $orderItem->getUnits()->willReturn(new ArrayCollection([$orderItemUnit->getWrappedObject()]));
         $order->getItems()->willReturn(new ArrayCollection([$orderItem->getWrappedObject()]));
 
-        $giftCardCodeRepository->findOneByOrderItemUnit($orderItemUnit)->willReturn($giftCard);
+        $giftCardRepository->findOneByOrderItemUnit($orderItemUnit)->willReturn($giftCard);
 
-        $giftCardOrderEmailManager->sendEmailWithGiftCardCodes($order, [$giftCard])->shouldBeCalled();
+        $giftCardOrderEmailManager->sendEmailWithGiftCards($order, [$giftCard])->shouldBeCalled();
 
         $this->send($order);
     }
