@@ -35,10 +35,10 @@ final class SearchGiftCardAction
 
         $view = View::create();
         $view
-            ->setTemplate('@SetonoSyliusGiftCardPlugin/Shop/giftCardSearch.html.twig')
+            ->setTemplate('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/search.html.twig')
             ->setData([
                 'form' => $form->createView(),
-                'giftCard' => $searchGiftCardCommand->getGiftCard(),
+                'giftCard' => ($form->isSubmitted() && $form->isValid()) ? $searchGiftCardCommand->getGiftCard() : null,
             ])
         ;
 
