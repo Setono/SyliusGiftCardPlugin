@@ -21,5 +21,8 @@ interface GiftCardApplicatorInterface
      */
     public function apply(OrderInterface $order, $giftCard): void;
 
+    /**
+     * @param string|GiftCardInterface|mixed $giftCard
+     */
     public function remove(OrderInterface $order, $giftCard): void;
 }

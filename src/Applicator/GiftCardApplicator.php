@@ -6,7 +6,6 @@ namespace Setono\SyliusGiftCardPlugin\Applicator;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use RuntimeException;
-use Safe\Exceptions\StringsException;
 use Setono\SyliusGiftCardPlugin\Exception\ChannelMismatchException;
 use Setono\SyliusGiftCardPlugin\Exception\GiftCardNotFoundException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
@@ -36,7 +35,7 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
     }
 
     /**
-     * @param string|GiftCardInterface $giftCard
+     * @param string|GiftCardInterface|mixed $giftCard
      */
     public function apply(OrderInterface $order, $giftCard): void
     {
@@ -70,7 +69,7 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
     }
 
     /**
-     * @param string|GiftCardInterface $giftCard
+     * @param string|GiftCardInterface|mixed $giftCard
      */
     public function remove(OrderInterface $order, $giftCard): void
     {
