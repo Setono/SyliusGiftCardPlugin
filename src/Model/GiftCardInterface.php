@@ -67,9 +67,14 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
     public function getAppliedOrders(): Collection;
 
     /**
-     * Returns true if this gift card ever been applied to an order
+     * Returns true if this gift card ever been applied to an cart/order
      */
     public function hasAppliedOrders(): bool;
+
+    /**
+     * Returns true if this gift card ever been applied to completed order
+     */
+    public function hasAppliedCompletedOrders(): bool;
 
     public function addAppliedOrder(OrderInterface $order): void;
 

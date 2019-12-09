@@ -1,0 +1,34 @@
+{% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
+
+{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
+{% set giftCardTotal = order.getAdjustmentsTotal(giftCardAdjustment) %}
+
+{% if giftCardTotal %}
+    {% set giftCardAdjustments = order.getAdjustments(giftCardAdjustment) %}
+    <tr>
+        {% if giftCardAdjustments is not empty %}
+            <td colspan="2" id="gift-card-codes">
+                <div class="ui relaxed divided list">
+                    {% for adjustment in giftCardAdjustments %}
+                        <div class="item">
+                            <div class="content">
+                                <span class="header">
+                                    {{ adjustment.label }}
+                                    <a href="{{ path('setono_sylius_gift_card_shop_search_gift_card', {'setono_sylius_gift_card_gift_card_search': {'giftCard': adjustment.originCode }}) }}" target="_blank">
+                                        {{ adjustment.originCode }}
+                                    </a>
+                                </span>
+                                <div class="description">
+                                    {{ money.convertAndFormat(adjustment.amount) }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </td>
+        {% endif %}
+        <td colspan="{% if not giftCardAdjustments is empty %}2{% else %}4{% endif %}" class="right aligned" id="setono-cart-gift-card-total">
+            {{ 'setono_sylius_gift_card.ui.gift_cards_adjustment_total'|trans }}: {{ money.convertAndFormat(giftCardTotal) }}
+        </td>
+    </tr>
+{% endif %}

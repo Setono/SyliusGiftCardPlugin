@@ -17,6 +17,14 @@
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
         </service>
 
+        <service id="setono_sylius_gift_card.controller.action.remove_gift_card_from_order"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\RemoveGiftCardFromOrderAction">
+            <argument type="service" id="sylius.context.cart"/>
+            <argument type="service" id="session.flash_bag"/>
+            <argument type="service" id="router"/>
+            <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
+        </service>
+
         <service id="setono_sylius_gift_card.controller.action.gift_card_balance"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\GiftCardBalanceAction">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>

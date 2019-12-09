@@ -25,18 +25,18 @@ final class CheckoutContext implements Context
     private $orderRepository;
 
     /** @var EntityManagerInterface */
-    private $giftCardCodeEntityManager;
+    private $giftCardManager;
 
     public function __construct(
         CheckoutCompleteContext $checkoutCompleteContext,
         OrderContext $orderContext,
         OrderRepositoryInterface $orderRepository,
-        EntityManagerInterface $giftCardCodeEntityManager
+        EntityManagerInterface $giftCardManager
     ) {
         $this->checkoutCompleteContext = $checkoutCompleteContext;
         $this->orderContext = $orderContext;
         $this->orderRepository = $orderRepository;
-        $this->giftCardCodeEntityManager = $giftCardCodeEntityManager;
+        $this->giftCardManager = $giftCardManager;
     }
 
     /**
@@ -58,7 +58,7 @@ final class CheckoutContext implements Context
     public function theGiftCardWithTheCodeShouldBeInactive(GiftCardInterface $giftCard): void
     {
         // todo this is needed, but I don't know why
-        $this->giftCardCodeEntityManager->refresh($giftCard);
+        $this->giftCardManager->refresh($giftCard);
 
         Assert::same($giftCard->getAmount(), 0);
         Assert::false($giftCard->isEnabled());

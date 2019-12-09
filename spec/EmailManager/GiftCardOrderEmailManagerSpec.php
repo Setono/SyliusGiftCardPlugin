@@ -44,6 +44,6 @@ final class GiftCardOrderEmailManagerSpec extends ObjectBehavior
             ['giftCards' => [$giftCard], 'order' => $order]
         )->shouldBeCalled();
 
-        $this->sendEmailWithGiftCardCodes($order, [$giftCard]);
+        $this->sendEmailWithGiftCards($order, [$giftCard]);
     }
 }

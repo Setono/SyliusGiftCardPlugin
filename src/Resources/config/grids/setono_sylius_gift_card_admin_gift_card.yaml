@@ -57,9 +57,9 @@ sylius_grid:
                     sortable: ~
                     options:
                         format: d-m-Y
-                order:
+                boughtAtOrder:
                     type: twig
-                    label: sylius.ui.order
+                    label: setono_sylius_gift_card.ui.bought_at_order
                     path: orderItemUnit
                     options:
                         template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/item_units_order.html.twig"
@@ -93,7 +93,7 @@ sylius_grid:
                         type: list_conditional
                         label: setono_sylius_gift_card.ui.list_orders
                         options:
-                            visible: resource.hasAppliedOrders
+                            visible: resource.hasAppliedCompletedOrders
                             link:
                                 route: setono_sylius_gift_card_admin_gift_card_orders_index
                                 parameters:

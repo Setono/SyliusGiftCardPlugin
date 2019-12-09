@@ -33,8 +33,6 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
         /** @var OrderInterface $order */
         Assert::isInstanceOf($order, OrderInterface::class);
 
-        $order->removeAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT);
-
         if ($order->isEmpty()) {
             return;
         }
@@ -57,7 +55,7 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
 
             $adjustment = $this->adjustmentFactory->createWithData(
                 AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT,
-                $this->translator->trans('setono_sylius_gift_card.ui.gift_card') . ': ' . $giftCard->getCode(),
+                $this->translator->trans('setono_sylius_gift_card.ui.gift_card'),
                 -1 * $amount
             );
 

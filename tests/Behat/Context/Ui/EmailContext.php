@@ -26,17 +26,17 @@ final class EmailContext implements Context
     public function __construct(
         EmailCheckerInterface $emailChecker,
         OrderRepositoryInterface $orderRepository,
-        GiftCardRepository $giftCardCodeRepository
+        GiftCardRepository $giftCardRepository
     ) {
         $this->emailChecker = $emailChecker;
         $this->orderRepository = $orderRepository;
-        $this->giftCardRepository = $giftCardCodeRepository;
+        $this->giftCardRepository = $giftCardRepository;
     }
 
     /**
      * @Then I should receive an email with gift card code
      */
-    public function iShouldReceiveAnEmailWithGiftCardCode(): void
+    public function iShouldReceiveAnEmailWithGiftCard(): void
     {
         /** @var OrderInterface $order */
         $order = $this->orderRepository->findAll()[0];

@@ -28,18 +28,18 @@ final class GiftCardFactory implements GiftCardFactoryInterface
 
     public function createNew(): GiftCardInterface
     {
-        /** @var GiftCardInterface $giftCardCode */
-        $giftCardCode = $this->decoratedFactory->createNew();
+        /** @var GiftCardInterface $giftCard */
+        $giftCard = $this->decoratedFactory->createNew();
 
-        return $giftCardCode;
+        return $giftCard;
     }
 
     public function createForChannel(ChannelInterface $channel): GiftCardInterface
     {
-        $giftCardCode = $this->createNew();
-        $giftCardCode->setChannel($channel);
+        $giftCard = $this->createNew();
+        $giftCard->setChannel($channel);
 
-        return $giftCardCode;
+        return $giftCard;
     }
 
     public function createFromOrderItemUnit(OrderItemUnitInterface $orderItemUnit): GiftCardInterface
@@ -57,15 +57,15 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         $currencyCode = $order->getCurrencyCode();
         Assert::notNull($currencyCode);
 
-        $giftCardCode = $this->createNew();
-        $giftCardCode->setOrderItemUnit($orderItemUnit);
-        $giftCardCode->setChannel($channel);
-        $giftCardCode->setAmount($orderItemUnit->getTotal());
-        $giftCardCode->setCurrencyCode($currencyCode);
-        $giftCardCode->setInitialAmount($orderItemUnit->getTotal());
-        $giftCardCode->setCode($this->giftCardCodeGenerator->generate());
-        $giftCardCode->disable();
+        $giftCard = $this->createNew();
+        $giftCard->setOrderItemUnit($orderItemUnit);
+        $giftCard->setChannel($channel);
+        $giftCard->setAmount($orderItemUnit->getTotal());
+        $giftCard->setCurrencyCode($currencyCode);
+        $giftCard->setInitialAmount($orderItemUnit->getTotal());
+        $giftCard->setCode($this->giftCardCodeGenerator->generate());
+        $giftCard->disable();
 
-        return $giftCardCode;
+        return $giftCard;
     }
 }

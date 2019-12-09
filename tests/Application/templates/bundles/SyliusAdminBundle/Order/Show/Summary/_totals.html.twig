@@ -5,7 +5,6 @@
 {% set itemPromotionAdjustment = constant('Sylius\\Component\\Core\\Model\\AdjustmentInterface::ORDER_ITEM_PROMOTION_ADJUSTMENT') %}
 {% set shippingAdjustment = constant('Sylius\\Component\\Core\\Model\\AdjustmentInterface::SHIPPING_ADJUSTMENT') %}
 {% set taxAdjustment = constant('Sylius\\Component\\Core\\Model\\AdjustmentInterface::TAX_ADJUSTMENT') %}
-{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
 
 {% set orderShippingPromotions = sylius_aggregate_adjustments(order.getAdjustmentsRecursively(orderShippingPromotionAdjustment)) %}
 
@@ -59,31 +58,7 @@
         {{ money.format(order.shippingTotal, order.currencyCode) }}
     </td>
 </tr>
-<tr>
-    <td colspan="5" id="gift-cards">
-        {% set giftCardAdjustments = order.getAdjustments(giftCardAdjustment) %}
-        {% if giftCardAdjustments is not empty %}
-            <div class="ui relaxed divided list">
-                {% for giftCardAdjustment in giftCardAdjustments %}
-                    <div class="item">
-                        <div class="content">
-                            <span class="header">{{ giftCardAdjustment.label }} ({{ giftCardAdjustment.originCode }})</span>
-                            <div class="description">
-                                {{ money.format(giftCardAdjustment.amount, order.currencyCode) }}
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>{{ 'setono_sylius_gift_card.ui.no_gift_card'|trans }}.</p>
-        {% endif %}
-    </td>
-    <td colspan="4" id="gift-card-total" class="right aligned">
-        <strong>{{ 'setono_sylius_gift_card.ui.gift_card_total'|trans }}</strong>:
-        {{ money.format(order.getAdjustmentsTotal(giftCardAdjustment), order.currencyCode) }}
-    </td>
-</tr>
+{% include '@SetonoSyliusGiftCardPlugin/templates/bundles/SyliusAdminBundle/Order/Show/Summary/_totals.html.twig' %}
 <tr>
     <td colspan="9" id="total" class="ui large header right aligned">
         <strong>{{ 'sylius.ui.order_total'|trans }}</strong>:

@@ -20,4 +20,9 @@ interface GiftCardApplicatorInterface
      * @throws ChannelMismatchException if the orders channel does not match the gift cards channel
      */
     public function apply(OrderInterface $order, $giftCard): void;
+
+    /**
+     * @param string|GiftCardInterface|mixed $giftCard
+     */
+    public function remove(OrderInterface $order, $giftCard): void;
 }

@@ -16,9 +16,9 @@ use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardAmountModifierInterface;
 final class OrderGiftCardAmountModifierSpec extends ObjectBehavior
 {
     public function let(
-        ObjectManager $giftCardCodeManager
+        ObjectManager $giftCardManager
     ): void {
-        $this->beConstructedWith($giftCardCodeManager);
+        $this->beConstructedWith($giftCardManager);
     }
 
     public function it_is_initializable(): void

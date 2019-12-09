@@ -1,0 +1,35 @@
+{# @var \Setono\SyliusGiftCardPlugin\Model\OrderInterface cart #}
+{% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
+
+{% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
+{% set giftCardAdjustments = cart.getAdjustments(giftCardAdjustment) %}
+
+{% if giftCardAdjustments.count > 0 %}
+    <div class="ui segment">
+        <strong>
+            {{ 'setono_sylius_gift_card.ui.applied_gift_cards'|trans }}
+        </strong>
+
+        {{ sonata_block_render_event('setono_sylius_gift_card.shop.cart.summary.applied_gift_cards', {'cart': cart}) }}
+
+        <table class="ui very basic table">
+            <tbody>
+                {% for adjustment in giftCardAdjustments %}
+                    {# @var \Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface adjustment #}
+                    <tr>
+                        <td>
+                            {{ adjustment.originCode }}
+
+                            <a href="{{ path('setono_sylius_gift_card_shop_remove_gift_card_from_order', {'giftCard': adjustment.originCode}) }}">
+                                <i class="remove icon red"></i>
+                            </a>
+                        </td>
+                        <td id="setono-cart-gift-card-applied-amount" class="right aligned">
+                            {{ money.convertAndFormat(-adjustment.amount) }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
