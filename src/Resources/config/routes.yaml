@@ -2,7 +2,7 @@ setono_sylius_gift_card_shop:
     resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/shop.yaml"
     prefix: /{_locale}
     requirements:
-        _locale: ^[a-z]{2}(?:_[A-Z]{2})?$
+        _locale: ^[A-Za-z]{2,4}(_([A-Za-z]{4}|[0-9]{3}))?(_([A-Za-z]{2}|[0-9]{3}))?$
 
 setono_sylius_gift_card_shop_ajax:
     resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/shop_ajax.yaml"
