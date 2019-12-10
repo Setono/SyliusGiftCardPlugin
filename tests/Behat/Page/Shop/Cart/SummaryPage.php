@@ -24,9 +24,8 @@ final class SummaryPage extends BaseSummaryPage implements SummaryPageInterface
     protected function getDefinedElements(): array
     {
         return array_merge(parent::getDefinedElements(), [
-            'apply_gift_card_button' => '#setono-sylius-gift-card-add-gift-card-to-order button',
-            'gift_card_field' => '#setono-sylius-gift-card-add-gift-card-to-order input',
-            'gift_card_validation_message' => '#setono-gift-card .sylius-validation-error',
+            'apply_gift_card_button' => 'button[form=setono-sylius-gift-card-add-gift-card-to-order]',
+            'gift_card_field' => 'input[form=setono-sylius-gift-card-add-gift-card-to-order]',
             'gift_card_total' => '#setono-cart-gift-card-total',
         ]);
     }
