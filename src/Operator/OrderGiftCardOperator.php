@@ -141,7 +141,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
      */
     private static function getOrderItemsThatAreGiftCards(OrderInterface $order): Collection
     {
-        return $order->getItems()->filter(static function (OrderItemInterface $item) {
+        return $order->getItems()->filter(static function (OrderItemInterface $item): bool {
             /** @var ProductInterface|null $product */
             $product = $item->getProduct();
 

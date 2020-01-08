@@ -1,4 +1,4 @@
-name: Build
+name: build
 on:
     push: ~
     pull_request: ~
@@ -14,15 +14,19 @@ jobs:
                 operating-system: [ubuntu-latest]
                 php-versions: ['7.2', '7.3']
         steps:
+            -   name: Set environment variables
+                run: |
+                    echo "::set-env name=APP_ENV::test"
+                    echo "::set-env name=DATABASE_URL::mysql://root:root@127.0.0.1/sylius?serverVersion=5.7"
             -   name: Checkout
                 uses: actions/checkout@v1
             -   name: Setup PHP, with composer and extensions
                 uses: shivammathur/setup-php@master
                 with:
                     php-version: ${{ matrix.php-versions }}
-                    extension-csv: intl
+                    extensions: intl
             -   name: Install Composer dependencies
-                run: composer update --no-progress --no-suggest --prefer-dist --no-interaction ${{ matrix.composer-args }}
+                run: composer update --no-progress --no-suggest --prefer-dist --no-interaction
             -   name: Validate composer
                 run: composer validate --strict
             -   name: Check composer normalized
@@ -41,11 +45,5 @@ jobs:
                     (cd tests/Application && bin/console doctrine:schema:create -vvv)
                     (cd tests/Application && bin/console assets:install public -vvv)
                     (cd tests/Application && bin/console cache:warmup -vvv)
-                env:
-                    APP_ENV: test
-                    DATABASE_URL: mysql://root:root@127.0.0.1/setono_sylius_gift_card?serverVersion=5.7
             -   name: Run behat
                 run: vendor/bin/behat --strict -vvv --no-interaction || vendor/bin/behat --strict -vvv --no-interaction --rerun
-                env:
-                    APP_ENV: test
-                    DATABASE_URL: mysql://root:root@127.0.0.1/setono_sylius_gift_card?serverVersion=5.7

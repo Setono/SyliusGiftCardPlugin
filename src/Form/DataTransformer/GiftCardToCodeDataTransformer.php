@@ -27,13 +27,15 @@ final class GiftCardToCodeDataTransformer implements DataTransformerInterface
         $this->channelContext = $channelContext;
     }
 
+    /**
+     * @param GiftCardInterface|mixed $value
+     */
     public function transform($value): ?string
     {
         if (null === $value || '' === $value) {
             return $value;
         }
 
-        /** @var GiftCardInterface|mixed $value */
         Assert::isInstanceOf($value, GiftCardInterface::class);
 
         return $value->getCode();

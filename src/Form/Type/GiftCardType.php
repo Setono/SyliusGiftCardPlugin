@@ -50,7 +50,7 @@ final class GiftCardType extends AbstractResourceType
                 'label' => 'sylius.ui.enabled',
                 'required' => false,
             ])
-            ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
+            ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
                 /** @var GiftCardInterface $giftCard */
                 $giftCard = $event->getData();
 
@@ -75,13 +75,13 @@ final class GiftCardType extends AbstractResourceType
                     ]);
             });
 
-        $builder->get('initialAmount')->addModelTransformer(new CallbackTransformer(static function (?int $amount) {
+        $builder->get('initialAmount')->addModelTransformer(new CallbackTransformer(static function (?int $amount): ?float {
             if (null === $amount) {
                 return null;
             }
 
             return round($amount / 100, 2);
-        }, static function (?float $amount) {
+        }, static function (?float $amount): ?int {
             if (null === $amount) {
                 return null;
             }

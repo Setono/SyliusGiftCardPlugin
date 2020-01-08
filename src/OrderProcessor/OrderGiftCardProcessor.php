@@ -28,9 +28,11 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
         $this->adjustmentFactory = $adjustmentFactory;
     }
 
+    /**
+     * @param BaseOrderInterface|OrderInterface $order
+     */
     public function process(BaseOrderInterface $order): void
     {
-        /** @var OrderInterface $order */
         Assert::isInstanceOf($order, OrderInterface::class);
 
         if ($order->isEmpty()) {
