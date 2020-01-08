@@ -132,7 +132,12 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
 
                 /** @var ChannelInterface|mixed $channel */
                 $channel = $options['channel'];
-                $channelCurrenciesCodes = $channel->getCurrencies()->map(function (CurrencyInterface $currency) { return $currency->getCode(); })->toArray();
+                $channelCurrenciesCodes = $channel->getCurrencies()->map(function (CurrencyInterface $currency): string {
+                    $currencyCode = $currency->getCode();
+                    Assert::notNull($currencyCode);
+
+                    return $currencyCode;
+                })->toArray();
 
                 Assert::notNull($currency, sprintf(
                     'Currency %s was not found. Use one of: %s',
