@@ -2,6 +2,31 @@ sylius_fixtures:
     suites:
         default:
             fixtures:
+
+                # Random
                 setono_gift_card:
                     options:
-                        amount: 20
+                        random: 20
+
+                # Few more disabled
+                setono_gift_card_channel_specific:
+                    name: setono_gift_card
+                    options:
+                        random: 2
+                        prototype:
+                            enabled: false
+
+                setono_gift_card_custom:
+                    name: setono_gift_card
+                    options:
+                        custom:
+                            gift_card_one_usd:
+                                code: '1USD'
+                                channel: 'FASHION_WEB'
+                                currency: 'USD'
+                                initial_amount: 2.00
+                                amount: 1.00
+                            gift_card_two_usd:
+                                code: '2USD'
+                                channel: 'FASHION_WEB'
+                                initial_amount: 2.00
