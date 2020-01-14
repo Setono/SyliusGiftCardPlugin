@@ -1,0 +1,12 @@
+Setono\SyliusGiftCardPlugin\Model\GiftCard:
+    exclusion_policy: ALL
+    xml_root_name: setono_sylius_gift_card
+    properties:
+        amount:
+            expose: true
+            type: integer
+            groups: [Default, Detailed]
+        initialAmount:
+            expose: true
+            type: integer
+            groups: [Default, Detailed]
