@@ -33,6 +33,7 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
 
     /**
      * This is a helper method that will return the order where the gift was bought
+     * If the gift card was created manually, this will return null
      */
     public function getOrder(): ?OrderInterface;
 
