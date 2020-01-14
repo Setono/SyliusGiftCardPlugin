@@ -58,6 +58,14 @@ setono_sylius_gift_card:
     resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml"
 ```
 
+or if your app doesn't use locales:
+   
+```yaml
+# config/routes.yaml
+setono_sylius_gift_card:
+    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes_no_locale.yaml"
+```
+
 ### Add plugin class to your `bundles.php`:
 
 Make sure you add it before `SyliusGridBundle`, otherwise you'll get
@@ -84,7 +92,7 @@ $ bin/console doctrine:migrations:migrate
 
 You will find the templates you need to override in the [test application](https://github.com/Setono/SyliusGiftCardPlugin/tree/master/tests/Application/templates).
 
-### Extend `Product`, `Order` and `OrderRepository`
+### Extend `Product`, `Order`, `OrderRepository`, and `CustomerRepository`
 
 **Extend `Product`**
 ```php
