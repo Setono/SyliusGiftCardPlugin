@@ -10,3 +10,10 @@ sylius_mailer:
         gift_card_order:
             subject: setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order
             template: "@SetonoSyliusGiftCardPlugin/Email/giftCard.html.twig"
+
+jms_serializer:
+    metadata:
+        directories:
+            setono-sylius-gift-card-sylius-customer:
+                namespace_prefix: "Sylius\\Component\\Customer"
+                path: "@SetonoSyliusGiftCardPlugin/Resources/config/serializer"

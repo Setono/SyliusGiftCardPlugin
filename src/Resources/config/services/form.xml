@@ -22,28 +22,39 @@
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="sylius.context.channel"/>
         </service>
+
         <service id="setono_sylius_gift_card.form.type.extension.product"
                  class="Setono\SyliusGiftCardPlugin\Form\Extension\ProductTypeExtension">
             <tag name="form.type_extension" extended-type="Sylius\Bundle\ProductBundle\Form\Type\ProductType"/>
         </service>
+
         <service id="setono_sylius_gift_card.form.type.add_gift_card_to_order"
                  class="Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType">
             <argument type="service" id="setono_sylius_gift_card.form.data_transformer.gift_card_to_code"/>
             <argument>%setono_sylius_gift_card.form.type.add_gift_card_to_order.validation_groups%</argument>
             <tag name="form.type"/>
         </service>
+
         <service id="setono_sylius_gift_card.form.type.gift_card"
                  class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType">
             <argument>%setono_sylius_gift_card.model.gift_card.class%</argument>
             <argument type="service" id="sylius.repository.currency"/>
+            <argument type="service" id="sylius.repository.customer"/>
             <argument type="service" id="setono_sylius_gift_card.generator.gift_card_code"/>
             <argument>%setono_sylius_gift_card.form.type.gift_card.validation_groups%</argument>
             <tag name="form.type"/>
         </service>
+
         <service id="setono_sylius_gift_card.form.type.gift_card_search"
                  class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardSearchType">
             <argument type="service" id="setono_sylius_gift_card.form.data_transformer.gift_card_to_code"/>
             <argument>%setono_sylius_gift_card.form.type.gift_card_search.validation_groups%</argument>
+            <tag name="form.type"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.form.type.customer_autocomplete_choice"
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\CustomerAutocompleteChoiceType">
+            <argument type="service" id="router"/>
             <tag name="form.type"/>
         </service>
     </services>
