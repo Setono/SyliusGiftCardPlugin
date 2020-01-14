@@ -196,4 +196,43 @@ class GiftCard implements GiftCardInterface
     {
         $this->channel = $channel;
     }
+
+    /**
+     * API specific methods
+     */
+    public function getCustomerIdentification(): ?array
+    {
+        $customer = $this->getCustomer();
+        if (null === $customer) {
+            return null;
+        }
+
+        return [
+            'id' => $customer->getId(),
+            'email' => $customer->getEmail(),
+        ];
+    }
+
+    public function getOrderIdentification(): ?array
+    {
+        $order = $this->getOrder();
+        if (null === $order) {
+            return null;
+        }
+
+        return [
+            'id' => $order->getId(),
+            'number' => $order->getNumber(),
+        ];
+    }
+
+    public function getChannelCode(): ?string
+    {
+        $channel = $this->getChannel();
+        if (null === $channel) {
+            return null;
+        }
+
+        return $channel->getCode();
+    }
 }

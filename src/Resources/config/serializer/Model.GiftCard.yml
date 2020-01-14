@@ -2,6 +2,14 @@ Setono\SyliusGiftCardPlugin\Model\GiftCard:
     exclusion_policy: ALL
     xml_root_name: setono_sylius_gift_card
     properties:
+        code:
+            expose: true
+            type: string
+            groups: [Default, Detailed]
+        currencyCode:
+            expose: true
+            type: string
+            groups: [Default, Detailed]
         amount:
             expose: true
             type: integer
@@ -9,4 +17,28 @@ Setono\SyliusGiftCardPlugin\Model\GiftCard:
         initialAmount:
             expose: true
             type: integer
+            groups: [Default, Detailed]
+        enabled:
+            expose: true
+            type: boolean
+            groups: [Default, Detailed]
+        createdAt:
+            expose: true
+            type: DateTime
+            groups: [Default, Detailed]
+    virtual_properties:
+        getCustomerIdentification:
+            serialized_name: customer
+            expose: true
+            type: array
+            groups: [Default, Detailed]
+        getOrderIdentification:
+            serialized_name: order
+            expose: true
+            type: array
+            groups: [Default, Detailed]
+        getChannelCode:
+            serialized_name: channel
+            expose: true
+            type: string
             groups: [Default, Detailed]
