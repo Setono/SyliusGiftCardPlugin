@@ -7,6 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Factory;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemUnitInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
@@ -57,7 +58,12 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         $currencyCode = $order->getCurrencyCode();
         Assert::notNull($currencyCode);
 
+        /** @var CustomerInterface|null $customer */
+        $customer = $order->getCustomer();
+        Assert::isInstanceOf($customer, CustomerInterface::class);
+
         $giftCard = $this->createNew();
+        $giftCard->setCustomer($customer);
         $giftCard->setOrderItemUnit($orderItemUnit);
         $giftCard->setChannel($channel);
         $giftCard->setAmount($orderItemUnit->getTotal());
