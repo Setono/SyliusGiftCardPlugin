@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use RuntimeException;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemUnitInterface;
 use Sylius\Component\Resource\Model\TimestampableTrait;
@@ -23,6 +24,9 @@ class GiftCard implements GiftCardInterface
 
     /** @var OrderItemUnitInterface|null */
     protected $orderItemUnit;
+
+    /** @var CustomerInterface|null */
+    protected $customer;
 
     /** @var Collection|OrderInterface[] */
     protected $appliedOrders;
@@ -50,6 +54,16 @@ class GiftCard implements GiftCardInterface
     public function __toString(): string
     {
         return (string) $this->code;
+    }
+
+    public function getCode(): ?string
+    {
+        return $this->code;
+    }
+
+    public function setCode(?string $code): void
+    {
+        $this->code = $code;
     }
 
     public function getId(): ?int
@@ -88,14 +102,14 @@ class GiftCard implements GiftCardInterface
         return $order;
     }
 
-    public function getCode(): ?string
+    public function getCustomer(): ?CustomerInterface
     {
-        return $this->code;
+        return $this->customer;
     }
 
-    public function setCode(?string $code): void
+    public function setCustomer(?CustomerInterface $customer): void
     {
-        $this->code = $code;
+        $this->customer = $customer;
     }
 
     public function getInitialAmount(): ?int

@@ -13,6 +13,13 @@ sylius_shop:
     product_grid:
         include_all_descendants: true
 
+
+sylius_customer:
+    resources:
+        customer:
+            classes:
+                repository: Tests\Setono\SyliusGiftCardPlugin\Application\Doctrine\ORM\CustomerRepository
+
 sylius_order:
     resources:
         order:

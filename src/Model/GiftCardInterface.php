@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Model;
 
 use Doctrine\Common\Collections\Collection;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemUnitInterface;
 use Sylius\Component\Resource\Model\CodeAwareInterface;
@@ -36,6 +37,14 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
      * If the gift card was created manually, this will return null
      */
     public function getOrder(): ?OrderInterface;
+
+    /**
+     * Returns the customer this gift card was issued to
+     * It can return null since it's not a requirement to have an associated customer
+     */
+    public function getCustomer(): ?CustomerInterface;
+
+    public function setCustomer(CustomerInterface $customer): void;
 
     /**
      * This is the current amount available on this gift card
