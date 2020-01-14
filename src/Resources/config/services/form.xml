@@ -39,7 +39,6 @@
                  class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType">
             <argument>%setono_sylius_gift_card.model.gift_card.class%</argument>
             <argument type="service" id="sylius.repository.currency"/>
-            <argument type="service" id="sylius.repository.customer"/>
             <argument type="service" id="setono_sylius_gift_card.generator.gift_card_code"/>
             <argument>%setono_sylius_gift_card.form.type.gift_card.validation_groups%</argument>
             <tag name="form.type"/>
