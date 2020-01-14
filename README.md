@@ -211,7 +211,7 @@ Please, run `composer all` to run all checks and tests before making pull reques
 
 [ico-version]: https://img.shields.io/packagist/v/setono/sylius-gift-card-plugin.svg
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg
-[ico-github-actions]: https://github.com/Setono/SyliusGiftCardPlugin/workflows/Build/badge.svg
+[ico-github-actions]: https://github.com/Setono/SyliusGiftCardPlugin/workflows/build/badge.svg
 [ico-code-quality]: https://img.shields.io/scrutinizer/g/Setono/SyliusGiftCardPlugin.svg
 
 [link-packagist]: https://packagist.org/packages/setono/sylius-gift-card-plugin
