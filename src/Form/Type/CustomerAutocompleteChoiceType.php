@@ -35,7 +35,7 @@ final class CustomerAutocompleteChoiceType extends AbstractType
         $view->vars['remote_criteria_type'] = 'contains';
         $view->vars['remote_criteria_name'] = 'phrase';
         $view->vars['remote_url'] = $this->urlGenerator->generate('setono_sylius_gift_card_admin_ajax_customer_by_email_phrase');
-        $view->vars['load_edit_url'] = 'test';
+        $view->vars['load_edit_url'] = $this->urlGenerator->generate('setono_sylius_gift_card_admin_ajax_customer_by_email');
     }
 
     public function getBlockPrefix(): string

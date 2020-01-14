@@ -12,3 +12,16 @@ setono_sylius_gift_card_admin_ajax_customer_by_email_phrase:
                 arguments:
                     phrase: $phrase
                     limit: 10
+
+setono_sylius_gift_card_admin_ajax_customer_by_email:
+    path: /customer/email
+    methods: [GET]
+    defaults:
+        _controller: sylius.controller.customer:indexAction
+        _format: json
+        _sylius:
+            serialization_groups: [Autocomplete]
+            permission: true
+            repository:
+                method: findBy
+                arguments: [email: $email]
