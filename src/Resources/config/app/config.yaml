@@ -14,9 +14,6 @@ sylius_mailer:
 jms_serializer:
     metadata:
         directories:
-            setono-sylius-gift-card-sylius-customer:
-                namespace_prefix: "Sylius\\Component\\Customer"
-                path: "@SetonoSyliusGiftCardPlugin/Resources/config/serializer"
             setono-sylius-gift-card-sylius:
                 namespace_prefix: "Setono\\SyliusGiftCardPlugin\\Model"
                 path: "@SetonoSyliusGiftCardPlugin/Resources/config/serializer"

@@ -5,7 +5,7 @@ setono_sylius_gift_card_admin_ajax_customer_by_email_phrase:
         _controller: sylius.controller.customer:indexAction
         _format: json
         _sylius:
-            serialization_groups: [Autocomplete]
+            serialization_groups: [Default]
             permission: true
             repository:
                 method: findByEmailPart
@@ -20,7 +20,7 @@ setono_sylius_gift_card_admin_ajax_customer_by_email:
         _controller: sylius.controller.customer:indexAction
         _format: json
         _sylius:
-            serialization_groups: [Autocomplete]
+            serialization_groups: [Default]
             permission: true
             repository:
                 method: findBy
