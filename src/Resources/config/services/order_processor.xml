@@ -9,7 +9,7 @@
             <argument type="service" id="translator"/>
             <argument type="service" id="sylius.custom_factory.adjustment"/>
 
-            <tag name="sylius.order_processor" priority="0"/>
+            <tag name="sylius.order_processor" priority="5"/>
         </service>
     </services>
 </container>
