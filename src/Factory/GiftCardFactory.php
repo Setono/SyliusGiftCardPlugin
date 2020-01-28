@@ -31,6 +31,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
     {
         /** @var GiftCardInterface $giftCard */
         $giftCard = $this->decoratedFactory->createNew();
+        $giftCard->setCode($this->giftCardCodeGenerator->generate());
 
         return $giftCard;
     }
@@ -69,7 +70,6 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         $giftCard->setAmount($orderItemUnit->getTotal());
         $giftCard->setCurrencyCode($currencyCode);
         $giftCard->setInitialAmount($orderItemUnit->getTotal());
-        $giftCard->setCode($this->giftCardCodeGenerator->generate());
         $giftCard->disable();
 
         return $giftCard;
