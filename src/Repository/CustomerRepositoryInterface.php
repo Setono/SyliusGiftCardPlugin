@@ -8,5 +8,5 @@ use Sylius\Component\Core\Repository\CustomerRepositoryInterface as BaseCustomer
 
 interface CustomerRepositoryInterface extends BaseCustomerRepositoryInterface
 {
-    public function findByEmailPart(string $phrase, int $limit): array;
+    public function findByEmailPart(string $email): array;
 }
