@@ -133,7 +133,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Order extends BaseOrder implements SetonoSyliusGiftCardPluginOrderInterface
 {
     use SetonoSyliusGiftCardPluginOrderTrait {
-        SetonoSyliusGiftCardPluginOrderTrait::__construct as private __giftCartTraitConstruct;
+        SetonoSyliusGiftCardPluginOrderTrait::__construct as private __giftCardTraitConstruct;
     }
 }
 ```
