@@ -81,13 +81,6 @@ $bundles = [
 ];
 ```
 
-### Update your database:
-
-```bash
-$ bin/console doctrine:migrations:diff
-$ bin/console doctrine:migrations:migrate
-```
-
 ### Copy templates
 
 You will find the templates you need to override in the [test application](https://github.com/Setono/SyliusGiftCardPlugin/tree/master/tests/Application/templates).
@@ -139,7 +132,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Order extends BaseOrder implements SetonoSyliusGiftCardPluginOrderInterface
 {
-    use SetonoSyliusGiftCardPluginOrderTrait;
+    use SetonoSyliusGiftCardPluginOrderTrait {
+        SetonoSyliusGiftCardPluginOrderTrait::__construct as private __giftCardTraitConstruct;
+    }
 }
 ```
     
@@ -207,6 +202,13 @@ sylius_product:
         product:
             classes:
                 model: App\Entity\Product
+```
+
+### Update your database:
+
+```bash
+$ bin/console doctrine:migrations:diff
+$ bin/console doctrine:migrations:migrate
 ```
 
 ### Install assets:
