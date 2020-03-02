@@ -11,5 +11,10 @@
             <tag name="kernel.event_listener" event="sylius.menu.admin.main" method="addAdminMenuItems"/>
         </service>
 
+        <service id="setono_sylius_gift_card.listener.shop.menu_builder"
+                 class="Setono\SyliusGiftCardPlugin\Menu\AccountMenuListener">
+            <tag name="kernel.event_listener" event="sylius.menu.shop.account" method="addAccountMenuItems"/>
+        </service>
+
     </services>
 </container>

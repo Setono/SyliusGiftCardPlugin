@@ -1,0 +1,15 @@
+{% extends '@SyliusShop/Account/layout.html.twig' %}
+
+{% block breadcrumb %}
+    {% include '@SetonoSyliusGiftCardPlugin/Shop/Account/GiftCard/Index/_breadcrumb.html.twig' %}
+{% endblock %}
+
+{% block subcontent %}
+    {% include '@SetonoSyliusGiftCardPlugin/Shop/Account/GiftCard/Index/_header.html.twig' %}
+
+    {{ sonata_block_render_event('setono_sylius_gift_card.shop.account.gift_card.index.after_content_header', {'giftCards': resources}) }}
+
+    {{ sylius_grid_render(resources, '@SyliusShop/Grid/_default.html.twig') }}
+
+    {{ sonata_block_render_event('setono_sylius_gift_card.shop.account.gift_card.index.after_grid', {'giftCards': resources}) }}
+{% endblock %}
