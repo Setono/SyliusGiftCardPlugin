@@ -18,8 +18,10 @@ final class DownloadGiftCardPdfAction
 {
     /** @var GiftCardRepositoryInterface */
     private $giftCardRepository;
+
     /** @var AuthorizationCheckerInterface */
     private $authChecker;
+
     /** @var FlashBagInterface */
     private $flashBag;
 
@@ -32,7 +34,7 @@ final class DownloadGiftCardPdfAction
         if (!$this->authChecker->isGranted(GiftCardVoter::READ, $giftCard)) {
             $this->flashBag->add('error', 'setono_sylius_gift_card.gift_card.read_error');
 
-            return new RedirectResponse(filter_var($request->headers->get('referer'), FILTER_SANITIZE_URL));
+            return new RedirectResponse(filter_var($request->headers->get('referer'), \FILTER_SANITIZE_URL));
         }
 
         $configuration = $giftCard->getConfiguration();
