@@ -15,6 +15,23 @@ setono_sylius_gift_card_admin_gift_card:
                 icon: 'gift'
     type: sylius.resource
 
+setono_sylius_gift_card_admin_gift_card_configuration:
+    resource: |
+        alias: setono_sylius_gift_card.gift_card_configuration
+        section: admin
+        only: [index, create, update, delete, bulkDelete]
+        templates: SyliusAdminBundle:Crud
+        redirect: index
+        grid: setono_sylius_gift_card_admin_gift_card_configuration
+        vars:
+            all:
+                subheader: setono_sylius_gift_card.ui.manage_gift_card_configurations
+                templates:
+                    form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardConfiguration/_form.html.twig"
+            index:
+                icon: 'gift'
+    type: sylius.resource
+
 # todo what is this route doing?
 setono_sylius_gift_card_admin_gift_card_create_for_channel:
     path: /gift-cards/create
