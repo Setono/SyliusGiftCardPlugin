@@ -13,21 +13,32 @@ final class AdminMenuListener
     {
         $menu = $event->getMenu();
 
-        $submenu = $menu->getChild('catalog');
-        if ($submenu instanceof ItemInterface) {
-            $this->addChild($submenu);
-        } else {
-            $this->addChild($menu->getFirstChild());
-        }
+        $this->addCatalogChild($menu);
+        $this->addConfigurationChild($menu);
     }
 
-    private function addChild(ItemInterface $item): void
+    private function addCatalogChild(ItemInterface $menu): void
     {
+        $submenu = $menu->getChild('catalog');
+        $item = $submenu instanceof ItemInterface ? $submenu : $menu->getFirstChild();
         $item
             ->addChild('gift_cards', [
                 'route' => 'setono_sylius_gift_card_admin_gift_card_index',
             ])
             ->setLabel('setono_sylius_gift_card.ui.gift_cards')
+            ->setLabelAttribute('icon', 'gift')
+        ;
+    }
+
+    private function addConfigurationChild(ItemInterface $menu): void
+    {
+        $submenu = $menu->getChild('configuration');
+        $item = $submenu instanceof ItemInterface ? $submenu : $menu->getFirstChild();
+        $item
+            ->addChild('gift_card_configurations', [
+                'route' => 'setono_sylius_gift_card_admin_gift_card_configuration_index',
+            ])
+            ->setLabel('setono_sylius_gift_card.ui.gift_card_configurations')
             ->setLabelAttribute('icon', 'gift')
         ;
     }

@@ -85,7 +85,7 @@ $bundles = [
 
 You will find the templates you need to override in the [test application](https://github.com/Setono/SyliusGiftCardPlugin/tree/master/tests/Application/templates).
 
-### Extend `Product`, `Order`, `OrderRepository`, and `CustomerRepository`
+### Extend `Product`, `Order`, `Channel`, `OrderRepository`, and `CustomerRepository`
 
 **Extend `Product`**
 ```php
@@ -137,6 +137,32 @@ class Order extends BaseOrder implements SetonoSyliusGiftCardPluginOrderInterfac
     }
 }
 ```
+
+**Extend `Channel`**
+
+```php
+<?php
+
+# src/Entity/Channel.php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Setono\SyliusGiftCardPlugin\Model\ChannelInterface as SetonoSyliusGiftCardPluginChannelInterface;
+use Setono\SyliusGiftCardPlugin\Model\ChannelTrait as SetonoSyliusGiftCardPluginChannelTrait;
+use Sylius\Component\Core\Model\Channel as BaseChannel;
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * @ORM\Entity
+ * @ORM\Table(name="sylius_channel")
+ */
+class Channel extends BaseChannel implements SetonoSyliusGiftCardPluginChannelInterface
+{
+    use SetonoSyliusGiftCardPluginChannelTrait;
+}
+```
     
 **Extend `OrderRepository`:**
 
@@ -184,6 +210,12 @@ class CustomerRepository extends BaseCustomerRepository implements SetonoSyliusG
 
 ```yaml
 # config/services.yaml
+sylius_channel:
+    resources:
+        channel:
+            classes:
+                model: App\Entity\Channel
+
 sylius_customer:
     resources:
         customer:

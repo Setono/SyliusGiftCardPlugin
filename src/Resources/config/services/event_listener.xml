@@ -8,5 +8,11 @@
                  class="Setono\SyliusGiftCardPlugin\EventListener\GiftCardDeletionSubscriber">
             <tag name="kernel.event_subscriber"/>
         </service>
+
+        <service id="setono_sylius_gift_card.listener.gift_card_configuration_images_upload"
+                 class="Sylius\Bundle\CoreBundle\EventListener\ImagesUploadListener" parent="sylius.listener.images_upload" autowire="true" autoconfigure="false" public="false">
+            <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_configuration.pre_create" method="uploadImages" />
+            <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_configuration.pre_update" method="uploadImages" />
+        </service>
     </services>
 </container>

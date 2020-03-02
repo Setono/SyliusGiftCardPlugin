@@ -1,0 +1,28 @@
+sylius_grid:
+    grids:
+        setono_sylius_gift_card_admin_gift_card_configuration:
+            driver:
+                name: doctrine/orm
+                options:
+                    class: "%setono_sylius_gift_card.model.gift_card_configuration.class%"
+            limits: [25, 50, 100]
+            fields:
+                code:
+                    type: string
+                    label: sylius.ui.code
+                    sortable: ~
+            filters:
+                search:
+                    type: string
+                    label: sylius.ui.search
+                    options:
+                        fields: [code]
+            actions:
+                main:
+                    create:
+                        type: create
+                item:
+                    update:
+                        type: update
+                    delete:
+                        type: delete_conditional
