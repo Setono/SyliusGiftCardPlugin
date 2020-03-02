@@ -8,5 +8,5 @@ use Sylius\Component\Core\Model\ImageInterface;
 
 interface GiftCardConfigurationImageInterface extends ImageInterface
 {
-    const TYPE_BACKGROUND = 'background';
+    public const TYPE_BACKGROUND = 'background';
 }

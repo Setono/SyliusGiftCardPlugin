@@ -12,6 +12,7 @@ final class GiftCardConfigurationFactory implements GiftCardConfigurationFactory
 {
     /** @var FactoryInterface */
     private $decoratedFactory;
+
     /** @var FactoryInterface */
     private $imageFactory;
 

@@ -18,10 +18,13 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
 
     /** @var int|null */
     protected $id;
+
     /** @var string|null */
     protected $code;
+
     /** @var ChannelInterface[]|Collection */
     protected $channels;
+
     /** @var ImageInterface[]|Collection */
     protected $images;
 
