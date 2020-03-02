@@ -43,23 +43,3 @@ sylius_grid:
                     sortable: ~
                     options:
                         format: d-m-Y
-#            actions:
-#                main:
-#                    balance:
-#                        type: gift_card_balance
-#                    create:
-#                        type: create_gift_card
-#                item:
-#                    list_orders:
-#                        type: list_conditional
-#                        label: setono_sylius_gift_card.ui.list_orders
-#                        options:
-#                            visible: resource.hasAppliedCompletedOrders
-#                            link:
-#                                route: setono_sylius_gift_card_admin_gift_card_orders_index
-#                                parameters:
-#                                    id: resource.id
-#                    delete:
-#                        type: delete_conditional
-#                        options:
-#                            visible: resource.isDeletable
