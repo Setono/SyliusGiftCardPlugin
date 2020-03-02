@@ -9,6 +9,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Channel\Model\ChannelInterface;
+use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderItemUnitInterface;
 
 final class GiftCardRepository extends EntityRepository implements GiftCardRepositoryInterface
@@ -55,5 +56,14 @@ final class GiftCardRepository extends EntityRepository implements GiftCardRepos
         return $this->findBy([
             'enabled' => true,
         ]);
+    }
+
+    public function createAccountListQueryBuilder(CustomerInterface $customer): QueryBuilder
+    {
+        $qb = $this->createListQueryBuilder();
+        $qb->andWhere('o.customer = :customer');
+        $qb->setParameter('customer', $customer);
+
+        return $qb;
     }
 }

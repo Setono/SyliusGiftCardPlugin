@@ -1,0 +1,65 @@
+sylius_grid:
+    grids:
+        setono_sylius_gift_card_shop_gift_card:
+            driver:
+                name: doctrine/orm
+                options:
+                    class: "%setono_sylius_gift_card.model.gift_card.class%"
+                    repository:
+                        method: createAccountListQueryBuilder
+                        arguments:
+                            - 'expr:service("security.token_storage").getToken().getUser().getCustomer()'
+            sorting:
+                createdAt: desc
+            limits: [25, 50, 100]
+            fields:
+                code:
+                    type: string
+                    label: sylius.ui.code
+                    sortable: ~
+                amount:
+                    type: twig
+                    label: setono_sylius_gift_card.ui.amount
+                    path: .
+                    sortable: amount
+                    options:
+                        template: "@SetonoSyliusGiftCardPlugin/Shop/Account/GiftCard/Grid/Field/amount.html.twig"
+                initialAmount:
+                    type: twig
+                    label: setono_sylius_gift_card.ui.initial_amount
+                    path: .
+                    sortable: initialAmount
+                    options:
+                        template: "@SetonoSyliusGiftCardPlugin/Shop/Account/GiftCard/Grid/Field/initial_amount.html.twig"
+                enabled:
+                    type: twig
+                    label: sylius.ui.enabled
+                    sortable: ~
+                    options:
+                        template: "@SyliusUi/Grid/Field/enabled.html.twig"
+                createdAt:
+                    type: datetime
+                    label: sylius.ui.created
+                    sortable: ~
+                    options:
+                        format: d-m-Y
+#            actions:
+#                main:
+#                    balance:
+#                        type: gift_card_balance
+#                    create:
+#                        type: create_gift_card
+#                item:
+#                    list_orders:
+#                        type: list_conditional
+#                        label: setono_sylius_gift_card.ui.list_orders
+#                        options:
+#                            visible: resource.hasAppliedCompletedOrders
+#                            link:
+#                                route: setono_sylius_gift_card_admin_gift_card_orders_index
+#                                parameters:
+#                                    id: resource.id
+#                    delete:
+#                        type: delete_conditional
+#                        options:
+#                            visible: resource.isDeletable

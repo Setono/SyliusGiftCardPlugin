@@ -7,6 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Repository;
 use Doctrine\ORM\QueryBuilder;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Channel\Model\ChannelInterface;
+use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderItemUnitInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 
@@ -24,4 +25,6 @@ interface GiftCardRepositoryInterface extends RepositoryInterface
      * @return GiftCardInterface[]
      */
     public function findEnabled(): array;
+
+    public function createAccountListQueryBuilder(CustomerInterface $customer): QueryBuilder;
 }
