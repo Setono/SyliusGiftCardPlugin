@@ -119,9 +119,6 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         $this->addImage($image);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getChannelConfigurations(): Collection
     {
         return $this->channelConfigurations;
