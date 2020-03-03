@@ -1,10 +1,13 @@
 setono_sylius_gift_card:
     form:
+        channel_configuration:
+            channel: Channel
+            locale: Locale
         gift_card:
             channel: Channel
         gift_card_configuration:
             background_image: Background image
-            channels: Channels
+            channel_configurations: Channel configurations
             code: Code
             enabled: Enabled
         product:
@@ -43,4 +46,9 @@ setono_sylius_gift_card:
         your_gift_card: Your gift card
         balance: Balance
         your_gift_cards_you_bought_in_the_order: Your gift cards you bought in the order
-    
+
+# Missing from Sylius for some reason
+sylius:
+    form:
+        locale:
+            select: Select a locale

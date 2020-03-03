@@ -1,0 +1,22 @@
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
+
+    <mapped-superclass name="Setono\SyliusGiftCardPlugin\Model\ChannelConfiguration" table="setono_sylius_gift_card__channel_configuration">
+        <id name="id" column="id" type="integer">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <many-to-one field="channel" target-entity="Sylius\Component\Channel\Model\ChannelInterface">
+            <join-column name="channel_id" nullable="false" on-delete="CASCADE" />
+        </many-to-one>
+        <many-to-one field="configuration"
+                     target-entity="Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface"
+                     inversed-by="channelConfigurations">
+            <join-column name="configuration_id" nullable="false" on-delete="CASCADE" />
+        </many-to-one>
+        <many-to-one field="locale" target-entity="Sylius\Component\Locale\Model\LocaleInterface">
+            <join-column name="locale_id" nullable="false" on-delete="CASCADE" />
+        </many-to-one>
+    </mapped-superclass>
+
+</doctrine-mapping>

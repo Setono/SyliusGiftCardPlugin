@@ -6,7 +6,6 @@ namespace Setono\SyliusGiftCardPlugin\Model;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Core\Model\ImageInterface;
 use Sylius\Component\Resource\Model\TimestampableTrait;
 use Sylius\Component\Resource\Model\ToggleableTrait;
@@ -22,16 +21,16 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
     /** @var string|null */
     protected $code;
 
-    /** @var ChannelInterface[]|Collection */
-    protected $channels;
-
     /** @var ImageInterface[]|Collection */
     protected $images;
 
+    /** @var ChannelConfigurationInterface[]|Collection */
+    protected $channelConfigurations;
+
     public function __construct()
     {
-        $this->channels = new ArrayCollection();
         $this->images = new ArrayCollection();
+        $this->channelConfigurations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -47,41 +46,6 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
     public function setCode(?string $code): void
     {
         $this->code = $code;
-    }
-
-    /**
-     * @return Collection|ChannelInterface[]
-     */
-    public function getChannels(): Collection
-    {
-        return $this->channels;
-    }
-
-    public function hasChannel(ChannelInterface $channel): bool
-    {
-        return $this->getChannels()->contains($channel);
-    }
-
-    /**
-     * @param ChannelInterface|\Setono\SyliusGiftCardPlugin\Model\ChannelInterface $channel
-     */
-    public function addChannel(ChannelInterface $channel): void
-    {
-        if (!$this->hasChannel($channel)) {
-            $channel->setGiftCardConfiguration($this);
-            $this->channels->add($channel);
-        }
-    }
-
-    /**
-     * @param ChannelInterface|\Setono\SyliusGiftCardPlugin\Model\ChannelInterface $channel
-     */
-    public function removeChannel(ChannelInterface $channel): void
-    {
-        if ($this->hasChannel($channel)) {
-            $channel->setGiftCardConfiguration(null);
-            $this->channels->removeElement($channel);
-        }
     }
 
     public function getImages(): Collection
@@ -143,5 +107,39 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
             $image->setType(GiftCardConfigurationImageInterface::TYPE_BACKGROUND);
         }
         $this->addImage($image);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getChannelConfigurations(): Collection
+    {
+        return $this->channelConfigurations;
+    }
+
+    public function hasChannelConfigurations(): bool
+    {
+        return !$this->channelConfigurations->isEmpty();
+    }
+
+    public function hasChannelConfiguration(ChannelConfigurationInterface $channelConfiguration): bool
+    {
+        return $this->channelConfigurations->contains($channelConfiguration);
+    }
+
+    public function addChannelConfiguration(ChannelConfigurationInterface $channelConfiguration): void
+    {
+        if (!$this->hasChannelConfiguration($channelConfiguration)) {
+            $channelConfiguration->setConfiguration($this);
+            $this->channelConfigurations->add($channelConfiguration);
+        }
+    }
+
+    public function removeChannelConfiguration(ChannelConfigurationInterface $channelConfiguration): void
+    {
+        if ($this->hasChannelConfiguration($channelConfiguration)) {
+            $channelConfiguration->setConfiguration(null);
+            $this->channelConfigurations->removeElement($channelConfiguration);
+        }
     }
 }
