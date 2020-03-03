@@ -1,5 +1,6 @@
 setono_sylius_gift_card:
     gift_card:
         delete_error: The gift card code can't be removed.
+        read_error: Impossible to view this gift card.
     gift_card_added: Gift card was added to your order
     gift_card_removed: Gift card removed from your order
