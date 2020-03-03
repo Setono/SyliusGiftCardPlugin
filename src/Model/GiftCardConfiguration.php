@@ -24,7 +24,7 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
     /** @var ImageInterface[]|Collection */
     protected $images;
 
-    /** @var ChannelConfigurationInterface[]|Collection */
+    /** @var GiftCardChannelConfigurationInterface[]|Collection */
     protected $channelConfigurations;
 
     public function __construct()
@@ -122,12 +122,12 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         return !$this->channelConfigurations->isEmpty();
     }
 
-    public function hasChannelConfiguration(ChannelConfigurationInterface $channelConfiguration): bool
+    public function hasChannelConfiguration(GiftCardChannelConfigurationInterface $channelConfiguration): bool
     {
         return $this->channelConfigurations->contains($channelConfiguration);
     }
 
-    public function addChannelConfiguration(ChannelConfigurationInterface $channelConfiguration): void
+    public function addChannelConfiguration(GiftCardChannelConfigurationInterface $channelConfiguration): void
     {
         if (!$this->hasChannelConfiguration($channelConfiguration)) {
             $channelConfiguration->setConfiguration($this);
@@ -135,7 +135,7 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         }
     }
 
-    public function removeChannelConfiguration(ChannelConfigurationInterface $channelConfiguration): void
+    public function removeChannelConfiguration(GiftCardChannelConfigurationInterface $channelConfiguration): void
     {
         if ($this->hasChannelConfiguration($channelConfiguration)) {
             $channelConfiguration->setConfiguration(null);

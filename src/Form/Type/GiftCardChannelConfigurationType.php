@@ -9,7 +9,7 @@ use Sylius\Bundle\LocaleBundle\Form\Type\LocaleChoiceType;
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
 use Symfony\Component\Form\FormBuilderInterface;
 
-final class ChannelConfigurationType extends AbstractResourceType
+final class GiftCardChannelConfigurationType extends AbstractResourceType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -25,6 +25,6 @@ final class ChannelConfigurationType extends AbstractResourceType
 
     public function getBlockPrefix(): string
     {
-        return 'setono_sylius_gift_card_channel_configuration';
+        return 'setono_sylius_gift_card_gift_card_channel_configuration';
     }
 }

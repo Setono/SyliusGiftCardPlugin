@@ -7,7 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Model;
 use Sylius\Component\Channel\Model\ChannelInterface as SyliusChannelInterface;
 use Sylius\Component\Locale\Model\LocaleInterface;
 
-class ChannelConfiguration implements ChannelConfigurationInterface
+class GiftCardChannelConfiguration implements GiftCardChannelConfigurationInterface
 {
     /** @var int|null */
     protected $id;
