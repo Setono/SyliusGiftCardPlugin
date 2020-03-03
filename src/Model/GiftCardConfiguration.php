@@ -110,7 +110,7 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getChannelConfigurations(): Collection
     {
