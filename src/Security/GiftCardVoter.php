@@ -10,6 +10,7 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\User\Model\UserInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
+use Webmozart\Assert\Assert;
 
 final class GiftCardVoter extends Voter
 {
@@ -17,7 +18,7 @@ final class GiftCardVoter extends Voter
 
     protected function supports($attribute, $subject): bool
     {
-        if (!\in_array($attribute, [self::READ])) {
+        if (!\in_array($attribute, [self::READ], true)) {
             return false;
         }
 
@@ -30,7 +31,7 @@ final class GiftCardVoter extends Voter
 
     protected function voteOnAttribute($attribute, $subject, TokenInterface $token): bool
     {
-        /** @var UserInterface|ShopUserInterface|AdminUserInterface $user */
+        /** @var UserInterface|ShopUserInterface|AdminUserInterface|null $user */
         $user = $token->getUser();
         if (!$user instanceof UserInterface) {
             return false;
@@ -40,6 +41,7 @@ final class GiftCardVoter extends Voter
         if ($user instanceof AdminUserInterface) {
             return true;
         }
+        Assert::isInstanceOf($user, ShopUserInterface::class);
 
         /** @var GiftCardInterface $giftCard */
         $giftCard = $subject;
