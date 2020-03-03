@@ -12,9 +12,9 @@ interface GiftCardChannelConfigurationInterface extends ResourceInterface, Chann
 {
     public function getLocale(): ?LocaleInterface;
 
-    public function setLocale(?LocaleInterface $locale): void;
+    public function setLocale(LocaleInterface $locale): void;
 
     public function getConfiguration(): ?GiftCardConfigurationInterface;
 
-    public function setConfiguration(?GiftCardConfigurationInterface $configuration): void;
+    public function setConfiguration(GiftCardConfigurationInterface $configuration): void;
 }
