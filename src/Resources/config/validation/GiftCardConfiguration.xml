@@ -23,5 +23,10 @@
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>
+        <property name="images">
+            <constraint name="Valid">
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
     </class>
 </constraint-mapping>
