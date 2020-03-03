@@ -46,6 +46,9 @@ class GiftCard implements GiftCardInterface
     /** @var ChannelInterface */
     protected $channel;
 
+    /** @var GiftCardConfigurationInterface|null */
+    protected $configuration;
+
     public function __construct()
     {
         $this->appliedOrders = new ArrayCollection();
@@ -195,6 +198,16 @@ class GiftCard implements GiftCardInterface
     public function setChannel(ChannelInterface $channel): void
     {
         $this->channel = $channel;
+    }
+
+    public function getConfiguration(): ?GiftCardConfigurationInterface
+    {
+        return $this->configuration;
+    }
+
+    public function setConfiguration(?GiftCardConfigurationInterface $configuration): void
+    {
+        $this->configuration = $configuration;
     }
 
     /**

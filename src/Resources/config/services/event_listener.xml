@@ -9,6 +9,12 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="setono_sylius_gift_card.subscriber.gift_card_creation"
+                 class="Setono\SyliusGiftCardPlugin\EventListener\GiftCardCreationSubscriber">
+            <argument type="service" id="setono_sylius_gift_card.provider.gift_card_configuration" />
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <service id="setono_sylius_gift_card.subscriber.default_gift_card_configuration"
                  class="Setono\SyliusGiftCardPlugin\EventListener\DefaultGiftCardConfigurationSubscriber"
                  autoconfigure="true" autowire="true">
