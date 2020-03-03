@@ -96,7 +96,10 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
             return null;
         }
 
-        return $images->first();
+        /** @var GiftCardConfigurationImageInterface $image */
+        $image = $images->first();
+
+        return $image;
     }
 
     public function setBackgroundImage(?GiftCardConfigurationImageInterface $image): void

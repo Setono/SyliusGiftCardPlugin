@@ -96,6 +96,10 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
 
     public function setChannel(ChannelInterface $channel): void;
 
+    public function getConfiguration(): ?GiftCardConfigurationInterface;
+
+    public function setConfiguration(?GiftCardConfigurationInterface $configuration): void;
+
     /**
      * API specific methods
      */
