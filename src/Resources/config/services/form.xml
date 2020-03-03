@@ -16,7 +16,7 @@
             <parameter>setono_sylius_gift_card</parameter>
         </parameter>
 
-        <parameter key="setono_sylius_gift_card.form.type.channel_configuration.validation_groups" type="collection">
+        <parameter key="setono_sylius_gift_card.form.type.gift_card_channel_configuration.validation_groups" type="collection">
             <parameter>setono_sylius_gift_card</parameter>
         </parameter>
 
@@ -70,10 +70,10 @@
             <tag name="form.type"/>
         </service>
 
-        <service id="setono_sylius_gift_card.form.type.channel_configuration"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\ChannelConfigurationType">
-            <argument>%setono_sylius_gift_card.model.channel_configuration.class%</argument>
-            <argument>%setono_sylius_gift_card.form.type.channel_configuration.validation_groups%</argument>
+        <service id="setono_sylius_gift_card.form.type.gift_card_channel_configuration"
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardChannelConfigurationType">
+            <argument>%setono_sylius_gift_card.model.gift_card_channel_configuration.class%</argument>
+            <argument>%setono_sylius_gift_card.form.type.gift_card_channel_configuration.validation_groups%</argument>
             <tag name="form.type"/>
         </service>
 

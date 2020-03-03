@@ -23,15 +23,15 @@ interface GiftCardConfigurationInterface extends
     public function setBackgroundImage(?GiftCardConfigurationImageInterface $image): void;
 
     /**
-     * @return Collection|ChannelConfigurationInterface[]
+     * @return Collection|GiftCardChannelConfigurationInterface[]
      */
     public function getChannelConfigurations(): Collection;
 
     public function hasChannelConfigurations(): bool;
 
-    public function hasChannelConfiguration(ChannelConfigurationInterface $channelConfiguration): bool;
+    public function hasChannelConfiguration(GiftCardChannelConfigurationInterface $channelConfiguration): bool;
 
-    public function addChannelConfiguration(ChannelConfigurationInterface $channelConfiguration): void;
+    public function addChannelConfiguration(GiftCardChannelConfigurationInterface $channelConfiguration): void;
 
-    public function removeChannelConfiguration(ChannelConfigurationInterface $channelConfiguration): void;
+    public function removeChannelConfiguration(GiftCardChannelConfigurationInterface $channelConfiguration): void;
 }

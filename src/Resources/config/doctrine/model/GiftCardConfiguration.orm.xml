@@ -22,7 +22,7 @@
             <cascade><cascade-all /></cascade>
         </one-to-many>
         <one-to-many field="channelConfigurations"
-                     target-entity="Setono\SyliusGiftCardPlugin\Model\ChannelConfigurationInterface"
+                     target-entity="Setono\SyliusGiftCardPlugin\Model\GiftCardChannelConfigurationInterface"
                      mapped-by="configuration" orphan-removal="true">
             <cascade><cascade-all /></cascade>
         </one-to-many>

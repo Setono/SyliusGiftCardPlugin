@@ -8,7 +8,7 @@ use Sylius\Component\Channel\Model\ChannelAwareInterface;
 use Sylius\Component\Locale\Model\LocaleInterface;
 use Sylius\Component\Resource\Model\ResourceInterface;
 
-interface ChannelConfigurationInterface extends ResourceInterface, ChannelAwareInterface
+interface GiftCardChannelConfigurationInterface extends ResourceInterface, ChannelAwareInterface
 {
     public function getLocale(): ?LocaleInterface;
 

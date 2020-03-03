@@ -1,7 +1,7 @@
 <doctrine-mapping
     xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
 
-    <mapped-superclass name="Setono\SyliusGiftCardPlugin\Model\ChannelConfiguration" table="setono_sylius_gift_card__channel_configuration">
+    <mapped-superclass name="Setono\SyliusGiftCardPlugin\Model\GiftCardChannelConfiguration" table="setono_sylius_gift_card__channel_configuration">
         <unique-constraints>
             <unique-constraint columns="channel_id,locale_id,configuration_id" name="unique_key" />
         </unique-constraints>

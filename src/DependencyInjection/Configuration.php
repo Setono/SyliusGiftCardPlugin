@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepository;
-use Setono\SyliusGiftCardPlugin\Form\Type\ChannelConfigurationType;
+use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardChannelConfigurationType;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationImageType;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType;
-use Setono\SyliusGiftCardPlugin\Model\ChannelConfiguration;
-use Setono\SyliusGiftCardPlugin\Model\ChannelConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardChannelConfiguration;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardChannelConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImage;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImageInterface;
@@ -151,18 +151,18 @@ final class Configuration implements ConfigurationInterface
     private function addChannelConfigurationSection(NodeBuilder $nodeBuilder): void
     {
         $nodeBuilder
-            ->arrayNode('channel_configuration')
+            ->arrayNode('gift_card_channel_configuration')
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->variableNode('options')->end()
                     ->arrayNode('classes')
                         ->addDefaultsIfNotSet()
                         ->children()
-                            ->scalarNode('model')->defaultValue(ChannelConfiguration::class)->cannotBeEmpty()->end()
-                            ->scalarNode('interface')->defaultValue(ChannelConfigurationInterface::class)->cannotBeEmpty()->end()
+                            ->scalarNode('model')->defaultValue(GiftCardChannelConfiguration::class)->cannotBeEmpty()->end()
+                            ->scalarNode('interface')->defaultValue(GiftCardChannelConfigurationInterface::class)->cannotBeEmpty()->end()
                             ->scalarNode('controller')->defaultValue(ResourceController::class)->cannotBeEmpty()->end()
                             ->scalarNode('repository')->defaultValue(EntityRepository::class)->cannotBeEmpty()->end()
-                            ->scalarNode('form')->defaultValue(ChannelConfigurationType::class)->end()
+                            ->scalarNode('form')->defaultValue(GiftCardChannelConfigurationType::class)->end()
                             ->scalarNode('factory')->defaultValue(Factory::class)->end()
                         ->end()
                     ->end()
