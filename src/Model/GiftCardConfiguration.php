@@ -27,6 +27,9 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
     /** @var GiftCardChannelConfigurationInterface[]|Collection */
     protected $channelConfigurations;
 
+    /** @var bool|null */
+    protected $default = false;
+
     public function __construct()
     {
         $this->images = new ArrayCollection();
@@ -103,6 +106,10 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
             $this->removeImage($actualImage);
         }
 
+        if (null === $image) {
+            return;
+        }
+
         if (GiftCardConfigurationImageInterface::TYPE_BACKGROUND !== $image->getType()) {
             $image->setType(GiftCardConfigurationImageInterface::TYPE_BACKGROUND);
         }
@@ -141,5 +148,15 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
             $channelConfiguration->setConfiguration(null);
             $this->channelConfigurations->removeElement($channelConfiguration);
         }
+    }
+
+    public function isDefault(): ?bool
+    {
+        return $this->default;
+    }
+
+    public function setDefault(?bool $default): void
+    {
+        $this->default = $default;
     }
 }

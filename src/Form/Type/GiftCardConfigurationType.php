@@ -21,6 +21,10 @@ final class GiftCardConfigurationType extends AbstractResourceType
             'label' => 'setono_sylius_gift_card.form.gift_card_configuration.enabled',
             'required' => false,
         ]);
+        $builder->add('default', CheckboxType::class, [
+            'label' => 'setono_sylius_gift_card.form.gift_card_configuration.default',
+            'required' => false,
+        ]);
         $builder->add('backgroundImage', GiftCardConfigurationImageType::class, [
             'label' => 'setono_sylius_gift_card.form.gift_card_configuration.background_image',
             'required' => false,

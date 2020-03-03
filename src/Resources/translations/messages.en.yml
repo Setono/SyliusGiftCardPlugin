@@ -9,6 +9,7 @@ setono_sylius_gift_card:
             background_image: Background image
             channel_configurations: Channel configurations
             code: Code
+            default: Default configuration
             enabled: Enabled
         product:
             gift_card: Gift card
