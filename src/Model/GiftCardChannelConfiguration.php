@@ -41,7 +41,7 @@ class GiftCardChannelConfiguration implements GiftCardChannelConfigurationInterf
         return $this->locale;
     }
 
-    public function setLocale(?LocaleInterface $locale): void
+    public function setLocale(LocaleInterface $locale): void
     {
         $this->locale = $locale;
     }
@@ -51,7 +51,7 @@ class GiftCardChannelConfiguration implements GiftCardChannelConfigurationInterf
         return $this->configuration;
     }
 
-    public function setConfiguration(?GiftCardConfigurationInterface $configuration): void
+    public function setConfiguration(GiftCardConfigurationInterface $configuration): void
     {
         $this->configuration = $configuration;
     }

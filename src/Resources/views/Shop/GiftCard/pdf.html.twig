@@ -2,7 +2,7 @@
 <head></head>
 <body>
 {% if configuration.backgroundImage is not empty %}
-    {% set path = configuration.backgroundImage.path|imagine_filter('gift_card_pdf') %}
+    {% set path = configuration.backgroundImage.path|imagine_filter('setono_sylius_gift_card_background') %}
 {% else %}
     {% set path = '//placehold.it/200x200' %}
 {% endif %}

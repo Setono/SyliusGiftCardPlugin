@@ -22,6 +22,6 @@ jms_serializer:
 
 liip_imagine:
     filter_sets:
-        gift_card_pdf:
+        setono_sylius_gift_card_background:
             filters:
                 thumbnail: { size: [1200], mode: inset }
