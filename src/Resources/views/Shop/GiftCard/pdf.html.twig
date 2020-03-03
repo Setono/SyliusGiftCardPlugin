@@ -1,0 +1,13 @@
+<html lang="{{ sylius_base_locale }}">
+<head></head>
+<body>
+{% if configuration.backgroundImage is not empty %}
+    {% set path = configuration.backgroundImage.path|imagine_filter('gift_card_pdf') %}
+{% else %}
+    {% set path = '//placehold.it/200x200' %}
+{% endif %}
+<img src="{{ path }}" alt="">
+{{ giftCard.amount|sylius_format_money(giftCard.currencyCode, sylius_base_locale) }}
+{{ giftCard.code }}
+</body>
+</html>

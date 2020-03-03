@@ -37,6 +37,16 @@
             <argument type="service" id="form.factory"/>
         </service>
 
+        <service id="setono_sylius_gift_card.controller.action.download_pdf"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\DownloadGiftCardPdfAction">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card" />
+            <argument type="service" id="security.authorization_checker" />
+            <argument type="service" id="session.flash_bag" />
+            <argument type="service" id="setono_sylius_gift_card.provider.gift_card_configuration" />
+            <argument type="service" id="twig" />
+            <argument type="service" id="knp_snappy.pdf" />
+        </service>
+
     </services>
 
 </container>

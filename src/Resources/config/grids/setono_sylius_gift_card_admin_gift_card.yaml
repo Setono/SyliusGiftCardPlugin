@@ -98,6 +98,14 @@ sylius_grid:
                                 route: setono_sylius_gift_card_admin_gift_card_orders_index
                                 parameters:
                                     id: resource.id
+                    download_pdf:
+                        type: show
+                        label: setono_sylius_gift_card.ui.download_pdf
+                        options:
+                            link:
+                                route: setono_sylius_gift_card_admin_gift_card_pdf
+                                parameters:
+                                    id: resource.id
                     delete:
                         type: delete_conditional
                         options:

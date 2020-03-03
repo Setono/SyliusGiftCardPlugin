@@ -15,6 +15,16 @@ setono_sylius_gift_card_admin_gift_card:
                 icon: 'gift'
     type: sylius.resource
 
+setono_sylius_gift_card_admin_gift_card_pdf:
+    path: /gift-cards/{id}/pdf
+    requirements:
+        id: \d+
+    methods: [ GET ]
+    defaults:
+        _controller: setono_sylius_gift_card.controller.action.download_pdf
+        _sylius:
+            section: admin
+
 setono_sylius_gift_card_admin_gift_card_configuration:
     resource: |
         alias: setono_sylius_gift_card.gift_card_configuration

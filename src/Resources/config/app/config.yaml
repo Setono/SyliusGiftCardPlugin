@@ -19,3 +19,9 @@ jms_serializer:
             setono-sylius-gift-card-sylius:
                 namespace_prefix: "Setono\\SyliusGiftCardPlugin\\Model"
                 path: "@SetonoSyliusGiftCardPlugin/Resources/config/serializer"
+
+liip_imagine:
+    filter_sets:
+        gift_card_pdf:
+            filters:
+                thumbnail: { size: [1200], mode: inset }
