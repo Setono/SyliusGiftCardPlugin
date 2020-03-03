@@ -3,6 +3,8 @@ setono_sylius_gift_card:
         gift_card:
             does_not_exist: The gift card with this code does not exist
             not_blank: Please enter code
+    channel_configuration:
+        unique_channel_locale: This combination of channel and locale are already used
     gift_card:
         code:
             not_blank: Please enter code

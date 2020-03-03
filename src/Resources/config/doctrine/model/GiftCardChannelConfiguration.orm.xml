@@ -3,7 +3,7 @@
 
     <mapped-superclass name="Setono\SyliusGiftCardPlugin\Model\GiftCardChannelConfiguration" table="setono_sylius_gift_card__channel_configuration">
         <unique-constraints>
-            <unique-constraint columns="channel_id,locale_id,configuration_id" name="unique_key" />
+            <unique-constraint columns="channel_id,locale_id" name="unique_channel_locale" />
         </unique-constraints>
         <id name="id" column="id" type="integer">
             <generator strategy="AUTO"/>
