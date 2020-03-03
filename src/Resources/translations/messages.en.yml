@@ -21,6 +21,7 @@ setono_sylius_gift_card:
         average_amount: Average amount
         count: Count
         create_for_channel: Create for %channel%
+        download_pdf: PDF
         enter_gift_card_code: Enter gift card code
         edit_gift_card_configuration: Edit gift card configuration
         gift_card: Gift card
