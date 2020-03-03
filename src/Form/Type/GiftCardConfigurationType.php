@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
-use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 
@@ -26,11 +26,12 @@ final class GiftCardConfigurationType extends AbstractResourceType
             'required' => false,
             'remove_type' => true,
         ]);
-        $builder->add('channels', ChannelChoiceType::class, [
-            'label' => 'setono_sylius_gift_card.form.gift_card_configuration.channels',
-            'multiple' => true,
-            'expanded' => true,
-            'required' => false,
+        $builder->add('channelConfigurations', CollectionType::class, [
+            'label' => 'setono_sylius_gift_card.form.gift_card_configuration.channel_configurations',
+            'entry_type' => ChannelConfigurationType::class,
+            'allow_add' => true,
+            'allow_delete' => true,
+            'by_reference' => false,
         ]);
     }
 

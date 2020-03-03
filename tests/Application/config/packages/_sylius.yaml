@@ -13,13 +13,6 @@ sylius_shop:
     product_grid:
         include_all_descendants: true
 
-
-sylius_channel:
-    resources:
-        channel:
-            classes:
-                model: Tests\Setono\SyliusGiftCardPlugin\Application\Model\Channel
-
 sylius_customer:
     resources:
         customer:
