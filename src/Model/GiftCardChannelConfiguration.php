@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Model;
 
 use Sylius\Component\Channel\Model\ChannelInterface as SyliusChannelInterface;
 use Sylius\Component\Locale\Model\LocaleInterface;
+use Webmozart\Assert\Assert;
 
 class GiftCardChannelConfiguration implements GiftCardChannelConfigurationInterface
 {
@@ -33,6 +34,7 @@ class GiftCardChannelConfiguration implements GiftCardChannelConfigurationInterf
 
     public function setChannel(?SyliusChannelInterface $channel): void
     {
+        Assert::notNull($channel);
         $this->channel = $channel;
     }
 
