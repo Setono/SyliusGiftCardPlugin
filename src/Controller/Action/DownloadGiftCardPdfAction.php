@@ -71,11 +71,7 @@ final class DownloadGiftCardPdfAction
             return new RedirectResponse($redirectUrl);
         }
 
-        $configuration = $giftCard->getConfiguration();
-        if (!$configuration instanceof GiftCardConfigurationInterface) {
-            $configuration = $this->configurationProvider->getConfigurationForGiftCard($giftCard);
-        }
-
+        $configuration = $this->configurationProvider->getConfigurationForGiftCard($giftCard);
         if (!$configuration instanceof GiftCardConfigurationInterface) {
             throw new NotFoundHttpException(sprintf('Configuration not found for gift card %d', $giftCard->getId()));
         }

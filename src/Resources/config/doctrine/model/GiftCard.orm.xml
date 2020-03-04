@@ -34,9 +34,6 @@
 
         <many-to-many field="appliedOrders" target-entity="Sylius\Component\Order\Model\OrderInterface"
                       mapped-by="giftCards"/>
-
-        <many-to-one field="configuration"
-                     target-entity="Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface" />
     </mapped-superclass>
 
 </doctrine-mapping>
