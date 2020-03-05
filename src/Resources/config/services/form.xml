@@ -8,6 +8,18 @@
             <parameter>setono_sylius_gift_card</parameter>
         </parameter>
 
+        <parameter key="setono_sylius_gift_card.form.type.gift_card_configuration.validation_groups" type="collection">
+            <parameter>setono_sylius_gift_card</parameter>
+        </parameter>
+
+        <parameter key="setono_sylius_gift_card.form.type.gift_card_configuration_image.validation_groups" type="collection">
+            <parameter>setono_sylius_gift_card</parameter>
+        </parameter>
+
+        <parameter key="setono_sylius_gift_card.form.type.gift_card_channel_configuration.validation_groups" type="collection">
+            <parameter>setono_sylius_gift_card</parameter>
+        </parameter>
+
         <parameter key="setono_sylius_gift_card.form.type.gift_card_search.validation_groups" type="collection">
             <parameter>setono_sylius_gift_card</parameter>
         </parameter>
@@ -41,6 +53,27 @@
             <argument type="service" id="sylius.repository.currency"/>
             <argument type="service" id="setono_sylius_gift_card.generator.gift_card_code"/>
             <argument>%setono_sylius_gift_card.form.type.gift_card.validation_groups%</argument>
+            <tag name="form.type"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.form.type.gift_card_configuration"
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType">
+            <argument>%setono_sylius_gift_card.model.gift_card_configuration.class%</argument>
+            <argument>%setono_sylius_gift_card.form.type.gift_card_configuration.validation_groups%</argument>
+            <tag name="form.type"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.form.type.gift_card_configuration_image"
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationImageType">
+            <argument>%setono_sylius_gift_card.model.gift_card_configuration_image.class%</argument>
+            <argument>%setono_sylius_gift_card.form.type.gift_card_configuration_image.validation_groups%</argument>
+            <tag name="form.type"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.form.type.gift_card_channel_configuration"
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardChannelConfigurationType">
+            <argument>%setono_sylius_gift_card.model.gift_card_channel_configuration.class%</argument>
+            <argument>%setono_sylius_gift_card.form.type.gift_card_channel_configuration.validation_groups%</argument>
             <tag name="form.type"/>
         </service>
 

@@ -1,0 +1,17 @@
+{% form_theme form '@SyliusAdmin/Form/imagesTheme.html.twig' %}
+
+<div class="ui two column stackable grid">
+    <div class="column">
+        <div class="ui segment">
+            {{ form_row(form.code) }}
+            {{ form_row(form.backgroundImage) }}
+        </div>
+    </div>
+    <div class="column">
+        <div class="ui segment">
+            {{ form_row(form.enabled) }}
+            {{ form_row(form.default) }}
+            {{ form_row(form.channelConfigurations) }}
+        </div>
+    </div>
+</div>

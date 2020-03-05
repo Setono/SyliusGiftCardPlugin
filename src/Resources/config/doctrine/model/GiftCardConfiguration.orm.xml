@@ -1,0 +1,36 @@
+<doctrine-mapping xmlns:gedmo="http://gediminasm.org/schemas/orm/doctrine-extensions-mapping"
+                  xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
+
+    <mapped-superclass name="Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration" table="setono_sylius_gift_card__configuration">
+        <id name="id" column="id" type="integer">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="code" unique="true"/>
+        <field name="enabled" type="boolean"/>
+        <field name="default" type="boolean" column="is_default" >
+            <options>
+                <option name="default">0</option>
+            </options>
+        </field>
+
+        <field name="createdAt" column="created_at" type="datetime">
+            <gedmo:timestampable on="create"/>
+        </field>
+
+        <field name="updatedAt" column="updated_at" type="datetime" nullable="true">
+            <gedmo:timestampable on="update"/>
+        </field>
+
+        <one-to-many field="images" target-entity="Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImageInterface"
+                    mapped-by="owner" orphan-removal="true">
+            <cascade><cascade-all /></cascade>
+        </one-to-many>
+        <one-to-many field="channelConfigurations"
+                     target-entity="Setono\SyliusGiftCardPlugin\Model\GiftCardChannelConfigurationInterface"
+                     mapped-by="configuration" orphan-removal="true">
+            <cascade><cascade-all /></cascade>
+        </one-to-many>
+    </mapped-superclass>
+
+</doctrine-mapping>

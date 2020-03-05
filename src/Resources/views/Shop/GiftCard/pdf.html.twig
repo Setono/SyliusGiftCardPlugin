@@ -1,0 +1,17 @@
+<html lang="{{ sylius_base_locale }}">
+<head></head>
+<body>
+{% if configuration.backgroundImage is not empty %}
+    {% set path = configuration.backgroundImage.path|imagine_filter('setono_sylius_gift_card_background') %}
+{% else %}
+    {% set path = '//placehold.it/200x200' %}
+{% endif %}
+<img src="{{ path }}" alt="">
+<span class="code-block" style="position: absolute; top: 515px; left: 55px; font-size: 3.2rem; width: 1100px; text-align: center;">
+    {{- giftCard.code -}}
+</span>
+<span class="price-block" style="position: absolute; top: 625px; left: 55px; font-size: 3.2rem; width: 400px; text-align: center;">
+    {{- giftCard.amount|sylius_format_money(giftCard.currencyCode, sylius_base_locale) -}}
+</span>
+</body>
+</html>

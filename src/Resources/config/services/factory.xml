@@ -10,5 +10,12 @@
             <argument type="service" id="setono_sylius_gift_card.custom_factory.gift_card.inner"/>
             <argument type="service" id="setono_sylius_gift_card.generator.gift_card_code"/>
         </service>
+
+        <service id="setono_sylius_gift_card.custom_factory.gift_card_configuration"
+                 class="Setono\SyliusGiftCardPlugin\Factory\GiftCardConfigurationFactory"
+                 decorates="setono_sylius_gift_card.factory.gift_card_configuration">
+            <argument type="service" id="setono_sylius_gift_card.custom_factory.gift_card_configuration.inner" />
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_configuration_image" />
+        </service>
     </services>
 </container>
