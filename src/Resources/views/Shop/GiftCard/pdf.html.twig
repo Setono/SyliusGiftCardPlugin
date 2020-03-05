@@ -1,5 +1,7 @@
 <html lang="{{ sylius_base_locale }}">
-<head></head>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
 <body>
 {% if configuration.backgroundImage is not empty %}
     {% set path = configuration.backgroundImage.path|imagine_filter('setono_sylius_gift_card_background') %}
