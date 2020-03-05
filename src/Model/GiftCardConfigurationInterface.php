@@ -35,7 +35,7 @@ interface GiftCardConfigurationInterface extends
 
     public function removeChannelConfiguration(GiftCardChannelConfigurationInterface $channelConfiguration): void;
 
-    public function isDefault(): ?bool;
+    public function isDefault(): bool;
 
-    public function setDefault(?bool $default): void;
+    public function setDefault(bool $default): void;
 }

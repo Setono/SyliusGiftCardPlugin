@@ -24,7 +24,7 @@ final class GiftCardConfigurationImageType extends ImageType
         parent::configureOptions($resolver);
 
         $resolver->setDefault('remove_type', false);
-        $resolver->setAllowedTypes('remove_type', ['null', 'bool']);
+        $resolver->setAllowedTypes('remove_type', ['bool']);
     }
 
     public function getBlockPrefix(): string

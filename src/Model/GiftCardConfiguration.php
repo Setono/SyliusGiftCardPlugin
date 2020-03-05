@@ -7,6 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Model;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Sylius\Component\Core\Model\ImageInterface;
+use Sylius\Component\Resource\Model\CodeAwareInterface;
 use Sylius\Component\Resource\Model\TimestampableTrait;
 use Sylius\Component\Resource\Model\ToggleableTrait;
 
@@ -27,7 +28,7 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
     /** @var GiftCardChannelConfigurationInterface[]|Collection */
     protected $channelConfigurations;
 
-    /** @var bool|null */
+    /** @var bool */
     protected $default = false;
 
     public function __construct()
@@ -150,12 +151,12 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         }
     }
 
-    public function isDefault(): ?bool
+    public function isDefault(): bool
     {
         return $this->default;
     }
 
-    public function setDefault(?bool $default): void
+    public function setDefault(bool $default): void
     {
         $this->default = $default;
     }
