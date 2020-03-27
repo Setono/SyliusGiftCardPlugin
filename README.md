@@ -91,9 +91,11 @@ You will find the templates you need to override in the [test application](https
 ```php
 <?php
 
+# src/Entity/Product/Product.php
+
 declare(strict_types=1);
 
-namespace App\Entity;
+namespace App\Entity\Product;
 
 use Doctrine\ORM\Mapping as ORM;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface as SetonoSyliusGiftCardProductInterface;
@@ -115,11 +117,11 @@ class Product extends BaseProduct implements SetonoSyliusGiftCardProductInterfac
 ```php
 <?php
 
-# src/Entity/Order.php
+# src/Entity/Order/Order.php
 
 declare(strict_types=1);
 
-namespace App\Entity;
+namespace App\Entity\Order;
 
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface as SetonoSyliusGiftCardPluginOrderInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderTrait as SetonoSyliusGiftCardPluginOrderTrait;
@@ -194,14 +196,14 @@ sylius_order:
     resources:
         order:
             classes:
-                model: App\Entity\Order
+                model: App\Entity\Order\Order
                 repository: App\Doctrine\ORM\OrderRepository
                 
 sylius_product:
     resources:
         product:
             classes:
-                model: App\Entity\Product
+                model: App\Entity\Product\Product
 ```
 
 ### Update your database:
