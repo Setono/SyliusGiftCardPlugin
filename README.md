@@ -135,6 +135,13 @@ class Order extends BaseOrder implements SetonoSyliusGiftCardPluginOrderInterfac
     use SetonoSyliusGiftCardPluginOrderTrait {
         SetonoSyliusGiftCardPluginOrderTrait::__construct as private __giftCardTraitConstruct;
     }
+    
+    public function __construct()
+    {
+        $this->__giftCardTraitConstruct();
+
+        parent::__construct();
+    }
 }
 ```
     
