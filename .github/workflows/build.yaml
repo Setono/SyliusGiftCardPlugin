@@ -14,6 +14,8 @@ jobs:
                 operating-system: [ubuntu-latest]
                 php-versions: ['7.3', '7.4']
         steps:
+            -   name: Start MySQL
+                run: sudo /etc/init.d/mysql start
             -   name: Set environment variables
                 run: |
                     echo "::set-env name=APP_ENV::test"
