@@ -7,6 +7,7 @@
         <service id="setono_sylius_gift_card.provider.gift_card_configuration"
                  class="Setono\SyliusGiftCardPlugin\Provider\GiftCardChannelConfigurationProvider">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_channel_configuration" />
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration" />
             <argument type="service" id="sylius.context.locale" />
             <argument type="service" id="sylius.repository.locale" />
         </service>
