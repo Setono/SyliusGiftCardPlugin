@@ -20,6 +20,9 @@ final class GiftCardChannelConfigurationProvider implements GiftCardChannelConfi
     /** @var RepositoryInterface */
     private $configurationRepository;
 
+    /** @var RepositoryInterface */
+    private $defaultConfigurationRepository;
+
     /** @var LocaleContextInterface */
     private $localeContext;
 
@@ -28,10 +31,12 @@ final class GiftCardChannelConfigurationProvider implements GiftCardChannelConfi
 
     public function __construct(
         RepositoryInterface $configurationRepository,
+        RepositoryInterface $defaultConfigurationRepository,
         LocaleContextInterface $localeContext,
         RepositoryInterface $localeRepository
     ) {
         $this->configurationRepository = $configurationRepository;
+        $this->defaultConfigurationRepository = $defaultConfigurationRepository;
         $this->localeContext = $localeContext;
         $this->localeRepository = $localeRepository;
     }
@@ -39,15 +44,13 @@ final class GiftCardChannelConfigurationProvider implements GiftCardChannelConfi
     public function getConfiguration(ChannelInterface $channel, LocaleInterface $locale): ?GiftCardConfigurationInterface
     {
         $channelConfiguration = $this->configurationRepository->findOneBy(['channel' => $channel, 'locale' => $locale]);
-        if (!$channelConfiguration instanceof GiftCardChannelConfigurationInterface) {
-            $channelConfiguration = $this->configurationRepository->findOneBy(['default' => true]);
-        }
-
         if ($channelConfiguration instanceof GiftCardChannelConfigurationInterface) {
-            return $channelConfiguration->getConfiguration();
+            $configuration = $channelConfiguration->getConfiguration();
+        } else {
+            $configuration = $this->defaultConfigurationRepository->findOneBy(['default' => true]);
         }
 
-        return null;
+        return $configuration;
     }
 
     public function getConfigurationForGiftCard(GiftCardInterface $giftCard): ?GiftCardConfigurationInterface
