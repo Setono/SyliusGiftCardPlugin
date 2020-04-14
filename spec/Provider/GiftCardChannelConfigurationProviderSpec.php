@@ -18,10 +18,11 @@ final class GiftCardChannelConfigurationProviderSpec extends ObjectBehavior
 {
     public function let(
         RepositoryInterface $configurationRepository,
+        RepositoryInterface $defaultConfigurationRepository,
         LocaleContextInterface $localeContext,
         RepositoryInterface $localeRepository
     ) {
-        $this->beConstructedWith($configurationRepository, $localeContext, $localeRepository);
+        $this->beConstructedWith($configurationRepository, $defaultConfigurationRepository, $localeContext, $localeRepository);
     }
 
     public function it_is_initializable(): void
@@ -49,6 +50,7 @@ final class GiftCardChannelConfigurationProviderSpec extends ObjectBehavior
 
     public function it_provides_default_configuration_if_none_found(
         RepositoryInterface $configurationRepository,
+        RepositoryInterface $defaultConfigurationRepository,
         ChannelInterface $channel,
         LocaleInterface $locale
     ) {
@@ -57,7 +59,7 @@ final class GiftCardChannelConfigurationProviderSpec extends ObjectBehavior
         $defaultConfiguration = new GiftCardConfiguration();
         $defaultChannelConfiguration = new GiftCardChannelConfiguration();
         $defaultChannelConfiguration->setConfiguration($defaultConfiguration);
-        $configurationRepository->findOneBy(['default' => true])->willReturn($defaultChannelConfiguration);
+        $defaultConfigurationRepository->findOneBy(['default' => true])->willReturn($defaultConfiguration);
 
         $this->getConfiguration($channel, $locale)->shouldReturn($defaultConfiguration);
     }
