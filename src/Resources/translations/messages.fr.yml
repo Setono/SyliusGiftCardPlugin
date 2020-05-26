@@ -1,0 +1,56 @@
+setono_sylius_gift_card:
+    form:
+        channel_configuration:
+            channel: Canal
+            locale: Langue
+        gift_card:
+            channel: Canal
+        gift_card_configuration:
+            background_image: Image de fond
+            channel_configurations: Configurations des canaux
+            code: Code
+            default: Configuration par défaut
+            enabled: Activé
+        product:
+            gift_card: Chèque-cadeau
+    ui:
+        active: Actif
+        add_gift_card_to_order: Ajouter le chèque-cadeau
+        covered_by_gift_cards: Montant pris en charge
+        amount: Montant
+        average_amount: Montant moyen
+        count: Nombre
+        create_for_channel: Créer pour %channel%
+        download_pdf: PDF
+        enter_gift_card_code: Renseignez le numéro de chèque-cadeau
+        edit_gift_card_configuration: Modifier la configuration
+        gift_card: Chèque-cadeau
+        gift_card_configurations: Config. chèques-cadeaux
+        gift_card_balance: Solde
+        gift_card_channel_does_not_match_channel: Ce chèque-cadeau a été acheté sur un autre canal, veuillez l'utiliser sur %channel%
+        gift_card_code_is_invalid: Numéro de chèque-cadeau invalide
+        gift_cards: Chèques-cadeaux
+        gift_card_search: Chercher un chèque cadeau
+        applied_gift_cards: Chèques-cadeaux utilisés
+        gift_cards_adjustment_total: Montant des chèques-cadeaux
+        initial_amount: Montant initial
+        bought_at_order: Commande d'origine
+        list_orders: Lister les commandes
+        manage_gift_cards: Gérer les chèques-cadeaux
+        manage_gift_card_configurations: Gérer les configurations de chèques-cadeaux
+        new_gift_card: Nouveau chèque-cadeau
+        new_gift_card_configuration: Nouvelle configuration de chèque-cadeau
+        manually_created: Créé manuellement
+        no_gift_card: Pas de chèque-cadeau utilisé
+        total: Total
+        your_gift_card_will_only_be_charged_if_you_complete_your_order: Votre chèque-cadeau ne sera débité que si vous complétez votre commande
+    email:
+        your_gift_card: Votre chèque cadeau
+        balance: Solde
+        your_gift_cards_you_bought_in_the_order: Vos chèques-cadeaux achetés avec cette commande
+
+# Missing from Sylius for some reason
+sylius:
+    form:
+        locale:
+            select: Sélectionnez une langue

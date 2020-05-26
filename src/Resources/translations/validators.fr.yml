@@ -1,0 +1,20 @@
+setono_sylius_gift_card:
+    add_gift_card_to_order_command:
+        gift_card:
+            does_not_exist: Ce code de chèque-cadeau n'existe pas
+            not_blank: Veuillez renseigner un code
+    channel_configuration:
+        unique_channel_locale: Cette combinaison de canal et langue est déjà utilisée
+    gift_card:
+        code:
+            not_blank: Veuillez renseigner un code
+            unique: Le code doit être unique
+            max_length: Le code ne doit pas dépasser {{ limit }} caractères|Le code ne doit pas dépasser {{ limit }} caractères
+        amount:
+            not_blank: Veuillez renseigner un montant
+            integer: Le montant doit être un entier
+            min: Le montant ne dois pas être en-dessous de 1
+    gift_card_search_command:
+        gift_card:
+            does_not_exist: Ce code de chèque-cadeau n'existe pas
+            not_blank: Veuillez renseigner un code
