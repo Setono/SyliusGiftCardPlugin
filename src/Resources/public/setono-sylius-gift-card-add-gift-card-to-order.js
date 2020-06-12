@@ -8,7 +8,7 @@
       let redirectUrl = $element.data('redirect');
       let validationElement = $('#setono-sylius-gift-card-cart-validation-error');
 
-      $element.api({
+      $.ajax({
         method: 'POST',
         on: 'submit',
         url,
