@@ -21,7 +21,7 @@ trait CustomerRepositoryTrait
         return $this->createQueryBuilder('o')
             ->andWhere('o.email LIKE :phrase')
             ->setParameter('phrase', '%' . $email . '%')
-            ->setMaxResult($limit)
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult()
         ;
