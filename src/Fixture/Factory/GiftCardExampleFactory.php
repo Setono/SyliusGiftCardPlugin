@@ -83,7 +83,7 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
 
         $giftCard->setCode($options['code']);
         $giftCard->setChannel($options['channel']);
-        $giftCard->setCurrencyCode($currency->getCode());
+        $giftCard->setCurrencyCode((string) $currency->getCode());
 
         if (null === $giftCard->getId()) {
             // We can change initial amount only if it wasn't specified before

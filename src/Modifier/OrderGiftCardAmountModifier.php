@@ -31,7 +31,7 @@ final class OrderGiftCardAmountModifier implements OrderGiftCardAmountModifierIn
     public function decrement(OrderInterface $order): void
     {
         foreach ($order->getAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT) as $adjustment) {
-            $giftCard = self::getGiftCard($order, $adjustment->getOriginCode());
+            $giftCard = self::getGiftCard($order, (string) $adjustment->getOriginCode());
 
             $amount = abs($adjustment->getAmount());
 
@@ -56,7 +56,7 @@ final class OrderGiftCardAmountModifier implements OrderGiftCardAmountModifierIn
     public function increment(OrderInterface $order): void
     {
         foreach ($order->getAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT) as $adjustment) {
-            $giftCard = self::getGiftCard($order, $adjustment->getOriginCode());
+            $giftCard = self::getGiftCard($order, (string) $adjustment->getOriginCode());
 
             $giftCard->setAmount($giftCard->getAmount() + abs($adjustment->getAmount()));
 

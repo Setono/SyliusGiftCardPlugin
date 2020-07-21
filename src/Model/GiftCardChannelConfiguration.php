@@ -53,7 +53,7 @@ class GiftCardChannelConfiguration implements GiftCardChannelConfigurationInterf
         return $this->configuration;
     }
 
-    public function setConfiguration(GiftCardConfigurationInterface $configuration): void
+    public function setConfiguration(?GiftCardConfigurationInterface $configuration): void
     {
         $this->configuration = $configuration;
     }

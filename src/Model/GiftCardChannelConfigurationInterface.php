@@ -16,5 +16,5 @@ interface GiftCardChannelConfigurationInterface extends ResourceInterface, Chann
 
     public function getConfiguration(): ?GiftCardConfigurationInterface;
 
-    public function setConfiguration(GiftCardConfigurationInterface $configuration): void;
+    public function setConfiguration(?GiftCardConfigurationInterface $configuration): void;
 }

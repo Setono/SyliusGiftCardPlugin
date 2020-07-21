@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Webmozart\Assert\Assert;
 
 final class AddGiftCardToOrderAction
 {
@@ -68,7 +69,9 @@ final class AddGiftCardToOrderAction
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->giftCardApplicator->apply($order, $addGiftCardToOrderCommand->getGiftCard());
+            $giftCard = $addGiftCardToOrderCommand->getGiftCard();
+            Assert::notNull($giftCard);
+            $this->giftCardApplicator->apply($order, $giftCard);
 
             $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_added');
 

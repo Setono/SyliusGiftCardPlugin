@@ -73,6 +73,8 @@ final class GiftCardChannelConfigurationProvider implements GiftCardChannelConfi
             $locale = $channel->getDefaultLocale();
         }
 
+        Assert::notNull($locale);
+
         return $this->getConfiguration($channel, $locale);
     }
 }

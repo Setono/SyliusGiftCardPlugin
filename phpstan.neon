@@ -1,10 +1,3 @@
-includes:
-	- vendor/korbeil/phpstan-generic-rules/extension.neon
-	- vendor/phpstan/phpstan-doctrine/extension.neon
-	- vendor/phpstan/phpstan-strict-rules/rules.neon
-	- vendor/phpstan/phpstan-webmozart-assert/extension.neon
-	- vendor/thecodingmachine/phpstan-safe-rule/phpstan-safe-rule.neon
-
 parameters:
     reportUnmatchedIgnoredErrors: true
     checkMissingIterableValueType: false
@@ -15,6 +8,6 @@ parameters:
         - 'src/DependencyInjection/Configuration.php'
 
     ignoreErrors:
-        - '/Parameter #1 $configuration of method Symfony\Component\DependencyInjection\Extension\Extension::processConfiguration() expects Symfony\Component\Config\Definition\ConfigurationInterface, Symfony\Component\Config\Definition\ConfigurationInterface|null given./'
+        - '/Parameter \#1 \$configuration of method Symfony\\Component\\DependencyInjection\\Extension\\Extension::processConfiguration\(\) expects Symfony\\Component\\Config\\Definition\\ConfigurationInterface, Symfony\\Component\\Config\\Definition\\ConfigurationInterface\|null given\./'
         - '/Cannot call method scalarNode\(\) on .+\\NodeParentInterface\|null./'
 
