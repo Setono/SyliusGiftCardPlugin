@@ -16,12 +16,12 @@ trait CustomerRepositoryTrait
      */
     abstract public function createQueryBuilder($alias, $indexBy = null);
 
-    public function findByEmailPart(string $email, int $limit = 10): array
+    public function findByEmailPart(string $email): array
     {
         return $this->createQueryBuilder('o')
             ->andWhere('o.email LIKE :phrase')
             ->setParameter('phrase', '%' . $email . '%')
-            ->setMaxResults($limit)
+            ->setMaxResults(10)
             ->getQuery()
             ->getResult()
         ;
