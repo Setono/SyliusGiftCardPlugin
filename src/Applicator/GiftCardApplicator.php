@@ -57,7 +57,7 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
             throw new RuntimeException('The channel on the gift card cannot be null');
         }
 
-        if ($orderChannel !== $giftCardChannel) {
+        if ($orderChannel->getCode() !== $giftCardChannel->getCode()) {
             throw new ChannelMismatchException($giftCardChannel, $orderChannel);
         }
 
