@@ -8,7 +8,7 @@ setono_sylius_gift_card_admin_ajax_customer_by_email_phrase:
             serialization_groups: [Default]
             permission: true
             repository:
-                method: findByEmailPart
+                method: findByEmailPartForGiftCard
                 arguments:
                     email: $phrase
 
