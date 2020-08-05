@@ -19,9 +19,8 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
 
     /** @var LocaleAwareInterface */
     private $translator;
-    /**
-     * @var CustomerChannelResolverInterface
-     */
+
+    /** @var CustomerChannelResolverInterface */
     private $customerChannelResolver;
 
     public function __construct(

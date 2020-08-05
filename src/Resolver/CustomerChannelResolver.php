@@ -35,15 +35,15 @@ final class CustomerChannelResolver implements CustomerChannelResolverInterface
             }
         }
 
-        /** @var ChannelInterface[] $channels */
-        $channels = $this->channelRepository->findBy([
+        /** @var ChannelInterface|null $channel */
+        $channel = $this->channelRepository->findOneBy([
             'enabled' => true,
         ]);
 
-        if (count($channels) === 0) {
+        if (null === $channel) {
             throw new \RuntimeException('There are no enabled channels');
         }
 
-        return $channels[0];
+        return $channel;
     }
 }
