@@ -15,6 +15,7 @@
         <service id="setono_sylius_gift_card.email_manager.gift_card_order"
                  class="Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManager">
             <argument type="service" id="sylius.email_sender"/>
+            <argument type="service" id="translator"/>
         </service>
 
         <!-- Needs to be public because it is called from the state machine -->
