@@ -8,15 +8,12 @@ use function get_class;
 use function gettype;
 use InvalidArgumentException;
 use function is_object;
-use Safe\Exceptions\StringsException;
 use function Safe\sprintf;
 
 final class UnexpectedTypeException extends InvalidArgumentException implements ExceptionInterface
 {
     /**
      * @param object|mixed $value
-     *
-     * @throws StringsException
      */
     public function __construct($value, string ...$expectedTypes)
     {

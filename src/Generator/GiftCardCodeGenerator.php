@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Generator;
 
-use Exception;
-use Safe\Exceptions\PcreException;
 use function Safe\preg_replace;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 
@@ -23,10 +21,6 @@ final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
         $this->codeLength = $codeLength;
     }
 
-    /**
-     * @throws Exception
-     * @throws PcreException
-     */
     public function generate(): string
     {
         do {

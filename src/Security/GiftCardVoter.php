@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Security;
 
+use LogicException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -18,7 +19,7 @@ final class GiftCardVoter extends Voter
 
     protected function supports($attribute, $subject): bool
     {
-        if (!\in_array($attribute, [self::READ], true)) {
+        if (self::READ !== $attribute) {
             return false;
         }
 
@@ -50,7 +51,7 @@ final class GiftCardVoter extends Voter
                 return $this->canRead($giftCard, $user);
         }
 
-        throw new \LogicException('This code should not be reached.');
+        throw new LogicException('This code should not be reached.');
     }
 
     private function canRead(GiftCardInterface $giftCard, ShopUserInterface $user): bool
