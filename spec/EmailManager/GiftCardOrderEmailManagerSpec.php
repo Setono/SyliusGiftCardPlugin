@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace spec\Setono\SyliusGiftCardPlugin\EmailManager;
 
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManager;
-use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManagerInterface;
+use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManager;
+use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManagerInterface;
+use Setono\SyliusGiftCardPlugin\Mailer\Emails;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -21,12 +22,12 @@ final class GiftCardOrderEmailManagerSpec extends ObjectBehavior
 
     public function it_is_initializable(): void
     {
-        $this->shouldHaveType(GiftCardOrderEmailManager::class);
+        $this->shouldHaveType(GiftCardEmailManager::class);
     }
 
     public function it_implements_gift_card_order_email_manager_interface(): void
     {
-        $this->shouldHaveType(GiftCardOrderEmailManagerInterface::class);
+        $this->shouldHaveType(GiftCardEmailManagerInterface::class);
     }
 
     public function it_sends_email_with_gift_card_codes(
@@ -39,7 +40,7 @@ final class GiftCardOrderEmailManagerSpec extends ObjectBehavior
         $order->getCustomer()->willReturn($customer);
 
         $sender->send(
-            GiftCardOrderEmailManagerInterface::EMAIL_CONFIG_NAME,
+            Emails::GIFT_CARD_ORDER,
             ['example@shop.com'],
             ['giftCards' => [$giftCard], 'order' => $order]
         )->shouldBeCalled();

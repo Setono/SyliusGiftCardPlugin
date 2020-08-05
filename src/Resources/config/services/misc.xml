@@ -13,7 +13,7 @@
         </service>
 
         <service id="setono_sylius_gift_card.email_manager.gift_card_order"
-                 class="Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManager">
+                 class="Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManager">
             <argument type="service" id="sylius.email_sender"/>
         </service>
 

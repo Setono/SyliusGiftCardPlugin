@@ -7,7 +7,7 @@ namespace spec\Setono\SyliusGiftCardPlugin\Operator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManagerInterface;
+use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManagerInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
@@ -24,7 +24,7 @@ class OrderGiftCardOperatorSpec extends ObjectBehavior
         GiftCardFactoryInterface $giftCardFactory,
         GiftCardRepositoryInterface $giftCardRepository,
         EntityManagerInterface $giftCardManager,
-        GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager
+        GiftCardEmailManagerInterface $giftCardOrderEmailManager
     ): void {
         $this->beConstructedWith(
             $giftCardFactory,
@@ -122,7 +122,7 @@ class OrderGiftCardOperatorSpec extends ObjectBehavior
         OrderItemUnitInterface $orderItemUnit,
         GiftCardInterface $giftCard,
         GiftCardRepositoryInterface $giftCardRepository,
-        GiftCardOrderEmailManagerInterface $giftCardOrderEmailManager
+        GiftCardEmailManagerInterface $giftCardOrderEmailManager
     ): void {
         $product->isGiftCard()->willReturn(true);
 
@@ -132,7 +132,7 @@ class OrderGiftCardOperatorSpec extends ObjectBehavior
 
         $giftCardRepository->findOneByOrderItemUnit($orderItemUnit)->willReturn($giftCard);
 
-        $giftCardOrderEmailManager->sendEmailWithGiftCards($order, [$giftCard])->shouldBeCalled();
+        $giftCardOrderEmailManager->sendEmailWithGiftCardsFromOrder($order, [$giftCard])->shouldBeCalled();
 
         $this->send($order);
     }
