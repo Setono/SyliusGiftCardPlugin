@@ -9,6 +9,9 @@ imports:
 
 sylius_mailer:
     emails:
+        gift_card_customer:
+            subject: setono_sylius_gift_card.email.new_gift_card
+            template: "@SetonoSyliusGiftCardPlugin/Email/giftCardToCustomer.html.twig"
         gift_card_order:
             subject: setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order
             template: "@SetonoSyliusGiftCardPlugin/Email/giftCardsFromOrder.html.twig"

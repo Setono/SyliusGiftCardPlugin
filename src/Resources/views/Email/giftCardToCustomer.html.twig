@@ -1,0 +1,13 @@
+{# @var \Sylius\Component\Core\Model\CustomerInterface customer #}
+{# @var \Setono\SyliusGiftCardPlugin\Model\GiftCardInterface giftCard #}
+{% extends '@SyliusAdmin/Email/layout.html.twig' %}
+
+{% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
+
+{% block subject %}{{ 'setono_sylius_gift_card.email.new_gift_card'|trans }}{% endblock %}
+
+{% block content %}
+    <p>{{ 'setono_sylius_gift_card.email.new_gift_card_intro'|trans }}</p>
+
+    <b>{{ giftCard.code }}</b> ({{ 'setono_sylius_gift_card.email.balance'|trans }}: {{ money.convertAndFormat(giftCard.amount) }})<br>
+{% endblock %}
