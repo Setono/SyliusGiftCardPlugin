@@ -12,14 +12,14 @@ use Doctrine\ORM\EntityRepository;
  */
 trait CustomerRepositoryTrait
 {
-    public function findByEmailPart(string $email): array
+    public function findByEmailPartForGiftCard(string $email, int $limit = 10): array
     {
         assert($this instanceof EntityRepository);
 
         return $this->createQueryBuilder('o')
             ->andWhere('o.email LIKE :phrase')
             ->setParameter('phrase', '%' . $email . '%')
-            ->setMaxResults(10)
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult()
         ;
