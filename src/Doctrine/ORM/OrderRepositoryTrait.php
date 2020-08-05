@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Doctrine\ORM;
 
+use function assert;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Sylius\Component\Core\OrderCheckoutStates;
 
+/**
+ * @mixin EntityRepository
+ */
 trait OrderRepositoryTrait
 {
-    /**
-     * @param string $alias
-     * @param string|null $indexBy The index for the from.
-     *
-     * @return QueryBuilder
-     */
-    abstract public function createQueryBuilder($alias, $indexBy = null);
-
     public function createQueryBuilderByGiftCard(string $giftCardId): QueryBuilder
     {
+        assert($this instanceof EntityRepository);
+
         return $this->createQueryBuilder('o')
             ->join('o.giftCards', 'g')
             ->andWhere('g.id = :id')
