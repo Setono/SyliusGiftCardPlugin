@@ -71,11 +71,11 @@ class GiftCardConfigurationExampleFactory extends AbstractExampleFactory impleme
 
         $giftCardConfiguration->setCode($options['code']);
         $giftCardConfiguration->setEnabled($options['enabled']);
-        $giftCardConfiguration->setDefault($options['default_configuration']);
+        $giftCardConfiguration->setDefault($options['default']);
 
         $imagePath = $options['background_image'];
 
-        $imagePath = $this->fileLocator === null ? $imagePath : $this->fileLocator->locate($imagePath);
+        $imagePath = $this->fileLocator->locate($imagePath);
         $uploadedImage = new UploadedFile($imagePath, basename($imagePath));
 
         /** @var GiftCardConfigurationImageInterface $image */
@@ -101,8 +101,8 @@ class GiftCardConfigurationExampleFactory extends AbstractExampleFactory impleme
             ->setDefault('enabled', true)
             ->setAllowedTypes('enabled', 'bool')
 
-            ->setDefault('default_configuration', false)
-            ->setAllowedTypes('default_configuration', 'bool')
+            ->setDefault('default', false)
+            ->setAllowedTypes('default', 'bool')
         ;
     }
 }

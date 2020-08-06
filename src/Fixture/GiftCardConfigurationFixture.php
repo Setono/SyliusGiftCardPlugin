@@ -21,7 +21,7 @@ class GiftCardConfigurationFixture extends AbstractResourceFixture
                 ->scalarNode('code')->cannotBeEmpty()->end()
                 ->scalarNode('background_image')->cannotBeEmpty()->end()
                 ->booleanNode('enabled')->end()
-                ->booleanNode('default_configuration')->end()
+                ->booleanNode('default')->end()
         ;
     }
 }

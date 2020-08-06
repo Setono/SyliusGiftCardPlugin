@@ -38,4 +38,4 @@ sylius_fixtures:
                                 code: 'default_configuration'
                                 background_image: '@SetonoSyliusGiftCardPlugin/Resources/fixtures/default_background.jpg'
                                 enabled: true
-                                default_configuration: true
+                                default: true
