@@ -14,10 +14,27 @@
             <argument type="service" id="sylius.repository.currency"/>
         </service>
 
+        <service id="setono_sylius_gift_card.fixture.example_factory.gift_card_configuration"
+                 class="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardConfigurationExampleFactory">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration"/>
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_configuration"/>
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_configuration_image"/>
+            <argument type="service" id="sylius.image_uploader"/>
+            <argument type="service" id="file_locator"/>
+        </service>
+
         <service id="setono_sylius_gift_card.fixture.gift_card"
                  class="Setono\SyliusGiftCardPlugin\Fixture\GiftCardFixture">
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card" />
             <argument type="service" id="setono_sylius_gift_card.fixture.example_factory.gift_card" />
+
+            <tag name="sylius_fixtures.fixture"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.fixture.gift_card_configuration"
+                 class="Setono\SyliusGiftCardPlugin\Fixture\GiftCardConfigurationFixture">
+            <argument type="service" id="setono_sylius_gift_card.manager.gift_card_configuration" />
+            <argument type="service" id="setono_sylius_gift_card.fixture.example_factory.gift_card_configuration" />
 
             <tag name="sylius_fixtures.fixture"/>
         </service>
