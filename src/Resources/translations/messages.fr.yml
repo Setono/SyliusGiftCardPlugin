@@ -16,9 +16,11 @@ setono_sylius_gift_card:
     ui:
         active: Actif
         add_gift_card_to_order: Ajouter le chèque-cadeau
-        covered_by_gift_cards: Montant pris en charge
         amount: Montant
+        applied_gift_cards: Chèques-cadeaux utilisés
         average_amount: Montant moyen
+        bought_at_order: Commande d'origine
+        covered_by_gift_cards: Montant pris en charge
         count: Nombre
         create_for_channel: Créer pour %channel%
         download_pdf: PDF
@@ -31,10 +33,8 @@ setono_sylius_gift_card:
         gift_card_code_is_invalid: Numéro de chèque-cadeau invalide
         gift_cards: Chèques-cadeaux
         gift_card_search: Chercher un chèque cadeau
-        applied_gift_cards: Chèques-cadeaux utilisés
         gift_cards_adjustment_total: Montant des chèques-cadeaux
         initial_amount: Montant initial
-        bought_at_order: Commande d'origine
         list_orders: Lister les commandes
         manage_gift_cards: Gérer les chèques-cadeaux
         manage_gift_card_configurations: Gérer les configurations de chèques-cadeaux
@@ -42,11 +42,14 @@ setono_sylius_gift_card:
         new_gift_card_configuration: Nouvelle configuration de chèque-cadeau
         manually_created: Créé manuellement
         no_gift_card: Pas de chèque-cadeau utilisé
+        resend_email: Renvoyer l'email
         total: Total
         your_gift_card_will_only_be_charged_if_you_complete_your_order: Votre chèque-cadeau ne sera débité que si vous complétez votre commande
     email:
-        your_gift_card: Votre chèque cadeau
         balance: Solde
+        new_gift_card: Nouveau chèque-cadeau
+        new_gift_card_intro: Un nouveau chèque-cadeau a été créé pour vous
+        your_gift_card: Votre chèque cadeau
         your_gift_cards_you_bought_in_the_order: Vos chèques-cadeaux achetés avec cette commande
 
 # Missing from Sylius for some reason

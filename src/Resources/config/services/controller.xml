@@ -48,6 +48,14 @@
             <argument type="service" id="router"/>
         </service>
 
+        <service id="setono_sylius_gift_card.controller.action.resend_email"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\ResendGiftCardEmailAction">
+            <argument type="service" id="setono_sylius_gift_card.email_manager.gift_card_order"/>
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+            <argument type="service" id="session.flash_bag"/>
+            <argument type="service" id="router"/>
+        </service>
+
     </services>
 
 </container>
