@@ -47,11 +47,17 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
             return;
         }
 
-        $this->wrapTemporaryLocale((string) $defaultLocale->getCode(), function () use ($email, $customer, $giftCard, $channel): void {
+        $this->wrapTemporaryLocale((string) $defaultLocale->getCode(), function () use ($email, $customer, $giftCard, $channel, $defaultLocale): void {
             $this->sender->send(
                 Emails::GIFT_CARD_CUSTOMER,
                 [$email],
-                ['customer' => $customer, 'giftCard' => $giftCard, 'channel' => $channel]
+                [
+                    'customer' => $customer,
+                    'giftCard' => $giftCard,
+                    'channel' => $channel,
+                    // We still need to inject locale to templates because layout is using it
+                    'localeCode' => $defaultLocale->getCode(),
+                ]
             );
         });
     }
@@ -82,7 +88,13 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
             $this->sender->send(
                 Emails::GIFT_CARD_ORDER,
                 [$email],
-                ['giftCards' => $giftCards, 'order' => $order, 'channel' => $channel]
+                [
+                    'giftCards' => $giftCards,
+                    'order' => $order,
+                    'channel' => $channel,
+                    // We still need to inject locale to templates because layout is using it
+                    'localeCode' => $order->getLocaleCode(),
+                ]
             );
         });
     }

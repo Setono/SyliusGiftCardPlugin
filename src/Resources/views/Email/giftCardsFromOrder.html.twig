@@ -1,11 +1,11 @@
 {# @var \Setono\SyliusGiftCardPlugin\Model\GiftCardInterface[] giftCards #}
 {% extends '@SyliusAdmin/Email/layout.html.twig' %}
 
-{% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
-
 {% block subject %}{{ 'setono_sylius_gift_card.email.your_gift_card'|trans }}{% endblock %}
 
 {% block content %}
+    {# This needs to be imported here since the rendering of emails only take the block to render it. Not whole template #}
+    {% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
     <p>
         {{ 'setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order'|trans ~ ' ' ~ order.number }}:
     </p>

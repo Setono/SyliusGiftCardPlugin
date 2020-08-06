@@ -48,13 +48,14 @@ final class GiftCardEmailManagerSpec extends ObjectBehavior
         $customer->getEmail()->willReturn('example@shop.com');
         $order->getCustomer()->willReturn($customer);
         $order->getChannel()->willReturn($channel);
+        $order->getLocaleCode()->willReturn('en_US');
         $channel->getDefaultLocale()->willReturn($locale);
         $locale->getCode()->willReturn('en_US');
 
         $sender->send(
             Emails::GIFT_CARD_ORDER,
             ['example@shop.com'],
-            ['giftCards' => [$giftCard], 'order' => $order, 'channel' => $channel]
+            ['giftCards' => [$giftCard], 'order' => $order, 'channel' => $channel, 'localeCode' => 'en_US']
         )->shouldBeCalled();
 
         $this->sendEmailWithGiftCardsFromOrder($order, [$giftCard]);
