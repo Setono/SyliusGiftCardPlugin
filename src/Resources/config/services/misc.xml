@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-
 <container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
-
     <services>
-
         <service id="setono_sylius_gift_card.generator.gift_card_code"
                  class="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
@@ -13,8 +10,10 @@
         </service>
 
         <service id="setono_sylius_gift_card.email_manager.gift_card_order"
-                 class="Setono\SyliusGiftCardPlugin\EmailManager\GiftCardOrderEmailManager">
+                 class="Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManager">
             <argument type="service" id="sylius.email_sender"/>
+            <argument type="service" id="translator"/>
+            <argument type="service" id="setono_sylius_gift_card.resolver.customer_channel"/>
         </service>
 
         <!-- Needs to be public because it is called from the state machine -->
@@ -26,5 +25,4 @@
             <argument type="service" id="setono_sylius_gift_card.email_manager.gift_card_order"/>
         </service>
     </services>
-
 </container>

@@ -1,0 +1,13 @@
+{# @var \Sylius\Component\Core\Model\CustomerInterface customer #}
+{# @var \Setono\SyliusGiftCardPlugin\Model\GiftCardInterface giftCard #}
+{% extends '@SyliusAdmin/Email/layout.html.twig' %}
+
+{% block subject %}{{ 'setono_sylius_gift_card.email.new_gift_card'|trans }}{% endblock %}
+
+{% block content %}
+    {# This needs to be imported here since the rendering of emails only take the block to render it. Not whole template #}
+    {% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
+    <p>{{ 'setono_sylius_gift_card.email.new_gift_card_intro'|trans }}</p>
+
+    <b>{{ giftCard.code }}</b> ({{ 'setono_sylius_gift_card.email.balance'|trans }}: {{ money.convertAndFormat(giftCard.amount) }})<br>
+{% endblock %}
