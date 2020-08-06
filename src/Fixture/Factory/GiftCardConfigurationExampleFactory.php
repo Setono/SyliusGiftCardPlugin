@@ -74,7 +74,7 @@ class GiftCardConfigurationExampleFactory extends AbstractExampleFactory impleme
         $giftCardConfiguration->setDefault($options['default']);
 
         $imagePath = $options['background_image'];
-
+        /** @var string $imagePath */
         $imagePath = $this->fileLocator->locate($imagePath);
         $uploadedImage = new UploadedFile($imagePath, basename($imagePath));
 
