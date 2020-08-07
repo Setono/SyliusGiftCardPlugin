@@ -10,8 +10,8 @@
             <argument type="service" id="sylius.repository.channel"/>
         </service>
 
-        <service id="setono_sylius_gift_card.resolver.redirect_route"
-                 class="Setono\SyliusGiftCardPlugin\Resolver\RedirectRouteResolver">
+        <service id="setono_sylius_gift_card.resolver.redirect_url"
+                 class="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver">
             <argument type="service" id="router"/>
         </service>
     </services>

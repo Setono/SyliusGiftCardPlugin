@@ -281,3 +281,5 @@ setono_sylius_gift_card_shop_remove_gift_card_from_order:
 ```
 
 The same applies for the `setono_sylius_gift_card_shop_partial_add_gift_card_to_order` route
+
+You can also override or decorate the service `setono_sylius_gift_card.resolver.redirect_url` to define a more custom way of redirecting

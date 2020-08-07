@@ -9,7 +9,7 @@ use FOS\RestBundle\View\ViewHandlerInterface;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
-use Setono\SyliusGiftCardPlugin\Resolver\RedirectRouteResolverInterface;
+use Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -36,7 +36,7 @@ final class AddGiftCardToOrderAction
     /** @var GiftCardApplicatorInterface */
     private $giftCardApplicator;
 
-    /** @var RedirectRouteResolverInterface */
+    /** @var RedirectUrlResolverInterface */
     private $redirectRouteResolver;
 
     public function __construct(
@@ -45,7 +45,7 @@ final class AddGiftCardToOrderAction
         CartContextInterface $cartContext,
         FlashBagInterface $flashBag,
         GiftCardApplicatorInterface $giftCardApplicator,
-        RedirectRouteResolverInterface $redirectRouteResolver
+        RedirectUrlResolverInterface $redirectRouteResolver
     ) {
         $this->viewHandler = $viewHandler;
         $this->formFactory = $formFactory;
@@ -79,7 +79,7 @@ final class AddGiftCardToOrderAction
                 return $this->viewHandler->handle(View::create([], Response::HTTP_CREATED));
             }
 
-            return new RedirectResponse($this->redirectRouteResolver->getRouteToRedirectTo($request, 'sylius_shop_cart_summary'));
+            return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));
         }
 
         if ($request->isXmlHttpRequest()) {

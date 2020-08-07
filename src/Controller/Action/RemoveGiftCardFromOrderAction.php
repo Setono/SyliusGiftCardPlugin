@@ -6,7 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
-use Setono\SyliusGiftCardPlugin\Resolver\RedirectRouteResolverInterface;
+use Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,14 +25,14 @@ final class RemoveGiftCardFromOrderAction
     /** @var GiftCardApplicatorInterface */
     private $giftCardApplicator;
 
-    /** @var RedirectRouteResolverInterface */
+    /** @var RedirectUrlResolverInterface */
     private $redirectRouteResolver;
 
     public function __construct(
         CartContextInterface $cartContext,
         FlashBagInterface $flashBag,
         GiftCardApplicatorInterface $giftCardApplicator,
-        RedirectRouteResolverInterface $redirectRouteResolver
+        RedirectUrlResolverInterface $redirectRouteResolver
     ) {
         $this->cartContext = $cartContext;
         $this->flashBag = $flashBag;
@@ -50,6 +50,6 @@ final class RemoveGiftCardFromOrderAction
 
         $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_removed');
 
-        return new RedirectResponse($this->redirectRouteResolver->getRouteToRedirectTo($request, 'sylius_shop_cart_summary'));
+        return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));
     }
 }

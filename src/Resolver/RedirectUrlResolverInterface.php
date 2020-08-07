@@ -6,7 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Resolver;
 
 use Symfony\Component\HttpFoundation\Request;
 
-interface RedirectRouteResolverInterface
+interface RedirectUrlResolverInterface
 {
-    public function getRouteToRedirectTo(Request $request, string $defaultRoute): string;
+    public function getUrlToRedirectTo(Request $request, string $defaultRoute): string;
 }

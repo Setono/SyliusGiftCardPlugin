@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Resolver;
 
 use function array_key_exists;
-use Exception;
 use const FILTER_SANITIZE_URL;
 use function filter_var;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-final class RedirectRouteResolver implements RedirectRouteResolverInterface
+final class RedirectUrlResolver implements RedirectUrlResolverInterface
 {
     /** @var UrlGeneratorInterface */
     private $router;
@@ -21,20 +20,16 @@ final class RedirectRouteResolver implements RedirectRouteResolverInterface
         $this->router = $router;
     }
 
-    public function getRouteToRedirectTo(Request $request, string $defaultRoute): string
+    public function getUrlToRedirectTo(Request $request, string $defaultRoute): string
     {
         if ($request->attributes->has('redirect')) {
             $redirect = $request->attributes->get('redirect');
 
-            try {
-                if (array_key_exists(0, $redirect)) {
-                    return $this->router->generate($redirect[0]);
-                }
-                if (array_key_exists('route', $redirect) && array_key_exists('parameters', $redirect)) {
-                    return $this->router->generate($redirect['route'], $redirect['parameters']);
-                }
-            } catch (Exception $exception) {
-                //TODO: Do we do anything here ? Log something ?
+            if (array_key_exists(0, $redirect)) {
+                return $this->router->generate($redirect[0]);
+            }
+            if (array_key_exists('route', $redirect) && array_key_exists('parameters', $redirect)) {
+                return $this->router->generate($redirect['route'], $redirect['parameters']);
             }
         }
 

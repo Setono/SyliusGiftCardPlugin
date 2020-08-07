@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace spec\Setono\SyliusGiftCardPlugin\Resolver;
 
 use PhpSpec\ObjectBehavior;
-use Setono\SyliusGiftCardPlugin\Resolver\RedirectRouteResolver;
-use Setono\SyliusGiftCardPlugin\Resolver\RedirectRouteResolverInterface;
+use Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver;
+use Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface;
 use Symfony\Component\HttpFoundation\HeaderBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-final class RedirectRouteResolverSpec extends ObjectBehavior
+final class RedirectUrlResolverSpec extends ObjectBehavior
 {
     public function let(UrlGeneratorInterface $router): void
     {
@@ -21,12 +21,12 @@ final class RedirectRouteResolverSpec extends ObjectBehavior
 
     public function it_is_initializable(): void
     {
-        $this->shouldBeAnInstanceOf(RedirectRouteResolver::class);
+        $this->shouldBeAnInstanceOf(RedirectUrlResolver::class);
     }
 
     public function it_implements_redirect_route_resolver_interface(): void
     {
-        $this->shouldImplement(RedirectRouteResolverInterface::class);
+        $this->shouldImplement(RedirectUrlResolverInterface::class);
     }
 
     public function it_returns_redirect_from_route_attributes(
@@ -38,7 +38,7 @@ final class RedirectRouteResolverSpec extends ObjectBehavior
 
         $router->generate('sylius_shop_homepage')->willReturn('super-url');
 
-        $this->getRouteToRedirectTo($request, 'random')->shouldReturn('super-url');
+        $this->getUrlToRedirectTo($request, 'random')->shouldReturn('super-url');
     }
 
     public function it_returns_redirect_from_route_attributes_with_parameters(
@@ -55,7 +55,7 @@ final class RedirectRouteResolverSpec extends ObjectBehavior
 
         $router->generate('sylius_shop_homepage', ['a' => 1])->willReturn('super-url-1');
 
-        $this->getRouteToRedirectTo($request, 'random')->shouldReturn('super-url-1');
+        $this->getUrlToRedirectTo($request, 'random')->shouldReturn('super-url-1');
     }
 
     public function it_returns_redirect_from_route_referer(
@@ -68,7 +68,7 @@ final class RedirectRouteResolverSpec extends ObjectBehavior
         $headersBag = new HeaderBag(['referer' => 'some-url']);
         $request->headers = $headersBag;
 
-        $this->getRouteToRedirectTo($request, 'random')->shouldReturn('some-url');
+        $this->getUrlToRedirectTo($request, 'random')->shouldReturn('some-url');
     }
 
     public function it_returns_fallback(
@@ -83,6 +83,6 @@ final class RedirectRouteResolverSpec extends ObjectBehavior
 
         $router->generate('fallback')->willReturn('fallback-url');
 
-        $this->getRouteToRedirectTo($request, 'fallback')->shouldReturn('fallback-url');
+        $this->getUrlToRedirectTo($request, 'fallback')->shouldReturn('fallback-url');
     }
 }

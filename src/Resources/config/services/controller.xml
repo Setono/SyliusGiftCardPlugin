@@ -14,7 +14,7 @@
             <argument type="service" id="sylius.context.cart"/>
             <argument type="service" id="session.flash_bag"/>
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.resolver.redirect_route"/>
+            <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
         </service>
 
         <service id="setono_sylius_gift_card.controller.action.remove_gift_card_from_order"
@@ -22,7 +22,7 @@
             <argument type="service" id="sylius.context.cart"/>
             <argument type="service" id="session.flash_bag"/>
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.resolver.redirect_route"/>
+            <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
         </service>
 
         <service id="setono_sylius_gift_card.controller.action.gift_card_balance"
