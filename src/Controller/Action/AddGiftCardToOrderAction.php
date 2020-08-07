@@ -9,6 +9,7 @@ use FOS\RestBundle\View\ViewHandlerInterface;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\Resolver\RedirectRouteResolverInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -16,7 +17,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Webmozart\Assert\Assert;
 
 final class AddGiftCardToOrderAction
@@ -33,26 +33,26 @@ final class AddGiftCardToOrderAction
     /** @var FlashBagInterface */
     private $flashBag;
 
-    /** @var UrlGeneratorInterface */
-    private $urlGenerator;
-
     /** @var GiftCardApplicatorInterface */
     private $giftCardApplicator;
+
+    /** @var RedirectRouteResolverInterface */
+    private $redirectRouteResolver;
 
     public function __construct(
         ViewHandlerInterface $viewHandler,
         FormFactoryInterface $formFactory,
         CartContextInterface $cartContext,
         FlashBagInterface $flashBag,
-        UrlGeneratorInterface $urlGenerator,
-        GiftCardApplicatorInterface $giftCardApplicator
+        GiftCardApplicatorInterface $giftCardApplicator,
+        RedirectRouteResolverInterface $redirectRouteResolver
     ) {
         $this->viewHandler = $viewHandler;
         $this->formFactory = $formFactory;
         $this->cartContext = $cartContext;
         $this->flashBag = $flashBag;
-        $this->urlGenerator = $urlGenerator;
         $this->giftCardApplicator = $giftCardApplicator;
+        $this->redirectRouteResolver = $redirectRouteResolver;
     }
 
     public function __invoke(Request $request): Response
@@ -79,7 +79,7 @@ final class AddGiftCardToOrderAction
                 return $this->viewHandler->handle(View::create([], Response::HTTP_CREATED));
             }
 
-            return new RedirectResponse($this->urlGenerator->generate('sylius_shop_cart_summary'));
+            return new RedirectResponse($this->redirectRouteResolver->getRouteToRedirectTo($request, 'sylius_shop_cart_summary'));
         }
 
         if ($request->isXmlHttpRequest()) {
