@@ -235,4 +235,9 @@ class GiftCard implements GiftCardInterface
 
         return $channel->getCode();
     }
+
+    public function hasOrderOrCustomer(): bool
+    {
+        return null !== $this->getCustomer() || null !== $this->getOrder();
+    }
 }

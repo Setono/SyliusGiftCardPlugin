@@ -5,6 +5,7 @@ sylius_grid:
             delete_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/delete_conditional.html.twig"
             gift_card_balance: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/gift_card_balance.html.twig"
             list_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/list_conditional.html.twig"
+            resend_gift_card_email: '@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/resend_email.html.twig'
     grids:
         setono_sylius_gift_card_admin_gift_card:
             driver:
@@ -111,6 +112,15 @@ sylius_grid:
                         options:
                             link:
                                 route: setono_sylius_gift_card_admin_gift_card_pdf
+                                parameters:
+                                    id: resource.id
+                    resend_email:
+                        type: resend_gift_card_email
+                        label: setono_sylius_gift_card.ui.resend_email
+                        options:
+                            visible: resource.hasOrderOrCustomer
+                            link:
+                                route: setono_sylius_gift_card_admin_gift_card_resend_email
                                 parameters:
                                     id: resource.id
                     delete:

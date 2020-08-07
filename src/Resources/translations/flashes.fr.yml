@@ -1,6 +1,9 @@
 setono_sylius_gift_card:
     gift_card:
         delete_error: Le chèque-cadeau n'a pas pu être supprimé.
+        impossible_to_resend_email: 'Impossible d''envoyer l''email pour le chèque-cadeau "%id%"'
+        not_found: 'Impossible de trouver le chèque-cadeau "%id%"'
         read_error: Impossible the visualiser le chèque-cadeau.
+        resent: L'email a bien été renvoyé
     gift_card_added: Le chèque-cadeau a été ajouté à votre commande
     gift_card_removed: Le chèque-cadeau a été supprimé de votre commande

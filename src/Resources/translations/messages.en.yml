@@ -16,9 +16,11 @@ setono_sylius_gift_card:
     ui:
         active: Active
         add_gift_card_to_order: Add gift card
-        covered_by_gift_cards: Covered by gift cards
         amount: Amount
+        applied_gift_cards: Applied gift cards
         average_amount: Average amount
+        bought_at_order: Bought at order
+        covered_by_gift_cards: Covered by gift cards
         count: Count
         create_for_channel: Create for %channel%
         download_pdf: PDF
@@ -31,10 +33,8 @@ setono_sylius_gift_card:
         gift_card_code_is_invalid: Gift card code is invalid
         gift_cards: Gift cards
         gift_card_search: Gift card search
-        applied_gift_cards: Applied gift cards
         gift_cards_adjustment_total: Gift cards total
         initial_amount: Initial amount
-        bought_at_order: Bought at order
         list_orders: List orders
         manage_gift_cards: Manage gift cards
         manage_gift_card_configurations: Manage gift card configurations
@@ -42,6 +42,7 @@ setono_sylius_gift_card:
         new_gift_card_configuration: New gift card configuration
         manually_created: Manually created
         no_gift_card: No gift card applied
+        resend_email: Resend email
         total: Total
         your_gift_card_will_only_be_charged_if_you_complete_your_order: Your gift card will only be charged if you complete your order
     email:
