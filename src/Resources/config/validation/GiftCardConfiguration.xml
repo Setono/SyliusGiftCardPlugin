@@ -9,6 +9,12 @@
             <option name="fields">code</option>
             <option name="groups">setono_sylius_gift_card</option>
         </constraint>
+        <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\HasBackgroundImage">
+            <option name="groups">
+                <value>setono_sylius_gift_card</value>
+            </option>
+        </constraint>
+
         <property name="code">
             <constraint name="NotBlank">
                 <option name="groups">setono_sylius_gift_card</option>

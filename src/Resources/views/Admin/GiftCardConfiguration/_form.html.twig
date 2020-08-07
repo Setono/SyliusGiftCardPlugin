@@ -1,6 +1,7 @@
 {% form_theme form '@SyliusAdmin/Form/imagesTheme.html.twig' %}
 
 <div class="ui two column stackable grid">
+    {{ form_errors(form) }}
     <div class="column">
         <div class="ui segment">
             {{ form_row(form.code) }}
