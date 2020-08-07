@@ -118,7 +118,7 @@ sylius_grid:
                         type: resend_gift_card_email
                         label: setono_sylius_gift_card.ui.resend_email
                         options:
-                            visible: resource.hasAssociatedOrderOrCustomer
+                            visible: resource.hasOrderOrCustomer
                             link:
                                 route: setono_sylius_gift_card_admin_gift_card_resend_email
                                 parameters:

@@ -236,8 +236,8 @@ class GiftCard implements GiftCardInterface
         return $channel->getCode();
     }
 
-    public function hasAssociatedOrderOrCustomer(): bool
+    public function hasOrderOrCustomer(): bool
     {
-        return $this->getCustomer() instanceof CustomerInterface || $this->getOrder() instanceof OrderInterface;
+        return null !== $this->getCustomer() || null !== $this->getOrder();
     }
 }

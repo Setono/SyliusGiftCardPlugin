@@ -105,5 +105,5 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
 
     public function getChannelCode(): ?string;
 
-    public function hasAssociatedOrderOrCustomer(): bool;
+    public function hasOrderOrCustomer(): bool;
 }
