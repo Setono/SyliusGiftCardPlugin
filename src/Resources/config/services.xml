@@ -15,6 +15,7 @@
         <import resource="services/order_processor.xml"/>
         <import resource="services/provider.xml"/>
         <import resource="services/resolver.xml"/>
+        <import resource="services/validator.xml"/>
         <import resource="services/voter.xml"/>
     </imports>
 </container>

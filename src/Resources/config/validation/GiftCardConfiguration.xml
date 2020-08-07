@@ -12,7 +12,6 @@
         <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\HasBackgroundImage">
             <option name="groups">
                 <value>setono_sylius_gift_card</value>
-                <value>setono_sylius_gift_card_create</value>
             </option>
         </constraint>
 

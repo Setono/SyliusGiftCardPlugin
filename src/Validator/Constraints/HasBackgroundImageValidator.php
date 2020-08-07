@@ -23,7 +23,7 @@ final class HasBackgroundImageValidator extends ConstraintValidator
         }
 
         $backgroundImage = $value->getBackgroundImage();
-        if (!$backgroundImage instanceof GiftCardConfigurationImageInterface || null === $backgroundImage->getPath()) {
+        if (null === $backgroundImage || null === $backgroundImage->getPath()) {
             $this->context->buildViolation($constraint->message)
                 ->addViolation();
         }

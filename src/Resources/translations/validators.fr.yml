@@ -15,8 +15,7 @@ setono_sylius_gift_card:
             integer: Le montant doit être un entier
             min: Le montant ne dois pas être en-dessous de 1
     gift_card_configuration:
-        create:
-            background_image_required: L'image de fond est requise
+        background_image_required: L'image de fond est requise
     gift_card_search_command:
         gift_card:
             does_not_exist: Ce code de chèque-cadeau n'existe pas

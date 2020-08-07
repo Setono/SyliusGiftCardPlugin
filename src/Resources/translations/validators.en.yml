@@ -16,8 +16,7 @@ setono_sylius_gift_card:
             min: Amount cannot be lower than 1
             greater_than_or_equal: The amount must be greater than or equal to 1
     gift_card_configuration:
-        create:
-            background_image_required: The background image is required
+        background_image_required: The background image is required
     gift_card_search_command:
         gift_card:
             does_not_exist: The gift card with this code does not exist
