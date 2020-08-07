@@ -4,7 +4,7 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service class="Setono\SyliusGiftCardPlugin\Validator\Constraints\HasBackgroundImage">
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\HasBackgroundImage">
             <tag name="validator.constraint_validator" />
         </service>
     </services>
