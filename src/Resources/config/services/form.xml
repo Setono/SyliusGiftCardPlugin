@@ -89,5 +89,11 @@
             <argument type="service" id="router"/>
             <tag name="form.type"/>
         </service>
+
+        <service id="setono_sylius_gift_card.form.type.promotion_coupon_to_code"
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\PromotionCouponToCodeType"
+                 decorates="sylius.form.type.promotion_coupon_to_code">
+            <argument type="service" id="setono_sylius_gift_card.form.type.promotion_coupon_to_code.inner" />
+        </service>
     </services>
 </container>

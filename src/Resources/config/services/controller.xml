@@ -15,6 +15,8 @@
             <argument type="service" id="session.flash_bag"/>
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
+            <argument type="service" id="setono_sylius_gift_card.applicator.coupon_code"/>
+            <argument>%setono_sylius_gift_card.cart.use_same_input_for_promotion_and_gift_card%</argument>
         </service>
 
         <service id="setono_sylius_gift_card.controller.action.remove_gift_card_from_order"

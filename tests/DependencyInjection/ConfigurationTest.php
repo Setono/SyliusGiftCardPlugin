@@ -43,6 +43,9 @@ final class ConfigurationTest extends TestCase
             'setono_sylius_gift_card' => [],
         ], [
             'code_length' => 20,
+            'cart' => [
+                'use_same_input_for_promotion_and_gift_card' => false,
+            ],
             'driver' => SyliusResourceBundle::DRIVER_DOCTRINE_ORM,
             'resources' => [
                 'gift_card' => [

@@ -12,6 +12,14 @@
             <argument type="service" id="sylius.manager.order" />
         </service>
 
+        <service id="setono_sylius_gift_card.applicator.coupon_code"
+                 class="Setono\SyliusGiftCardPlugin\Applicator\CouponCodeApplicator">
+            <argument type="service" id="sylius.repository.promotion_coupon" />
+            <argument type="service" id="sylius.order_processing.order_processor.composite" />
+            <argument type="service" id="sylius.manager.order" />
+            <argument type="service" id="sylius.promotion_applicator" />
+        </service>
+
     </services>
 
 </container>

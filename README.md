@@ -85,6 +85,8 @@ $bundles = [
 
 You will find the templates you need to override in the [test application](https://github.com/Setono/SyliusGiftCardPlugin/tree/master/tests/Application/templates).
 
+If you enable the same input for Promotion and GiftCard (see [here](#using-same-input-for-promotion-and-giftcard)), remove all content of `SyliusShopBundle/Cart/Summary/_coupon.html.twig` since it is not needed.
+
 ### Extend `Product`, `Order`, `OrderRepository`, and `CustomerRepository`
 
 **Extend `Product`**
@@ -283,3 +285,14 @@ setono_sylius_gift_card_shop_remove_gift_card_from_order:
 The same applies for the `setono_sylius_gift_card_shop_partial_add_gift_card_to_order` route
 
 You can also override or decorate the service `setono_sylius_gift_card.resolver.redirect_url` to define a more custom way of redirecting
+
+## Using same input for Promotion and GiftCard
+
+You can configure the shop to use same input for GiftCards and Promotion coupons. To do so, set this configuration :
+
+```yaml
+# config/packages/setono_sylius_gift_card.yaml
+setono_sylius_gift_card:
+    cart:
+        use_same_input_for_promotion_and_gift_card: false
+```

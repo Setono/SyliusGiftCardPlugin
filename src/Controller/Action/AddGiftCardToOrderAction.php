@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandlerInterface;
+use Setono\SyliusGiftCardPlugin\Applicator\CouponCodeApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
@@ -39,13 +40,21 @@ final class AddGiftCardToOrderAction
     /** @var RedirectUrlResolverInterface */
     private $redirectRouteResolver;
 
+    /** @var CouponCodeApplicatorInterface */
+    private $couponCodeApplicator;
+
+    /** @var bool */
+    private $useSameInputForPromotionAndGiftCard;
+
     public function __construct(
         ViewHandlerInterface $viewHandler,
         FormFactoryInterface $formFactory,
         CartContextInterface $cartContext,
         FlashBagInterface $flashBag,
         GiftCardApplicatorInterface $giftCardApplicator,
-        RedirectUrlResolverInterface $redirectRouteResolver
+        RedirectUrlResolverInterface $redirectRouteResolver,
+        CouponCodeApplicatorInterface $couponCodeApplicator,
+        bool $useSameInputForPromotionAndGiftCard
     ) {
         $this->viewHandler = $viewHandler;
         $this->formFactory = $formFactory;
@@ -53,6 +62,8 @@ final class AddGiftCardToOrderAction
         $this->flashBag = $flashBag;
         $this->giftCardApplicator = $giftCardApplicator;
         $this->redirectRouteResolver = $redirectRouteResolver;
+        $this->couponCodeApplicator = $couponCodeApplicator;
+        $this->useSameInputForPromotionAndGiftCard = $useSameInputForPromotionAndGiftCard;
     }
 
     public function __invoke(Request $request): Response
@@ -68,18 +79,42 @@ final class AddGiftCardToOrderAction
         $form = $this->formFactory->create(AddGiftCardToOrderType::class, $addGiftCardToOrderCommand);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $giftCard = $addGiftCardToOrderCommand->getGiftCard();
-            Assert::notNull($giftCard);
-            $this->giftCardApplicator->apply($order, $giftCard);
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                $giftCard = $addGiftCardToOrderCommand->getGiftCard();
+                Assert::notNull($giftCard);
+                $this->giftCardApplicator->apply($order, $giftCard);
 
-            $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_added');
+                $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_added');
 
-            if ($request->isXmlHttpRequest()) {
-                return $this->viewHandler->handle(View::create([], Response::HTTP_CREATED));
+                if ($request->isXmlHttpRequest()) {
+                    return $this->viewHandler->handle(View::create([], Response::HTTP_CREATED));
+                }
+
+                return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));
             }
 
-            return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));
+            if ($this->useSameInputForPromotionAndGiftCard) {
+                // Arrived here, the code applied is not a giftCard.
+                // Then check if it is a promotion and if so, apply it to order.
+                // Use NormData instead of Data since the form is invalid, Data is null
+                $promotionCouponCode = $form->get('giftCard')->getNormData();
+                if (null !== $promotionCouponCode) {
+                    try {
+                        $this->couponCodeApplicator->apply($order, $promotionCouponCode);
+
+                        $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_added');
+
+                        if ($request->isXmlHttpRequest()) {
+                            return $this->viewHandler->handle(View::create([], Response::HTTP_CREATED));
+                        }
+
+                        return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));
+                    } catch (\Exception $exception) {
+                        // Do not do anything here, let FOSRest handle the response
+                    }
+                }
+            }
         }
 
         if ($request->isXmlHttpRequest()) {
