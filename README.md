@@ -294,5 +294,8 @@ You can configure the shop to use same input for GiftCards and Promotion coupons
 # config/packages/setono_sylius_gift_card.yaml
 setono_sylius_gift_card:
     cart:
-        use_same_input_for_promotion_and_gift_card: false
+        use_same_input_for_promotion_and_gift_card: true
 ```
+
+By doing so, the alias `setono_sylius_gift_card.controller.action.add_gift_card_to_order` will now point to `setono_sylius_gift_card.controller.action.add_gift_card_to_order.composed` instead of `setono_sylius_gift_card.controller.action.add_gift_card_to_order.simple`
+and will use its mechanisms.

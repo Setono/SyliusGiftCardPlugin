@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin;
 
 use Setono\SyliusGiftCardPlugin\DependencyInjection\Compiler\AddAdjustmentsToOrderAdjustmentClearerPass;
+use Setono\SyliusGiftCardPlugin\DependencyInjection\Compiler\DefineControllerPass;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\Compiler\OverrideCouponFormPass;
 use Sylius\Bundle\CoreBundle\Application\SyliusPluginTrait;
 use Sylius\Bundle\ResourceBundle\AbstractResourceBundle;
@@ -21,6 +22,7 @@ final class SetonoSyliusGiftCardPlugin extends AbstractResourceBundle
 
         $container->addCompilerPass(new AddAdjustmentsToOrderAdjustmentClearerPass());
         $container->addCompilerPass(new OverrideCouponFormPass());
+        $container->addCompilerPass(new DefineControllerPass());
     }
 
     public function getSupportedDrivers(): array
