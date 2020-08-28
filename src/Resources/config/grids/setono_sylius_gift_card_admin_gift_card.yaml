@@ -123,6 +123,8 @@ sylius_grid:
                                 route: setono_sylius_gift_card_admin_gift_card_resend_email
                                 parameters:
                                     id: resource.id
+                    update:
+                        type: update
                     delete:
                         type: delete_conditional
                         options:

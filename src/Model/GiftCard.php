@@ -124,7 +124,6 @@ class GiftCard implements GiftCardInterface
         }
 
         $this->initialAmount = $initialAmount;
-        $this->setAmount($initialAmount);
     }
 
     public function getAmount(): int
@@ -134,6 +133,10 @@ class GiftCard implements GiftCardInterface
 
     public function setAmount(int $amount): void
     {
+        if (null === $this->initialAmount) {
+            $this->setInitialAmount($amount);
+        }
+
         $this->amount = $amount;
     }
 

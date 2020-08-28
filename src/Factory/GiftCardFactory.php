@@ -69,7 +69,6 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         $giftCard->setChannel($channel);
         $giftCard->setAmount($orderItemUnit->getTotal());
         $giftCard->setCurrencyCode($currencyCode);
-        $giftCard->setInitialAmount($orderItemUnit->getTotal());
         $giftCard->disable();
 
         return $giftCard;

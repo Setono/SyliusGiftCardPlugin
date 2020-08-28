@@ -18,6 +18,8 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
 {
     public function __toString(): string;
 
+    public function getId(): ?int;
+
     /**
      * Admin can't remove items that was purchased with real money. Only generated items can be removed
      */

@@ -44,7 +44,7 @@ final class GiftCardType extends AbstractResourceType
         $builder
             ->addEventSubscriber(new AddCodeFormSubscriber())
             ->add('customer', CustomerAutocompleteChoiceType::class)
-            ->add('initialAmount', NumberType::class, [
+            ->add('amount', NumberType::class, [
                 'label' => 'sylius.ui.amount',
             ])
             ->add('enabled', CheckboxType::class, [
@@ -77,7 +77,7 @@ final class GiftCardType extends AbstractResourceType
             })
         ;
 
-        $builder->get('initialAmount')->addModelTransformer(new CallbackTransformer(static function (?int $amount): ?float {
+        $builder->get('amount')->addModelTransformer(new CallbackTransformer(static function (?int $amount): ?float {
             if (null === $amount) {
                 return null;
             }

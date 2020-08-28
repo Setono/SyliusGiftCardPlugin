@@ -24,6 +24,7 @@ setono_sylius_gift_card:
         count: Nombre
         create_for_channel: Créer pour %channel%
         download_pdf: PDF
+        edit_gift_card: Edit gift card
         enter_gift_card_code: Renseignez le numéro de chèque-cadeau
         edit_gift_card_configuration: Modifier la configuration
         gift_card: Chèque-cadeau

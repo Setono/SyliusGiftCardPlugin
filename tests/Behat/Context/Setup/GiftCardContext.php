@@ -61,7 +61,7 @@ final class GiftCardContext implements Context
         $giftCard = $this->giftCardFactory->createNew();
         $giftCard->setCode($code);
         $giftCard->setChannel($channel);
-        $giftCard->setInitialAmount($price);
+        $giftCard->setAmount($price);
         $giftCard->setCurrencyCode($channel->getBaseCurrency()->getCode());
 
         $this->giftCardRepository->add($giftCard);

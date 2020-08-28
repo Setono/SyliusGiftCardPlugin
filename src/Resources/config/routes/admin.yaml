@@ -2,7 +2,7 @@ setono_sylius_gift_card_admin_gift_card:
     resource: |
         alias: setono_sylius_gift_card.gift_card
         section: admin
-        only: [index, delete, bulkDelete]
+        only: [index, update, delete, bulkDelete]
         templates: SyliusAdminBundle:Crud
         redirect: index
         grid: setono_sylius_gift_card_admin_gift_card

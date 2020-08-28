@@ -24,6 +24,7 @@ setono_sylius_gift_card:
         count: Count
         create_for_channel: Create for %channel%
         download_pdf: PDF
+        edit_gift_card: Edit gift card
         enter_gift_card_code: Enter gift card code
         edit_gift_card_configuration: Edit gift card configuration
         gift_card: Gift card
