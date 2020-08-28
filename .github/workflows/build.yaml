@@ -59,10 +59,10 @@ jobs:
                 run: composer check-style
 
             -   name: Lint yaml files
-                run: (cd tests/Application && bin/console lint:yaml ../../Resources)
+                run: (cd tests/Application && bin/console lint:yaml ../../src/Resources)
 
             -   name: Lint twig files
-                run: (cd tests/Application && bin/console lint:twig ../../Resources)
+                run: (cd tests/Application && bin/console lint:twig ../../src/Resources)
     
     checks:
         name: PHP ${{ matrix.php-versions }}
