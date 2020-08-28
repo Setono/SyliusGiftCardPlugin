@@ -146,7 +146,7 @@ jobs:
                 run: composer phpunit
     
     integration-tests:
-        name: Unit tests
+        name: Integration tests
 
         runs-on: ubuntu-latest
 
