@@ -1,13 +1,69 @@
 name: build
 on:
-    push: ~
+    push:
+        branches:
+            - master
     pull_request: ~
     schedule:
         - cron: 5 8 * * 3
+
 env:
     APP_ENV: test
     DATABASE_URL: "mysql://root:root@127.0.0.1/sylius?serverVersion=5.7"
+    PHP_EXTENSIONS: intl, mbstring
+
 jobs:
+    coding-standards:
+        name: Coding Standards
+
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                php-version:
+                    - '7.3'
+                    - '7.4'
+
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v2
+
+            -   name: Setup PHP, with composer and extensions
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: ${{ matrix.php-version }}
+                    extensions: ${{ env.PHP_EXTENSIONS }}
+                    coverage: none
+
+            -   name: Get composer cache directory
+                id: composercache
+                run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+            -   name: Cache composer dependencies
+                uses: actions/cache@v2
+                with:
+                    path: ${{ steps.composercache.outputs.dir }}
+                    key: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
+                    restore-keys: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
+
+            -   name: Validate composer
+                run: composer validate --strict
+
+            -   name: Install Composer dependencies
+                run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+
+            -   name: Check composer normalized
+                run: composer normalize --dry-run
+
+            -   name: Check style
+                run: composer check-style
+
+            -   name: Lint yaml files
+                run: (cd tests/Application && bin/console lint:yaml ../../Resources)
+
+            -   name: Lint twig files
+                run: (cd tests/Application && bin/console lint:twig ../../Resources)
+    
     checks:
         name: PHP ${{ matrix.php-versions }}
         runs-on: ${{ matrix.operating-system }}
@@ -29,12 +85,6 @@ jobs:
                     coverage: none
             -   name: Install Composer dependencies
                 run: composer update --no-progress --no-suggest --prefer-dist --no-interaction
-            -   name: Validate composer
-                run: composer validate --strict
-            -   name: Check composer normalized
-                run: composer normalize --dry-run
-            -   name: Check style
-                run: composer check-style
             -   name: Static analysis
                 run: composer analyse
             -   name: Run phpspec
