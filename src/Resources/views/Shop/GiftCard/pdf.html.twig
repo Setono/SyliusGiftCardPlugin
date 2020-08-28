@@ -1,17 +1,27 @@
-<html lang="{{ sylius_base_locale }}">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-</head>
-<body>
 {% if configuration.backgroundImage is not empty %}
     {% set path = configuration.backgroundImage.path|imagine_filter('setono_sylius_gift_card_background') %}
-    <img src="{{ path }}" alt="">
 {% endif %}
-<span class="code-block" style="position: absolute; top: 515px; left: 55px; font-size: 3.2rem; width: 1100px; text-align: center;">
-    {{- giftCard.code -}}
-</span>
-<span class="price-block" style="position: absolute; top: 625px; left: 55px; font-size: 3.2rem; width: 400px; text-align: center;">
-    {{- giftCard.amount|sylius_format_money(giftCard.currencyCode, sylius_base_locale) -}}
-</span>
-</body>
+
+<html lang="{{ sylius_base_locale }}">
+    <head>
+        <title>Gift card: {{ giftCard.code }}</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css">
+        <style>
+            body {
+                font-family: sans-serif;
+                font-size: 3rem;
+                background: transparent url("{{ path }}") no-repeat left bottom;
+                background-size: 100px;
+            }
+
+            img {
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+        {{- giftCard.code -}}<br>
+        {{- giftCard.amount|sylius_format_money(giftCard.currencyCode, sylius_base_locale) -}}
+    </body>
 </html>

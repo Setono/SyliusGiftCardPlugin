@@ -24,18 +24,17 @@ sylius_fixtures:
                                 code: '1USD'
                                 channel: 'FASHION_WEB'
                                 currency: 'USD'
-                                initial_amount: 2.00
                                 amount: 1.00
                             gift_card_two_usd:
                                 code: '2USD'
                                 channel: 'FASHION_WEB'
-                                initial_amount: 2.00
+                                amount: 2.00
                 
                 setono_gift_card_configuration:
                     options:
                         custom:
                             default_configuration:
                                 code: 'default_configuration'
-                                background_image: '@SetonoSyliusGiftCardPlugin/Resources/fixtures/default_background.jpg'
+                                background_image: '@SetonoSyliusGiftCardPlugin/Resources/fixtures/default_background.png'
                                 enabled: true
                                 default: true
