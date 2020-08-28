@@ -85,11 +85,6 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
         $giftCard->setChannel($options['channel']);
         $giftCard->setCurrencyCode((string) $currency->getCode());
 
-        if (null === $giftCard->getId()) {
-            // We can change initial amount only if it wasn't specified before
-            $giftCard->setInitialAmount($options['initial_amount']);
-        }
-
         if (null !== $options['amount']) {
             $giftCard->setAmount($options['amount']);
         }
@@ -156,26 +151,12 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
                 return $currency;
             })
 
-            ->setDefault('initial_amount', function (Options $options): float {
-                return $this->faker->randomFloat(2, 0.01, 1000.00);
+            ->setDefault('amount', function (Options $options): int {
+                return $this->faker->randomElement([10, 20, 30, 40, 50, 75, 100, 150, 200, 250, 300, 400, 500]);
             })
-            ->setAllowedTypes('initial_amount', ['null', 'float', 'int'])
-            ->setNormalizer('initial_amount', function (Options $options, float $initialAmount): int {
-                return (int) $initialAmount * 100;
-            })
-
-            ->setDefault('amount', null)
-            ->setAllowedTypes('amount', ['null', 'float', 'int'])
-            ->setNormalizer('amount', function (Options $options, ?float $amount): ?int {
-                if (null === $amount) {
-                    return null;
-                }
-
-                $amount = (int) $amount * 100;
-
-                Assert::lessThanEq($amount, $options['initial_amount']);
-
-                return $amount;
+            ->setAllowedTypes('amount', ['float', 'int'])
+            ->setNormalizer('amount', function (Options $options, float $amount): int {
+                return (int) round($amount * 100);
             })
 
             ->setDefault('enabled', true)

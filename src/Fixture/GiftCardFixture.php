@@ -21,7 +21,6 @@ class GiftCardFixture extends AbstractResourceFixture
                 ->scalarNode('code')->cannotBeEmpty()->end()
                 ->scalarNode('channel')->cannotBeEmpty()->end()
                 ->scalarNode('currency')->cannotBeEmpty()->end()
-                ->floatNode('initial_amount')->end()
                 ->floatNode('amount')->end()
                 ->booleanNode('enabled')->end()
         ;
