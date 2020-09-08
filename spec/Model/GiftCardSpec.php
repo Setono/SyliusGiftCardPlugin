@@ -7,9 +7,9 @@ namespace spec\Setono\SyliusGiftCardPlugin\Model;
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
-use Sylius\Component\Core\Model\OrderItemUnitInterface;
 use Sylius\Component\Resource\Model\ResourceInterface;
 
 class GiftCardSpec extends ObjectBehavior
