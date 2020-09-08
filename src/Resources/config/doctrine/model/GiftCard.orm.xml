@@ -1,6 +1,5 @@
 <doctrine-mapping xmlns:gedmo="http://gediminasm.org/schemas/orm/doctrine-extensions-mapping"
                   xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
-
     <mapped-superclass name="Setono\SyliusGiftCardPlugin\Model\GiftCard" table="setono_sylius_gift_card__gift_card">
         <id name="id" column="id" type="integer">
             <generator strategy="AUTO"/>
@@ -8,8 +7,8 @@
 
         <field name="code" unique="true"/>
         <field name="enabled" type="boolean"/>
-        <field name="initialAmount" type="integer"/>
         <field name="amount" type="integer"/>
+        <field name="initialAmount" type="integer"/>
         <field name="currencyCode" length="3"/>
 
         <field name="createdAt" column="created_at" type="datetime">
@@ -28,12 +27,13 @@
             <join-column name="channel_id" referenced-column-name="id" nullable="false"/>
         </many-to-one>
 
-        <many-to-one field="orderItemUnit" target-entity="Sylius\Component\Order\Model\OrderItemUnitInterface">
+        <!-- Refers to the order item unit where this gift card was bought -->
+        <one-to-one field="orderItemUnit" target-entity="Sylius\Component\Order\Model\OrderItemUnitInterface">
             <join-column name="order_item_unit_id" referenced-column-name="id" on-delete="SET NULL"/>
-        </many-to-one>
+        </one-to-one>
 
+        <!-- A list of orders where this gift card was applied / used -->
         <many-to-many field="appliedOrders" target-entity="Sylius\Component\Order\Model\OrderInterface"
                       mapped-by="giftCards"/>
     </mapped-superclass>
-
 </doctrine-mapping>
