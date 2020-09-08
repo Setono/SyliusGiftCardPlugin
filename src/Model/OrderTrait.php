@@ -8,9 +8,10 @@ use function assert;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Sylius\Component\Core\Model\Order;
 
 /**
- * @mixin OrderInterface
+ * @mixin Order
  */
 trait OrderTrait
 {

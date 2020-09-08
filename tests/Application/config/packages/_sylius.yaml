@@ -1,9 +1,7 @@
 imports:
     - { resource: "@SyliusCoreBundle/Resources/config/app/config.yml" }
-
     - { resource: "@SyliusAdminBundle/Resources/config/app/config.yml" }
     - { resource: "@SyliusAdminApiBundle/Resources/config/app/config.yml" }
-
     - { resource: "@SyliusShopBundle/Resources/config/app/config.yml" }
 
 parameters:
@@ -25,6 +23,9 @@ sylius_order:
             classes:
                 model: Tests\Setono\SyliusGiftCardPlugin\Application\Model\Order
                 repository: Tests\Setono\SyliusGiftCardPlugin\Application\Doctrine\ORM\OrderRepository
+        order_item_unit:
+            classes:
+                model: Tests\Setono\SyliusGiftCardPlugin\Application\Model\OrderItemUnit
                 
 sylius_product:
     resources:

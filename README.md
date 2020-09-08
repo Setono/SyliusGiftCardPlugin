@@ -146,6 +146,32 @@ class Order extends BaseOrder implements SetonoSyliusGiftCardPluginOrderInterfac
     }
 }
 ```
+
+**Extend `OrderItemUnit`**
+
+```php
+<?php
+
+# src/Entity/Order/OrderItemUnit.php
+
+declare(strict_types=1);
+
+namespace App\Entity\Order;
+
+use Doctrine\ORM\Mapping as ORM;
+use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface as SetonoSyliusGiftCardOrderItemUnitInterface;
+use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitTrait as SetonoSyliusGiftCardOrderItemUnitTrait;
+use Sylius\Component\Core\Model\OrderItemUnit as BaseOrderItemUnit;
+
+/**
+ * @ORM\Entity
+ * @ORM\Table(name="sylius_order_item_unit")
+ */
+class OrderItemUnit extends BaseOrderItemUnit implements SetonoSyliusGiftCardOrderItemUnitInterface
+{
+    use SetonoSyliusGiftCardOrderItemUnitTrait;
+}
+```
     
 **Extend `OrderRepository`:**
 
@@ -205,6 +231,9 @@ sylius_order:
             classes:
                 model: App\Entity\Order\Order
                 repository: App\Doctrine\ORM\OrderRepository
+        order_item_unit:
+            classes:
+                model: App\Entity\Order\OrderItemUnit
                 
 sylius_product:
     resources:
