@@ -1,3 +1,4 @@
+{% set path = '' %}
 {% if configuration.backgroundImage is not empty %}
     {% set path = configuration.backgroundImage.path|imagine_filter('setono_sylius_gift_card_background') %}
 {% endif %}
