@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Model;
 
+use function assert;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Sylius\Component\Core\Model\Order;
 
+/**
+ * @mixin Order
+ */
 trait OrderTrait
 {
     /**
@@ -38,6 +43,8 @@ trait OrderTrait
 
     public function addGiftCard(GiftCardInterface $giftCard): void
     {
+        assert($this instanceof OrderInterface);
+
         if (!$this->hasGiftCard($giftCard)) {
             $this->giftCards->add($giftCard);
             $giftCard->addAppliedOrder($this);
@@ -46,6 +53,8 @@ trait OrderTrait
 
     public function removeGiftCard(GiftCardInterface $giftCard): void
     {
+        assert($this instanceof OrderInterface);
+
         if ($this->hasGiftCard($giftCard)) {
             $this->giftCards->removeElement($giftCard);
             $giftCard->removeAppliedOrder($this);

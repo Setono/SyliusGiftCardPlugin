@@ -10,7 +10,6 @@ use RuntimeException;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
-use Sylius\Component\Core\Model\OrderItemUnitInterface;
 use Sylius\Component\Resource\Model\TimestampableTrait;
 use Sylius\Component\Resource\Model\ToggleableTrait;
 
@@ -84,6 +83,7 @@ class GiftCard implements GiftCardInterface
     public function setOrderItemUnit(OrderItemUnitInterface $orderItem): void
     {
         $this->orderItemUnit = $orderItem;
+        $orderItem->setGiftCard($this);
     }
 
     public function getOrder(): ?OrderInterface
