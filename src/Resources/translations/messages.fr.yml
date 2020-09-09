@@ -35,6 +35,7 @@ setono_sylius_gift_card:
         gift_cards: Chèques-cadeaux
         gift_card_search: Chercher un chèque cadeau
         gift_cards_adjustment_total: Montant des chèques-cadeaux
+        has_no_gift_card: Ne contient pas de chèque-cadeau
         initial_amount: Montant initial
         list_orders: Lister les commandes
         manage_gift_cards: Gérer les chèques-cadeaux

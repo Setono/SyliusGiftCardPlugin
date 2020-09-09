@@ -13,6 +13,7 @@
         <import resource="services/misc.xml"/>
         <import resource="services/modifier.xml"/>
         <import resource="services/order_processor.xml"/>
+        <import resource="services/promotion_rule.xml"/>
         <import resource="services/provider.xml"/>
         <import resource="services/resolver.xml"/>
         <import resource="services/validator.xml"/>
