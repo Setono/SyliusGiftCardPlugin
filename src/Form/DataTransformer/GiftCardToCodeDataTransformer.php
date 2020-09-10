@@ -8,10 +8,9 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Symfony\Component\Form\DataTransformerInterface;
-use Symfony\Component\Form\Exception\TransformationFailedException;
 use Webmozart\Assert\Assert;
 
-final class GiftCardToCodeDataTransformer implements DataTransformerInterface
+class GiftCardToCodeDataTransformer implements DataTransformerInterface
 {
     /** @var GiftCardRepositoryInterface */
     private $giftCardRepository;
@@ -47,15 +46,9 @@ final class GiftCardToCodeDataTransformer implements DataTransformerInterface
             return null;
         }
 
-        $giftCard = $this->giftCardRepository->findOneEnabledByCodeAndChannel(
+        return $this->giftCardRepository->findOneEnabledByCodeAndChannel(
             $value,
             $this->channelContext->getChannel()
         );
-
-        if (null !== $giftCard) {
-            return $giftCard;
-        }
-
-        throw new TransformationFailedException('setono_sylius_gift_card.ui.gift_card_code_does_not_exist');
     }
 }

@@ -44,6 +44,12 @@ final class Configuration implements ConfigurationInterface
                     ->max(255)
                     ->example(16)
                 ->end()
+                ->arrayNode('cart')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('use_same_input_for_promotion_and_gift_card')->defaultFalse()->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 

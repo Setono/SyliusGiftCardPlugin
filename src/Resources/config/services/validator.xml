@@ -7,5 +7,9 @@
         <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\HasBackgroundImage">
             <tag name="validator.constraint_validator" />
         </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\HasGiftCardOrPromotionCoupon">
+            <tag name="validator.constraint_validator" />
+        </service>
     </services>
 </container>

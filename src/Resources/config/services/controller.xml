@@ -7,7 +7,7 @@
     <services>
         <defaults public="true"/>
 
-        <service id="setono_sylius_gift_card.controller.action.add_gift_card_to_order"
+        <service id="setono_sylius_gift_card.controller.action.add_gift_card_to_order.simple"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction">
             <argument type="service" id="fos_rest.view_handler.default"/>
             <argument type="service" id="form.factory"/>
@@ -15,6 +15,20 @@
             <argument type="service" id="session.flash_bag"/>
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
+            <argument type="service" id="setono_sylius_gift_card.applicator.coupon_code"/>
+            <argument>%setono_sylius_gift_card.cart.use_same_input_for_promotion_and_gift_card%</argument>
+        </service>
+
+        <service id="setono_sylius_gift_card.controller.action.add_gift_card_to_order.composed"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardOrPromotionCouponToOrderAction">
+            <argument type="service" id="fos_rest.view_handler.default"/>
+            <argument type="service" id="form.factory"/>
+            <argument type="service" id="sylius.context.cart"/>
+            <argument type="service" id="session.flash_bag"/>
+            <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
+            <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
+            <argument type="service" id="setono_sylius_gift_card.applicator.coupon_code"/>
+            <argument>%setono_sylius_gift_card.cart.use_same_input_for_promotion_and_gift_card%</argument>
         </service>
 
         <service id="setono_sylius_gift_card.controller.action.remove_gift_card_from_order"

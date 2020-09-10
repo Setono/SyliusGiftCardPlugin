@@ -8,7 +8,13 @@
 
 <div>
     <div class="ui action input">
-        {{ form_widget(form.giftCard, {'attr': {'form': 'setono-sylius-gift-card-add-gift-card-to-order'}}) }}
+        {% if form.giftCardOrPromotion is defined %}
+            {{ form_widget(form.giftCardOrPromotion, {'attr': {'form': 'setono-sylius-gift-card-add-gift-card-to-order'}}) }}
+            {{ form_widget(form.giftCard) }}
+            {{ form_widget(form.promotionCoupon) }}
+        {% else %}
+            {{ form_widget(form.giftCard, {'attr': {'form': 'setono-sylius-gift-card-add-gift-card-to-order'}}) }}
+        {% endif %}
         <button type="submit" class="ui primary icon labeled button" form="setono-sylius-gift-card-add-gift-card-to-order">
             <i class="ticket icon"></i> {{ 'setono_sylius_gift_card.ui.add_gift_card_to_order'|trans }}
         </button>
