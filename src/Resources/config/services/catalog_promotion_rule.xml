@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="setono_sylius_gift_card.catalog_promotion.rule.is_not_gift_card"
+                 class="Setono\SyliusGiftCardPlugin\CatalogPromotion\Rule\IsNotGiftCardRule">
+            <tag name="setono_sylius_catalog_promotion.rule"
+                 type="has_no_gift_card"
+                 label="setono_sylius_gift_card.ui.product_is_not_gift_card"
+                 form-type="Setono\SyliusGiftCardPlugin\Form\Type\Rule\HasNoGiftCardConfigurationType"/>
+        </service>
+    </services>
+</container>
