@@ -11,7 +11,6 @@ use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
 use Setono\SyliusGiftCardPlugin\Promotion\Checker\Rule\HasNoGiftCardRuleChecker;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Promotion\Checker\Rule\RuleCheckerInterface;
-use Sylius\Component\Promotion\Model\PromotionSubjectInterface;
 
 final class HasNoGiftCardRuleCheckerSpec extends ObjectBehavior
 {
