@@ -44,6 +44,7 @@ setono_sylius_gift_card:
         new_gift_card_configuration: New gift card configuration
         manually_created: Manually created
         no_gift_card: No gift card applied
+        product_is_not_gift_card: Product is not gift card
         resend_email: Resend email
         total: Total
         your_gift_card_will_only_be_charged_if_you_complete_your_order: Your gift card will only be charged if you complete your order

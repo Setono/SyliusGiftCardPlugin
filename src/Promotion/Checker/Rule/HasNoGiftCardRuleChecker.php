@@ -16,7 +16,6 @@ final class HasNoGiftCardRuleChecker implements RuleCheckerInterface
 
     public function isEligible(PromotionSubjectInterface $subject, array $configuration): bool
     {
-        /** @var OrderInterface $subject */
         Assert::isInstanceOf($subject, OrderInterface::class);
 
         $items = $subject->getItems();
