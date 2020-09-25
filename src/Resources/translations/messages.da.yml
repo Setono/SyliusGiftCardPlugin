@@ -1,0 +1,62 @@
+setono_sylius_gift_card:
+    form:
+        channel_configuration:
+            channel: Kanal
+            locale: Lokalitet
+        gift_card:
+            channel: Kanal
+        gift_card_configuration:
+            background_image: Baggrundsbillede 
+            channel_configurations: Kanalkonfigurationer
+            code: Kode
+            default: Standardkonfiguration
+            enabled: Aktiveret
+        product:
+            gift_card: Gavekort
+    ui:
+        active: Aktiv
+        add_gift_card_to_order: Tilføj gavekort
+        amount: Mængde
+        applied_gift_cards: Anvendte gavekort
+        average_amount: Gennemsnitligt beløb 
+        bought_at_order: Købt ved ordre
+        covered_by_gift_cards: Dækket af gavekort
+        count: Optælling
+        create_for_channel: Opret %channel%
+        download_pdf: PDF
+        edit_gift_card: Rediger gavekort
+        enter_gift_card_code: Indtast gavekortskoden
+        edit_gift_card_configuration: Rediger konfiguration af gavekort
+        gift_card: Gavekort
+        gift_card_configurations: Gavekortskonfigurationer
+        gift_card_balance: Gavekortssaldo
+        gift_card_channel_does_not_match_channel: Gavekortet er købt på en anden kanal, brug venligst gavekortet på %channel%
+        gift_card_code_is_invalid: Gavekortskoden er ugyldig
+        gift_cards: Gavekort
+        gift_card_search: Søg efter gavekort
+        gift_cards_adjustment_total: Gavekortets total
+        has_no_gift_card: Har ikke noget gavekort
+        initial_amount: Oprindeligt beløb
+        list_orders: Ordreliste
+        manage_gift_cards: Administrer gavekort
+        manage_gift_card_configurations: Administrer gavekortskonfigurationer
+        new_gift_card: Nyt gavekort
+        new_gift_card_configuration: Ny gavekortskonfiguration
+        manually_created: Oprettet manuelt
+        no_gift_card: Ingen gavekort tilføjet
+        product_is_not_gift_card: Produkt er ikke et gavekort
+        resend_email: Gensend email
+        total: Total
+        your_gift_card_will_only_be_charged_if_you_complete_your_order: Dit gavekort hæves først når din ordre er gennemført
+    email:
+        balance: Balance
+        new_gift_card: Nyt gavekort
+        new_gift_card_intro: Der er blevet oprettet et nyt gavekort til dig
+        your_gift_card: Dit gavekort
+        your_gift_cards_you_bought_in_the_order: Dine købte gavekort på denne ordre 
+
+# Missing from Sylius for some reason
+sylius:
+    form:
+        locale:
+            select: Vælg lokalitet

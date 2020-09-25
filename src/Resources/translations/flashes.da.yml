@@ -1,0 +1,9 @@
+setono_sylius_gift_card:
+    gift_card:
+        delete_error: Gavekortskoden kan ikke fjernes
+        impossible_to_resend_email: 'Ikke muligt at sende email for gavekort med id "%id%" igen'
+        not_found: 'Ikke muligt at finde gavekort med id "%id%"'
+        read_error: Ikke muligt at se dette gavekort.
+        resent: Emailen er blevet sendt igen 
+    gift_card_added: Gavekortet er blevet tilføjet til din ordre 
+    gift_card_removed: Gavekortet er blevet fjernet fra din ordre
