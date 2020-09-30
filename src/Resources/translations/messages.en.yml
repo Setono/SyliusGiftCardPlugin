@@ -20,6 +20,7 @@ setono_sylius_gift_card:
         applied_gift_cards: Applied gift cards
         average_amount: Average amount
         bought_at_order: Bought at order
+        channel_configurations: Channel configurations
         covered_by_gift_cards: Covered by gift cards
         count: Count
         create_for_channel: Create for %channel%

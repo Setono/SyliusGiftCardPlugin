@@ -20,6 +20,7 @@ setono_sylius_gift_card:
         applied_gift_cards: Anvendte gavekort
         average_amount: Gennemsnitligt beløb 
         bought_at_order: Købt ved ordre
+        channel_configurations: Kanalkonfigurationer
         covered_by_gift_cards: Dækket af gavekort
         count: Optælling
         create_for_channel: Opret %channel%
