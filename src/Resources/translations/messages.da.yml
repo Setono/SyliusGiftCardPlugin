@@ -29,7 +29,7 @@ setono_sylius_gift_card:
         edit_gift_card_configuration: Rediger konfiguration af gavekort
         gift_card: Gavekort
         gift_card_configurations: Gavekortskonfigurationer
-        gift_card_balance: Gavekortssaldo
+        gift_cards_balance: Gavekortssaldo
         gift_card_channel_does_not_match_channel: Gavekortet er købt på en anden kanal, brug venligst gavekortet på %channel%
         gift_card_code_is_invalid: Gavekortskoden er ugyldig
         gift_cards: Gavekort

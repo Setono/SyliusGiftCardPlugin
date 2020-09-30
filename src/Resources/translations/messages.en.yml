@@ -29,7 +29,7 @@ setono_sylius_gift_card:
         edit_gift_card_configuration: Edit gift card configuration
         gift_card: Gift card
         gift_card_configurations: Gift card configurations
-        gift_card_balance: Gift card balance
+        gift_cards_balance: Gift cards balance
         gift_card_channel_does_not_match_channel: The gift card was bought on another channel, please use the gift card on %channel%
         gift_card_code_is_invalid: Gift card code is invalid
         gift_cards: Gift cards

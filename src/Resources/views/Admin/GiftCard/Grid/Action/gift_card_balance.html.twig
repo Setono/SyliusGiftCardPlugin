@@ -1,3 +1,9 @@
 {% import '@SyliusUi/Macro/buttons.html.twig' as buttons %}
 
-{{ buttons.default(path('setono_sylius_gift_card_admin_gift_card_balance'), 'setono_sylius_gift_card.ui.gift_card_balance'|trans, null, 'balance scale', 'grey') }}
+{{ buttons.default(
+    path('setono_sylius_gift_card_admin_gift_card_balance'),
+    'setono_sylius_gift_card.ui.gift_cards_balance'|trans,
+    null,
+    'balance scale',
+    'grey')
+}}
