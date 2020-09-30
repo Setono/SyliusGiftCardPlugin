@@ -23,6 +23,11 @@ sylius_grid:
                     sortable: ~
                     options:
                         template: '@SyliusUi/Grid/Field/yesNo.html.twig'
+                channel_configurations:
+                    type: twig
+                    label: setono_sylius_gift_card.ui.channel_configurations
+                    options:
+                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/channel_configurations.html.twig"
             filters:
                 search:
                     type: string
@@ -37,4 +42,4 @@ sylius_grid:
                     update:
                         type: update
                     delete:
-                        type: delete_conditional
+                        type: gift_card_delete_conditional

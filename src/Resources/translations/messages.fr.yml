@@ -20,6 +20,7 @@ setono_sylius_gift_card:
         applied_gift_cards: Chèques-cadeaux utilisés
         average_amount: Montant moyen
         bought_at_order: Commande d'origine
+        channel_configurations: Configurations des canaux
         covered_by_gift_cards: Montant pris en charge
         count: Nombre
         create_for_channel: Créer pour %channel%
@@ -29,7 +30,7 @@ setono_sylius_gift_card:
         edit_gift_card_configuration: Modifier la configuration
         gift_card: Chèque-cadeau
         gift_card_configurations: Config. chèques-cadeaux
-        gift_card_balance: Solde
+        gift_cards_balance: Solde
         gift_card_channel_does_not_match_channel: Ce chèque-cadeau a été acheté sur un autre canal, veuillez l'utiliser sur %channel%
         gift_card_code_is_invalid: Numéro de chèque-cadeau invalide
         gift_cards: Chèques-cadeaux

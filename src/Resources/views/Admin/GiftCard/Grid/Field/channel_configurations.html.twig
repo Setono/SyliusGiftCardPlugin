@@ -1,0 +1,13 @@
+{% import '@SyliusUi/Macro/labels.html.twig' as label %}
+
+{# @var \Setono\SyliusGiftCardPlugin\Model\GiftCardChannelConfigurationInterface[] data #}
+{% for channelConfiguration in data %}
+    <div style="margin: 2px 0;">
+        {# @var \Setono\SyliusGiftCardPlugin\Model\GiftCardChannelConfigurationInterface channelConfiguration #}
+        {% include '@SyliusAdmin/Common/_channel.html.twig' with {'channel': channelConfiguration.channel} %}
+
+        {% if channelConfiguration.locale is not null %}
+            {{ label.default(channelConfiguration.locale.code) }}
+        {% endif %}
+    </div>
+{% endfor %}

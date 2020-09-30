@@ -20,6 +20,7 @@ setono_sylius_gift_card:
         applied_gift_cards: Anvendte gavekort
         average_amount: Gennemsnitligt beløb 
         bought_at_order: Købt ved ordre
+        channel_configurations: Kanalkonfigurationer
         covered_by_gift_cards: Dækket af gavekort
         count: Optælling
         create_for_channel: Opret %channel%
@@ -29,7 +30,7 @@ setono_sylius_gift_card:
         edit_gift_card_configuration: Rediger konfiguration af gavekort
         gift_card: Gavekort
         gift_card_configurations: Gavekortskonfigurationer
-        gift_card_balance: Gavekortssaldo
+        gift_cards_balance: Gavekortssaldo
         gift_card_channel_does_not_match_channel: Gavekortet er købt på en anden kanal, brug venligst gavekortet på %channel%
         gift_card_code_is_invalid: Gavekortskoden er ugyldig
         gift_cards: Gavekort
