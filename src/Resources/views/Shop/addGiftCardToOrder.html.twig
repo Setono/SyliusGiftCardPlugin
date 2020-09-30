@@ -1,20 +1,20 @@
 {% form_theme form '@SyliusShop/Form/theme.html.twig' %}
 
-<div class="ui hidden divider"></div>
+<div class="setono-sylius-gift-card-gift-card-block">
+    <div class="ui hidden divider"></div>
 
-{{ form_start(form, {'action': path('setono_sylius_gift_card_shop_ajax_add_gift_card_to_order'), 'attr': {'id': 'setono-sylius-gift-card-add-gift-card-to-order', 'class': 'ui loadable form', 'novalidate': 'novalidate', 'data-redirect': path('sylius_shop_cart_summary')}}) }}
-{{ form_row(form._token) }}
-{{ form_end(form, {'render_rest': false}) }}
+    {{ form_start(form, {'action': path('setono_sylius_gift_card_shop_partial_add_gift_card_to_order'), 'attr': {'id': 'setono-sylius-gift-card-add-gift-card-to-order', 'class': 'ui loadable form', 'novalidate': 'novalidate', 'data-redirect': path('sylius_shop_cart_summary')}}) }}
+    {{ form_row(form._token) }}
+    {{ form_end(form, {'render_rest': false}) }}
 
-<div>
-    <div class="ui action input">
-        {{ form_widget(form.giftCard, {'attr': {'form': 'setono-sylius-gift-card-add-gift-card-to-order'}}) }}
-        <button type="submit" class="ui primary icon labeled button" form="setono-sylius-gift-card-add-gift-card-to-order">
-            <i class="ticket icon"></i> {{ 'setono_sylius_gift_card.ui.add_gift_card_to_order'|trans }}
-        </button>
+    <div>
+        <div class="ui action input">
+            {{ form_widget(form.giftCard, {'attr': {'form': 'setono-sylius-gift-card-add-gift-card-to-order'}}) }}
+            <button type="submit" class="ui primary icon labeled button" form="setono-sylius-gift-card-add-gift-card-to-order">
+                <i class="ticket icon"></i> {{ 'setono_sylius_gift_card.ui.add_gift_card_to_order'|trans }}
+            </button>
+        </div>
+        <br>
+        {{ form_errors(form.giftCard) }}
     </div>
-    <br>
-    <div class="ui red label top pointing hidden" id="setono-sylius-gift-card-cart-validation-error"></div>
-    {{ form_errors(form) }}
 </div>
-

@@ -13,24 +13,14 @@
 
         $.ajax(url, {
           method: 'POST',
-          beforeSend(settings) {
-            settings.data = $element.serialize();
-
-            return settings;
-          },
+          data: $element.serialize(),
           success: function () {
-            validationElement.addClass('hidden');
             window.location.href = redirectUrl;
           },
           error: function (xhr) {
-            validationElement.removeClass('hidden');
-            let validationMessage = '';
+            $('.setono-sylius-gift-card-gift-card-block').replaceWith(xhr.responseText);
 
-            Object.entries(xhr.responseJSON.errors.errors).forEach(([, message]) => {
-              validationMessage += message;
-            });
-            validationElement.html(validationMessage);
-            $element.removeClass('loading');
+            $('#setono-sylius-gift-card-add-gift-card-to-order').addGiftCardToOrder();
           },
         });
       });

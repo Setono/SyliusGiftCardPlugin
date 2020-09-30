@@ -75,22 +75,13 @@ final class AddGiftCardToOrderAction
 
             $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_added');
 
-            if ($request->isXmlHttpRequest()) {
-                return $this->viewHandler->handle(View::create([], Response::HTTP_CREATED));
-            }
-
             return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));
-        }
-
-        if ($request->isXmlHttpRequest()) {
-            return $this->viewHandler->handle(View::create($form, Response::HTTP_BAD_REQUEST)->setData([
-                'errors' => $form->getErrors(true, true),
-            ]));
         }
 
         $view = View::create()
             ->setData([
-                'form' => $form->createView(),
+                // Apparently we have to pass the form, and not the createdView
+                'form' => $form,
             ])
             ->setTemplate('@SetonoSyliusGiftCardPlugin/Shop/addGiftCardToOrder.html.twig')
         ;
