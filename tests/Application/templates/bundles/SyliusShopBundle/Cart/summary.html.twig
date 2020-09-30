@@ -24,6 +24,8 @@
 
     <script src="{{ asset('bundles/setonosyliusgiftcardplugin/setono-sylius-gift-card-add-gift-card-to-order.js') }}"></script>
     <script>
-        $('#setono-sylius-gift-card-add-gift-card-to-order').addGiftCardToOrder();
+        $().ready(() => {
+            $('#setono-sylius-gift-card-add-gift-card-to-order').addGiftCardToOrder();
+        });
     </script>
 {% endblock %}
