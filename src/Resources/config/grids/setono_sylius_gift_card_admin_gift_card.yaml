@@ -1,11 +1,4 @@
 sylius_grid:
-    templates:
-        action:
-            gift_card_create: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/create.html.twig"
-            gift_card_delete_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/delete_conditional.html.twig"
-            gift_card_balance: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/gift_card_balance.html.twig"
-            gift_card_list_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/list_conditional.html.twig"
-            gift_card_resend_email: '@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/resend_email.html.twig'
     grids:
         setono_sylius_gift_card_admin_gift_card:
             driver:
