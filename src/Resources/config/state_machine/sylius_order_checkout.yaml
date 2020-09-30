@@ -2,7 +2,7 @@ winzou_state_machine:
     sylius_order_checkout:
         callbacks:
             after:
-                setono_create_gift_card:
+                setono_gift_card_create:
                     on: ["complete"]
                     do: ["@setono_sylius_gift_card.operator.order_gift_card", "create"]
                     args: ["object"]

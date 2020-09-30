@@ -1,11 +1,11 @@
 sylius_grid:
     templates:
         action:
-            create_gift_card: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/create.html.twig"
-            delete_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/delete_conditional.html.twig"
+            gift_card_create: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/create.html.twig"
+            gift_card_delete_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/delete_conditional.html.twig"
             gift_card_balance: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/gift_card_balance.html.twig"
-            list_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/list_conditional.html.twig"
-            resend_gift_card_email: '@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/resend_email.html.twig'
+            gift_card_list_conditional: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/list_conditional.html.twig"
+            gift_card_resend_email: '@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Action/resend_email.html.twig'
     grids:
         setono_sylius_gift_card_admin_gift_card:
             driver:
@@ -95,10 +95,10 @@ sylius_grid:
                     balance:
                         type: gift_card_balance
                     create:
-                        type: create_gift_card
+                        type: gift_card_create
                 item:
                     list_orders:
-                        type: list_conditional
+                        type: gift_card_list_conditional
                         label: setono_sylius_gift_card.ui.list_orders
                         options:
                             visible: resource.hasAppliedCompletedOrders
@@ -115,7 +115,7 @@ sylius_grid:
                                 parameters:
                                     id: resource.id
                     resend_email:
-                        type: resend_gift_card_email
+                        type: gift_card_resend_email
                         label: setono_sylius_gift_card.ui.resend_email
                         options:
                             visible: resource.hasOrderOrCustomer
@@ -126,6 +126,6 @@ sylius_grid:
                     update:
                         type: update
                     delete:
-                        type: delete_conditional
+                        type: gift_card_delete_conditional
                         options:
                             visible: resource.isDeletable

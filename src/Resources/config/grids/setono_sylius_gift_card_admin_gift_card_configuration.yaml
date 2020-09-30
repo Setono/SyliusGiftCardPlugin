@@ -37,4 +37,4 @@ sylius_grid:
                     update:
                         type: update
                     delete:
-                        type: delete_conditional
+                        type: gift_card_delete_conditional
