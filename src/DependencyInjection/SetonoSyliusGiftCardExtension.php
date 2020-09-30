@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
+use function array_key_exists;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -21,5 +22,12 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
         $this->registerResources('setono_sylius_gift_card', $config['driver'], $config['resources'], $container);
 
         $loader->load('services.xml');
+
+        if ($container->hasParameter('kernel.bundles')) {
+            $bundles = $container->getParameter('kernel.bundles');
+            if (array_key_exists('SetonoSyliusCatalogPromotionPlugin', $bundles)) {
+                $loader->load('services/conditional/catalog_promotion_rule.xml');
+            }
+        }
     }
 }
