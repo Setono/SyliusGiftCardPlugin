@@ -83,10 +83,10 @@ final class ResendGiftCardEmailAction
             $filtered = filter_var($request->headers->get('referer'), FILTER_SANITIZE_URL);
 
             if (false === $filtered) {
-                return $this->router->generate('gift_card_admin_gift_card_index');
+                return $this->router->generate('setono_sylius_gift_card_admin_gift_card_index');
             }
         }
 
-        return $this->router->generate('gift_card_admin_gift_card_index');
+        return $this->router->generate('setono_sylius_gift_card_admin_gift_card_index');
     }
 }
