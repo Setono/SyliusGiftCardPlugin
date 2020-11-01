@@ -24,6 +24,7 @@ setono_sylius_gift_card:
         covered_by_gift_cards: Covered by gift cards
         count: Count
         create_for_channel: Create for %channel%
+        customer_help_text: When you associate a customer with a gift card, Sylius will automatically notify this customer via email
         download_pdf: PDF
         edit_gift_card: Edit gift card
         enter_gift_card_code: Enter gift card code
