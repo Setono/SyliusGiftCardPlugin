@@ -8,28 +8,23 @@
       const redirectUrl = $element.data('redirect');
       const validationElement = $('#setono-sylius-gift-card-cart-validation-error');
 
-      $.ajax(url, {
-        method: 'POST',
-        beforeSend(settings) {
-          settings.data = $element.serialize();
+      $element.on('submit', function (event) {
+        event.preventDefault();
 
-          return settings;
-        },
-        success: function () {
-          validationElement.addClass('hidden');
-          window.location.href = redirectUrl;
-        },
-        error: function (xhr) {
-          validationElement.removeClass('hidden');
-          let validationMessage = '';
+        $.ajax(url, {
+          method: 'POST',
+          data: $element.serialize(),
+          success: function () {
+            window.location.href = redirectUrl;
+          },
+          error: function (xhr) {
+            $('.setono-sylius-gift-card-gift-card-block').replaceWith(xhr.responseText);
 
-          Object.entries(xhr.responseJSON.errors.errors).forEach(([, message]) => {
-            validationMessage += message;
-          });
-          validationElement.html(validationMessage);
-          $element.removeClass('loading');
-        },
+            $('#setono-sylius-gift-card-add-gift-card-to-order').addGiftCardToOrder();
+          },
+        });
       });
+
     },
   });
 })(jQuery);
