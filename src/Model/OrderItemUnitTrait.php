@@ -22,6 +22,12 @@ trait OrderItemUnitTrait
 
     public function setGiftCard(GiftCardInterface $giftCard): void
     {
+        if ($this->giftCard === $giftCard) {
+            return;
+        }
+
         $this->giftCard = $giftCard;
+
+        $giftCard->setOrderItemUnit($this);
     }
 }

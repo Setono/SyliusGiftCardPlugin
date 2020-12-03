@@ -80,10 +80,15 @@ class GiftCard implements GiftCardInterface
         return $this->orderItemUnit;
     }
 
-    public function setOrderItemUnit(OrderItemUnitInterface $orderItem): void
+    public function setOrderItemUnit(OrderItemUnitInterface $orderItemUnit): void
     {
-        $this->orderItemUnit = $orderItem;
-        $orderItem->setGiftCard($this);
+        if ($this->orderItemUnit === $orderItemUnit) {
+            return;
+        }
+
+        $this->orderItemUnit = $orderItemUnit;
+
+        $orderItemUnit->setGiftCard($this);
     }
 
     public function getOrder(): ?OrderInterface
