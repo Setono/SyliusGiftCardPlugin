@@ -31,7 +31,7 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
      */
     public function getOrderItemUnit(): ?OrderItemUnitInterface;
 
-    public function setOrderItemUnit(OrderItemUnitInterface $orderItem): void;
+    public function setOrderItemUnit(OrderItemUnitInterface $orderItemUnit): void;
 
     /**
      * This is a helper method that will return the order where the gift was bought
