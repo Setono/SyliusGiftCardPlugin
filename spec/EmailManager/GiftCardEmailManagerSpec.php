@@ -24,6 +24,8 @@ final class GiftCardEmailManagerSpec extends ObjectBehavior
         LocaleAwareInterface $translator,
         CustomerChannelResolverInterface $customerChannelResolver
     ): void {
+        $translator->getLocale()->willReturn('en_US');
+
         $this->beConstructedWith($sender, $translator, $customerChannelResolver);
     }
 
@@ -43,7 +45,8 @@ final class GiftCardEmailManagerSpec extends ObjectBehavior
         GiftCardInterface $giftCard,
         SenderInterface $sender,
         ChannelInterface $channel,
-    LocaleInterface $locale
+        LocaleInterface $locale,
+        LocaleAwareInterface $translator
     ): void {
         $customer->getEmail()->willReturn('example@shop.com');
         $order->getCustomer()->willReturn($customer);
@@ -51,6 +54,8 @@ final class GiftCardEmailManagerSpec extends ObjectBehavior
         $order->getLocaleCode()->willReturn('en_US');
         $channel->getDefaultLocale()->willReturn($locale);
         $locale->getCode()->willReturn('en_US');
+
+        $translator->setLocale('en_US')->shouldBeCalled();
 
         $sender->send(
             Emails::GIFT_CARD_ORDER,
