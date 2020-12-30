@@ -6,7 +6,6 @@
     "require": {
         "php": "^7.3",
         "knplabs/knp-snappy-bundle": "^1.7",
-        "sylius/core-bundle": "^1.0",
         "symfony/config": "^4.4 || ^5.0",
         "symfony/dependency-injection": "^4.4 || ^5.0",
         "symfony/http-client": "^5.1",
@@ -14,6 +13,7 @@
         "thecodingmachine/safe": "^1.0"
     },
     "require-dev": {
+        "doctrine/doctrine-bundle": "^1.2.13",
         "matthiasnoback/symfony-config-test": "^4.2",
         "matthiasnoback/symfony-dependency-injection-test": "^4.1",
         "phpspec/phpspec": "^7.0",
@@ -55,7 +55,7 @@
             "@checks",
             "@tests"
         ],
-        "analyse": "vendor/bin/phpstan analyse -c phpstan.neon -l max src",
+        "analyse": "phpstan analyse -c phpstan.neon",
         "assets": [
             "@ensure-assets-installed",
             "@ensure-assets-compiled"

@@ -1,13 +1,12 @@
+includes:
+    - phpstan-baseline.neon
+
 parameters:
-    reportUnmatchedIgnoredErrors: true
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
+	reportUnmatchedIgnoredErrors: true
+	checkMissingIterableValueType: false
+	checkGenericClassInNonGenericObjectType: false
 
-    excludes_analyse:
-        # Makes PHPStan crash
-        - 'src/DependencyInjection/Configuration.php'
+	level: max
 
-    ignoreErrors:
-        - '/Parameter \#1 \$configuration of method Symfony\\Component\\DependencyInjection\\Extension\\Extension::processConfiguration\(\) expects Symfony\\Component\\Config\\Definition\\ConfigurationInterface, Symfony\\Component\\Config\\Definition\\ConfigurationInterface\|null given\./'
-        - '/Cannot call method scalarNode\(\) on .+\\NodeParentInterface\|null./'
-
+	paths:
+		- src/
