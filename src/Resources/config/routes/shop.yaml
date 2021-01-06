@@ -16,6 +16,12 @@ setono_sylius_gift_card_shop_partial_add_gift_card_to_order:
     defaults:
         _controller: setono_sylius_gift_card.controller.action.add_gift_card_to_order
 
+setono_sylius_gift_card_shop_ajax_add_gift_card_to_order:
+    path: /ajax/gift-card/add-to-order
+    methods: [ GET, POST ]
+    defaults:
+        _controller: setono_sylius_gift_card.controller.action.add_gift_card_to_order
+
 setono_sylius_gift_card_shop_gift_card_index:
     path: /account/gift-cards
     methods: [ GET ]
