@@ -4,7 +4,7 @@
   $.fn.extend({
     addGiftCardToOrder: function () {
       const $element = $(this);
-      const url = $element.attr('data-action');
+      const url = $element.data('action');
       const redirectUrl = $element.data('redirect');
 
       $element.on('submit', function (event) {
