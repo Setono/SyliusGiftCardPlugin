@@ -4,9 +4,8 @@
   $.fn.extend({
     addGiftCardToOrder: function () {
       const $element = $(this);
-      const url = $element.attr('action');
+      const url = $element.data('action');
       const redirectUrl = $element.data('redirect');
-      const validationElement = $('#setono-sylius-gift-card-cart-validation-error');
 
       $element.on('submit', function (event) {
         event.preventDefault();
