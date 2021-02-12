@@ -25,6 +25,7 @@ setono_sylius_gift_card:
         count: Nombre
         create_for_channel: Créer pour %channel%
         customer_help_text: When you associate a customer with a gift card, Sylius will automatically notify this customer via email
+        customer_email: Customer email
         download_pdf: PDF
         edit_gift_card: Edit gift card
         enter_gift_card_code: Renseignez le numéro de chèque-cadeau

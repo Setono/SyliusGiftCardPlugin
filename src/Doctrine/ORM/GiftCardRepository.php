@@ -16,7 +16,10 @@ final class GiftCardRepository extends EntityRepository implements GiftCardRepos
 {
     public function createListQueryBuilder(): QueryBuilder
     {
-        return $this->createQueryBuilder('o');
+        return $this->createQueryBuilder('o')
+            ->addSelect('customer')
+            ->leftJoin('o.customer', 'customer')
+            ;
     }
 
     public function findOneEnabledByCodeAndChannel(string $code, ChannelInterface $channel): ?GiftCardInterface

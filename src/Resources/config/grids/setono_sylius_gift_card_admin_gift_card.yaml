@@ -11,6 +11,11 @@ sylius_grid:
                 createdAt: desc
             limits: [25, 50, 100]
             fields:
+                customerEmail:
+                    type: string
+                    label: setono_sylius_gift_card.ui.customer_email
+                    path: customer.email
+                    sortable: customer.email
                 code:
                     type: string
                     label: sylius.ui.code
@@ -73,6 +78,11 @@ sylius_grid:
                     label: sylius.ui.amount
                     options:
                         currency_field: currencyCode
+                customerEmail:
+                    type: string
+                    label: setono_sylius_gift_card.ui.customer_email
+                    options:
+                        fields: [customer.email]
                 enabled:
                     label: sylius.ui.enabled
                     type: boolean
