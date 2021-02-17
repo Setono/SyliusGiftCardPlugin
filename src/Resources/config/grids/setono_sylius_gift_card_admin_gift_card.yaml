@@ -12,7 +12,7 @@ sylius_grid:
             limits: [25, 50, 100]
             fields:
                 customerEmail:
-                    type: string
+                    type: setono_sylius_gift_card_string
                     label: setono_sylius_gift_card.ui.customer_email
                     path: customer.email
                     sortable: customer.email
