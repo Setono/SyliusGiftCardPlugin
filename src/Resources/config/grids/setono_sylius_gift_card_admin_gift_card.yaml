@@ -60,6 +60,7 @@ sylius_grid:
                     type: twig
                     label: setono_sylius_gift_card.ui.bought_at_order
                     path: orderItemUnit
+                    sortable: orderItemUnit.orderItem.order.number
                     options:
                         template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/item_units_order.html.twig"
             filters:
