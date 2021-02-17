@@ -11,6 +11,11 @@ sylius_grid:
                 createdAt: desc
             limits: [25, 50, 100]
             fields:
+                customerEmail:
+                    type: setono_sylius_gift_card_string
+                    label: setono_sylius_gift_card.ui.customer_email
+                    path: customer.email
+                    sortable: customer.email
                 code:
                     type: string
                     label: sylius.ui.code
@@ -55,6 +60,7 @@ sylius_grid:
                     type: twig
                     label: setono_sylius_gift_card.ui.bought_at_order
                     path: orderItemUnit
+                    sortable: orderItemUnit.orderItem.order.number
                     options:
                         template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/item_units_order.html.twig"
             filters:
@@ -73,6 +79,16 @@ sylius_grid:
                     label: sylius.ui.amount
                     options:
                         currency_field: currencyCode
+                customerEmail:
+                    type: string
+                    label: setono_sylius_gift_card.ui.customer_email
+                    options:
+                        fields: [customer.email]
+                boughtAtOrder:
+                    type: string
+                    label: setono_sylius_gift_card.ui.bought_at_order
+                    options:
+                        fields: [orderItemUnit.orderItem.order.number]
                 enabled:
                     label: sylius.ui.enabled
                     type: boolean

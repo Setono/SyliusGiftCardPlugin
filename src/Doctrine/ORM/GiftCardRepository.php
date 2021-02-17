@@ -12,11 +12,14 @@ use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderItemUnitInterface;
 
-final class GiftCardRepository extends EntityRepository implements GiftCardRepositoryInterface
+class GiftCardRepository extends EntityRepository implements GiftCardRepositoryInterface
 {
     public function createListQueryBuilder(): QueryBuilder
     {
-        return $this->createQueryBuilder('o');
+        return $this->createQueryBuilder('o')
+            ->addSelect('customer')
+            ->leftJoin('o.customer', 'customer')
+            ;
     }
 
     public function findOneEnabledByCodeAndChannel(string $code, ChannelInterface $channel): ?GiftCardInterface
