@@ -24,6 +24,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
         $loader->load('services.xml');
 
         if ($container->hasParameter('kernel.bundles')) {
+            /** @var array $bundles */
             $bundles = $container->getParameter('kernel.bundles');
             if (array_key_exists('SetonoSyliusCatalogPromotionPlugin', $bundles)) {
                 $loader->load('services/conditional/catalog_promotion_rule.xml');
