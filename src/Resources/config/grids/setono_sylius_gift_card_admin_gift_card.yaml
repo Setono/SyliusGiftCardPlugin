@@ -84,6 +84,11 @@ sylius_grid:
                     label: setono_sylius_gift_card.ui.customer_email
                     options:
                         fields: [customer.email]
+                boughtAtOrder:
+                    type: string
+                    label: setono_sylius_gift_card.ui.bought_at_order
+                    options:
+                        fields: [orderItemUnit.orderItem.order.number]
                 enabled:
                     label: sylius.ui.enabled
                     type: boolean
