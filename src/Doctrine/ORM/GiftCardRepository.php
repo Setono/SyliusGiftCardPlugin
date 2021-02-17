@@ -12,7 +12,7 @@ use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderItemUnitInterface;
 
-final class GiftCardRepository extends EntityRepository implements GiftCardRepositoryInterface
+/** not final */ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryInterface
 {
     public function createListQueryBuilder(): QueryBuilder
     {
