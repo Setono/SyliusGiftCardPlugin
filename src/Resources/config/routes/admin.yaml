@@ -3,7 +3,7 @@ setono_sylius_gift_card_admin_gift_card:
         alias: setono_sylius_gift_card.gift_card
         section: admin
         only: [index, update, delete, bulkDelete]
-        templates: SyliusAdminBundle:Crud
+        templates: '@SyliusAdmin/Crud'
         redirect: index
         grid: setono_sylius_gift_card_admin_gift_card
         vars:
@@ -40,7 +40,7 @@ setono_sylius_gift_card_admin_gift_card_configuration:
         alias: setono_sylius_gift_card.gift_card_configuration
         section: admin
         only: [index, create, update, delete, bulkDelete]
-        templates: SyliusAdminBundle:Crud
+        templates: '@SyliusAdmin/Crud'
         redirect: index
         grid: setono_sylius_gift_card_admin_gift_card_configuration
         vars:
@@ -82,7 +82,7 @@ setono_sylius_gift_card_admin_gift_card_create:
                 method: createForChannel
                 arguments:
                     channel: "expr:service('sylius.repository.channel').findOneByCode($channelCode)"
-            template: SyliusAdminBundle:Crud:create.html.twig
+            template: '@SyliusAdmin/Crud/create.html.twig'
             grid: setono_sylius_gift_card_admin_gift_card
             section: admin
             redirect:
@@ -105,7 +105,7 @@ setono_sylius_gift_card_admin_gift_card_orders_index:
                 route:
                     parameters:
                         id: $id
-            template: SyliusAdminBundle:Crud:index.html.twig
+            template: '@SyliusAdmin/Crud/index.html.twig'
             grid: setono_sylius_gift_card_admin_gift_card_order
             section: admin
             permission: true
