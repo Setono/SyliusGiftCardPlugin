@@ -20,7 +20,7 @@
         "phpunit/phpunit": "^8.5 || ^9.3",
         "roave/security-advisories": "dev-master",
         "setono/code-quality-pack": "^1.4",
-        "setono/sylius-behat-pack": "^0.1",
+        "setono/sylius-behat-pack": "^0.2",
         "setono/sylius-catalog-promotion-plugin": "^0.2.0",
         "sylius/sylius": "~1.7.0",
         "symfony/debug-bundle": "^5.1",
