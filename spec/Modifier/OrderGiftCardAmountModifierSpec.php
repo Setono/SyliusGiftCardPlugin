@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace spec\Setono\SyliusGiftCardPlugin\Modifier;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
@@ -16,7 +16,7 @@ use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardAmountModifierInterface;
 final class OrderGiftCardAmountModifierSpec extends ObjectBehavior
 {
     public function let(
-        ObjectManager $giftCardManager
+        EntityManagerInterface $giftCardManager
     ): void {
         $this->beConstructedWith($giftCardManager);
     }

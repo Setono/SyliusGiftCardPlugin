@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Applicator;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Setono\SyliusGiftCardPlugin\Exception\ChannelMismatchException;
 use Setono\SyliusGiftCardPlugin\Exception\GiftCardNotFoundException;
@@ -21,13 +21,13 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
     /** @var OrderProcessorInterface */
     private $orderProcessor;
 
-    /** @var ObjectManager */
+    /** @var EntityManagerInterface */
     private $orderManager;
 
     public function __construct(
         GiftCardRepositoryInterface $giftCardRepository,
         OrderProcessorInterface $orderProcessor,
-        ObjectManager $orderManager
+        EntityManagerInterface $orderManager
     ) {
         $this->giftCardRepository = $giftCardRepository;
         $this->orderProcessor = $orderProcessor;

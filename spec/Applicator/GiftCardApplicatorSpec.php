@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace spec\Setono\SyliusGiftCardPlugin\Applicator;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
@@ -19,7 +19,7 @@ final class GiftCardApplicatorSpec extends ObjectBehavior
     public function let(
         GiftCardRepositoryInterface $giftCardRepository,
         OrderProcessorInterface $orderProcessor,
-        ObjectManager $orderManager
+        EntityManagerInterface $orderManager
     ): void {
         $this->beConstructedWith($giftCardRepository, $orderProcessor, $orderManager);
     }
@@ -37,7 +37,7 @@ final class GiftCardApplicatorSpec extends ObjectBehavior
     public function it_applies(
         GiftCardRepositoryInterface $giftCardRepository,
         OrderProcessorInterface $orderProcessor,
-        ObjectManager $orderManager,
+        EntityManagerInterface $orderManager,
         OrderInterface $order,
         GiftCardInterface $giftCard,
         ChannelInterface $channel

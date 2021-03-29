@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Modifier;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use function Safe\sprintf;
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
@@ -16,10 +16,10 @@ use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
  */
 final class OrderGiftCardAmountModifier implements OrderGiftCardAmountModifierInterface
 {
-    /** @var ObjectManager */
+    /** @var EntityManagerInterface */
     private $giftCardManager;
 
-    public function __construct(ObjectManager $giftCardManager)
+    public function __construct(EntityManagerInterface $giftCardManager)
     {
         $this->giftCardManager = $giftCardManager;
     }
