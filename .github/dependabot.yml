@@ -1,0 +1,17 @@
+version: 2
+updates:
+- package-ecosystem: composer
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: setono/sylius-catalog-promotion-plugin
+    versions:
+    - 0.3.0
+    - 0.3.1
+  - dependency-name: sylius/sylius
+    versions:
+    - 1.8.8
+    - 1.8.9
