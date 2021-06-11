@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/8.0/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          colors="true"
          bootstrap="tests/Application/config/bootstrap.php">
+    <coverage includeUncoveredFiles="true" processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">src/</directory>
+        </include>
+    </coverage>
     <testsuites>
         <testsuite name="SetonoSyliusGiftCardPlugin Test Suite">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
-
     <php>
         <server name="KERNEL_CLASS_PATH" value="tests/Application/Kernel.php"/>
         <server name="IS_DOCTRINE_ORM_SUPPORTED" value="true"/>
