@@ -1,32 +1,54 @@
 {
     "name": "setono/sylius-gift-card-plugin",
-    "type": "symfony-bundle",
+    "type": "sylius-plugin",
     "description": "Gift card plugin for Sylius",
     "license": "MIT",
     "require": {
-        "php": "^7.3",
+        "php": ">=7.4",
+        "ext-filter": "*",
+        "ext-mbstring": "*",
+        "doctrine/collections": "^1.6",
+        "doctrine/orm": "^2.7",
+        "doctrine/persistence": "^1.3 || ^2.2",
+        "friendsofsymfony/rest-bundle": "^2.8",
+        "fzaninotto/faker": "^1.9",
+        "knplabs/knp-menu": "^3.2",
+        "knplabs/knp-snappy": "^1.2",
         "knplabs/knp-snappy-bundle": "^1.7",
+        "sylius/resource-bundle": "^1.6",
         "symfony/config": "^4.4 || ^5.0",
         "symfony/dependency-injection": "^4.4 || ^5.0",
-        "symfony/http-client": "^5.1",
+        "symfony/event-dispatcher": "^4.4 || ^5.0",
+        "symfony/form": "^4.4 || ^5.0",
+        "symfony/http-foundation": "^4.4 || ^5.0.7",
         "symfony/http-kernel": "^4.4 || ^5.1.5",
-        "thecodingmachine/safe": "^1.0"
+        "symfony/options-resolver": "^4.4 || ^5.0",
+        "symfony/property-access": "^4.4 || ^5.0",
+        "symfony/routing": "^4.4 || ^5.0",
+        "symfony/security": "^4.4 || ^5.0",
+        "symfony/translation-contracts": "^2.4",
+        "symfony/validator": "^4.4 || ^5.0",
+        "twig/twig": "^2.14",
+        "webmozart/assert": "^1.10"
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^1.2.13",
         "matthiasnoback/symfony-config-test": "^4.2",
         "matthiasnoback/symfony-dependency-injection-test": "^4.1",
         "phpspec/phpspec": "^7.0",
-        "phpunit/phpunit": "^8.5 || ^9.3",
-        "roave/security-advisories": "dev-master",
-        "setono/code-quality-pack": "^1.4",
+        "phpunit/phpunit": "^9.5",
+        "psalm/plugin-phpunit": "^0.16.0",
+        "psalm/plugin-symfony": "^2.1",
+        "roave/security-advisories": "dev-latest",
+        "setono/code-quality-pack": "^2.1",
         "setono/sylius-behat-pack": "^0.1",
         "setono/sylius-catalog-promotion-plugin": "^0.2.0",
         "sylius/sylius": "~1.7.0",
         "symfony/debug-bundle": "^5.1",
         "symfony/dotenv": "^5.1",
         "symfony/intl": "^4.4 || ^5.0",
-        "symfony/web-profiler-bundle": "^5.0"
+        "symfony/web-profiler-bundle": "^5.0",
+        "weirdan/doctrine-psalm-plugin": "^1.0"
     },
     "config": {
         "sort-packages": true
@@ -55,7 +77,10 @@
             "@checks",
             "@tests"
         ],
-        "analyse": "phpstan analyse -c phpstan.neon",
+        "analyse": [
+            "@ensure-test-container-exists",
+            "psalm"
+        ],
         "assets": [
             "@ensure-assets-installed",
             "@ensure-assets-compiled"
@@ -66,7 +91,7 @@
             "SYMFONY_ENV=test composer ensure-env-copied",
             "php -d memory_limit=-1 vendor/bin/behat --tags=\"~@javascript\" --no-interaction --format=progress"
         ],
-        "check-style": "vendor/bin/ecs check src/ spec/ tests/",
+        "check-style": "ecs check",
         "checks": [
             "@check-style",
             "@analyse"
@@ -78,15 +103,16 @@
         "ensure-env-dev-copied": "(cd tests/Application && ([[ -f .env.local ]] || cp .env .env.local))",
         "ensure-env-test-copied": "(cd tests/Application && ([[ -f .env.test.local ]] || cp .env.test .env.test.local))",
         "ensure-schema-updated": "composer ensure-env-copied && (cd tests/Application && bin/console doctrine:schema:update --force -e ${SYMFONY_ENV:-'dev'})",
+        "ensure-test-container-exists": "[[ -f tests/Application/var/cache/test/ApplicationTests_Setono_SyliusGiftCardPlugin_Application_KernelTestDebugContainer.xml ]] || tests/Application/bin/console cache:warmup --env=test",
         "ensure-vendors-installed": "[[ -f vendor/autoload.php ]] || php -d memory_limit=-1 /usr/local/bin/composer install",
-        "fix-style": "vendor/bin/ecs check src/ spec/ tests/ --fix",
+        "fix-style": "ecs check --fix",
         "fixtures": [
             "@ensure-database-created",
             "@ensure-schema-updated",
             "(cd tests/Application && php -d memory_limit=-1 bin/console sylius:fixtures:load --no-interaction -e ${SYMFONY_ENV:-'dev'})"
         ],
-        "phpspec": "vendor/bin/phpspec run -vvv",
-        "phpunit": "vendor/bin/phpunit",
+        "phpspec": "phpspec run -vvv",
+        "phpunit": "phpunit",
         "run": [
             "@ensure-env-copied",
             "(cd tests/Application && bin/console server:run -d public -e ${SYMFONY_ENV:-'dev'})"

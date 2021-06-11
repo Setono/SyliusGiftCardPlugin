@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Fixture\Factory;
 
-use function Safe\sprintf;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use function sprintf;
 use Sylius\Bundle\CoreBundle\Fixture\Factory\AbstractExampleFactory;
 use Sylius\Bundle\CoreBundle\Fixture\Factory\ExampleFactoryInterface;
 use Sylius\Bundle\CoreBundle\Fixture\OptionsResolver\LazyOption;
@@ -22,26 +22,19 @@ use Webmozart\Assert\Assert;
 
 class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFactoryInterface
 {
-    /** @var GiftCardRepositoryInterface */
-    protected $giftCardRepository;
+    protected GiftCardRepositoryInterface $giftCardRepository;
 
-    /** @var FactoryInterface */
-    protected $giftCardFactory;
+    protected FactoryInterface $giftCardFactory;
 
-    /** @var GiftCardCodeGeneratorInterface */
-    protected $giftCardCodeGenerator;
+    protected GiftCardCodeGeneratorInterface $giftCardCodeGenerator;
 
-    /** @var ChannelRepositoryInterface */
-    protected $channelRepository;
+    protected ChannelRepositoryInterface $channelRepository;
 
-    /** @var RepositoryInterface */
-    protected $currencyRepository;
+    protected RepositoryInterface $currencyRepository;
 
-    /** @var \Faker\Generator */
-    protected $faker;
+    protected \Faker\Generator $faker;
 
-    /** @var OptionsResolver */
-    protected $optionsResolver;
+    protected OptionsResolver $optionsResolver;
 
     public function __construct(
         GiftCardRepositoryInterface $giftCardRepository,

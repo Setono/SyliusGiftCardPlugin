@@ -11,11 +11,9 @@ use Sylius\Component\Core\Model\CustomerInterface;
 
 final class CustomerChannelResolver implements CustomerChannelResolverInterface
 {
-    /** @var OrderRepositoryInterface */
-    private $orderRepository;
+    private OrderRepositoryInterface $orderRepository;
 
-    /** @var ChannelRepositoryInterface */
-    private $channelRepository;
+    private ChannelRepositoryInterface $channelRepository;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,

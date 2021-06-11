@@ -8,12 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 trait OrderItemUnitTrait
 {
-    /**
-     * @var GiftCardInterface|null
-     *
-     * @ORM\OneToOne (targetEntity="Setono\SyliusGiftCardPlugin\Model\GiftCardInterface", mappedBy="orderItemUnit")
-     */
-    protected $giftCard;
+    /** @ORM\OneToOne (targetEntity="Setono\SyliusGiftCardPlugin\Model\GiftCardInterface", mappedBy="orderItemUnit") */
+    protected ?GiftCardInterface $giftCard = null;
 
     public function getGiftCard(): ?GiftCardInterface
     {

@@ -19,17 +19,13 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class ResendGiftCardEmailAction
 {
-    /** @var GiftCardEmailManagerInterface */
-    private $giftCardEmailManager;
+    private GiftCardEmailManagerInterface $giftCardEmailManager;
 
-    /** @var GiftCardRepositoryInterface */
-    private $giftCardRepository;
+    private GiftCardRepositoryInterface $giftCardRepository;
 
-    /** @var FlashBagInterface */
-    private $flashBag;
+    private FlashBagInterface $flashBag;
 
-    /** @var UrlGeneratorInterface */
-    private $router;
+    private UrlGeneratorInterface $router;
 
     public function __construct(
         GiftCardEmailManagerInterface $giftCardEmailManager,

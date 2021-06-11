@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Generator;
 
-use function Safe\preg_replace;
+use function preg_replace;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 
 final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
 {
-    /** @var GiftCardRepositoryInterface */
-    private $giftCardRepository;
+    private GiftCardRepositoryInterface $giftCardRepository;
 
-    /** @var int */
-    private $codeLength;
+    private int $codeLength;
 
     public function __construct(GiftCardRepositoryInterface $giftCardRepository, int $codeLength)
     {

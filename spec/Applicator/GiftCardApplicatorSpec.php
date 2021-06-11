@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace spec\Setono\SyliusGiftCardPlugin\Applicator;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;

@@ -12,8 +12,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 final class DefaultGiftCardConfigurationSubscriber implements EventSubscriberInterface
 {
-    /** @var RepositoryInterface */
-    private $giftCardConfigurationRepository;
+    private RepositoryInterface $giftCardConfigurationRepository;
 
     public function __construct(RepositoryInterface $giftCardConfigurationRepository)
     {

@@ -12,7 +12,7 @@ use Webmozart\Assert\Assert;
 final class GiftCardBalanceCollection implements Countable, Iterator
 {
     /** @var GiftCardBalance[] */
-    private $collection = [];
+    private array $collection = [];
 
     public function addGiftCard(GiftCardInterface $giftCard): void
     {

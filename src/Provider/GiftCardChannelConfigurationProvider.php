@@ -17,17 +17,13 @@ use Webmozart\Assert\Assert;
 
 final class GiftCardChannelConfigurationProvider implements GiftCardChannelConfigurationProviderInterface
 {
-    /** @var RepositoryInterface */
-    private $configurationRepository;
+    private RepositoryInterface $configurationRepository;
 
-    /** @var RepositoryInterface */
-    private $defaultConfigurationRepository;
+    private RepositoryInterface $defaultConfigurationRepository;
 
-    /** @var LocaleContextInterface */
-    private $localeContext;
+    private LocaleContextInterface $localeContext;
 
-    /** @var RepositoryInterface */
-    private $localeRepository;
+    private RepositoryInterface $localeRepository;
 
     public function __construct(
         RepositoryInterface $configurationRepository,

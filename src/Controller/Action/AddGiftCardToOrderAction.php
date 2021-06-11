@@ -21,23 +21,17 @@ use Webmozart\Assert\Assert;
 
 final class AddGiftCardToOrderAction
 {
-    /** @var ViewHandlerInterface */
-    private $viewHandler;
+    private ViewHandlerInterface $viewHandler;
 
-    /** @var FormFactoryInterface */
-    private $formFactory;
+    private FormFactoryInterface $formFactory;
 
-    /** @var CartContextInterface */
-    private $cartContext;
+    private CartContextInterface $cartContext;
 
-    /** @var FlashBagInterface */
-    private $flashBag;
+    private FlashBagInterface $flashBag;
 
-    /** @var GiftCardApplicatorInterface */
-    private $giftCardApplicator;
+    private GiftCardApplicatorInterface $giftCardApplicator;
 
-    /** @var RedirectUrlResolverInterface */
-    private $redirectRouteResolver;
+    private RedirectUrlResolverInterface $redirectRouteResolver;
 
     public function __construct(
         ViewHandlerInterface $viewHandler,

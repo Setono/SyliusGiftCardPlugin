@@ -12,8 +12,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class RedirectUrlResolver implements RedirectUrlResolverInterface
 {
-    /** @var UrlGeneratorInterface */
-    private $router;
+    private UrlGeneratorInterface $router;
 
     public function __construct(UrlGeneratorInterface $router)
     {

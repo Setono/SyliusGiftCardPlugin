@@ -3,7 +3,7 @@ setono_sylius_gift_card_admin_gift_card:
         alias: setono_sylius_gift_card.gift_card
         section: admin
         only: [index, update, delete, bulkDelete]
-        templates: '@SyliusAdmin/Crud'
+        templates: '@SyliusAdmin\\Crud'
         redirect: index
         grid: setono_sylius_gift_card_admin_gift_card
         vars:
@@ -40,7 +40,7 @@ setono_sylius_gift_card_admin_gift_card_configuration:
         alias: setono_sylius_gift_card.gift_card_configuration
         section: admin
         only: [index, create, update, delete, bulkDelete]
-        templates: '@SyliusAdmin/Crud'
+        templates: '@SyliusAdmin\\Crud'
         redirect: index
         grid: setono_sylius_gift_card_admin_gift_card_configuration
         vars:

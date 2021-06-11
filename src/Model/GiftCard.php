@@ -18,32 +18,28 @@ class GiftCard implements GiftCardInterface
     use TimestampableTrait;
     use ToggleableTrait;
 
-    /** @var int */
-    protected $id;
+    protected ?int $id = null;
 
-    /** @var OrderItemUnitInterface|null */
-    protected $orderItemUnit;
+    protected ?OrderItemUnitInterface $orderItemUnit = null;
 
-    /** @var CustomerInterface|null */
-    protected $customer;
+    protected ?CustomerInterface $customer = null;
 
-    /** @var Collection|OrderInterface[] */
-    protected $appliedOrders;
+    /**
+     * @var Collection|OrderInterface[]
+     *
+     * @psalm-var Collection<array-key, OrderInterface>
+     */
+    protected Collection $appliedOrders;
 
-    /** @var string|null */
-    protected $code;
+    protected ?string $code = null;
 
-    /** @var int */
-    protected $initialAmount;
+    protected ?int $initialAmount = null;
 
-    /** @var int */
-    protected $amount = 0;
+    protected int $amount = 0;
 
-    /** @var string */
-    protected $currencyCode;
+    protected ?string $currencyCode = null;
 
-    /** @var ChannelInterface */
-    protected $channel;
+    protected ?ChannelInterface $channel = null;
 
     public function __construct()
     {

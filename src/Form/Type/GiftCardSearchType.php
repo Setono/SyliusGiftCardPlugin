@@ -13,11 +13,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class GiftCardSearchType extends AbstractType
 {
-    /** @var DataTransformerInterface */
-    private $giftCardToCodeDataTransformer;
+    private DataTransformerInterface $giftCardToCodeDataTransformer;
 
-    /** @var array */
-    private $validationGroups;
+    private array $validationGroups;
 
     public function __construct(DataTransformerInterface $giftCardToCodeDataTransformer, array $validationGroups)
     {

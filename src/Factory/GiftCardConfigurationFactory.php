@@ -10,11 +10,9 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 
 final class GiftCardConfigurationFactory implements GiftCardConfigurationFactoryInterface
 {
-    /** @var FactoryInterface */
-    private $decoratedFactory;
+    private FactoryInterface $decoratedFactory;
 
-    /** @var FactoryInterface */
-    private $imageFactory;
+    private FactoryInterface $imageFactory;
 
     public function __construct(FactoryInterface $decoratedFactory, FactoryInterface $imageFactory)
     {

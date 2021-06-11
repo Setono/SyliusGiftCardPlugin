@@ -10,17 +10,13 @@ use Webmozart\Assert\Assert;
 
 class GiftCardChannelConfiguration implements GiftCardChannelConfigurationInterface
 {
-    /** @var int|null */
-    protected $id;
+    protected ?int $id = null;
 
-    /** @var SyliusChannelInterface|null */
-    protected $channel;
+    protected ?SyliusChannelInterface $channel = null;
 
-    /** @var LocaleInterface|null */
-    protected $locale;
+    protected ?LocaleInterface $locale = null;
 
-    /** @var GiftCardConfigurationInterface|null */
-    protected $configuration;
+    protected ?GiftCardConfigurationInterface $configuration = null;
 
     public function getId(): ?int
     {

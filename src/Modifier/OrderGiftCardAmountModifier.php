@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Modifier;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
-use function Safe\sprintf;
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use function sprintf;
 
 /**
  * This class' responsibility is to modify the amount on a gift card when it's used to pay for an order
  */
 final class OrderGiftCardAmountModifier implements OrderGiftCardAmountModifierInterface
 {
-    /** @var ObjectManager */
-    private $giftCardManager;
+    private ObjectManager $giftCardManager;
 
     public function __construct(ObjectManager $giftCardManager)
     {
@@ -69,6 +68,6 @@ final class OrderGiftCardAmountModifier implements OrderGiftCardAmountModifierIn
             }
         }
 
-        throw new RuntimeException(sprintf('The order %s does not have a gift card with code %s', $order->getNumber(), $code));
+        throw new RuntimeException(sprintf('The order %s does not have a gift card with code %s', (string) $order->getNumber(), $code));
     }
 }

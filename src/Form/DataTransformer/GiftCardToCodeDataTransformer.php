@@ -13,11 +13,9 @@ use Webmozart\Assert\Assert;
 
 final class GiftCardToCodeDataTransformer implements DataTransformerInterface
 {
-    /** @var GiftCardRepositoryInterface */
-    private $giftCardRepository;
+    private GiftCardRepositoryInterface $giftCardRepository;
 
-    /** @var ChannelContextInterface */
-    private $channelContext;
+    private ChannelContextInterface $channelContext;
 
     public function __construct(
         GiftCardRepositoryInterface $giftCardRepository,

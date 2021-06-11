@@ -8,8 +8,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 
 final class AddGiftCardToOrderCommand
 {
-    /** @var GiftCardInterface|null */
-    private $giftCard;
+    private ?GiftCardInterface $giftCard = null;
 
     public function getGiftCard(): ?GiftCardInterface
     {

@@ -16,17 +16,13 @@ use Webmozart\Assert\Assert;
 
 final class RemoveGiftCardFromOrderAction
 {
-    /** @var CartContextInterface */
-    private $cartContext;
+    private CartContextInterface $cartContext;
 
-    /** @var FlashBagInterface */
-    private $flashBag;
+    private FlashBagInterface $flashBag;
 
-    /** @var GiftCardApplicatorInterface */
-    private $giftCardApplicator;
+    private GiftCardApplicatorInterface $giftCardApplicator;
 
-    /** @var RedirectUrlResolverInterface */
-    private $redirectRouteResolver;
+    private RedirectUrlResolverInterface $redirectRouteResolver;
 
     public function __construct(
         CartContextInterface $cartContext,

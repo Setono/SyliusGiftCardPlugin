@@ -15,11 +15,9 @@ use Webmozart\Assert\Assert;
 
 final class GiftCardFactory implements GiftCardFactoryInterface
 {
-    /** @var FactoryInterface */
-    private $decoratedFactory;
+    private FactoryInterface $decoratedFactory;
 
-    /** @var GiftCardCodeGeneratorInterface */
-    private $giftCardCodeGenerator;
+    private GiftCardCodeGeneratorInterface $giftCardCodeGenerator;
 
     public function __construct(FactoryInterface $decoratedFactory, GiftCardCodeGeneratorInterface $giftCardCodeGenerator)
     {

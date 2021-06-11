@@ -8,7 +8,7 @@ use function get_class;
 use function gettype;
 use InvalidArgumentException;
 use function is_object;
-use function Safe\sprintf;
+use function sprintf;
 
 final class UnexpectedTypeException extends InvalidArgumentException implements ExceptionInterface
 {

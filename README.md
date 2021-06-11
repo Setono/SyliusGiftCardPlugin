@@ -3,7 +3,6 @@
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE)
 [![Build Status][ico-github-actions]][link-github-actions]
-[![Quality Score][ico-code-quality]][link-code-quality]
 
 Add gift card functionality to your store:
 
@@ -260,7 +259,28 @@ $ php bin/console assets:install
 ```bash
 $ php bin/console cache:clear
 ```
-    
+
+# Configuration
+
+## Change redirect routes on add/remove gift card to/from order
+
+You can customize where you will be redirected after adding or removing a gift card. To do so, you can simply change the route configuration :
+
+```yaml
+setono_sylius_gift_card_shop_remove_gift_card_from_order:
+    path: /gift-card/{giftCard}/remove-from-order
+    methods: GET
+    defaults:
+        _controller: setono_sylius_gift_card.controller.action.remove_gift_card_from_order
+        redirect:
+            route: sylius_shop_cart_summary
+            parameters: []
+```
+
+The same applies for the `setono_sylius_gift_card_shop_partial_add_gift_card_to_order` route
+
+You can also override or decorate the service `setono_sylius_gift_card.resolver.redirect_url` to define a more custom way of redirecting
+
 # Development
 
 ## Testing
@@ -286,29 +306,6 @@ Please, run `composer all` to run all checks and tests before making pull reques
 [ico-version]: https://img.shields.io/packagist/v/setono/sylius-gift-card-plugin.svg
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg
 [ico-github-actions]: https://github.com/Setono/SyliusGiftCardPlugin/workflows/build/badge.svg
-[ico-code-quality]: https://img.shields.io/scrutinizer/g/Setono/SyliusGiftCardPlugin.svg
 
 [link-packagist]: https://packagist.org/packages/setono/sylius-gift-card-plugin
 [link-github-actions]: https://github.com/Setono/SyliusGiftCardPlugin/actions
-[link-code-quality]: https://scrutinizer-ci.com/g/Setono/SyliusGiftCardPlugin
-
-# Configuration
-
-## Change redirect routes on add/remove gift card to/from order
-
-You can customize where you will be redirected after adding or removing a gift card. To do so, you can simply change the route configuration :
-
-```yaml
-setono_sylius_gift_card_shop_remove_gift_card_from_order:
-    path: /gift-card/{giftCard}/remove-from-order
-    methods: GET
-    defaults:
-        _controller: setono_sylius_gift_card.controller.action.remove_gift_card_from_order
-        redirect:
-            route: sylius_shop_cart_summary
-            parameters: []
-```
-
-The same applies for the `setono_sylius_gift_card_shop_partial_add_gift_card_to_order` route
-
-You can also override or decorate the service `setono_sylius_gift_card.resolver.redirect_url` to define a more custom way of redirecting
