@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Applicator;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
 use Setono\SyliusGiftCardPlugin\Exception\ChannelMismatchException;
 use Setono\SyliusGiftCardPlugin\Exception\GiftCardNotFoundException;

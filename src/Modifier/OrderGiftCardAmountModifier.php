@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Modifier;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
 use function Safe\sprintf;
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
