@@ -69,6 +69,6 @@ final class OrderGiftCardAmountModifier implements OrderGiftCardAmountModifierIn
             }
         }
 
-        throw new RuntimeException(sprintf('The order %s does not have a gift card with code %s', $order->getNumber(), $code));
+        throw new RuntimeException(sprintf('The order %s does not have a gift card with code %s', (string) $order->getNumber(), $code));
     }
 }
