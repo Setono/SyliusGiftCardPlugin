@@ -30,6 +30,10 @@ final class GiftCardVoter extends Voter
         return true;
     }
 
+    /**
+     * @param string $attribute
+     * @param GiftCardInterface $subject
+     */
     protected function voteOnAttribute($attribute, $subject, TokenInterface $token): bool
     {
         /** @var UserInterface|ShopUserInterface|AdminUserInterface|null $user */
@@ -44,11 +48,8 @@ final class GiftCardVoter extends Voter
         }
         Assert::isInstanceOf($user, ShopUserInterface::class);
 
-        /** @var GiftCardInterface $giftCard */
-        $giftCard = $subject;
-        switch ($attribute) {
-            case self::READ:
-                return $this->canRead($giftCard, $user);
+        if (self::READ === $attribute) {
+            return $this->canRead($subject, $user);
         }
 
         throw new LogicException('This code should not be reached.');
