@@ -6,14 +6,11 @@ namespace Setono\SyliusGiftCardPlugin\Model;
 
 final class GiftCardBalance
 {
-    /** @var string */
-    private $currencyCode;
+    private string $currencyCode;
 
-    /** @var int */
-    private $count = 0;
+    private int $count = 0;
 
-    /** @var int */
-    private $total = 0;
+    private int $total = 0;
 
     public function __construct(string $currencyCode)
     {

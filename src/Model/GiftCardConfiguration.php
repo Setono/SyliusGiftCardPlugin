@@ -15,20 +15,25 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
     use TimestampableTrait;
     use ToggleableTrait;
 
-    /** @var int|null */
-    protected $id;
+    protected ?int $id = null;
 
-    /** @var string|null */
-    protected $code;
+    protected ?string $code = null;
 
-    /** @var ImageInterface[]|Collection */
-    protected $images;
+    /**
+     * @var ImageInterface[]|Collection
+     *
+     * @psalm-var Collection<array-key, ImageInterface>
+     */
+    protected Collection $images;
 
-    /** @var GiftCardChannelConfigurationInterface[]|Collection */
-    protected $channelConfigurations;
+    /**
+     * @var GiftCardChannelConfigurationInterface[]|Collection
+     *
+     * @psalm-var Collection<array-key, GiftCardChannelConfigurationInterface>
+     */
+    protected Collection $channelConfigurations;
 
-    /** @var bool */
-    protected $default = false;
+    protected bool $default = false;
 
     public function __construct()
     {

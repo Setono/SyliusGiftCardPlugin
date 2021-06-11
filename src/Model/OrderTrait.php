@@ -24,7 +24,7 @@ trait OrderTrait
      *     inverseJoinColumns={@ORM\JoinColumn(name="gift_card_id", referencedColumnName="id", onDelete="CASCADE")}
      * )
      */
-    protected $giftCards;
+    protected Collection $giftCards;
 
     public function __construct()
     {
