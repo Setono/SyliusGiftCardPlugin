@@ -5,7 +5,7 @@
 {% import '@SyliusAdmin/Macro/breadcrumb.html.twig' as breadcrumb %}
 {% import "@SyliusAdmin/Common/Macro/money.html.twig" as money %}
 
-{% block title %}{{ 'setono_sylius_gift_card.ui.gift_card_balance'|trans }} {{ parent() }}{% endblock %}
+{% block title %}{{ 'setono_sylius_gift_card.ui.gift_cards_balance'|trans }} {{ parent() }}{% endblock %}
 
 {% block content %}
     <div class="ui stackable two column grid">
@@ -13,7 +13,7 @@
             <h1 class="ui header">
                 <i class="circular cart icon"></i>
                 <div class="content">
-                    {{ 'setono_sylius_gift_card.ui.gift_card_balance'|trans }}
+                    {{ 'setono_sylius_gift_card.ui.gift_cards_balance'|trans }}
                 </div>
             </h1>
         </div>
@@ -22,7 +22,7 @@
     {% set breadcrumbs = [
         { label: 'sylius.ui.administration'|trans, url: path('sylius_admin_dashboard') },
         { label: 'setono_sylius_gift_card.ui.gift_cards'|trans, url: path('setono_sylius_gift_card_admin_gift_card_index') },
-        { label: 'setono_sylius_gift_card.ui.gift_card_balance'|trans }
+        { label: 'setono_sylius_gift_card.ui.gift_cards_balance'|trans }
     ]
     %}
 
