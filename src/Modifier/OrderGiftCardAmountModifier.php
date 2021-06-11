@@ -6,10 +6,10 @@ namespace Setono\SyliusGiftCardPlugin\Modifier;
 
 use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
-use function Safe\sprintf;
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use function sprintf;
 
 /**
  * This class' responsibility is to modify the amount on a gift card when it's used to pay for an order

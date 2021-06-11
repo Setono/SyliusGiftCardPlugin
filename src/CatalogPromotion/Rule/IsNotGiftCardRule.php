@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\CatalogPromotion\Rule;
 
 use Doctrine\ORM\QueryBuilder;
-use function Safe\sprintf;
 use Setono\SyliusCatalogPromotionPlugin\Rule\Rule;
+use function sprintf;
 
 final class IsNotGiftCardRule extends Rule
 {

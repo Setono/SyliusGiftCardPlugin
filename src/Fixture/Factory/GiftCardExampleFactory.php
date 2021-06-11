@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Fixture\Factory;
 
-use function Safe\sprintf;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use function sprintf;
 use Sylius\Bundle\CoreBundle\Fixture\Factory\AbstractExampleFactory;
 use Sylius\Bundle\CoreBundle\Fixture\Factory\ExampleFactoryInterface;
 use Sylius\Bundle\CoreBundle\Fixture\OptionsResolver\LazyOption;

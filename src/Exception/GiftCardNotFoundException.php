@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Exception;
 
 use InvalidArgumentException;
-use function Safe\sprintf;
+use function sprintf;
 
 final class GiftCardNotFoundException extends InvalidArgumentException implements ExceptionInterface
 {
