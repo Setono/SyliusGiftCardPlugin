@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="4.7.3@38c452ae584467e939d55377aaf83b5a26f19dd1">
+  <file src="src/Context/RequestBasedConsentContext.php">
+    <DeprecatedMethod occurrences="1">
+      <code>getMasterRequest</code>
+    </DeprecatedMethod>
+  </file>
+  <file src="src/EmailManager/CookieEmailManager.php">
+    <MethodSignatureMismatch occurrences="1">
+      <code>$cookies</code>
+    </MethodSignatureMismatch>
+  </file>
+  <file src="src/EventSubscriber/ConsentWidgetCookieSubscriber.php">
+    <DeprecatedMethod occurrences="1">
+      <code>isMasterRequest</code>
+    </DeprecatedMethod>
+  </file>
+  <file src="src/EventSubscriber/FormerConsentPlatformSubscriber.php">
+    <DeprecatedMethod occurrences="2">
+      <code>isMasterRequest</code>
+      <code>isMasterRequest</code>
+    </DeprecatedMethod>
+  </file>
+  <file src="src/EventSubscriber/SampleCookiesSubscriber.php">
+    <DeprecatedMethod occurrences="1">
+      <code>isMasterRequest</code>
+    </DeprecatedMethod>
+  </file>
+  <file src="src/Form/Type/CookieType.php">
+    <PropertyNotSetInConstructor occurrences="1">
+      <code>CookieType</code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/EventSubscriber/SampleCookiesSubscriberTest.php">
+    <DeprecatedConstant occurrences="2">
+      <code>HttpKernelInterface::MASTER_REQUEST</code>
+      <code>self::MASTER_REQUEST</code>
+    </DeprecatedConstant>
+  </file>
+  <file src="tests/Model/ServiceTest.php">
+    <PropertyNotSetInConstructor occurrences="2"/>
+  </file>
+</files>

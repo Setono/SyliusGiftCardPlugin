@@ -1,25 +1,24 @@
 {
     "name": "setono/sylius-gift-card-plugin",
-    "type": "symfony-bundle",
+    "type": "sylius-plugin",
     "description": "Gift card plugin for Sylius",
     "license": "MIT",
     "require": {
-        "php": "^7.3",
+        "php": ">=7.4",
         "knplabs/knp-snappy-bundle": "^1.7",
         "symfony/config": "^4.4 || ^5.0",
         "symfony/dependency-injection": "^4.4 || ^5.0",
         "symfony/http-client": "^5.1",
-        "symfony/http-kernel": "^4.4 || ^5.1.5",
-        "thecodingmachine/safe": "^1.0"
+        "symfony/http-kernel": "^4.4 || ^5.1.5"
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^1.2.13",
         "matthiasnoback/symfony-config-test": "^4.2",
         "matthiasnoback/symfony-dependency-injection-test": "^4.1",
         "phpspec/phpspec": "^7.0",
-        "phpunit/phpunit": "^8.5 || ^9.3",
-        "roave/security-advisories": "dev-master",
-        "setono/code-quality-pack": "^1.4",
+        "phpunit/phpunit": "^9.5",
+        "roave/security-advisories": "dev-latest",
+        "setono/code-quality-pack": "^2.1",
         "setono/sylius-behat-pack": "^0.1",
         "setono/sylius-catalog-promotion-plugin": "^0.2.0",
         "sylius/sylius": "~1.7.0",
@@ -66,7 +65,7 @@
             "SYMFONY_ENV=test composer ensure-env-copied",
             "php -d memory_limit=-1 vendor/bin/behat --tags=\"~@javascript\" --no-interaction --format=progress"
         ],
-        "check-style": "vendor/bin/ecs check src/ spec/ tests/",
+        "check-style": "ecs check",
         "checks": [
             "@check-style",
             "@analyse"
@@ -79,14 +78,14 @@
         "ensure-env-test-copied": "(cd tests/Application && ([[ -f .env.test.local ]] || cp .env.test .env.test.local))",
         "ensure-schema-updated": "composer ensure-env-copied && (cd tests/Application && bin/console doctrine:schema:update --force -e ${SYMFONY_ENV:-'dev'})",
         "ensure-vendors-installed": "[[ -f vendor/autoload.php ]] || php -d memory_limit=-1 /usr/local/bin/composer install",
-        "fix-style": "vendor/bin/ecs check src/ spec/ tests/ --fix",
+        "fix-style": "ecs check --fix",
         "fixtures": [
             "@ensure-database-created",
             "@ensure-schema-updated",
             "(cd tests/Application && php -d memory_limit=-1 bin/console sylius:fixtures:load --no-interaction -e ${SYMFONY_ENV:-'dev'})"
         ],
-        "phpspec": "vendor/bin/phpspec run -vvv",
-        "phpunit": "vendor/bin/phpunit",
+        "phpspec": "phpspec run -vvv",
+        "phpunit": "phpunit",
         "run": [
             "@ensure-env-copied",
             "(cd tests/Application && bin/console server:run -d public -e ${SYMFONY_ENV:-'dev'})"

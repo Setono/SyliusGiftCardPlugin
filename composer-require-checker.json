@@ -1,0 +1,20 @@
+{
+  "symbol-whitelist": [
+    "array",
+    "bool",
+    "callable",
+    "false",
+    "float",
+    "int",
+    "iterable",
+    "null",
+    "object",
+    "parent",
+    "self",
+    "static",
+    "string",
+    "true",
+    "void",
+    "Sylius\\Bundle\\CoreBundle\\Application\\SyliusPluginTrait"
+  ]
+}
