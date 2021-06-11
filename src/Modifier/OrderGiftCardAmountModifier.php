@@ -16,8 +16,7 @@ use function sprintf;
  */
 final class OrderGiftCardAmountModifier implements OrderGiftCardAmountModifierInterface
 {
-    /** @var ObjectManager */
-    private $giftCardManager;
+    private ObjectManager $giftCardManager;
 
     public function __construct(ObjectManager $giftCardManager)
     {

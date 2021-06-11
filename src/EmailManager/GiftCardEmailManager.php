@@ -14,14 +14,11 @@ use Symfony\Contracts\Translation\LocaleAwareInterface;
 
 final class GiftCardEmailManager implements GiftCardEmailManagerInterface
 {
-    /** @var SenderInterface */
-    private $sender;
+    private SenderInterface $sender;
 
-    /** @var LocaleAwareInterface */
-    private $translator;
+    private LocaleAwareInterface $translator;
 
-    /** @var CustomerChannelResolverInterface */
-    private $customerChannelResolver;
+    private CustomerChannelResolverInterface $customerChannelResolver;
 
     public function __construct(
         SenderInterface $sender,

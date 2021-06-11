@@ -22,26 +22,19 @@ use Twig\Environment;
 
 final class DownloadGiftCardPdfAction
 {
-    /** @var GiftCardRepositoryInterface */
-    private $giftCardRepository;
+    private GiftCardRepositoryInterface $giftCardRepository;
 
-    /** @var AuthorizationCheckerInterface */
-    private $authChecker;
+    private AuthorizationCheckerInterface $authChecker;
 
-    /** @var FlashBagInterface */
-    private $flashBag;
+    private FlashBagInterface $flashBag;
 
-    /** @var GiftCardChannelConfigurationProviderInterface */
-    private $configurationProvider;
+    private GiftCardChannelConfigurationProviderInterface $configurationProvider;
 
-    /** @var Environment */
-    private $twig;
+    private Environment $twig;
 
-    /** @var Pdf */
-    private $snappy;
+    private Pdf $snappy;
 
-    /** @var UrlGeneratorInterface */
-    private $urlGenerator;
+    private UrlGeneratorInterface $urlGenerator;
 
     public function __construct(
         GiftCardRepositoryInterface $giftCardRepository,

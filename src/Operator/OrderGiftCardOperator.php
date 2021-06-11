@@ -22,17 +22,13 @@ use Webmozart\Assert\Assert;
  */
 final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
 {
-    /** @var GiftCardFactoryInterface */
-    private $giftCardFactory;
+    private GiftCardFactoryInterface $giftCardFactory;
 
-    /** @var GiftCardRepositoryInterface */
-    private $giftCardRepository;
+    private GiftCardRepositoryInterface $giftCardRepository;
 
-    /** @var EntityManagerInterface */
-    private $giftCardManager;
+    private EntityManagerInterface $giftCardManager;
 
-    /** @var GiftCardEmailManagerInterface */
-    private $giftCardOrderEmailManager;
+    private GiftCardEmailManagerInterface $giftCardOrderEmailManager;
 
     public function __construct(
         GiftCardFactoryInterface $giftCardFactory,

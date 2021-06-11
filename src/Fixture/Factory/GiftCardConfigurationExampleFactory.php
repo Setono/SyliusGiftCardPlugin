@@ -18,23 +18,17 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class GiftCardConfigurationExampleFactory extends AbstractExampleFactory implements ExampleFactoryInterface
 {
-    /** @var RepositoryInterface */
-    protected $giftCardConfigurationRepository;
+    protected RepositoryInterface $giftCardConfigurationRepository;
 
-    /** @var GiftCardConfigurationFactoryInterface */
-    protected $giftCardConfigurationFactory;
+    protected GiftCardConfigurationFactoryInterface $giftCardConfigurationFactory;
 
-    /** @var FactoryInterface */
-    private $imageFactory;
+    private FactoryInterface $imageFactory;
 
-    /** @var ImageUploaderInterface */
-    private $imageUploader;
+    private ImageUploaderInterface $imageUploader;
 
-    /** @var FileLocatorInterface */
-    private $fileLocator;
+    private FileLocatorInterface $fileLocator;
 
-    /** @var OptionsResolver */
-    protected $optionsResolver;
+    protected OptionsResolver $optionsResolver;
 
     public function __construct(
         RepositoryInterface $giftCardConfigurationRepository,

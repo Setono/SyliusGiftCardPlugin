@@ -21,11 +21,9 @@ use Symfony\Component\Form\FormEvents;
 
 final class GiftCardType extends AbstractResourceType
 {
-    /** @var RepositoryInterface */
-    private $currencyRepository;
+    private RepositoryInterface $currencyRepository;
 
-    /** @var GiftCardCodeGeneratorInterface */
-    private $giftCardCodeGenerator;
+    private GiftCardCodeGeneratorInterface $giftCardCodeGenerator;
 
     public function __construct(
         string $dataClass,

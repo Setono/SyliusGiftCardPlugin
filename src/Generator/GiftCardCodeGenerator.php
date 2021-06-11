@@ -9,11 +9,9 @@ use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 
 final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
 {
-    /** @var GiftCardRepositoryInterface */
-    private $giftCardRepository;
+    private GiftCardRepositoryInterface $giftCardRepository;
 
-    /** @var int */
-    private $codeLength;
+    private int $codeLength;
 
     public function __construct(GiftCardRepositoryInterface $giftCardRepository, int $codeLength)
     {

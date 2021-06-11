@@ -13,11 +13,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class SearchGiftCardAction
 {
-    /** @var ViewHandlerInterface */
-    private $viewHandler;
+    private ViewHandlerInterface $viewHandler;
 
-    /** @var FormFactoryInterface */
-    private $formFactory;
+    private FormFactoryInterface $formFactory;
 
     public function __construct(
         ViewHandlerInterface $viewHandler,

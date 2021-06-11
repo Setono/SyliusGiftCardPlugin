@@ -16,11 +16,9 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class GiftCardBalanceAction
 {
-    /** @var GiftCardRepositoryInterface */
-    private $giftCardRepository;
+    private GiftCardRepositoryInterface $giftCardRepository;
 
-    /** @var ViewHandlerInterface */
-    private $viewHandler;
+    private ViewHandlerInterface $viewHandler;
 
     public function __construct(
         GiftCardRepositoryInterface $giftCardRepository,

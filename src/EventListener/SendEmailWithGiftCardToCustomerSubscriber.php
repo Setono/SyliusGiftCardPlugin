@@ -16,8 +16,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 final class SendEmailWithGiftCardToCustomerSubscriber implements EventSubscriberInterface
 {
-    /** @var GiftCardEmailManagerInterface */
-    private $giftCardEmailManager;
+    private GiftCardEmailManagerInterface $giftCardEmailManager;
 
     public function __construct(GiftCardEmailManagerInterface $giftCardEmailManager)
     {

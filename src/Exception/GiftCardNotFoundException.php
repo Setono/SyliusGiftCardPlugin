@@ -9,8 +9,7 @@ use function sprintf;
 
 final class GiftCardNotFoundException extends InvalidArgumentException implements ExceptionInterface
 {
-    /** @var string */
-    private $giftCard;
+    private string $giftCard;
 
     public function __construct(string $giftCard)
     {

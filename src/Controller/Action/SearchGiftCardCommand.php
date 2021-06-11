@@ -8,8 +8,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 
 final class SearchGiftCardCommand
 {
-    /** @var GiftCardInterface|null */
-    private $giftCard;
+    private ?GiftCardInterface $giftCard = null;
 
     public function getGiftCard(): ?GiftCardInterface
     {
