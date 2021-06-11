@@ -1,0 +1,14 @@
+# https://docs.github.com/en/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+
+updates:
+    - commit-message:
+          include: "scope"
+          prefix: "composer"
+      directory: "/"
+      open-pull-requests-limit: 1
+      package-ecosystem: "composer"
+      schedule:
+          interval: "daily"
+      versioning-strategy: "widen"
