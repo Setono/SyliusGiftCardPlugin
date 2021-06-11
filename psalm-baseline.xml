@@ -1,43 +1,372 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <files psalm-version="4.7.3@38c452ae584467e939d55377aaf83b5a26f19dd1">
-  <file src="src/Context/RequestBasedConsentContext.php">
+  <file src="src/Applicator/GiftCardApplicator.php">
+    <MixedArgument occurrences="2">
+      <code>$giftCard</code>
+      <code>$giftCard</code>
+    </MixedArgument>
+  </file>
+  <file src="src/Controller/Action/AddGiftCardToOrderAction.php">
     <DeprecatedMethod occurrences="1">
-      <code>getMasterRequest</code>
+      <code>setTemplate</code>
     </DeprecatedMethod>
   </file>
-  <file src="src/EmailManager/CookieEmailManager.php">
-    <MethodSignatureMismatch occurrences="1">
-      <code>$cookies</code>
-    </MethodSignatureMismatch>
-  </file>
-  <file src="src/EventSubscriber/ConsentWidgetCookieSubscriber.php">
+  <file src="src/Controller/Action/GiftCardBalanceAction.php">
     <DeprecatedMethod occurrences="1">
-      <code>isMasterRequest</code>
+      <code>setTemplate</code>
     </DeprecatedMethod>
   </file>
-  <file src="src/EventSubscriber/FormerConsentPlatformSubscriber.php">
-    <DeprecatedMethod occurrences="2">
-      <code>isMasterRequest</code>
-      <code>isMasterRequest</code>
-    </DeprecatedMethod>
+  <file src="src/Controller/Action/ResendGiftCardEmailAction.php">
+    <MixedAssignment occurrences="1">
+      <code>$filtered</code>
+    </MixedAssignment>
+    <PossiblyNullArgument occurrences="2">
+      <code>$giftCard-&gt;getCustomer()</code>
+      <code>$giftCard-&gt;getOrder()</code>
+    </PossiblyNullArgument>
   </file>
-  <file src="src/EventSubscriber/SampleCookiesSubscriber.php">
+  <file src="src/Controller/Action/SearchGiftCardAction.php">
     <DeprecatedMethod occurrences="1">
-      <code>isMasterRequest</code>
+      <code>setTemplate</code>
     </DeprecatedMethod>
   </file>
-  <file src="src/Form/Type/CookieType.php">
+  <file src="src/DependencyInjection/Configuration.php">
+    <MixedMethodCall occurrences="101">
+      <code>addDefaultsIfNotSet</code>
+      <code>addDefaultsIfNotSet</code>
+      <code>addDefaultsIfNotSet</code>
+      <code>addDefaultsIfNotSet</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>cannotBeEmpty</code>
+      <code>children</code>
+      <code>children</code>
+      <code>children</code>
+      <code>children</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>defaultValue</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>end</code>
+      <code>example</code>
+      <code>info</code>
+      <code>max</code>
+      <code>min</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+      <code>scalarNode</code>
+    </MixedMethodCall>
+    <PossiblyNullReference occurrences="6">
+      <code>arrayNode</code>
+      <code>arrayNode</code>
+      <code>arrayNode</code>
+      <code>arrayNode</code>
+      <code>end</code>
+      <code>integerNode</code>
+    </PossiblyNullReference>
+    <PossiblyUndefinedMethod occurrences="6">
+      <code>arrayNode</code>
+      <code>arrayNode</code>
+      <code>arrayNode</code>
+      <code>arrayNode</code>
+      <code>end</code>
+      <code>integerNode</code>
+    </PossiblyUndefinedMethod>
+    <UnusedMethodCall occurrences="1">
+      <code>end</code>
+    </UnusedMethodCall>
+  </file>
+  <file src="src/DependencyInjection/SetonoSyliusGiftCardExtension.php">
+    <MixedArgument occurrences="2">
+      <code>$config['driver']</code>
+      <code>$config['resources']</code>
+    </MixedArgument>
+    <PossiblyNullArgument occurrences="1">
+      <code>$this-&gt;getConfiguration([], $container)</code>
+    </PossiblyNullArgument>
+  </file>
+  <file src="src/Doctrine/ORM/GiftCardRepository.php">
+    <MixedReturnTypeCoercion occurrences="2">
+      <code>array</code>
+    </MixedReturnTypeCoercion>
+    <QueryBuilderSetParameter occurrences="1">
+      <code>$customer</code>
+    </QueryBuilderSetParameter>
+  </file>
+  <file src="src/Exception/GiftCardNotFoundException.php">
     <PropertyNotSetInConstructor occurrences="1">
-      <code>CookieType</code>
+      <code>$giftCard</code>
     </PropertyNotSetInConstructor>
   </file>
-  <file src="tests/EventSubscriber/SampleCookiesSubscriberTest.php">
-    <DeprecatedConstant occurrences="2">
-      <code>HttpKernelInterface::MASTER_REQUEST</code>
-      <code>self::MASTER_REQUEST</code>
-    </DeprecatedConstant>
+  <file src="src/Factory/GiftCardFactory.php">
+    <UnnecessaryVarAnnotation occurrences="1">
+      <code>ChannelInterface|null</code>
+    </UnnecessaryVarAnnotation>
   </file>
-  <file src="tests/Model/ServiceTest.php">
-    <PropertyNotSetInConstructor occurrences="2"/>
+  <file src="src/Form/DataTransformer/GiftCardToCodeDataTransformer.php">
+    <MixedArgument occurrences="1">
+      <code>$value</code>
+    </MixedArgument>
+  </file>
+  <file src="src/Form/Type/GiftCardType.php">
+    <MixedArgumentTypeCoercion occurrences="1">
+      <code>$validationGroups</code>
+    </MixedArgumentTypeCoercion>
+  </file>
+  <file src="src/Generator/GiftCardCodeGenerator.php">
+    <PossiblyInvalidArgument occurrences="1">
+      <code>$code</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidCast occurrences="1">
+      <code>$code</code>
+    </PossiblyInvalidCast>
+  </file>
+  <file src="src/Grid/FieldTypes/StringFieldType.php">
+    <MixedArgument occurrences="1">
+      <code>$data</code>
+    </MixedArgument>
+    <MixedAssignment occurrences="1">
+      <code>$value</code>
+    </MixedAssignment>
+  </file>
+  <file src="src/Model/GiftCard.php">
+    <DocblockTypeContradiction occurrences="1">
+      <code>null === $this-&gt;initialAmount</code>
+    </DocblockTypeContradiction>
+    <InvalidReturnStatement occurrences="1">
+      <code>$this-&gt;appliedOrders</code>
+    </InvalidReturnStatement>
+    <InvalidReturnType occurrences="1">
+      <code>Collection</code>
+    </InvalidReturnType>
+    <MixedMethodCall occurrences="1">
+      <code>isCheckoutCompleted</code>
+    </MixedMethodCall>
+    <PossiblyInvalidMethodCall occurrences="3">
+      <code>add</code>
+      <code>contains</code>
+      <code>removeElement</code>
+    </PossiblyInvalidMethodCall>
+    <PropertyNotSetInConstructor occurrences="4">
+      <code>$channel</code>
+      <code>$currencyCode</code>
+      <code>$id</code>
+      <code>$initialAmount</code>
+    </PropertyNotSetInConstructor>
+    <RedundantConditionGivenDocblockType occurrences="1">
+      <code>null !== $this-&gt;initialAmount</code>
+    </RedundantConditionGivenDocblockType>
+  </file>
+  <file src="src/Model/GiftCardBalanceCollection.php">
+    <MixedArgument occurrences="1">
+      <code>$giftCard</code>
+    </MixedArgument>
+    <MixedAssignment occurrences="1">
+      <code>$giftCard</code>
+    </MixedAssignment>
+  </file>
+  <file src="src/Model/GiftCardConfiguration.php">
+    <InvalidReturnStatement occurrences="2">
+      <code>$this-&gt;channelConfigurations</code>
+      <code>$this-&gt;images</code>
+    </InvalidReturnStatement>
+    <InvalidReturnType occurrences="2">
+      <code>Collection</code>
+      <code>Collection</code>
+    </InvalidReturnType>
+    <MixedArgumentTypeCoercion occurrences="1">
+      <code>filter</code>
+    </MixedArgumentTypeCoercion>
+    <MixedReturnTypeCoercion occurrences="2">
+      <code>Collection</code>
+    </MixedReturnTypeCoercion>
+    <PossiblyInvalidMethodCall occurrences="7">
+      <code>add</code>
+      <code>add</code>
+      <code>contains</code>
+      <code>filter</code>
+      <code>isEmpty</code>
+      <code>removeElement</code>
+      <code>removeElement</code>
+    </PossiblyInvalidMethodCall>
+  </file>
+  <file src="src/Model/GiftCardConfigurationInterface.php">
+    <MismatchingDocblockReturnType occurrences="1">
+      <code>Collection|GiftCardChannelConfigurationInterface[]</code>
+    </MismatchingDocblockReturnType>
+  </file>
+  <file src="src/Model/GiftCardInterface.php">
+    <MismatchingDocblockReturnType occurrences="1">
+      <code>Collection|OrderInterface[]</code>
+    </MismatchingDocblockReturnType>
+  </file>
+  <file src="src/Model/OrderInterface.php">
+    <MismatchingDocblockReturnType occurrences="1">
+      <code>Collection|GiftCardInterface[]</code>
+    </MismatchingDocblockReturnType>
+  </file>
+  <file src="src/Modifier/OrderGiftCardAmountModifier.php">
+    <MixedAssignment occurrences="1">
+      <code>$giftCard</code>
+    </MixedAssignment>
+    <MixedInferredReturnType occurrences="1">
+      <code>GiftCardInterface</code>
+    </MixedInferredReturnType>
+    <MixedMethodCall occurrences="1">
+      <code>getCode</code>
+    </MixedMethodCall>
+    <MixedReturnStatement occurrences="1">
+      <code>$giftCard</code>
+    </MixedReturnStatement>
+  </file>
+  <file src="src/Operator/OrderGiftCardOperator.php">
+    <MismatchingDocblockReturnType occurrences="1">
+      <code>Collection|OrderItemInterface[]</code>
+    </MismatchingDocblockReturnType>
+    <MixedInferredReturnType occurrences="1">
+      <code>Collection|OrderItemInterface[]</code>
+    </MixedInferredReturnType>
+    <MixedMethodCall occurrences="4">
+      <code>$item-&gt;getUnits()</code>
+      <code>$item-&gt;getUnits()</code>
+      <code>getUnits</code>
+      <code>getUnits</code>
+    </MixedMethodCall>
+  </file>
+  <file src="src/OrderProcessor/OrderGiftCardProcessor.php">
+    <MixedArgument occurrences="2">
+      <code>$giftCard-&gt;getCode()</code>
+      <code>-1 * $amount</code>
+    </MixedArgument>
+    <MixedAssignment occurrences="2">
+      <code>$amount</code>
+      <code>$giftCard</code>
+    </MixedAssignment>
+    <MixedMethodCall occurrences="2">
+      <code>getAmount</code>
+      <code>getCode</code>
+    </MixedMethodCall>
+    <MixedOperand occurrences="1">
+      <code>$amount</code>
+    </MixedOperand>
+  </file>
+  <file src="src/Provider/GiftCardChannelConfigurationProvider.php">
+    <LessSpecificReturnStatement occurrences="1">
+      <code>$configuration</code>
+    </LessSpecificReturnStatement>
+    <MixedArgument occurrences="1">
+      <code>$locale</code>
+    </MixedArgument>
+    <MixedAssignment occurrences="2">
+      <code>$locale</code>
+      <code>$localeCode</code>
+    </MixedAssignment>
+    <MoreSpecificReturnType occurrences="1">
+      <code>?GiftCardConfigurationInterface</code>
+    </MoreSpecificReturnType>
+    <UndefinedInterfaceMethod occurrences="2">
+      <code>getDefaultLocale</code>
+      <code>getLocaleCode</code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="src/Resolver/RedirectUrlResolver.php">
+    <MixedArgument occurrences="4">
+      <code>$redirect</code>
+      <code>$redirect['parameters']</code>
+      <code>$redirect['route']</code>
+      <code>$redirect[0]</code>
+    </MixedArgument>
+    <MixedAssignment occurrences="1">
+      <code>$redirect</code>
+    </MixedAssignment>
+    <MixedInferredReturnType occurrences="1">
+      <code>string</code>
+    </MixedInferredReturnType>
+    <MixedReturnStatement occurrences="1">
+      <code>$redirectTo</code>
+    </MixedReturnStatement>
+  </file>
+  <file src="src/Security/GiftCardVoter.php">
+    <MissingParamType occurrences="1">
+      <code>$attribute</code>
+    </MissingParamType>
   </file>
 </files>

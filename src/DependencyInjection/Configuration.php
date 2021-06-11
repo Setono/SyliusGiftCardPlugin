@@ -32,7 +32,6 @@ final class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder('setono_sylius_gift_card');
 
-        /** @var ArrayNodeDefinition $rootNode */
         $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
@@ -45,8 +44,6 @@ final class Configuration implements ConfigurationInterface
                     ->min(1)
                     ->max(255)
                     ->example(16)
-                ->end()
-            ->end()
         ;
 
         $this->addResourcesSection($rootNode);
@@ -91,10 +88,6 @@ final class Configuration implements ConfigurationInterface
                             ->scalarNode('repository')->defaultValue(GiftCardRepository::class)->cannotBeEmpty()->end()
                             ->scalarNode('form')->defaultValue(GiftCardType::class)->end()
                             ->scalarNode('factory')->defaultValue(Factory::class)->end()
-                        ->end()
-                    ->end()
-                ->end()
-            ->end()
         ;
     }
 
@@ -114,10 +107,6 @@ final class Configuration implements ConfigurationInterface
                             ->scalarNode('repository')->defaultValue(EntityRepository::class)->cannotBeEmpty()->end()
                             ->scalarNode('form')->defaultValue(GiftCardConfigurationType::class)->end()
                             ->scalarNode('factory')->defaultValue(Factory::class)->end()
-                        ->end()
-                    ->end()
-                ->end()
-            ->end()
         ;
     }
 
@@ -137,10 +126,6 @@ final class Configuration implements ConfigurationInterface
                             ->scalarNode('repository')->defaultValue(EntityRepository::class)->cannotBeEmpty()->end()
                             ->scalarNode('form')->defaultValue(GiftCardConfigurationImageType::class)->end()
                             ->scalarNode('factory')->defaultValue(Factory::class)->end()
-                        ->end()
-                    ->end()
-                ->end()
-            ->end()
         ;
     }
 
@@ -160,10 +145,6 @@ final class Configuration implements ConfigurationInterface
                             ->scalarNode('repository')->defaultValue(EntityRepository::class)->cannotBeEmpty()->end()
                             ->scalarNode('form')->defaultValue(GiftCardChannelConfigurationType::class)->end()
                             ->scalarNode('factory')->defaultValue(Factory::class)->end()
-                        ->end()
-                    ->end()
-                ->end()
-            ->end()
         ;
     }
 }

@@ -8,8 +8,9 @@
 >
     <projectFiles>
         <directory name="src"/>
-        <directory name="tests"/>
+        <!-- <directory name="tests"/> TODO Readd this -->
         <ignoreFiles>
+            <directory name="src/Fixture"/>
             <directory name="tests/Application"/>
             <directory name="vendor"/>
         </ignoreFiles>
