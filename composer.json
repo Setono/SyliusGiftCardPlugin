@@ -17,6 +17,8 @@
         "matthiasnoback/symfony-dependency-injection-test": "^4.1",
         "phpspec/phpspec": "^7.0",
         "phpunit/phpunit": "^9.5",
+        "psalm/plugin-phpunit": "^0.16.0",
+        "psalm/plugin-symfony": "^2.1",
         "roave/security-advisories": "dev-latest",
         "setono/code-quality-pack": "^2.1",
         "setono/sylius-behat-pack": "^0.1",
@@ -25,7 +27,8 @@
         "symfony/debug-bundle": "^5.1",
         "symfony/dotenv": "^5.1",
         "symfony/intl": "^4.4 || ^5.0",
-        "symfony/web-profiler-bundle": "^5.0"
+        "symfony/web-profiler-bundle": "^5.0",
+        "weirdan/doctrine-psalm-plugin": "^1.0"
     },
     "config": {
         "sort-packages": true
@@ -54,7 +57,10 @@
             "@checks",
             "@tests"
         ],
-        "analyse": "phpstan analyse -c phpstan.neon",
+        "analyse": [
+            "@ensure-test-container-exists",
+            "psalm"
+        ],
         "assets": [
             "@ensure-assets-installed",
             "@ensure-assets-compiled"
@@ -77,6 +83,7 @@
         "ensure-env-dev-copied": "(cd tests/Application && ([[ -f .env.local ]] || cp .env .env.local))",
         "ensure-env-test-copied": "(cd tests/Application && ([[ -f .env.test.local ]] || cp .env.test .env.test.local))",
         "ensure-schema-updated": "composer ensure-env-copied && (cd tests/Application && bin/console doctrine:schema:update --force -e ${SYMFONY_ENV:-'dev'})",
+        "ensure-test-container-exists": "[[ -f tests/Application/var/cache/test/ApplicationTests_Setono_SyliusGiftCardPlugin_Application_KernelDevDebugContainer.xml ]] || tests/Application/bin/console cache:warmup --env=test",
         "ensure-vendors-installed": "[[ -f vendor/autoload.php ]] || php -d memory_limit=-1 /usr/local/bin/composer install",
         "fix-style": "ecs check --fix",
         "fixtures": [

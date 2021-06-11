@@ -2,7 +2,6 @@
 <psalm
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     totallyTyped="true"
-    findUnusedCode="false"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
     errorBaseline="psalm-baseline.xml"
@@ -17,25 +16,11 @@
     </projectFiles>
     <plugins>
         <pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin">
-            <containerXml>tests/Application/var/cache/test/Tests_Setono_SyliusConsentManagementPlugin_Application_KernelTestDebugContainer.xml</containerXml>
+            <containerXml>tests/Application/var/cache/test/ApplicationTests_Setono_SyliusGiftCardPlugin_Application_KernelDevDebugContainer.xml</containerXml>
         </pluginClass>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
         <pluginClass class="Weirdan\DoctrinePsalmPlugin\Plugin"/>
     </plugins>
-    <issueHandlers>
-        <PluginIssue name="QueryBuilderSetParameter" errorLevel="info"/>
-        <DocblockTypeContradiction>
-            <errorLevel type="suppress">
-                <file name="tests/Behat/Page/Shop/HomePage.php"/>
-            </errorLevel>
-        </DocblockTypeContradiction>
-        <PropertyNotSetInConstructor>
-            <errorLevel type="suppress">
-                <file name="tests/Model/ConsentEntryTest.php"/>
-                <file name="tests/Cookie/ConsentWidgetCookieManagerTest.php"/>
-            </errorLevel>
-        </PropertyNotSetInConstructor>
-    </issueHandlers>
     <forbiddenFunctions>
         <function name="dd"/>
         <function name="dump"/>
