@@ -31,6 +31,9 @@
         "twig/twig": "^2.14",
         "webmozart/assert": "^1.10"
     },
+    "conflict": {
+        "ocramius/proxy-manager": "2.12.0"
+    },
     "require-dev": {
         "doctrine/doctrine-bundle": "^1.2.13",
         "matthiasnoback/symfony-config-test": "^4.2",
