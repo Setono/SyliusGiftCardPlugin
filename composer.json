@@ -29,6 +29,10 @@
         "twig/twig": "^2.14",
         "webmozart/assert": "^1.10"
     },
+    "conflict": {
+        "doctrine/doctrine-bundle": "2.3.0",
+        "symfony/doctrine-bridge": "4.4.16"
+    },
     "require-dev": {
         "friendsofsymfony/oauth-server-bundle": "^1.6 || >2.0.0-alpha.0 ^2.0@dev",
         "matthiasnoback/symfony-config-test": "^4.2",
@@ -48,10 +52,6 @@
         "symfony/proxy-manager-bridge": "^4.4.25 || ^5.0",
         "symfony/web-profiler-bundle": "^5.0",
         "weirdan/doctrine-psalm-plugin": "^1.0"
-    },
-    "conflict": {
-        "symfony/doctrine-bridge": "4.4.16",
-        "doctrine/doctrine-bundle": "2.3.0"
     },
     "config": {
         "sort-packages": true
