@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
+use Webmozart\Assert\Assert;
 use function array_key_exists;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Symfony\Component\Config\FileLocator;
@@ -17,6 +18,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
         $config = $this->processConfiguration($this->getConfiguration([], $container), $configs);
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
 
+        Assert::integer($config['code_length']);
         $container->setParameter('setono_sylius_gift_card.code_length', $config['code_length']);
 
         $this->registerResources('setono_sylius_gift_card', $config['driver'], $config['resources'], $container);

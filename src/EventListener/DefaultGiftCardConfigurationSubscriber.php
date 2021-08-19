@@ -34,6 +34,7 @@ final class DefaultGiftCardConfigurationSubscriber implements EventSubscriberInt
         }
 
         if ($giftCardConfiguration->isDefault()) {
+            /** @var GiftCardConfigurationInterface|null $currentDefault */
             $currentDefault = $this->giftCardConfigurationRepository->findOneBy(['default' => true]);
             if ($currentDefault instanceof GiftCardConfigurationInterface && $currentDefault !== $giftCardConfiguration) {
                 $currentDefault->setDefault(false);
