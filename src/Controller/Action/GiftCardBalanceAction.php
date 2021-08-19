@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
-use FOS\RestBundle\View\View;
-use FOS\RestBundle\View\ViewHandlerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardBalanceCollection;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Symfony\Component\HttpFoundation\Request;
