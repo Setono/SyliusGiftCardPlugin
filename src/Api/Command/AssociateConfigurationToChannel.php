@@ -6,7 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Api\Command;
 
 class AssociateConfigurationToChannel implements ConfigurationCodeAwareInterface
 {
-    public string $configurationCode;
+    public ?string $configurationCode = null;
 
     public string $localeCode;
 
@@ -18,12 +18,12 @@ class AssociateConfigurationToChannel implements ConfigurationCodeAwareInterface
         $this->channelCode = $channelCode;
     }
 
-    public function getConfigurationCode(): string
+    public function getConfigurationCode(): ?string
     {
         return $this->configurationCode;
     }
 
-    public function setConfigurationCode(string $configurationCode): void
+    public function setConfigurationCode(?string $configurationCode): void
     {
         $this->configurationCode = $configurationCode;
     }

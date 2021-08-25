@@ -13,7 +13,6 @@ use Sylius\Component\Resource\Model\ResourceInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Webmozart\Assert\Assert;
 
 final class UploadGiftCardConfigurationImageAction
@@ -47,6 +46,7 @@ final class UploadGiftCardConfigurationImageAction
         $image = $this->giftCardConfigurationImageFactory->createNew();
         $image->setFile($file);
 
+        /** @var string $imageType */
         $imageType = $request->get('type');
         Assert::notEmpty($imageType);
 

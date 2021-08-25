@@ -8,7 +8,7 @@ use Sylius\Bundle\ApiBundle\Command\CommandAwareDataTransformerInterface;
 
 interface ConfigurationCodeAwareInterface extends CommandAwareDataTransformerInterface
 {
-    public function getConfigurationCode(): string;
+    public function getConfigurationCode(): ?string;
 
-    public function setConfigurationCode(string $configurationCode): void;
+    public function setConfigurationCode(?string $configurationCode): void;
 }
