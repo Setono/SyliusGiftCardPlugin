@@ -20,7 +20,8 @@ use Symfony\Component\HttpFoundation\Request;
 
 final class UploadGiftCardConfigurationImageActionTest extends TestCase
 {
-    public function testUploadGiftCardConfigurationImage(): void {
+    public function testUploadGiftCardConfigurationImage(): void
+    {
         $file = $this->createMock(UploadedFile::class);
         $fileBag = $this->createMock(FileBag::class);
         $request = $this->createMock(Request::class);
@@ -81,7 +82,8 @@ final class UploadGiftCardConfigurationImageActionTest extends TestCase
         $uploadGiftCardConfigurationImageAction($request);
     }
 
-    public function testThrowErrorIfImageEmpty(): void {
+    public function testThrowErrorIfImageEmpty(): void
+    {
         $file = $this->createMock(UploadedFile::class);
         $fileBag = $this->createMock(FileBag::class);
         $request = $this->createMock(Request::class);
@@ -120,7 +122,8 @@ final class UploadGiftCardConfigurationImageActionTest extends TestCase
         $uploadGiftCardConfigurationImageAction($request);
     }
 
-    public function testThrowErrorIfOwnerIriEmpty(): void {
+    public function testThrowErrorIfOwnerIriEmpty(): void
+    {
         $file = $this->createMock(UploadedFile::class);
         $fileBag = $this->createMock(FileBag::class);
         $request = $this->createMock(Request::class);
@@ -163,7 +166,8 @@ final class UploadGiftCardConfigurationImageActionTest extends TestCase
         $uploadGiftCardConfigurationImageAction($request);
     }
 
-    public function testThrowErrorIfOwnerNotFound(): void {
+    public function testThrowErrorIfOwnerNotFound(): void
+    {
         $file = $this->createMock(UploadedFile::class);
         $fileBag = $this->createMock(FileBag::class);
         $request = $this->createMock(Request::class);
@@ -211,7 +215,8 @@ final class UploadGiftCardConfigurationImageActionTest extends TestCase
         $uploadGiftCardConfigurationImageAction($request);
     }
 
-    public function testDeleteOldImageOfSameType(): void {
+    public function testDeleteOldImageOfSameType(): void
+    {
         $file = $this->createMock(UploadedFile::class);
         $fileBag = $this->createMock(FileBag::class);
         $request = $this->createMock(Request::class);
