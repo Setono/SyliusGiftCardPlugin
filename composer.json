@@ -4,7 +4,7 @@
     "description": "Gift card plugin for Sylius",
     "license": "MIT",
     "require": {
-        "php": ">=7.4 || ^8.0",
+        "php": ">=7.4",
         "ext-filter": "*",
         "ext-mbstring": "*",
         "doctrine/collections": "^1.6",
@@ -35,7 +35,7 @@
         "symfony/doctrine-bridge": "4.4.16"
     },
     "require-dev": {
-        "friendsofsymfony/oauth-server-bundle": "^1.6 || >2.0.0-alpha.0 ^2.0@dev",
+        "friendsofsymfony/oauth-server-bundle": ">2.0.0-alpha.0 ^2.0@dev",
         "matthiasnoback/symfony-config-test": "^4.2",
         "matthiasnoback/symfony-dependency-injection-test": "^4.1",
         "phpspec/phpspec": "^7.0",
