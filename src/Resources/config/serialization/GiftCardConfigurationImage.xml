@@ -6,17 +6,31 @@
 >
     <class name="Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImage">
         <attribute name="id">
+            <group>admin:gift_card_configuration_image:read</group>
+
             <group>admin:gift_card_configuration:read</group>
         </attribute>
 
         <attribute name="type">
-            <group>admin:gift_card_configuration:create</group>
+            <group>admin:gift_card_configuration_image:read</group>
+            <group>admin:gift_card_configuration_image:create</group>
+
             <group>admin:gift_card_configuration:read</group>
-            <group>admin:gift_card_configuration:update</group>
         </attribute>
 
         <attribute name="path">
-            <group>admin:gift_card_configuration:create</group>
+            <group>admin:gift_card_configuration_image:read</group>
+
+            <group>admin:gift_card_configuration:read</group>
+        </attribute>
+
+        <attribute name="owner">
+            <group>admin:gift_card_configuration_image:read</group>
+            <group>admin:gift_card_configuration_image:create</group>
+        </attribute>
+
+        <attribute name="file">
+            <group>admin:gift_card_configuration_image:create</group>
         </attribute>
     </class>
 </serializer>
