@@ -14,12 +14,14 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
 {
     public function load(array $configs, ContainerBuilder $container): void
     {
+        /**
+         * @var array{code_length: int, driver: string, resources: array<string, mixed>} $config
+         * @psalm-suppress PossiblyNullArgument
+         */
         $config = $this->processConfiguration($this->getConfiguration([], $container), $configs);
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
 
-        /** @var int $codeLength */
-        $codeLength = $config['code_length'];
-        $container->setParameter('setono_sylius_gift_card.code_length', $codeLength);
+        $container->setParameter('setono_sylius_gift_card.code_length', $config['code_length']);
 
         $this->registerResources('setono_sylius_gift_card', $config['driver'], $config['resources'], $container);
 
