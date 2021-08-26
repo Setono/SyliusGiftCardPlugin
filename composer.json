@@ -37,6 +37,7 @@
         "matthiasnoback/symfony-config-test": "^4.2",
         "matthiasnoback/symfony-dependency-injection-test": "^4.1",
         "phpspec/phpspec": "^7.0",
+        "phpspec/prophecy-phpunit": "^2.0",
         "phpunit/phpunit": "^9.5",
         "psalm/plugin-phpunit": "^0.16.0",
         "psalm/plugin-symfony": "^2.1",

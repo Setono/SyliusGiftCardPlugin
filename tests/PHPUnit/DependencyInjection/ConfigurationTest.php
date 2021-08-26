@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Setono\SyliusGiftCardPlugin\DependencyInjection;
+namespace Tests\Setono\SyliusGiftCardPlugin\PHPUnit\DependencyInjection;
 
 use Matthias\SymfonyConfigTest\PhpUnit\ConfigurationTestCaseTrait;
 use PHPUnit\Framework\TestCase;

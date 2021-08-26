@@ -62,6 +62,7 @@ final class UploadGiftCardConfigurationImageAction
 
         $oldImages = $owner->getImagesByType($imageType);
         foreach ($oldImages as $oldImage) {
+            $owner->removeImage($oldImage);
             $this->giftCardConfigurationImageRepository->remove($oldImage);
         }
         $owner->addImage($image);
