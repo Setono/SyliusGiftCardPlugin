@@ -55,6 +55,17 @@
                 <attribute name="method">DELETE</attribute>
                 <attribute name="path">/admin/gift-cards/{code}</attribute>
             </itemOperation>
+
+            <itemOperation name="shop_get">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/shop/gift-cards/{code}</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Use $code to retrieve a gift card resource. You can use this to 'search' for gift cards.</attribute>
+                </attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">shop:gift_card:read</attribute>
+                </attribute>
+            </itemOperation>
         </itemOperations>
 
         <property name="id" identifier="false" writable="false" />
