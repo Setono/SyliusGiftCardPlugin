@@ -60,7 +60,7 @@
                 <attribute name="method">GET</attribute>
                 <attribute name="path">/shop/gift-cards/{code}</attribute>
                 <attribute name="openapi_context">
-                    <attribute name="summary">Use $code to retrieve a gift card resource.</attribute>
+                    <attribute name="summary">Use $code to retrieve a gift card resource. You can use this to 'search' for gift cards.</attribute>
                 </attribute>
                 <attribute name="normalization_context">
                     <attribute name="groups">shop:gift_card:read</attribute>
