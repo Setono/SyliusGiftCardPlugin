@@ -83,10 +83,10 @@ class AssociateConfigurationToChannelHandlerTest extends TestCase
      */
     public function it_does_nothing_if_association_already_exists(): void
     {
-        $configuration = $this->createMock(GiftCardConfiguration::class);
-        $channel = $this->createMock(Channel::class);
-        $locale = $this->createMock(Locale::class);
-        $existingGiftCardChannelConfiguration = $this->createMock(GiftCardChannelConfiguration::class);
+        $configuration = new GiftCardConfiguration();
+        $channel = new Channel();
+        $locale = new Locale();
+        $existingGiftCardChannelConfiguration = new GiftCardChannelConfiguration();
 
         $giftCardConfigurationRepository = $this->prophesize(RepositoryInterface::class);
         $channelRepository = $this->prophesize(ChannelRepositoryInterface::class);
