@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="setono_sylius_gift_card.api.command_handler.associate_configuration_to_channel"
+                 class="Setono\SyliusGiftCardPlugin\Api\CommandHandler\AssociateConfigurationToChannelHandler">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration" />
+            <argument type="service" id="sylius.repository.channel" />
+            <argument type="service" id="sylius.repository.locale" />
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_channel_configuration" />
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_channel_configuration" />
+
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+            <tag name="messenger.message_handler" bus="sylius_default.bus" />
+        </service>
+    </services>
+</container>

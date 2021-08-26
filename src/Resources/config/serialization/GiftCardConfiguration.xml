@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+
+<serializer xmlns="http://symfony.com/schema/dic/serializer-mapping"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://symfony.com/schema/dic/serializer-mapping https://symfony.com/schema/dic/serializer-mapping/serializer-mapping-1.0.xsd"
+>
+    <class name="Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration">
+        <attribute name="id">
+            <group>admin:gift_card_configuration:read</group>
+        </attribute>
+
+        <attribute name="code">
+            <group>admin:gift_card_configuration:create</group>
+            <group>admin:gift_card_configuration:read</group>
+            <group>admin:gift_card_configuration:update</group>
+        </attribute>
+
+        <attribute name="enabled">
+            <group>admin:gift_card_configuration:create</group>
+            <group>admin:gift_card_configuration:read</group>
+            <group>admin:gift_card_configuration:update</group>
+        </attribute>
+
+        <attribute name="default">
+            <group>admin:gift_card_configuration:create</group>
+            <group>admin:gift_card_configuration:read</group>
+            <group>admin:gift_card_configuration:update</group>
+        </attribute>
+
+        <attribute name="images">
+            <group>admin:gift_card_configuration:read</group>
+        </attribute>
+
+        <attribute name="channelConfigurations">
+            <group>admin:gift_card_configuration:read</group>
+        </attribute>
+
+        <attribute name="createdAt">
+            <group>admin:gift_card_configuration:read</group>
+        </attribute>
+
+        <attribute name="updatedAt">
+            <group>admin:gift_card_configuration:read</group>
+        </attribute>
+    </class>
+</serializer>

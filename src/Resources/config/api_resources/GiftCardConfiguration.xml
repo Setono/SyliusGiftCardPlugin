@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+
+<resources xmlns="https://api-platform.com/schema/metadata"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://api-platform.com/schema/metadata https://api-platform.com/schema/metadata/metadata-2.0.xsd"
+>
+    <resource class="%setono_sylius_gift_card.model.gift_card_configuration.class%" shortName="GiftCardConfiguration">
+        <attribute name="route_prefix">admin/gift-card-configurations</attribute>
+        <attribute name="validation_groups">sylius</attribute>
+
+        <collectionOperations>
+            <collectionOperation name="admin_get">
+                <attribute name="method">GET</attribute>
+                <attribute name="path" />
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:gift_card_configuration:read</attribute>
+                </attribute>
+            </collectionOperation>
+
+            <collectionOperation name="admin_post">
+                <attribute name="method">POST</attribute>
+                <attribute name="path" />
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:gift_card_configuration:read</attribute>
+                </attribute>
+                <attribute name="denormalization_context">
+                    <attribute name="groups">admin:gift_card_configuration:create</attribute>
+                </attribute>
+            </collectionOperation>
+        </collectionOperations>
+
+        <itemOperations>
+            <itemOperation name="admin_get">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/{code}</attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:gift_card_configuration:read</attribute>
+                </attribute>
+            </itemOperation>
+
+            <itemOperation name="admin_put">
+                <attribute name="method">PUT</attribute>
+                <attribute name="path">/{code}</attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:gift_card_configuration:read</attribute>
+                </attribute>
+                <attribute name="denormalization_context">
+                    <attribute name="groups">admin:gift_card_configuration:update</attribute>
+                </attribute>
+            </itemOperation>
+
+            <itemOperation name="admin_delete">
+                <attribute name="method">DELETE</attribute>
+                <attribute name="path">/{code}</attribute>
+            </itemOperation>
+
+            <itemOperation name="admin_associate_channel">
+                <attribute name="method">PATCH</attribute>
+                <attribute name="path">/{code}/associate-channel</attribute>
+                <attribute name="messenger">input</attribute>
+                <attribute name="input">Setono\SyliusGiftCardPlugin\Api\Command\AssociateConfigurationToChannel</attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:gift_card_configuration:read</attribute>
+                </attribute>
+                <attribute name="denormalization_context">
+                    <attribute name="groups">admin:gift_card_configuration:associate_channel</attribute>
+                </attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Associate a channel to the configuration</attribute>
+                </attribute>
+            </itemOperation>
+        </itemOperations>
+
+        <property name="id" identifier="false" writable="false" />
+        <property name="code" identifier="true" required="true" />
+        <property name="enabled" writable="true" readable="true" />
+    </resource>
+</resources>
