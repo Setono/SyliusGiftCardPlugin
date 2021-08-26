@@ -25,12 +25,19 @@
             <group>admin:gift_card:create</group>
             <group>admin:gift_card:read</group>
             <group>admin:gift_card:update</group>
+            <group>shop:gift_card:read</group>
+        </attribute>
+
+        <attribute name="initialAmount">
+            <group>admin:gift_card:read</group>
+            <group>shop:gift_card:read</group>
         </attribute>
 
         <attribute name="currencyCode">
             <group>admin:gift_card:create</group>
             <group>admin:gift_card:read</group>
             <group>admin:gift_card:update</group>
+            <group>shop:gift_card:read</group>
         </attribute>
 
         <attribute name="channel">
