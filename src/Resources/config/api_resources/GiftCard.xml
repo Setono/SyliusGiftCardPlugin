@@ -49,6 +49,15 @@
                 </attribute>
             </itemOperation>
 
+            <itemOperation name="admin_get">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/admin/gift-cards/{code}/pdf</attribute>
+                <attribute name="controller">setono_sylius_gift_card_plugin.api.download_gift_card_pdf</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Download the associated PDF.</attribute>
+                </attribute>
+            </itemOperation>
+
             <itemOperation name="admin_put">
                 <attribute name="method">PUT</attribute>
                 <attribute name="path">/admin/gift-cards/{code}</attribute>

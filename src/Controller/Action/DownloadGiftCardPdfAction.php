@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use const FILTER_SANITIZE_URL;
-use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Knp\Snappy\Pdf;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardChannelConfigurationProviderInterface;
@@ -18,7 +17,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
-use Twig\Environment;
 
 final class DownloadGiftCardPdfAction
 {
@@ -30,9 +28,7 @@ final class DownloadGiftCardPdfAction
 
     private GiftCardChannelConfigurationProviderInterface $configurationProvider;
 
-    private Environment $twig;
-
-    private Pdf $snappy;
+    private GiftCardPdfGeneratorInterface $giftCardPdfGenerator;
 
     private UrlGeneratorInterface $urlGenerator;
 
@@ -41,16 +37,14 @@ final class DownloadGiftCardPdfAction
         AuthorizationCheckerInterface $authChecker,
         FlashBagInterface $flashBag,
         GiftCardChannelConfigurationProviderInterface $configurationProvider,
-        Environment $twig,
-        Pdf $snappy,
+        GiftCardPdfGeneratorInterface $giftCardPdfGenerator,
         UrlGeneratorInterface $urlGenerator
     ) {
         $this->giftCardRepository = $giftCardRepository;
         $this->authChecker = $authChecker;
         $this->flashBag = $flashBag;
         $this->configurationProvider = $configurationProvider;
-        $this->twig = $twig;
-        $this->snappy = $snappy;
+        $this->giftCardPdfGenerator = $giftCardPdfGenerator;
         $this->urlGenerator = $urlGenerator;
     }
 
@@ -76,12 +70,7 @@ final class DownloadGiftCardPdfAction
             );
         }
 
-        $html = $this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
-            'giftCard' => $giftCard,
-            'configuration' => $configuration,
-        ]);
-
-        return new PdfResponse($this->snappy->getOutputFromHtml($html), 'gift_card.pdf');
+        return $this->giftCardPdfGenerator->generatePdfResponse($giftCard, $configuration);
     }
 
     private function sendErrorResponse(string $redirectUrl, string $message): RedirectResponse
