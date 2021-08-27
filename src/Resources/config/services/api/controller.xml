@@ -29,5 +29,12 @@
 
             <tag name="controller.service_arguments" />
         </service>
+
+        <service id="setono_sylius_gift_card.controller.action.get_balance"
+                 class="Setono\SyliusGiftCardPlugin\Api\Controller\Action\GiftCardBalanceAction">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+
+            <tag name="controller.service_arguments" />
+        </service>
     </services>
 </container>
