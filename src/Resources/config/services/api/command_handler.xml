@@ -16,5 +16,15 @@
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
             <tag name="messenger.message_handler" bus="sylius_default.bus" />
         </service>
+
+        <service id="setono_sylius_gift_card.api.command_handler.add_gift_card_to_order"
+                 class="Setono\SyliusGiftCardPlugin\Api\CommandHandler\AddGiftCardToOrderHandler">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card" />
+            <argument type="service" id="sylius.repository.order" />
+            <argument type="service" id="setono_sylius_gift_card.applicator.gift_card" />
+
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+            <tag name="messenger.message_handler" bus="sylius_default.bus" />
+        </service>
     </services>
 </container>

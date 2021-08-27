@@ -9,5 +9,10 @@
                  class="Setono\SyliusGiftCardPlugin\Api\DataTransformer\GiftCardConfigurationCodeAwareInputCommandDataTransformer">
             <tag name="sylius.api.command_data_transformer" />
         </service>
+
+        <service id="setono_sylius_gift_card.api.data_transformer.gift_card_code_aware_input_data_transformer"
+                 class="Setono\SyliusGiftCardPlugin\Api\DataTransformer\GiftCardCodeAwareInputCommandDataTransformer">
+            <tag name="sylius.api.command_data_transformer" />
+        </service>
     </services>
 </container>
