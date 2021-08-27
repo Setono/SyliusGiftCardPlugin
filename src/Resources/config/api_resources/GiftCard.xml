@@ -49,7 +49,7 @@
                 </attribute>
             </itemOperation>
 
-            <itemOperation name="admin_get">
+            <itemOperation name="admin_download_pdf">
                 <attribute name="method">GET</attribute>
                 <attribute name="path">/admin/gift-cards/{code}/pdf</attribute>
                 <attribute name="controller">setono_sylius_gift_card_plugin.api.download_gift_card_pdf</attribute>
