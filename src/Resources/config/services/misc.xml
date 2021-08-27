@@ -17,7 +17,6 @@
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface"
                  alias="setono_sylius_gift_card.generator.gift_card_pdf" />
-        <!-- Generators -->
 
         <service id="setono_sylius_gift_card.email_manager.gift_card_order"
                  class="Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManager">
