@@ -45,7 +45,7 @@
                 <attribute name="path">/admin/gift-cards/{code}/resend-email</attribute>
                 <attribute name="controller">setono_sylius_gift_card_plugin.api.resend_gift_card_email</attribute>
                 <attribute name="openapi_context">
-                    <attribute name="summary">Re-send the gift card email.</attribute>
+                    <attribute name="summary">Resend the gift card email to the customer.</attribute>
                 </attribute>
             </itemOperation>
 
