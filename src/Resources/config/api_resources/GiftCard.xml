@@ -101,6 +101,22 @@
                     <attribute name="groups">shop:gift_card:add_to_order</attribute>
                 </attribute>
             </itemOperation>
+
+            <itemOperation name="shop_remove_from_order">
+                <attribute name="method">PATCH</attribute>
+                <attribute name="path">/shop/gift-cards/{code}/remove-from-order</attribute>
+                <attribute name="messenger">input</attribute>
+                <attribute name="input">Setono\SyliusGiftCardPlugin\Api\Command\RemoveGiftCardFromOrder</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Remove a gift card from a given order.</attribute>
+                </attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">shop:gift_card:read</attribute>
+                </attribute>
+                <attribute name="denormalization_context">
+                    <attribute name="groups">shop:gift_card:remove_from_order</attribute>
+                </attribute>
+            </itemOperation>
         </itemOperations>
 
         <property name="id" identifier="false" writable="false" />
