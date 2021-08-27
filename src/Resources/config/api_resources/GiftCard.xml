@@ -40,6 +40,15 @@
                 </attribute>
             </itemOperation>
 
+            <itemOperation name="admin_resend_email">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/admin/gift-cards/{code}/resend-email</attribute>
+                <attribute name="controller">setono_sylius_gift_card_plugin.api.resend_gift_card_email</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Resend the gift card email to the customer.</attribute>
+                </attribute>
+            </itemOperation>
+
             <itemOperation name="admin_put">
                 <attribute name="method">PUT</attribute>
                 <attribute name="path">/admin/gift-cards/{code}</attribute>
