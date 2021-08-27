@@ -20,11 +20,10 @@ final class ResendGiftCardEmailAction
 
     public function __invoke(GiftCardInterface $data): Response
     {
-        $giftCard = $data;
-        if (($order = $giftCard->getOrder()) !== null) {
-            $this->giftCardEmailManager->sendEmailWithGiftCardsFromOrder($order, [$giftCard]);
-        } elseif (($customer = $giftCard->getCustomer()) !== null) {
-            $this->giftCardEmailManager->sendEmailToCustomerWithGiftCard($customer, $giftCard);
+        if (($order = $data->getOrder()) !== null) {
+            $this->giftCardEmailManager->sendEmailWithGiftCardsFromOrder($order, [$data]);
+        } elseif (($customer = $data->getCustomer()) !== null) {
+            $this->giftCardEmailManager->sendEmailToCustomerWithGiftCard($customer, $data);
         } else {
             throw new BadRequestHttpException();
         }
