@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Setono\SyliusGiftCardPlugin\PHPUnit\Api\CommandHandler;
+namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Api\CommandHandler;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;

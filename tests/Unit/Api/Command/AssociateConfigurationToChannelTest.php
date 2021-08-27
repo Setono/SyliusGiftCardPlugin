@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Setono\SyliusGiftCardPlugin\PHPUnit\Api\Command;
+namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Api\Command;
 
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Api\Command\AssociateConfigurationToChannel;

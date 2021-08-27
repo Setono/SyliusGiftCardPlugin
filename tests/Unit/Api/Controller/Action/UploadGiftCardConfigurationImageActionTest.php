@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Setono\SyliusGiftCardPlugin\PHPUnit\Api\Controller\Action;
+namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Api\Controller\Action;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use InvalidArgumentException;

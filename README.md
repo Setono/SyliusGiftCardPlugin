@@ -21,6 +21,10 @@ can be used for auditing.
 
 ![Screenshot showing gift card admin create page](docs/images/admin-gift-card-create.png)
 
+## Api platform support
+
+Everything related to Gift Card can be done via API. Whether it is admin or shop actions
+
 ## Installation
 
 ### Require plugin with composer:
