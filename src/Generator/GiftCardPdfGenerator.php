@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Generator;
 
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Knp\Snappy\Pdf;
+use Knp\Snappy\GeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Twig\Environment;
@@ -14,9 +14,9 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
 {
     private Environment $twig;
 
-    private Pdf $snappy;
+    private GeneratorInterface $snappy;
 
-    public function __construct(Environment $twig, Pdf $snappy)
+    public function __construct(Environment $twig, GeneratorInterface $snappy)
     {
         $this->twig = $twig;
         $this->snappy = $snappy;
