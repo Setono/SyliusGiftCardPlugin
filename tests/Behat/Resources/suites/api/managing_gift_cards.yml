@@ -1,0 +1,21 @@
+default:
+    suites:
+        api_managing_gift_cards:
+            contexts:
+                - sylius.behat.context.hook.doctrine_orm
+
+                - sylius.behat.context.transform.lexical
+                - sylius.behat.context.transform.shared_storage
+
+                - sylius.behat.context.setup.admin_api_security
+                - sylius.behat.context.setup.channel
+
+                - setono_sylius_gift_card.behat.context.setup.gift_card
+                - setono_sylius_gift_card.behat.context.transform.gift_card
+
+                - sylius.behat.context.ui.admin.notification
+
+                - sylius.behat.context.ui.admin.managing_products
+                - setono_sylius_gift_card.behat.context.api.admin.managing_gift_cards
+            filters:
+                tags: "@managing_gift_cards && @api"
