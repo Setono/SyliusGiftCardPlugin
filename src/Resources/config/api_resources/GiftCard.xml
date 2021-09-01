@@ -92,7 +92,7 @@
                 <attribute name="messenger">input</attribute>
                 <attribute name="input">Setono\SyliusGiftCardPlugin\Api\Command\AddGiftCardToOrder</attribute>
                 <attribute name="openapi_context">
-                    <attribute name="summary">Apply a gift card to a given order.</attribute>
+                    <attribute name="summary">Apply a gift card to your order.</attribute>
                 </attribute>
                 <attribute name="normalization_context">
                     <attribute name="groups">shop:gift_card:read</attribute>
