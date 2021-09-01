@@ -26,6 +26,14 @@
                     <attribute name="groups">admin:gift_card:create</attribute>
                 </attribute>
             </collectionOperation>
+
+            <collectionOperation name="shop_get">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/shop/gift-cards</attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">shop:gift_card:read</attribute>
+                </attribute>
+            </collectionOperation>
         </collectionOperations>
 
         <itemOperations>

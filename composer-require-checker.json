@@ -17,6 +17,7 @@
     "void",
     "Setono\\SyliusCatalogPromotionPlugin\\Rule\\Rule",
     "Sylius\\Bundle\\ApiBundle\\Command\\CommandAwareDataTransformerInterface",
+    "Sylius\\Bundle\\ApiBundle\\Context\\UserContextInterface",
     "Sylius\\Bundle\\ApiBundle\\DataTransformer\\CommandDataTransformerInterface",
     "Sylius\\Bundle\\CoreBundle\\Application\\SyliusPluginTrait",
     "Sylius\\Bundle\\ChannelBundle\\Form\\Type\\ChannelChoiceType",
