@@ -3,8 +3,6 @@
 <container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <defaults public="true"/>
-
         <service id="setono_sylius_gift_card.behat.page.admin.product.create"
                  class="Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Admin\Product\CreateSimpleProductPage"
                  parent="sylius.behat.page.admin.crud.create" public="false">
