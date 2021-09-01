@@ -46,7 +46,7 @@ final class GiftCardsByLoggedInUserExtensionTest extends TestCase
             ->willReturn($queryBuilder->reveal());
 
         $queryBuilder
-            ->setParameter('customer', $customer, Types::OBJECT)
+            ->setParameter('customer', $customer->getId(), Types::INTEGER)
             ->shouldBeCalled();
 
         $giftCardsByLoggedInUserExtension = new GiftCardsByLoggedInUserExtension($userContext->reveal());

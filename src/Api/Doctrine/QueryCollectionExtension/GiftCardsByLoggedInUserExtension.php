@@ -41,20 +41,18 @@ final class GiftCardsByLoggedInUserExtension implements ContextAwareQueryCollect
             return;
         }
 
-        if ($user instanceof ShopUserInterface) {
-            /** @var CustomerInterface $customer */
-            $customer = $user->getCustomer();
-
-            /** @var string $rootAlias */
-            $rootAlias = $queryBuilder->getRootAliases()[0];
-            $queryBuilder
-                ->andWhere(sprintf('%s.customer = :customer', $rootAlias))
-                ->setParameter('customer', $customer, Types::OBJECT)
-            ;
-
-            return;
+        if (!$user instanceof ShopUserInterface) {
+            throw new AccessDeniedException();
         }
 
-        throw new AccessDeniedException();
+        /** @var CustomerInterface $customer */
+        $customer = $user->getCustomer();
+
+        /** @var string $rootAlias */
+        $rootAlias = $queryBuilder->getRootAliases()[0];
+        $queryBuilder
+            ->andWhere(sprintf('%s.customer = :customer', $rootAlias))
+            ->setParameter('customer', $customer->getId(), Types::INTEGER)
+        ;
     }
 }

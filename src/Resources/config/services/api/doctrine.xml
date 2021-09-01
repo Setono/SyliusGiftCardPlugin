@@ -6,8 +6,7 @@
 
     <services>
         <service id="setono_sylius_gift_card_plugin.api.doctrine.query_collection_extension.gift_cards_by_logged_in_user"
-            class="Setono\SyliusGiftCardPlugin\Api\Doctrine\QueryCollectionExtension\GiftCardsByLoggedInUserExtension"
-            public="true">
+            class="Setono\SyliusGiftCardPlugin\Api\Doctrine\QueryCollectionExtension\GiftCardsByLoggedInUserExtension">
             <argument type="service" id="sylius.api.context.user" />
 
             <tag name="api_platform.doctrine.orm.query_extension.collection" />
