@@ -27,6 +27,20 @@
                 </attribute>
             </collectionOperation>
 
+            <collectionOperation name="admin_get_balance">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/admin/gift-cards/balance</attribute>
+                <attribute name="controller">setono_sylius_gift_card.controller.action.get_balance</attribute>
+                <attribute name="pagination_enabled">false</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Get the gift cards balance.</attribute>
+                </attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:gift_card_balance:read</attribute>
+                </attribute>
+                <attribute name="output">Setono\SyliusGiftCardPlugin\Model\GiftCardBalance</attribute>
+            </collectionOperation>
+
             <collectionOperation name="shop_get">
                 <attribute name="method">GET</attribute>
                 <attribute name="path">/shop/gift-cards</attribute>
