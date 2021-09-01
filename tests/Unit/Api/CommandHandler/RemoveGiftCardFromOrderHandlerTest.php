@@ -22,7 +22,7 @@ final class RemoveGiftCardFromOrderHandlerTest extends TestCase
     /**
      * @test
      */
-    public function it_adds_gift_card_to_order(): void
+    public function it_removes_gift_card_from_order(): void
     {
         $giftCard = new GiftCard();
         $order = new Order();
