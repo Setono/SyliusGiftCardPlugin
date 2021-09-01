@@ -13,12 +13,14 @@
             <group>admin:gift_card:create</group>
             <group>admin:gift_card:read</group>
             <group>admin:gift_card:update</group>
+            <group>shop:gift_card:read</group>
         </attribute>
 
         <attribute name="enabled">
             <group>admin:gift_card:create</group>
             <group>admin:gift_card:read</group>
             <group>admin:gift_card:update</group>
+            <group>shop:gift_card:read</group>
         </attribute>
 
         <attribute name="amount">
@@ -50,6 +52,10 @@
             <group>admin:gift_card:read</group>
             <group>admin:gift_card:create</group>
             <group>admin:gift_card:update</group>
+        </attribute>
+
+        <attribute name="appliedOrders">
+            <group>shop:gift_card:read</group>
         </attribute>
 
         <attribute name="createdAt">
