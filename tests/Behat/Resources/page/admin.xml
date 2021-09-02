@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="setono_sylius_gift_card.behat.page.admin.product.create"
+                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Admin\Product\CreateSimpleProductPage"
+                 parent="sylius.behat.page.admin.crud.create" public="false">
+            <argument type="string">setono_sylius_gift_card_admin_product_create_gift_card</argument>
+        </service>
+    </services>
+</container>

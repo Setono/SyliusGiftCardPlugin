@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <defaults public="true"/>
+
+        <service id="setono_sylius_gift_card.behat.context.api.admin.managing_gift_cards"
+                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Api\Admin\ManagingGiftCardsContext">
+            <argument type="service" id="setono_sylius_gift_card.behat.api_platform_client.admin.gift_card" />
+            <argument type="service" id="Sylius\Behat\Client\ResponseCheckerInterface" />
+        </service>
+    </services>
+</container>
