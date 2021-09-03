@@ -10,6 +10,7 @@ use Sylius\Behat\Client\ApiClientInterface;
 use Sylius\Behat\Client\ResponseCheckerInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
+use Sylius\Component\Currency\Model\CurrencyInterface;
 use Webmozart\Assert\Assert;
 
 final class ManagingGiftCardsContext implements Context
@@ -118,5 +119,45 @@ final class ManagingGiftCardsContext implements Context
     public function iAddIt(): void
     {
         $this->client->create();
+    }
+
+    /**
+     * @When I open the gift card :code page
+     */
+    public function iOpenGiftCardPage(string $code): void
+    {
+        $this->client->show($code);
+    }
+
+    /**
+     * @Then /^It should be valued at ("[^"]+")$/
+     */
+    public function itShouldBeValuedAt(int $amount): void
+    {
+        Assert::same($this->responseChecker->getValue($this->client->getLastResponse(), 'amount'), $amount);
+    }
+
+    /**
+     * @Then /^It should be initially valued at ("[^"]+")$/
+     */
+    public function itShouldBeInitiallyValuedAt(int $amount): void
+    {
+        Assert::same($this->responseChecker->getValue($this->client->getLastResponse(), 'initialAmount'), $amount);
+    }
+
+    /**
+     * @Then It should be on channel :channel
+     */
+    public function itShouldBeOnChannel(ChannelInterface $channel): void
+    {
+        Assert::same($this->responseChecker->getValue($this->client->getLastResponse(), 'channel')['code'], $channel->getCode());
+    }
+
+    /**
+     * @Then It should have :currency currency
+     */
+    public function itShouldHaveCurrency(CurrencyInterface $currency): void
+    {
+        Assert::same($this->responseChecker->getValue($this->client->getLastResponse(), 'currencyCode'), $currency->getCode());
     }
 }
