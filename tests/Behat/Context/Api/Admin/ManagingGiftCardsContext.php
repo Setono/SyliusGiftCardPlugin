@@ -43,7 +43,7 @@ final class ManagingGiftCardsContext implements Context
      */
     public function iWantToCreateGiftCard(): void
     {
-        $this->client->buildCreateRequest();;
+        $this->client->buildCreateRequest();
     }
 
     /**
