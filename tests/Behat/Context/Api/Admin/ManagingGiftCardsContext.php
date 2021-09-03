@@ -48,6 +48,38 @@ final class ManagingGiftCardsContext implements Context
     }
 
     /**
+     * @When I (try to) add it
+     */
+    public function iAddIt(): void
+    {
+        $this->client->create();
+    }
+
+    /**
+     * @When I open the gift card :code page
+     */
+    public function iOpenGiftCardPage(string $code): void
+    {
+        $this->client->show($code);
+    }
+
+    /**
+     * @When I want to edit the gift card :code
+     */
+    public function iWantToEditGiftCard(string $code): void
+    {
+        $this->client->buildUpdateRequest($code);
+    }
+
+    /**
+     * @When I save my changes
+     */
+    public function iSaveMyChanges(): void
+    {
+        $this->client->update();
+    }
+
+    /**
      * @Then /^I should see a gift card with code "([^"]+)" valued at ("[^"]+")$/
      * @Then /^I should see a gift card with code "([^"]+)" valued at ("[^"]+") associated to the customer "([^"]+)"$/
      */
@@ -106,6 +138,14 @@ final class ManagingGiftCardsContext implements Context
     }
 
     /**
+     * @When I disable it
+     */
+    public function iDisableIt(): void
+    {
+        $this->client->addRequestData('enabled', false);
+    }
+
+    /**
      * @Then I should be notified that it has been successfully created
      */
     public function iShouldBeNotifiedThatItHasBeenSuccessfullyCreated(): void
@@ -114,19 +154,11 @@ final class ManagingGiftCardsContext implements Context
     }
 
     /**
-     * @When I (try to) add it
+     * @Then I should be notified that it has been successfully updated
      */
-    public function iAddIt(): void
+    public function iShouldBeNotifiedThatItHasBeenSuccessfullyUpdated(): void
     {
-        $this->client->create();
-    }
-
-    /**
-     * @When I open the gift card :code page
-     */
-    public function iOpenGiftCardPage(string $code): void
-    {
-        $this->client->show($code);
+        Assert::true($this->responseChecker->isUpdateSuccessful($this->client->getLastResponse()));
     }
 
     /**
@@ -159,5 +191,13 @@ final class ManagingGiftCardsContext implements Context
     public function itShouldHaveCurrency(CurrencyInterface $currency): void
     {
         Assert::same($this->responseChecker->getValue($this->client->getLastResponse(), 'currencyCode'), $currency->getCode());
+    }
+
+    /**
+     * @Then It should be disabled
+     */
+    public function itShouldBeDisabled(): void
+    {
+        Assert::same($this->responseChecker->getValue($this->client->getLastResponse(), 'enabled'), false);
     }
 }

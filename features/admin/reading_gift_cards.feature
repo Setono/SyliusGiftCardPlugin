@@ -1,5 +1,5 @@
 @managing_gift_cards
-Feature: Reading existing gift card
+Feature: Reading an existing gift card
   In order to manage the existing gift cards
   As an Administrator
   I want to read an existing gift card
