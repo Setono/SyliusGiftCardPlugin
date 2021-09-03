@@ -39,7 +39,6 @@ final class ManagingGiftCardsBalanceContext implements Context
     {
         $response = $this->client->getLastResponse();
 
-        // Warning. This test is half right. The problem being that we can not inject currency
         $items = $this->responseChecker->getCollection($response);
         foreach ($items as $item) {
             if ($item['total'] === $price) {

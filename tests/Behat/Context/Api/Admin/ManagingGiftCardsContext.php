@@ -80,6 +80,14 @@ final class ManagingGiftCardsContext implements Context
     }
 
     /**
+     * @When I delete the gift card :code
+     */
+    public function iDeleteGiftCard(string $code): void
+    {
+        $this->client->delete($code);
+    }
+
+    /**
      * @Then /^I should see a gift card with code "([^"]+)" valued at ("[^"]+")$/
      * @Then /^I should see a gift card with code "([^"]+)" valued at ("[^"]+") associated to the customer "([^"]+)"$/
      */
@@ -94,6 +102,19 @@ final class ManagingGiftCardsContext implements Context
             $giftCardCustomer = $this->responseChecker->getValue($response, 'customer');
             Assert::same($customerEmail, $giftCardCustomer['email']);
         }
+    }
+
+    /**
+     * @Then /^I should no longer see a gift card with code "([^"]+)"$/
+     */
+    public function iShouldNotSeeGiftCard(string $code): void
+    {
+        $response = $this->client->index();
+
+        Assert::false(
+            $this->responseChecker->hasItemWithValue($response, 'code', $code),
+            sprintf('Gift card with code %s still exists, but it should not', $code)
+        );
     }
 
     /**
@@ -159,6 +180,14 @@ final class ManagingGiftCardsContext implements Context
     public function iShouldBeNotifiedThatItHasBeenSuccessfullyUpdated(): void
     {
         Assert::true($this->responseChecker->isUpdateSuccessful($this->client->getLastResponse()));
+    }
+
+    /**
+     * @Then I should be notified that it has been successfully deleted
+     */
+    public function iShouldBeNotifiedThatItHasBeenSuccessfullyDelete(): void
+    {
+        Assert::true($this->responseChecker->isDeletionSuccessful($this->client->getLastResponse()));
     }
 
     /**
