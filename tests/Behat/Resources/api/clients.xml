@@ -8,5 +8,11 @@
             <argument>gift-cards</argument>
             <argument>admin</argument>
         </service>
+
+        <service id="setono_sylius_gift_card.behat.api_platform_client.admin.gift_card_balance"
+                 class="Sylius\Behat\Client\ApiPlatformClient" parent="sylius.behat.api_platform_client">
+            <argument>gift-cards/balance</argument>
+            <argument>admin</argument>
+        </service>
     </services>
 </container>

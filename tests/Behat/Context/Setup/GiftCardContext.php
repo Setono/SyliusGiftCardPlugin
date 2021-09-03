@@ -51,12 +51,14 @@ final class GiftCardContext implements Context
     }
 
     /**
-     * @Given /^the store has a gift card with code "([^"]+)" valued at ("[^"]+")$/
+     * @Given /^the store has a gift card with code "([^"]+)" valued at ("[^"]+") on (channel "[^"]+")$/
      */
-    public function theStoreHasGiftCardWithCode(string $code, int $price): void
+    public function theStoreHasGiftCardWithCode(string $code, int $price, ?ChannelInterface $channel = null): void
     {
-        /** @var ChannelInterface $channel */
-        $channel = $this->sharedStorage->get('channel');
+        if (null === $channel) {
+            /** @var ChannelInterface $channel */
+            $channel = $this->sharedStorage->get('channel');
+        }
 
         $giftCard = $this->giftCardFactory->createNew();
         $giftCard->setCode($code);
