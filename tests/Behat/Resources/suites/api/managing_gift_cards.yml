@@ -6,6 +6,7 @@ default:
 
                 - sylius.behat.context.transform.lexical
                 - sylius.behat.context.transform.shared_storage
+                - sylius.behat.context.transform.channel
 
                 - sylius.behat.context.setup.admin_api_security
                 - sylius.behat.context.setup.channel
@@ -16,3 +17,4 @@ default:
                 - setono_sylius_gift_card.behat.context.api.admin.managing_gift_cards
             filters:
                 tags: "@managing_gift_cards && @api"
+            javascript: false

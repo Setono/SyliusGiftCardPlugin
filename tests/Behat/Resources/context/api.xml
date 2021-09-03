@@ -9,6 +9,7 @@
                  class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Api\Admin\ManagingGiftCardsContext">
             <argument type="service" id="setono_sylius_gift_card.behat.api_platform_client.admin.gift_card" />
             <argument type="service" id="Sylius\Behat\Client\ResponseCheckerInterface" />
+            <argument type="service" id="api_platform.iri_converter" />
         </service>
     </services>
 </container>
