@@ -48,17 +48,24 @@ final class ManagingGiftCardsContext implements Context
 
     /**
      * @Then /^I should see a gift card with code "([^"]+)" valued at ("[^"]+")$/
+     * @Then /^I should see a gift card with code "([^"]+)" valued at ("[^"]+") associated to the customer "([^"]+)"$/
      */
-    public function iShouldSeeGiftCardPricedAt(string $code, int $price): void
+    public function iShouldSeeGiftCardPricedAtForCustomer(string $code, int $price, string $customerEmail = null): void
     {
         $response = $this->client->show($code);
 
         $giftCardPrice = $this->responseChecker->getValue($response, 'amount');
         Assert::same($price, $giftCardPrice);
+
+        if (null !== $customerEmail) {
+            $giftCardCustomer = $this->responseChecker->getValue($response, 'customer');
+            Assert::same($customerEmail, $giftCardCustomer['email']);
+        }
     }
 
     /**
      * @When I do not specify its customer
+     * @When I specify its customer as :customer
      */
     public function iSpecifyItsCustomerAs(?CustomerInterface $customer = null): void
     {
