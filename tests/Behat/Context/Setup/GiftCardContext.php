@@ -51,6 +51,7 @@ final class GiftCardContext implements Context
     }
 
     /**
+     * @Given /^the store has a gift card with code "([^"]+)" valued at ("[^"]+")$/
      * @Given /^the store has a gift card with code "([^"]+)" valued at ("[^"]+") on (channel "[^"]+")$/
      */
     public function theStoreHasGiftCardWithCode(string $code, int $price, ?ChannelInterface $channel = null): void
