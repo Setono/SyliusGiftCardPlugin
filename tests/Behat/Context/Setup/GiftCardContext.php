@@ -11,6 +11,7 @@ use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\CustomerInterface;
 
 final class GiftCardContext implements Context
 {
@@ -54,8 +55,11 @@ final class GiftCardContext implements Context
      * @Given /^the store has a gift card with code "([^"]+)" valued at ("[^"]+")$/
      * @Given /^the store has a gift card with code "([^"]+)" valued at ("[^"]+") on (channel "[^"]+")$/
      */
-    public function theStoreHasGiftCardWithCode(string $code, int $price, ?ChannelInterface $channel = null): void
-    {
+    public function theStoreHasGiftCardWithCode(
+        string $code,
+        int $price,
+        ?ChannelInterface $channel = null
+    ): void {
         if (null === $channel) {
             /** @var ChannelInterface $channel */
             $channel = $this->sharedStorage->get('channel');
@@ -67,6 +71,28 @@ final class GiftCardContext implements Context
         $giftCard->setAmount($price);
         $giftCard->setCurrencyCode($channel->getBaseCurrency()->getCode());
         $giftCard->enable();
+
+        $this->giftCardRepository->add($giftCard);
+    }
+
+    /**
+     * @Given /^the store has a gift card with code "([^"]+)" valued at ("[^"]+") associated to (customer "[^"]+")$/
+     */
+    public function theStoreHasGiftCardWithCodeForCustomer(
+        string $code,
+        int $price,
+        CustomerInterface $customer
+    ): void {
+        /** @var ChannelInterface $channel */
+        $channel = $this->sharedStorage->get('channel');
+
+        $giftCard = $this->giftCardFactory->createNew();
+        $giftCard->setCode($code);
+        $giftCard->setChannel($channel);
+        $giftCard->setAmount($price);
+        $giftCard->setCurrencyCode($channel->getBaseCurrency()->getCode());
+        $giftCard->enable();
+        $giftCard->setCustomer($customer);
 
         $this->giftCardRepository->add($giftCard);
     }

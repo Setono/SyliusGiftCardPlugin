@@ -5,6 +5,7 @@
     <services>
         <defaults public="true"/>
 
+        <!-- Admin -->
         <service id="setono_sylius_gift_card.behat.context.api.admin.managing_gift_cards"
                  class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Api\Admin\ManagingGiftCardsContext">
             <argument type="service" id="setono_sylius_gift_card.behat.api_platform_client.admin.gift_card" />
@@ -16,6 +17,14 @@
                  class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Api\Admin\ManagingGiftCardsBalanceContext">
             <argument type="service" id="setono_sylius_gift_card.behat.api_platform_client.admin.gift_card_balance" />
             <argument type="service" id="Sylius\Behat\Client\ResponseCheckerInterface" />
+        </service>
+
+        <!-- Shop -->
+        <service id="setono_sylius_gift_card.behat.context.api.shop.managing_gift_cards"
+                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Api\Shop\ManagingGiftCardsContext">
+            <argument type="service" id="setono_sylius_gift_card.behat.api_platform_client.shop.gift_card" />
+            <argument type="service" id="Sylius\Behat\Client\ResponseCheckerInterface" />
+            <argument type="service" id="api_platform.iri_converter" />
         </service>
     </services>
 </container>
