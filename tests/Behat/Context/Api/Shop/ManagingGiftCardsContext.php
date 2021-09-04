@@ -7,6 +7,8 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Api\Shop;
 use Behat\Behat\Context\Context;
 use Sylius\Behat\Client\ApiClientInterface;
 use Sylius\Behat\Client\ResponseCheckerInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Currency\Model\CurrencyInterface;
 use Webmozart\Assert\Assert;
 
 final class ManagingGiftCardsContext implements Context
@@ -32,6 +34,14 @@ final class ManagingGiftCardsContext implements Context
     }
 
     /**
+     * @When I open the gift card :code page
+     */
+    public function iOpenGiftCardPage(string $code): void
+    {
+        $this->client->show($code);
+    }
+
+    /**
      * @Then /^Gift cards list should contain a gift card with code "([^"]+)"$/
      */
     public function giftCardsListShouldContain(string $code): void
@@ -49,5 +59,29 @@ final class ManagingGiftCardsContext implements Context
         $response = $this->client->index();
 
         Assert::isEmpty($this->responseChecker->getCollectionItemsWithValue($response, 'code', $code));
+    }
+
+    /**
+     * @Then /^It should be valued at ("[^"]+")$/
+     */
+    public function itShouldBeValuedAt(int $amount): void
+    {
+        Assert::same($this->responseChecker->getValue($this->client->getLastResponse(), 'amount'), $amount);
+    }
+
+    /**
+     * @Then /^It should be initially valued at ("[^"]+")$/
+     */
+    public function itShouldBeInitiallyValuedAt(int $amount): void
+    {
+        Assert::same($this->responseChecker->getValue($this->client->getLastResponse(), 'initialAmount'), $amount);
+    }
+
+    /**
+     * @Then It should have :currency currency
+     */
+    public function itShouldHaveCurrency(CurrencyInterface $currency): void
+    {
+        Assert::same($this->responseChecker->getValue($this->client->getLastResponse(), 'currencyCode'), $currency->getCode());
     }
 }
