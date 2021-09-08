@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+
+<serializer xmlns="http://symfony.com/schema/dic/serializer-mapping"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://symfony.com/schema/dic/serializer-mapping https://symfony.com/schema/dic/serializer-mapping/serializer-mapping-1.0.xsd"
+>
+    <class name="Setono\SyliusGiftCardPlugin\Model\GiftCardBalance">
+        <attribute name="currencyCode">
+            <group>admin:gift_card_balance:read</group>
+        </attribute>
+
+        <attribute name="count">
+            <group>admin:gift_card_balance:read</group>
+        </attribute>
+
+        <attribute name="total">
+            <group>admin:gift_card_balance:read</group>
+        </attribute>
+    </class>
+</serializer>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="setono_sylius_gift_card_plugin.api.doctrine.query_collection_extension.gift_cards_by_logged_in_user"
+            class="Setono\SyliusGiftCardPlugin\Api\Doctrine\QueryCollectionExtension\GiftCardsByLoggedInUserExtension">
+            <argument type="service" id="sylius.api.context.user" />
+
+            <tag name="api_platform.doctrine.orm.query_extension.collection" />
+        </service>
+    </services>
+</container>

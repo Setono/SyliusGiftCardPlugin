@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Setono\SyliusGiftCardPlugin\Application;
 
 use PSS\SymfonyMockerContainer\DependencyInjection\MockerContainer;
+use Sylius\Bundle\CoreBundle\Application\Kernel as SyliusKernel;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\DelegatingLoader;
 use Symfony\Component\Config\Loader\LoaderInterface;
@@ -20,6 +21,7 @@ use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\Config\FileLocator;
+use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
 use Symfony\Component\Routing\RouteCollectionBuilder;
 use Webmozart\Assert\Assert;
@@ -85,7 +87,7 @@ final class Kernel extends BaseKernel
         /** @var ContainerBuilder $container */
         Assert::isInstanceOf($container, ContainerBuilder::class);
 
-        $locator = new FileLocator($this, $this->getRootDir() . '/Resources');
+        $locator = new FileLocator($this, $this->getProjectDir() . '/Resources');
         $resolver = new LoaderResolver(array(
             new XmlFileLoader($container, $locator),
             new YamlFileLoader($container, $locator),

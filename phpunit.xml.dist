@@ -11,7 +11,7 @@
     </coverage>
     <testsuites>
         <testsuite name="SetonoSyliusGiftCardPlugin Test Suite">
-            <directory>tests</directory>
+            <directory>tests/Unit</directory>
         </testsuite>
     </testsuites>
     <php>

@@ -1,0 +1,147 @@
+<?xml version="1.0" ?>
+
+<resources xmlns="https://api-platform.com/schema/metadata"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://api-platform.com/schema/metadata https://api-platform.com/schema/metadata/metadata-2.0.xsd"
+>
+    <resource class="%setono_sylius_gift_card.model.gift_card.class%" shortName="GiftCard">
+        <attribute name="validation_groups">sylius</attribute>
+
+        <collectionOperations>
+            <collectionOperation name="admin_get">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/admin/gift-cards</attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:gift_card:read</attribute>
+                </attribute>
+            </collectionOperation>
+
+            <collectionOperation name="admin_post">
+                <attribute name="method">POST</attribute>
+                <attribute name="path">/admin/gift-cards</attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:gift_card:read</attribute>
+                </attribute>
+                <attribute name="denormalization_context">
+                    <attribute name="groups">admin:gift_card:create</attribute>
+                </attribute>
+            </collectionOperation>
+
+            <collectionOperation name="admin_get_balance">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/admin/gift-cards/balance</attribute>
+                <attribute name="controller">setono_sylius_gift_card.controller.action.get_balance</attribute>
+                <attribute name="pagination_enabled">false</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Get the gift cards balance.</attribute>
+                </attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:gift_card_balance:read</attribute>
+                </attribute>
+                <attribute name="output">Setono\SyliusGiftCardPlugin\Model\GiftCardBalance</attribute>
+            </collectionOperation>
+
+            <collectionOperation name="shop_get">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/shop/gift-cards</attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">shop:gift_card:read</attribute>
+                </attribute>
+            </collectionOperation>
+        </collectionOperations>
+
+        <itemOperations>
+            <itemOperation name="admin_get">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/admin/gift-cards/{code}</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Use $code to retrieve a gift card resource.</attribute>
+                </attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:gift_card:read</attribute>
+                </attribute>
+            </itemOperation>
+
+            <itemOperation name="admin_resend_email">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/admin/gift-cards/{code}/resend-email</attribute>
+                <attribute name="controller">setono_sylius_gift_card_plugin.api.resend_gift_card_email</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Resend the gift card email to the customer.</attribute>
+                </attribute>
+            </itemOperation>
+
+            <itemOperation name="admin_download_pdf">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/admin/gift-cards/{code}/pdf</attribute>
+                <attribute name="controller">setono_sylius_gift_card_plugin.api.download_gift_card_pdf</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Download the gift card as a PDF.</attribute>
+                </attribute>
+                <attribute name="output">Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse</attribute>
+            </itemOperation>
+
+            <itemOperation name="admin_put">
+                <attribute name="method">PUT</attribute>
+                <attribute name="path">/admin/gift-cards/{code}</attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:gift_card:read</attribute>
+                </attribute>
+                <attribute name="denormalization_context">
+                    <attribute name="groups">admin:gift_card:update</attribute>
+                </attribute>
+            </itemOperation>
+
+            <itemOperation name="admin_delete">
+                <attribute name="method">DELETE</attribute>
+                <attribute name="path">/admin/gift-cards/{code}</attribute>
+            </itemOperation>
+
+            <itemOperation name="shop_get">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/shop/gift-cards/{code}</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Use $code to retrieve a gift card resource. You can use this to 'search' for gift cards.</attribute>
+                </attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">shop:gift_card:read</attribute>
+                </attribute>
+            </itemOperation>
+
+            <itemOperation name="shop_add_to_order">
+                <attribute name="method">PATCH</attribute>
+                <attribute name="path">/shop/gift-cards/{code}/add-to-order</attribute>
+                <attribute name="messenger">input</attribute>
+                <attribute name="input">Setono\SyliusGiftCardPlugin\Api\Command\AddGiftCardToOrder</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Apply a gift card to your order.</attribute>
+                </attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">shop:gift_card:read</attribute>
+                </attribute>
+                <attribute name="denormalization_context">
+                    <attribute name="groups">shop:gift_card:add_to_order</attribute>
+                </attribute>
+            </itemOperation>
+
+            <itemOperation name="shop_remove_from_order">
+                <attribute name="method">PATCH</attribute>
+                <attribute name="path">/shop/gift-cards/{code}/remove-from-order</attribute>
+                <attribute name="messenger">input</attribute>
+                <attribute name="input">Setono\SyliusGiftCardPlugin\Api\Command\RemoveGiftCardFromOrder</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Remove a gift card from your order.</attribute>
+                </attribute>
+                <attribute name="normalization_context">
+                    <attribute name="groups">shop:gift_card:read</attribute>
+                </attribute>
+                <attribute name="denormalization_context">
+                    <attribute name="groups">shop:gift_card:remove_from_order</attribute>
+                </attribute>
+            </itemOperation>
+        </itemOperations>
+
+        <property name="id" identifier="false" writable="false" />
+        <property name="code" identifier="true" required="true" />
+    </resource>
+</resources>

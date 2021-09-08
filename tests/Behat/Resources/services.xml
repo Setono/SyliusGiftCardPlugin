@@ -2,60 +2,9 @@
 
 <container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
-    <services>
-        <defaults public="true"/>
-
-        <!-- Setup -->
-        <service id="setono_sylius_gift_card.behat.context.setup.gift_card"
-                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Setup\GiftCardContext">
-            <argument type="service" id="sylius.behat.shared_storage"/>
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
-            <argument type="service" id="sylius.manager.product"/>
-        </service>
-
-        <!-- Transform -->
-        <service id="setono_sylius_gift_card.behat.context.transform.gift_card"
-                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Transform\GiftCardContext">
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-        </service>
-
-        <!-- UI -->
-        <service id="setono_sylius_gift_card.behat.context.ui.admin.managing_gift_cards"
-                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Admin\ManagingGiftCardsContext">
-            <argument type="service" id="setono_sylius_gift_card.behat.page.admin.product.create"/>
-        </service>
-
-        <service id="setono_sylius_gift_card.behat.context.ui.shop.checkout"
-                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Shop\CheckoutContext">
-            <argument type="service" id="sylius.behat.context.ui.shop.checkout.complete"/>
-            <argument type="service" id="sylius.behat.context.setup.order"/>
-            <argument type="service" id="sylius.repository.order"/>
-            <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
-        </service>
-
-        <service id="setono_sylius_gift_card.behat.context.ui.shop.cart"
-                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Shop\CartContext">
-            <argument type="service" id="setono_sylius_gift_card.behat.page.shop.cart.cart_summary"/>
-        </service>
-
-        <service id="setono_sylius_gift_card.behat.context.ui.email"
-                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\EmailContext">
-            <argument type="service" id="sylius.behat.email_checker"/>
-            <argument type="service" id="sylius.repository.order"/>
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-        </service>
-
-        <!-- Pages -->
-        <service id="setono_sylius_gift_card.behat.page.admin.product.create"
-                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Admin\Product\CreateSimpleProductPage"
-                 parent="sylius.behat.page.admin.crud.create" public="false">
-            <argument type="string">setono_sylius_gift_card_admin_product_create_gift_card</argument>
-        </service>
-
-        <service id="setono_sylius_gift_card.behat.page.shop.cart.cart_summary"
-                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Page\Shop\Cart\SummaryPage"
-                 parent="sylius.behat.page.shop.cart_summary" public="false"/>
-    </services>
+    <imports>
+        <import resource="api.xml" />
+        <import resource="contexts.xml" />
+        <import resource="pages.xml" />
+    </imports>
 </container>

@@ -3,11 +3,20 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
+        <!-- Generators -->
         <service id="setono_sylius_gift_card.generator.gift_card_code"
                  class="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument>%setono_sylius_gift_card.code_length%</argument>
         </service>
+
+        <service id="setono_sylius_gift_card.generator.gift_card_pdf"
+                 class="Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGenerator">
+            <argument type="service" id="twig"/>
+            <argument type="service" id="knp_snappy.pdf"/>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface"
+                 alias="setono_sylius_gift_card.generator.gift_card_pdf" />
 
         <service id="setono_sylius_gift_card.email_manager.gift_card_order"
                  class="Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManager">

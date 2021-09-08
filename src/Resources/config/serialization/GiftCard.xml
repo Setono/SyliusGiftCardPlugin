@@ -1,0 +1,69 @@
+<?xml version="1.0" ?>
+
+<serializer xmlns="http://symfony.com/schema/dic/serializer-mapping"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://symfony.com/schema/dic/serializer-mapping https://symfony.com/schema/dic/serializer-mapping/serializer-mapping-1.0.xsd"
+>
+    <class name="Setono\SyliusGiftCardPlugin\Model\GiftCard">
+        <attribute name="id">
+            <group>admin:gift_card:read</group>
+        </attribute>
+
+        <attribute name="code">
+            <group>admin:gift_card:create</group>
+            <group>admin:gift_card:read</group>
+            <group>admin:gift_card:update</group>
+            <group>shop:gift_card:read</group>
+        </attribute>
+
+        <attribute name="enabled">
+            <group>admin:gift_card:create</group>
+            <group>admin:gift_card:read</group>
+            <group>admin:gift_card:update</group>
+            <group>shop:gift_card:read</group>
+        </attribute>
+
+        <attribute name="amount">
+            <group>admin:gift_card:create</group>
+            <group>admin:gift_card:read</group>
+            <group>admin:gift_card:update</group>
+            <group>shop:gift_card:read</group>
+        </attribute>
+
+        <attribute name="initialAmount">
+            <group>admin:gift_card:read</group>
+            <group>shop:gift_card:read</group>
+        </attribute>
+
+        <attribute name="currencyCode">
+            <group>admin:gift_card:create</group>
+            <group>admin:gift_card:read</group>
+            <group>admin:gift_card:update</group>
+            <group>shop:gift_card:read</group>
+        </attribute>
+
+        <attribute name="channel">
+            <group>admin:gift_card:read</group>
+            <group>admin:gift_card:create</group>
+            <group>admin:gift_card:update</group>
+        </attribute>
+
+        <attribute name="customer">
+            <group>admin:gift_card:read</group>
+            <group>admin:gift_card:create</group>
+            <group>admin:gift_card:update</group>
+        </attribute>
+
+        <attribute name="appliedOrders">
+            <group>shop:gift_card:read</group>
+        </attribute>
+
+        <attribute name="createdAt">
+            <group>admin:gift_card:read</group>
+        </attribute>
+
+        <attribute name="updatedAt">
+            <group>admin:gift_card:read</group>
+        </attribute>
+    </class>
+</serializer>
