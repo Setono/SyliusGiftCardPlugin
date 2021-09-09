@@ -5,6 +5,12 @@
     <services>
         <defaults public="true"/>
 
+        <service id="setono_sylius_gift_card.behat.context.setup.gift_card_configuration"
+                 class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Setup\GiftCardConfigurationContext">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration"/>
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_configuration"/>
+        </service>
+
         <service id="setono_sylius_gift_card.behat.context.setup.gift_card"
                  class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Setup\GiftCardContext">
             <argument type="service" id="sylius.behat.shared_storage"/>

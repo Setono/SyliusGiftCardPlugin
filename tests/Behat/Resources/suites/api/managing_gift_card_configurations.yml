@@ -1,0 +1,25 @@
+default:
+    suites:
+        api_managing_gift_card_configurations:
+            contexts:
+                - sylius.behat.context.hook.doctrine_orm
+
+                - sylius.behat.context.transform.lexical
+                - sylius.behat.context.transform.locale
+                - sylius.behat.context.transform.shared_storage
+                - sylius.behat.context.transform.channel
+                - sylius.behat.context.transform.currency
+                - sylius.behat.context.transform.customer
+
+                - sylius.behat.context.setup.admin_api_security
+                - sylius.behat.context.setup.locale
+                - sylius.behat.context.setup.channel
+                - sylius.behat.context.setup.customer
+
+                - setono_sylius_gift_card.behat.context.setup.gift_card_configuration
+                - setono_sylius_gift_card.behat.context.transform.gift_card_configuration
+
+                - setono_sylius_gift_card.behat.context.api.admin.managing_gift_card_configurations
+            filters:
+                tags: "@managing_gift_card_configurations && @api"
+            javascript: false

@@ -42,18 +42,18 @@ final class AssociateConfigurationToChannelHandler implements MessageHandlerInte
 
     public function __invoke(AssociateConfigurationToChannel $command): GiftCardConfigurationInterface
     {
-        Assert::notNull($command->getConfigurationCode());
+        Assert::notNull($command->getConfigurationCode(), 'GiftCardConfiguration code can not be null');
 
         /** @var GiftCardConfigurationInterface|null $configuration */
         $configuration = $this->giftCardConfigurationRepository->findOneBy(['code' => $command->getConfigurationCode()]);
-        Assert::notNull($configuration);
+        Assert::notNull($configuration, 'GiftCardConfiguration can not be null');
 
         $channel = $this->channelRepository->findOneByCode($command->channelCode);
-        Assert::notNull($channel);
+        Assert::notNull($channel, 'Channel can not be null');
 
         /** @var LocaleInterface|null $locale */
         $locale = $this->localeRepository->findOneBy(['code' => $command->localeCode]);
-        Assert::notNull($locale);
+        Assert::notNull($locale, 'Locale can not be null');
 
         /** @var GiftCardChannelConfigurationInterface|null $existingChannelConfiguration */
         $existingChannelConfiguration = $this->giftCardChannelConfigurationRepository->findOneBy([
