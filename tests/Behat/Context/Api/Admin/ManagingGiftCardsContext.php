@@ -135,7 +135,7 @@ final class ManagingGiftCardsContext implements Context
     }
 
     /**
-     * @When I specify its amount as :amount
+     * @When /^I specify its amount as ("[^"]+")$/
      */
     public function iSpecifyItsAmountAs(string $amount): void
     {

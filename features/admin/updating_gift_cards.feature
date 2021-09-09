@@ -13,7 +13,7 @@ Feature: Updating an existing gift card
   Scenario: Updating gift card
     When I want to edit the gift card "GIFT-CARD-100"
     And I do not specify its customer
-    And I specify its amount as "15000"
+    And I specify its amount as "$150"
     And I specify its currency code as "USD"
     And I specify its channel as "United States"
     And I disable it

@@ -14,7 +14,7 @@ Feature: Creating a gift card
     When I want to create a new gift card
     And I specify its code as "GIFT-CARD-100"
     And I do not specify its customer
-    And I specify its amount as "10000"
+    And I specify its amount as "$100"
     And I specify its currency code as "USD"
     And I specify its channel as "United States"
     And I add it
@@ -26,7 +26,7 @@ Feature: Creating a gift card
     When I want to create a new gift card
     And I specify its code as "GIFT-CARD-100"
     And I specify its customer as "john-doe@setono.com"
-    And I specify its amount as "10000"
+    And I specify its amount as "$100"
     And I specify its currency code as "USD"
     And I specify its channel as "United States"
     And I add it
