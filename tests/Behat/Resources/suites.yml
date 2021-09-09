@@ -3,6 +3,7 @@ imports:
     - suites/ui/buying_gift_card.yml
     - suites/ui/applying_gift_card.yml
 
+    - suites/api/applying_gift_card.yml
     - suites/api/managing_gift_cards.yml
     - suites/api/managing_gift_cards_balance.yml
     - suites/api/managing_shop_gift_cards.yml

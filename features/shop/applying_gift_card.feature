@@ -22,3 +22,14 @@ Feature: Applying gift card
     And I confirm my order
     Then I should see the thank you page
     And the gift card "GIFT-CARD-100" should be disabled
+
+  @api
+  Scenario: Buying a gift card
+    Given I am a logged in customer
+    And I have product "PHP T-Shirt" in the cart
+    And I have product "Javascript T-Shirt" in the cart
+    And I apply gift card with code "GIFT-CARD-100"
+    When I proceed through checkout process
+    And I confirm my order
+    Then I should see the thank you page
+    And the gift card "GIFT-CARD-100" should be disabled
