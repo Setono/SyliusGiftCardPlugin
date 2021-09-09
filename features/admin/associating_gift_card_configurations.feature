@@ -12,7 +12,7 @@ Feature: Associating an existing gift card configuration to a channel
     And I am logged in as an administrator
     And the store has a gift card configuration with code "default_configuration"
 
-  @api @stipe
+  @api
   Scenario: Association an existing gift card configuration to a channel
     When I associate gift card configuration default_configuration to channel "Europe" and locale fr
     Then I should be notified that it has been successfully updated
