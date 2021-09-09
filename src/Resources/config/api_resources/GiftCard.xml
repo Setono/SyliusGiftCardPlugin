@@ -111,6 +111,16 @@
                 </attribute>
             </itemOperation>
 
+            <itemOperation name="shop_download_pdf">
+                <attribute name="method">GET</attribute>
+                <attribute name="path">/shop/gift-cards/{code}/pdf</attribute>
+                <attribute name="controller">setono_sylius_gift_card_plugin.api.download_gift_card_pdf</attribute>
+                <attribute name="openapi_context">
+                    <attribute name="summary">Download the gift card as a PDF.</attribute>
+                </attribute>
+                <attribute name="output">Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse</attribute>
+            </itemOperation>
+
             <itemOperation name="shop_add_to_order">
                 <attribute name="method">PATCH</attribute>
                 <attribute name="path">/shop/gift-cards/{code}/add-to-order</attribute>
