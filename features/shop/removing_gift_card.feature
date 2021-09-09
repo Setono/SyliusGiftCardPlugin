@@ -1,8 +1,8 @@
 @applying_gift_card
-Feature: Applying gift card
-  In order to pay proper amount after using the gift card
+Feature: Removing gift card
+  In order to cancel gift card application
   As a Customer
-  I want to have gift card applied to my cart
+  I want to have gift card removed from my cart
 
   Background:
     Given the store operates on a single channel in "United States"
