@@ -56,6 +56,14 @@ final class ManagingGiftCardsContext implements Context
     }
 
     /**
+     * @Given I remove gift card with code :code
+     */
+    public function iRemoveGiftCardFromOrder(string $code): void
+    {
+        $this->removeGiftCardFromOrder($code);
+    }
+
+    /**
      * @Then /^Gift cards list should contain a gift card with code "([^"]+)"$/
      */
     public function giftCardsListShouldContain(string $code): void
@@ -109,6 +117,16 @@ final class ManagingGiftCardsContext implements Context
         Assert::same($this->responseChecker->getValue($this->client->getLastResponse(), 'enabled'), false);
     }
 
+    /**
+     * @Then the gift card :code should (still) be enabled
+     */
+    public function theGiftCardShouldBeEnabled(string $code): void
+    {
+        $this->client->show($code);
+
+        Assert::same($this->responseChecker->getValue($this->client->getLastResponse(), 'enabled'), true);
+    }
+
     private function applyGiftCardToOrder(string $giftCardCode): void
     {
         $request = Request::customItemAction(
@@ -117,6 +135,21 @@ final class ManagingGiftCardsContext implements Context
             $giftCardCode,
             HTTPRequest::METHOD_PATCH,
             'add-to-order'
+        );
+
+        $request->setContent(['orderTokenValue' => $this->sharedStorage->get('cart_token')]);
+
+        $this->client->executeCustomRequest($request);
+    }
+
+    private function removeGiftCardFromOrder(string $giftCardCode): void
+    {
+        $request = Request::customItemAction(
+            'shop',
+            'gift-cards',
+            $giftCardCode,
+            HTTPRequest::METHOD_PATCH,
+            'remove-from-order'
         );
 
         $request->setContent(['orderTokenValue' => $this->sharedStorage->get('cart_token')]);
