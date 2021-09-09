@@ -1,6 +1,6 @@
 default:
     suites:
-        api_managing_gift_cards:
+        api_managing_shop_gift_cards:
             contexts:
                 - sylius.behat.context.hook.doctrine_orm
 
@@ -10,14 +10,15 @@ default:
                 - sylius.behat.context.transform.currency
                 - sylius.behat.context.transform.customer
 
-                - sylius.behat.context.setup.admin_api_security
                 - sylius.behat.context.setup.channel
                 - sylius.behat.context.setup.customer
+                - sylius.behat.context.setup.shop_api_security
+                - sylius.behat.context.setup.user
 
                 - setono_sylius_gift_card.behat.context.setup.gift_card
                 - setono_sylius_gift_card.behat.context.transform.gift_card
 
-                - setono_sylius_gift_card.behat.context.api.admin.managing_gift_cards
+                - setono_sylius_gift_card.behat.context.api.shop.managing_gift_cards
             filters:
-                tags: "@managing_gift_cards && @api"
+                tags: "@managing_shop_gift_cards && @api"
             javascript: false
