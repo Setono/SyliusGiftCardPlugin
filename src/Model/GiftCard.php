@@ -42,6 +42,8 @@ class GiftCard implements GiftCardInterface
 
     protected ?ChannelInterface $channel = null;
 
+    protected ?string $customMessage = null;
+
     public function __construct()
     {
         $this->appliedOrders = new ArrayCollection();
@@ -244,5 +246,15 @@ class GiftCard implements GiftCardInterface
     public function hasOrderOrCustomer(): bool
     {
         return null !== $this->getCustomer() || null !== $this->getOrder();
+    }
+
+    public function getCustomMessage(): ?string
+    {
+        return $this->customMessage;
+    }
+
+    public function setCustomMessage(?string $customMessage): void
+    {
+        $this->customMessage = $customMessage;
     }
 }

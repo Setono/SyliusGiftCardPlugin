@@ -1,0 +1,7 @@
+{% if form.giftCardInformation is defined %}
+    {% set giftCardInformationForm = form.giftCardInformation %}
+    {% if giftCardInformationForm.amount is defined %}
+        {{ form_row(giftCardInformationForm.amount) }}
+    {% endif %}
+    {{ form_row(giftCardInformationForm.customMessage) }}
+{% endif %}

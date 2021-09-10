@@ -1,5 +1,9 @@
 setono_sylius_gift_card:
     form:
+        add_to_cart:
+            gift_card_information:
+                amount: Amount
+                custom_message: Custom message
         channel_configuration:
             channel: Channel
             locale: Locale
@@ -13,6 +17,7 @@ setono_sylius_gift_card:
             enabled: Enabled
         product:
             gift_card: Gift card
+            gift_card_amount_configurable: Gift card amount configurable
     ui:
         active: Active
         add_gift_card_to_order: Add gift card

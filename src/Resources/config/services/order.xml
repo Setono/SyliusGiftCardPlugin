@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <parameters>
+        <parameter key="setono_sylius_gift_card.order.model.add_gift_card_to_cart_information.class">Setono\SyliusGiftCardPlugin\Order\Dto\AddGiftCardToCartInformation</parameter>
+        <parameter key="setono_sylius_gift_card.order.model.add_to_cart_command.class">Setono\SyliusGiftCardPlugin\Order\AddToCartCommand</parameter>
+    </parameters>
+
+    <services>
+        <service id="setono_sylius_gift_card.order.factory.add_gift_card_to_cart_information"
+                 class="Setono\SyliusGiftCardPlugin\Order\Dto\Factory\AddGiftCardToCartInformationFactory">
+            <argument>%setono_sylius_gift_card.order.model.add_gift_card_to_cart_information.class%</argument>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Order\Dto\Factory\AddGiftCardToCartInformationFactoryInterface"
+                 alias="setono_sylius_gift_card.order.factory.add_gift_card_to_cart_information"/>
+
+        <service id="sylius.factory.add_to_cart_command" class="Setono\SyliusGiftCardPlugin\Order\Factory\AddToCartCommandFactory"
+                 public="true">
+            <argument>%setono_sylius_gift_card.order.model.add_to_cart_command.class%</argument>
+            <argument type="service" id="setono_sylius_gift_card.order.factory.add_gift_card_to_cart_information" />
+        </service>
+
+        <service id="sylius.form.type.add_to_cart" class="Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType">
+            <argument>%setono_sylius_gift_card.order.model.add_to_cart_command.class%</argument>
+            <argument>%sylius.form.type.add_to_cart.validation_groups%</argument>
+            <tag name="form.type" />
+        </service>
+    </services>
+</container>

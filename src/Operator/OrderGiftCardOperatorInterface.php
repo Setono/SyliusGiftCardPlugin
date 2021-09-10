@@ -11,7 +11,7 @@ interface OrderGiftCardOperatorInterface
     /**
      * Will create and persist all gift cards on the given order
      */
-    public function create(OrderInterface $order): void;
+    public function associateToCustomer(OrderInterface $order): void;
 
     public function enable(OrderInterface $order): void;
 

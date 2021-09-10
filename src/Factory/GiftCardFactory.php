@@ -46,27 +46,32 @@ final class GiftCardFactory implements GiftCardFactoryInterface
     {
         /** @var OrderInterface|null $order */
         $order = $orderItemUnit->getOrderItem()->getOrder();
-
         Assert::isInstanceOf($order, OrderInterface::class);
-
-        /** @var ChannelInterface|null $channel */
-        $channel = $order->getChannel();
-
-        Assert::isInstanceOf($channel, ChannelInterface::class);
-
-        $currencyCode = $order->getCurrencyCode();
-        Assert::notNull($currencyCode);
 
         /** @var CustomerInterface|null $customer */
         $customer = $order->getCustomer();
         Assert::isInstanceOf($customer, CustomerInterface::class);
 
-        $giftCard = $this->createNew();
+        $giftCard = $this->createFromOrderItemUnitAndCart($orderItemUnit, $order);
         $giftCard->setCustomer($customer);
+
+        return $giftCard;
+    }
+
+    public function createFromOrderItemUnitAndCart(
+        OrderItemUnitInterface $orderItemUnit,
+        OrderInterface $cart
+    ): GiftCardInterface {
+        $channel = $cart->getChannel();
+        Assert::isInstanceOf($channel, ChannelInterface::class);
+        $currencyCode = $cart->getCurrencyCode();
+        Assert::notNull($currencyCode);
+
+        $giftCard = $this->createNew();
         $giftCard->setOrderItemUnit($orderItemUnit);
-        $giftCard->setChannel($channel);
         $giftCard->setAmount($orderItemUnit->getTotal());
         $giftCard->setCurrencyCode($currencyCode);
+        $giftCard->setChannel($channel);
         $giftCard->disable();
 
         return $giftCard;

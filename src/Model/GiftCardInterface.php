@@ -107,4 +107,8 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
     public function getChannelCode(): ?string;
 
     public function hasOrderOrCustomer(): bool;
+
+    public function getCustomMessage(): ?string;
+
+    public function setCustomMessage(?string $customMessage): void;
 }

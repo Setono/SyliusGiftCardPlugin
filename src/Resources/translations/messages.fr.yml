@@ -1,5 +1,9 @@
 setono_sylius_gift_card:
     form:
+        add_to_cart:
+            gift_card_information:
+                amount: Valeure
+                custom_message: Message personnalisé
         channel_configuration:
             channel: Canal
             locale: Langue
@@ -13,6 +17,7 @@ setono_sylius_gift_card:
             enabled: Activé
         product:
             gift_card: Chèque-cadeau
+            gift_card_amount_configurable: Montant chèque-cadeau configurable
     ui:
         active: Actif
         add_gift_card_to_order: Ajouter le chèque-cadeau

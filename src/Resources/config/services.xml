@@ -14,6 +14,7 @@
         <import resource="services/menu.xml"/>
         <import resource="services/misc.xml"/>
         <import resource="services/modifier.xml"/>
+        <import resource="services/order.xml"/>
         <import resource="services/order_processor.xml"/>
         <import resource="services/promotion_rule.xml"/>
         <import resource="services/provider.xml"/>

@@ -4,5 +4,5 @@ winzou_state_machine:
             after:
                 setono_gift_card_create:
                     on: ["complete"]
-                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "create"]
+                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "associateToCustomer"]
                     args: ["object"]
