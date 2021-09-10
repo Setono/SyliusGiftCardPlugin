@@ -1,4 +1,0 @@
-imports:
-    - { resource: "@SetonoSyliusCatalogPromotionPlugin/Resources/config/app/config.yaml" }
-    # Uncomment if you want to add some catalog promotion fixtures to default suite
-    # - { resource: "@SetonoSyliusCatalogPromotionPlugin/Resources/config/app/fixtures.yaml" }

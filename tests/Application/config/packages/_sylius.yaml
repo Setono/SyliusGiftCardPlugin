@@ -11,13 +11,6 @@ sylius_shop:
     product_grid:
         include_all_descendants: true
 
-sylius_core:
-    resources:
-        channel_pricing:
-            classes:
-                model: Tests\Setono\SyliusGiftCardPlugin\Application\Model\ChannelPricing
-                repository: Tests\Setono\SyliusGiftCardPlugin\Application\Repository\ChannelPricingRepository
-
 sylius_customer:
     resources:
         customer:
@@ -39,8 +32,4 @@ sylius_product:
         product:
             classes:
                 model: Tests\Setono\SyliusGiftCardPlugin\Application\Model\Product
-                repository: Tests\Setono\SyliusGiftCardPlugin\Application\Repository\ProductRepository
-        product_variant:
-            classes:
-                repository: Tests\Setono\SyliusGiftCardPlugin\Application\Repository\ProductVariantRepository
             

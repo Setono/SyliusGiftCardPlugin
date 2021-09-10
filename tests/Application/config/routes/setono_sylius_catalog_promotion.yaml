@@ -1,3 +1,0 @@
-setono_sylius_catalog_promotion_admin:
-    resource: "@SetonoSyliusCatalogPromotionPlugin/Resources/config/admin_routing.yaml"
-    prefix: /admin
