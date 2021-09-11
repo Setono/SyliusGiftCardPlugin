@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\Order\Dto;
+namespace Setono\SyliusGiftCardPlugin\Order;
 
-interface AddGiftCardToCartInformationInterface
+interface GiftCardInformationInterface
 {
     public function getAmount(): int;
 

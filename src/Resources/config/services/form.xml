@@ -60,7 +60,7 @@
 
         <service id="setono_sylius_gift_card.form.type.add_to_cart_gift_card_information"
                  class="Setono\SyliusGiftCardPlugin\Form\Type\AddToCartGiftCardInformationType">
-            <argument>%setono_sylius_gift_card.order.model.add_gift_card_to_cart_information.class%</argument>
+            <argument>%setono_sylius_gift_card.order.model.gift_card_information.class%</argument>
             <argument>%setono_sylius_gift_card.form.type.add_to_cart_gift_card_information.validation_groups%</argument>
             <tag name="form.type"/>
         </service>

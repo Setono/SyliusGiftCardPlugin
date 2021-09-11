@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\Order\Dto;
+namespace Setono\SyliusGiftCardPlugin\Order;
 
-class AddGiftCardToCartInformation implements AddGiftCardToCartInformationInterface
+class GiftCardInformation implements GiftCardInformationInterface
 {
     protected int $amount;
 
