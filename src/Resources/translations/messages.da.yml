@@ -2,8 +2,8 @@ setono_sylius_gift_card:
     form:
         add_to_cart:
             gift_card_information:
-                amount: Amount
-                custom_message: Custom message
+                amount: Beløb
+                custom_message: Personlig besked
         channel_configuration:
             channel: Kanal
             locale: Lokalitet
@@ -17,7 +17,7 @@ setono_sylius_gift_card:
             enabled: Aktiveret
         product:
             gift_card: Gavekort
-            gift_card_amount_configurable: Gift card amount configurable
+            gift_card_amount_configurable: Valgfrit beløb på gavekort
     ui:
         active: Aktiv
         add_gift_card_to_order: Tilføj gavekort
