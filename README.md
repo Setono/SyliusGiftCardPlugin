@@ -88,7 +88,7 @@ $bundles = [
 
 You will find the templates you need to override in the [test application](https://github.com/Setono/SyliusGiftCardPlugin/tree/master/tests/Application/templates).
 
-### Extend `Product`, `Order`, `OrderRepository`, and `CustomerRepository`
+### Extend entities
 
 **Extend `Product`**
 ```php

@@ -58,10 +58,9 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
             return;
         }
 
-        // If the product is a gift card, we remove the quantity and add the GiftCardInformation fields
+        // If the product is a gift card, we add the GiftCardInformation fields
         if ($product->isGiftCard()) {
             $form = $event->getForm();
-            $form->get('cartItem')->remove('quantity');
             $form->add('giftCardInformation', AddToCartGiftCardInformationType::class, [
                 'product' => $product,
             ]);
