@@ -88,7 +88,7 @@ $bundles = [
 
 You will find the templates you need to override in the [test application](https://github.com/Setono/SyliusGiftCardPlugin/tree/master/tests/Application/templates).
 
-### Extend `Product`, `Order`, `OrderRepository`, and `CustomerRepository`
+### Extend entities
 
 **Extend `Product`**
 ```php
@@ -147,6 +147,31 @@ class Order extends BaseOrder implements SetonoSyliusGiftCardPluginOrderInterfac
 
         parent::__construct();
     }
+}
+```
+
+**Extend `OrderItem`**
+
+```php
+<?php
+
+# src/Entity/Order/OrderItem.php
+
+declare(strict_types=1);
+
+namespace App\Entity\Order;
+
+use Doctrine\ORM\Mapping as ORM;
+use Setono\SyliusGiftCardPlugin\Model\OrderItemTrait as SetonoSyliusGiftCardOrderItemTrait;
+use Sylius\Component\Core\Model\OrderItem as BaseOrderItem;
+
+/**
+ * @ORM\Entity
+ * @ORM\Table(name="sylius_order_item_unit")
+ */
+class OrderItemUnit extends BaseOrderItem
+{
+    use SetonoSyliusGiftCardOrderItemTrait;
 }
 ```
 
@@ -234,6 +259,9 @@ sylius_order:
             classes:
                 model: App\Entity\Order\Order
                 repository: App\Doctrine\ORM\OrderRepository
+        order_item:
+            classes:
+                model: App\Entity\Order\OrderItem
         order_item_unit:
             classes:
                 model: App\Entity\Order\OrderItemUnit

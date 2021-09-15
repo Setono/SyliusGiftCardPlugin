@@ -30,6 +30,9 @@ sylius_order:
             classes:
                 model: Tests\Setono\SyliusGiftCardPlugin\Application\Model\Order
                 repository: Tests\Setono\SyliusGiftCardPlugin\Application\Doctrine\ORM\OrderRepository
+        order_item:
+            classes:
+                model: Tests\Setono\SyliusGiftCardPlugin\Application\Model\OrderItem
         order_item_unit:
             classes:
                 model: Tests\Setono\SyliusGiftCardPlugin\Application\Model\OrderItemUnit

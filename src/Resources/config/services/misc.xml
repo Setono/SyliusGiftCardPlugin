@@ -28,8 +28,6 @@
         <!-- Needs to be public because it is called from the state machine -->
         <service id="setono_sylius_gift_card.operator.order_gift_card"
                  class="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator" public="true">
-            <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.email_manager.gift_card_order"/>
         </service>

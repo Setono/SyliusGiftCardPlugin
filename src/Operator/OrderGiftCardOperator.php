@@ -7,11 +7,10 @@ namespace Setono\SyliusGiftCardPlugin\Operator;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManagerInterface;
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Webmozart\Assert\Assert;
@@ -22,27 +21,19 @@ use Webmozart\Assert\Assert;
  */
 final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
 {
-    private GiftCardFactoryInterface $giftCardFactory;
-
-    private GiftCardRepositoryInterface $giftCardRepository;
-
     private EntityManagerInterface $giftCardManager;
 
     private GiftCardEmailManagerInterface $giftCardOrderEmailManager;
 
     public function __construct(
-        GiftCardFactoryInterface $giftCardFactory,
-        GiftCardRepositoryInterface $giftCardRepository,
         EntityManagerInterface $giftCardManager,
         GiftCardEmailManagerInterface $giftCardOrderEmailManager
     ) {
-        $this->giftCardFactory = $giftCardFactory;
-        $this->giftCardRepository = $giftCardRepository;
         $this->giftCardManager = $giftCardManager;
         $this->giftCardOrderEmailManager = $giftCardOrderEmailManager;
     }
 
-    public function create(OrderInterface $order): void
+    public function associateToCustomer(OrderInterface $order): void
     {
         $items = self::getOrderItemsThatAreGiftCards($order);
 
@@ -50,12 +41,17 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
             return;
         }
 
+        /** @var CustomerInterface|null $customer */
+        $customer = $order->getCustomer();
+        Assert::isInstanceOf($customer, CustomerInterface::class);
+
         foreach ($items as $item) {
             /** @var OrderItemUnitInterface $unit */
             foreach ($item->getUnits() as $unit) {
-                $giftCard = $this->giftCardFactory->createFromOrderItemUnit($unit);
+                $giftCard = $unit->getGiftCard();
+                Assert::notNull($giftCard);
 
-                $this->giftCardManager->persist($giftCard);
+                $giftCard->setCustomer($customer);
             }
         }
 
@@ -120,7 +116,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         foreach ($items as $item) {
             /** @var OrderItemUnitInterface $unit */
             foreach ($item->getUnits() as $unit) {
-                $giftCard = $this->giftCardRepository->findOneByOrderItemUnit($unit);
+                $giftCard = $unit->getGiftCard();
                 if (null === $giftCard) {
                     continue;
                 }

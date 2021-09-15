@@ -27,12 +27,23 @@
         <parameter key="setono_sylius_gift_card.form.type.add_gift_card_to_order.validation_groups" type="collection">
             <parameter>setono_sylius_gift_card</parameter>
         </parameter>
+
+        <parameter key="setono_sylius_gift_card.form.type.add_to_cart_gift_card_information.validation_groups" type="collection">
+            <parameter>sylius</parameter>
+        </parameter>
     </parameters>
     <services>
         <service id="setono_sylius_gift_card.form.data_transformer.gift_card_to_code"
                  class="Setono\SyliusGiftCardPlugin\Form\DataTransformer\GiftCardToCodeDataTransformer">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="sylius.context.channel"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.form.type.extension.add_to_cart"
+                 class="Setono\SyliusGiftCardPlugin\Form\Extension\AddToCartTypeExtension">
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card" />
+            <argument type="service" id="setono_sylius_gift_card.manager.gift_card" />
+            <tag name="form.type_extension" extended-type="Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType"/>
         </service>
 
         <service id="setono_sylius_gift_card.form.type.extension.product"
@@ -44,6 +55,13 @@
                  class="Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType">
             <argument type="service" id="setono_sylius_gift_card.form.data_transformer.gift_card_to_code"/>
             <argument>%setono_sylius_gift_card.form.type.add_gift_card_to_order.validation_groups%</argument>
+            <tag name="form.type"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.form.type.add_to_cart_gift_card_information"
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\AddToCartGiftCardInformationType">
+            <argument>%setono_sylius_gift_card.order.model.gift_card_information.class%</argument>
+            <argument>%setono_sylius_gift_card.form.type.add_to_cart_gift_card_information.validation_groups%</argument>
             <tag name="form.type"/>
         </service>
 
