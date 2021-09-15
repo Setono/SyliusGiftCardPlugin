@@ -14,21 +14,21 @@ final class AddToCartCommandFactory implements AddToCartCommandFactoryInterface
     /** @var class-string<AddToCartCommandInterface> */
     private string $className;
 
-    private GiftCardInformationFactoryInterface $extraInformationFactory;
+    private GiftCardInformationFactoryInterface $giftCardInformationFactory;
 
     /**
      * @param class-string<AddToCartCommandInterface> $className
      */
     public function __construct(
         string $className,
-        GiftCardInformationFactoryInterface $extraInformationFactory
+        GiftCardInformationFactoryInterface $giftCardInformationFactory
     ) {
         $this->className = $className;
-        $this->extraInformationFactory = $extraInformationFactory;
+        $this->giftCardInformationFactory = $giftCardInformationFactory;
     }
 
     public function createWithCartAndCartItem(OrderInterface $cart, OrderItemInterface $cartItem): AddToCartCommandInterface
     {
-        return new $this->className($cart, $cartItem, $this->extraInformationFactory->createNew($cartItem));
+        return new $this->className($cart, $cartItem, $this->giftCardInformationFactory->createNew($cartItem));
     }
 }
