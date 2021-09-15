@@ -10,7 +10,6 @@ use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManagerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
@@ -22,18 +21,14 @@ use Webmozart\Assert\Assert;
  */
 final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
 {
-    private GiftCardRepositoryInterface $giftCardRepository;
-
     private EntityManagerInterface $giftCardManager;
 
     private GiftCardEmailManagerInterface $giftCardOrderEmailManager;
 
     public function __construct(
-        GiftCardRepositoryInterface $giftCardRepository,
         EntityManagerInterface $giftCardManager,
         GiftCardEmailManagerInterface $giftCardOrderEmailManager
     ) {
-        $this->giftCardRepository = $giftCardRepository;
         $this->giftCardManager = $giftCardManager;
         $this->giftCardOrderEmailManager = $giftCardOrderEmailManager;
     }
@@ -121,7 +116,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         foreach ($items as $item) {
             /** @var OrderItemUnitInterface $unit */
             foreach ($item->getUnits() as $unit) {
-                $giftCard = $this->giftCardRepository->findOneByOrderItemUnit($unit);
+                $giftCard = $unit->getGiftCard();
                 if (null === $giftCard) {
                     continue;
                 }

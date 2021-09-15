@@ -12,6 +12,9 @@ final class GiftCardInformationFactory implements GiftCardInformationFactoryInte
     /** @var class-string<GiftCardInformationInterface> */
     private string $className;
 
+    /**
+     * @param class-string<GiftCardInformationInterface> $className
+     */
     public function __construct(string $className)
     {
         $this->className = $className;
