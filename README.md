@@ -314,12 +314,8 @@ Please, run `composer all` to run all checks and tests before making pull reques
 
 ## 0.11.x symfony/security package
 
-The `symfony/security` package is needed as a dependency for 
+There is a difference in dependencies requirement between Symfony 4 and 5.
+Symfony 4 requires `symfony/security` whereas Symfony 5 requires `symfony/security-core`
 
-* Symfony\Component\Security\Core\Authentication\Token\TokenInterface
-* Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface
-* Symfony\Component\Security\Core\Authorization\Voter\Voter
-
-But it conflicts when trying to install under Symfony 5.x
-
-So those symbols are just ignored for 0.11.x, but will be un-ignored back under 0.12.x as `symfony/security-core` is used as dependency
+So for v0.11.x of this package, the dependency has been moved to dev dependency in order to allow installation. But those
+packages are installed anyway in Sylius and the plugin will work the same.
