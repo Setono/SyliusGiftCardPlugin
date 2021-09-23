@@ -309,3 +309,17 @@ Please, run `composer all` to run all checks and tests before making pull reques
 
 [link-packagist]: https://packagist.org/packages/setono/sylius-gift-card-plugin
 [link-github-actions]: https://github.com/Setono/SyliusGiftCardPlugin/actions
+
+# Known issues
+
+## 0.11.x symfony/security package
+
+The `symfony/security` package is needed as a dependency for 
+
+* Symfony\Component\Security\Core\Authentication\Token\TokenInterface
+* Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface
+* Symfony\Component\Security\Core\Authorization\Voter\Voter
+
+But it conflicts when trying to install under Symfony 5.x
+
+So those symbols are just ignored for 0.11.x, but will be un-ignored back under 0.12.x as `symfony/security-core` is used as dependency

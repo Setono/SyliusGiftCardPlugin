@@ -60,6 +60,9 @@
     "Sylius\\Component\\Order\\Processor\\OrderProcessorInterface",
     "Sylius\\Component\\Promotion\\Checker\\Rule\\RuleCheckerInterface",
     "Sylius\\Component\\Promotion\\Model\\PromotionSubjectInterface",
-    "Sylius\\Component\\User\\Model\\UserInterface"
+    "Sylius\\Component\\User\\Model\\UserInterface",
+    "Symfony\\Component\\Security\\Core\\Authentication\\Token\\TokenInterface",
+    "Symfony\\Component\\Security\\Core\\Authorization\\AuthorizationCheckerInterface",
+    "Symfony\\Component\\Security\\Core\\Authorization\\Voter\\Voter"
   ]
 }
