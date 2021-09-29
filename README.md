@@ -309,3 +309,13 @@ Please, run `composer all` to run all checks and tests before making pull reques
 
 [link-packagist]: https://packagist.org/packages/setono/sylius-gift-card-plugin
 [link-github-actions]: https://github.com/Setono/SyliusGiftCardPlugin/actions
+
+# Known issues
+
+## 0.11.x symfony/security package
+
+There is a difference in dependencies requirement between Symfony 4 and 5.
+Symfony 4 requires `symfony/security` whereas Symfony 5 requires `symfony/security-core`
+
+So for v0.11.x of this package, the dependency has been moved to dev dependency in order to allow installation. But those
+packages are installed anyway in Sylius and the plugin will work the same.
