@@ -72,7 +72,7 @@ setono_sylius_gift_card:
 ### Add plugin class to your `bundles.php`:
 
 Make sure you add it before `SyliusGridBundle`, otherwise you'll get
-`You have requested a non-existent parameter "setono_sylius_gift_card.model.gift_card.class".` exception.
+`You have requested a non-existent parameter "setono_sylius_gift_card.model.gift_card.class".` exception. 
 
 ```php
 <?php
@@ -271,6 +271,32 @@ sylius_product:
         product:
             classes:
                 model: App\Entity\Product\Product
+```
+
+### Copy Api Resources
+
+Resources declaration that need to be copied are:
+* [Order.xml](src/Resources/config/api_resources/Order.xml)
+
+If you already have them overriden, just change the following routes:
+
+**[Order.xml](src/Resources/config/api_resources/Order.xml)**
+```xml
+<itemOperation name="shop_add_item">
+    <attribute name="method">PATCH</attribute>
+    <attribute name="path">/shop/orders/{tokenValue}/items</attribute>
+    <attribute name="messenger">input</attribute>
+    <attribute name="input">Setono\SyliusGiftCardPlugin\Api\Command\AddItemToCart</attribute> <!-- This has been changed compared to the core -->
+    <attribute name="normalization_context">
+        <attribute name="groups">shop:cart:read</attribute>
+    </attribute>
+    <attribute name="denormalization_context">
+        <attribute name="groups">shop:cart:add_item</attribute>
+    </attribute>
+    <attribute name="openapi_context">
+        <attribute name="summary">Adds Item to cart</attribute>
+    </attribute>
+</itemOperation>
 ```
 
 ### Update your database:

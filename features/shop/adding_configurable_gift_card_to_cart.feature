@@ -18,3 +18,9 @@ Feature: Adding a configurable gift card to the cart
     And there should be one item in my cart
     And this item should have name "Gift card"
     And total price of "Gift card" item should be "$125.00"
+
+  @api
+  Scenario: Adding a configurable gift card to the cart
+    Given I am a logged in customer
+    When I add this product to the cart with amount "$125.00" and custom message "Hey buddy"
+    Then I should see "Gift card" with unit price "$125.00" in my cart
