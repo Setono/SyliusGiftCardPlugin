@@ -9,6 +9,7 @@ setono_sylius_gift_card:
             locale: Locale
         gift_card:
             channel: Channel
+            custom_message: Custom message
         gift_card_configuration:
             background_image: Background image
             channel_configurations: Channel configurations

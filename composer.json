@@ -47,10 +47,13 @@
         "setono/sylius-behat-pack": "^0.2",
         "setono/sylius-catalog-promotion-plugin": "^0.4",
         "sylius/sylius": "~1.10.0",
+        "symfony/asset": "~5.2.12",
         "symfony/debug-bundle": "^5.1",
         "symfony/dotenv": "^5.1",
+        "symfony/framework-bundle": "~5.2.12",
         "symfony/intl": "^4.4 || ^5.0",
         "symfony/proxy-manager-bridge": "^4.4.25 || ^5.0",
+        "symfony/twig-bundle": "~5.2.12",
         "symfony/web-profiler-bundle": "^5.0",
         "weirdan/doctrine-psalm-plugin": "^1.0"
     },

@@ -36,5 +36,17 @@
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
             <tag name="messenger.message_handler" bus="sylius_default.bus" />
         </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Api\CommandHandler\AddItemToCartHandler" decorates="Sylius\Bundle\ApiBundle\CommandHandler\Cart\AddItemToCartHandler">
+            <argument type="service" id="sylius.repository.order" />
+            <argument type="service" id="sylius.repository.product_variant" />
+            <argument type="service" id="sylius.order_modifier" />
+            <argument type="service" id="sylius.factory.order_item" />
+            <argument type="service" id="sylius.order_item_quantity_modifier" />
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card" />
+            <argument type="service" id="setono_sylius_gift_card.manager.gift_card" />
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+            <tag name="messenger.message_handler" bus="sylius_default.bus" />
+        </service>
     </services>
 </container>

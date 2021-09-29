@@ -54,6 +54,17 @@ final class GiftCardContext implements Context
     }
 
     /**
+     * @Given /^(this product) is a configurable gift card$/
+     */
+    public function thisProductIsAConfigurableGiftCard(ProductInterface $product): void
+    {
+        $product->setGiftCard(true);
+        $product->setGiftCardAmountConfigurable(true);
+
+        $this->productManager->flush();
+    }
+
+    /**
      * @Given /^the store has a gift card with code "([^"]+)" valued at ("[^"]+")$/
      * @Given /^the store has a gift card with code "([^"]+)" valued at ("[^"]+") on (channel "[^"]+")$/
      */

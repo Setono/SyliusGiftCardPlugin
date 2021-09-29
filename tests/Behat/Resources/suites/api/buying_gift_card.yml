@@ -1,6 +1,6 @@
 default:
     suites:
-        ui_buying_gift_card:
+        api_buying_gift_card:
             contexts:
                 - sylius.behat.context.hook.doctrine_orm
                 - sylius.behat.context.hook.email_spool
@@ -17,12 +17,8 @@ default:
 
                 - setono_sylius_gift_card.behat.context.setup.gift_card
 
-                - sylius.behat.context.ui.shop.cart
-                - sylius.behat.context.ui.shop.checkout
-                - sylius.behat.context.ui.shop.checkout.thank_you
-
-                - setono_sylius_gift_card.behat.context.ui.shop.cart
-                - setono_sylius_gift_card.behat.context.ui.shop.checkout
-                - setono_sylius_gift_card.behat.context.ui.email
+                - sylius.behat.context.api.shop.cart
+                
+                - setono_sylius_gift_card.behat.context.api.shop.cart
             filters:
-                tags: "@buying_gift_card && @ui"
+                tags: "@buying_gift_card && @api"

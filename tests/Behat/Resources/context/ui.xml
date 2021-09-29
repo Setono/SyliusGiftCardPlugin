@@ -21,6 +21,7 @@
         <service id="setono_sylius_gift_card.behat.context.ui.shop.cart"
                  class="Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Ui\Shop\CartContext">
             <argument type="service" id="setono_sylius_gift_card.behat.page.shop.cart.cart_summary"/>
+            <argument type="service" id="setono_sylius_gift_card.behat.page.shop.product.show"/>
         </service>
 
         <service id="setono_sylius_gift_card.behat.context.ui.email"
