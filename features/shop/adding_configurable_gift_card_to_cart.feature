@@ -1,6 +1,6 @@
 @buying_gift_card
 Feature: Adding a configurable gift card to the cart
-  In order to chose how much I want to spend on a gift card
+  In order to choose how much I want to spend on a gift card
   As a Customer
   I want to be able to buy a gift card with custom amount
 
