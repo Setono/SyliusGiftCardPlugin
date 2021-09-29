@@ -18,6 +18,7 @@ class AddItemToCartTest extends TestCase
 
         $this->assertInstanceOf(AddItemToCart::class, $command);
     }
+
     /**
      * @test
      */
