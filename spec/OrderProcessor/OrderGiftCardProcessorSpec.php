@@ -57,7 +57,7 @@ final class OrderGiftCardProcessorSpec extends ObjectBehavior
         $giftCard2->getCode()->willReturn('gift-card-code-2');
         $order->getGiftCards()->willReturn(new ArrayCollection([$giftCard1->getWrappedObject(), $giftCard2->getWrappedObject()]));
 
-        $orderEligibleTotalProvider->getEligibleTotal($order)->willReturn(180, 130);
+        $orderEligibleTotalProvider->getEligibleTotal($order, Argument::type(GiftCardInterface::class))->willReturn(180, 130);
 
         $translator->trans(Argument::type('string'))->willReturn('Gift card');
 
