@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\OrderProcessor;
 
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProviderInterface;
 use Sylius\Component\Order\Factory\AdjustmentFactoryInterface;
