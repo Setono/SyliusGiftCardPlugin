@@ -11,15 +11,19 @@ use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\OrderProcessor\OrderGiftCardProcessor;
+use Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProviderInterface;
 use Sylius\Component\Order\Factory\AdjustmentFactoryInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class OrderGiftCardProcessorSpec extends ObjectBehavior
 {
-    public function let(TranslatorInterface $translator, AdjustmentFactoryInterface $adjustmentFactory): void
-    {
-        $this->beConstructedWith($translator, $adjustmentFactory);
+    public function let(
+        TranslatorInterface $translator,
+        AdjustmentFactoryInterface $adjustmentFactory,
+        OrderEligibleTotalProviderInterface $orderEligibleTotalProvider
+    ): void {
+        $this->beConstructedWith($translator, $adjustmentFactory, $orderEligibleTotalProvider);
     }
 
     public function it_is_initializable(): void
@@ -39,7 +43,8 @@ final class OrderGiftCardProcessorSpec extends ObjectBehavior
         GiftCardInterface $giftCard2,
         AdjustmentFactoryInterface $adjustmentFactory,
         AdjustmentInterface $adjustment1,
-        AdjustmentInterface $adjustment2
+        AdjustmentInterface $adjustment2,
+        OrderEligibleTotalProviderInterface $orderEligibleTotalProvider
     ): void {
         $order->getId()->willReturn(1);
 
@@ -52,7 +57,7 @@ final class OrderGiftCardProcessorSpec extends ObjectBehavior
         $giftCard2->getCode()->willReturn('gift-card-code-2');
         $order->getGiftCards()->willReturn(new ArrayCollection([$giftCard1->getWrappedObject(), $giftCard2->getWrappedObject()]));
 
-        $order->getTotal()->willReturn(180, 130);
+        $orderEligibleTotalProvider->getEligibleTotal($order)->willReturn(180, 130);
 
         $translator->trans(Argument::type('string'))->willReturn('Gift card');
 

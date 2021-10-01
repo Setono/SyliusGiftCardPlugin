@@ -11,5 +11,12 @@
             <argument type="service" id="sylius.context.locale" />
             <argument type="service" id="sylius.repository.locale" />
         </service>
+
+        <service id="setono_sylius_gift_card.provider.order_eligible_total"
+                 class="Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProvider">
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProviderInterfae"
+                 alias="setono_sylius_gift_card.provider.order_eligible_total">
+        </service>
     </services>
 </container>

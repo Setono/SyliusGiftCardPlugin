@@ -8,6 +8,7 @@
                  class="Setono\SyliusGiftCardPlugin\OrderProcessor\OrderGiftCardProcessor">
             <argument type="service" id="translator"/>
             <argument type="service" id="sylius.custom_factory.adjustment"/>
+            <argument type="service" id="setono_sylius_gift_card.provider.order_eligible_total"/>
 
             <tag name="sylius.order_processor" priority="5"/>
         </service>

@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\OrderProcessor;
 
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProviderInterface;
 use Sylius\Component\Order\Factory\AdjustmentFactoryInterface;
 use Sylius\Component\Order\Model\OrderInterface as BaseOrderInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
@@ -18,12 +19,16 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
 
     private AdjustmentFactoryInterface $adjustmentFactory;
 
+    private OrderEligibleTotalProviderInterface $orderEligibleTotalProvider;
+
     public function __construct(
         TranslatorInterface $translator,
-        AdjustmentFactoryInterface $adjustmentFactory
+        AdjustmentFactoryInterface $adjustmentFactory,
+        OrderEligibleTotalProviderInterface $orderEligibleTotalProvider
     ) {
         $this->translator = $translator;
         $this->adjustmentFactory = $adjustmentFactory;
+        $this->orderEligibleTotalProvider = $orderEligibleTotalProvider;
     }
 
     /**
@@ -43,7 +48,7 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
 
         foreach ($order->getGiftCards() as $giftCard) {
             $amount = $giftCard->getAmount();
-            $total = $order->getTotal();
+            $total = $this->orderEligibleTotalProvider->getEligibleTotal($order);
 
             if ($total < $amount) {
                 $amount = $total;
