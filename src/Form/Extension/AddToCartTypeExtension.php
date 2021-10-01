@@ -81,6 +81,10 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
             return;
         }
 
+        if (!$product->isGiftCard()) {
+            return;
+        }
+
         $cartItem = $data->getCartItem();
         $giftCardInformation = $data->getGiftCardInformation();
 
