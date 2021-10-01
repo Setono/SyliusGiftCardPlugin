@@ -10,6 +10,8 @@ use Sylius\Component\Core\Model\OrderInterface as BaseOrderInterface;
 interface OrderInterface extends BaseOrderInterface
 {
     /**
+     * @psalm-return Collection<array-key, GiftCardInterface>
+     *
      * @return Collection|GiftCardInterface[]
      */
     public function getGiftCards(): Collection;
