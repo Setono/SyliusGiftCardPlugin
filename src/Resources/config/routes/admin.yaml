@@ -2,6 +2,7 @@ setono_sylius_gift_card_admin_gift_card:
     resource: |
         alias: setono_sylius_gift_card.gift_card
         section: admin
+        permission: true
         only: [index, update, delete, bulkDelete]
         templates: '@SyliusAdmin\\Crud'
         redirect: index
@@ -24,6 +25,7 @@ setono_sylius_gift_card_admin_gift_card_pdf:
         _controller: setono_sylius_gift_card.controller.action.download_pdf
         _sylius:
             section: admin
+            permission: true
 
 setono_sylius_gift_card_admin_gift_card_resend_email:
     path: /gift-cards/{id}/resend-email
@@ -34,11 +36,13 @@ setono_sylius_gift_card_admin_gift_card_resend_email:
         _controller: setono_sylius_gift_card.controller.action.resend_email
         _sylius:
             section: admin
+            permission: true
 
 setono_sylius_gift_card_admin_gift_card_configuration:
     resource: |
         alias: setono_sylius_gift_card.gift_card_configuration
         section: admin
+        permission: true
         only: [index, create, update, delete, bulkDelete]
         templates: '@SyliusAdmin\\Crud'
         redirect: index
@@ -117,3 +121,4 @@ setono_sylius_gift_card_admin_gift_card_balance:
         _controller: setono_sylius_gift_card.controller.action.gift_card_balance
         _sylius:
             section: admin
+            permission: true
