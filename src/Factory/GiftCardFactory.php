@@ -42,6 +42,14 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         return $giftCard;
     }
 
+    public function createForChannelFromAdmin(ChannelInterface $channel): GiftCardInterface
+    {
+        $giftCard = $this->createForChannel($channel);
+        $giftCard->setOrigin(GiftCardInterface::ORIGIN_ADMIN);
+
+        return $giftCard;
+    }
+
     public function createFromOrderItemUnit(OrderItemUnitInterface $orderItemUnit): GiftCardInterface
     {
         /** @var OrderInterface|null $order */
@@ -54,6 +62,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
 
         $giftCard = $this->createFromOrderItemUnitAndCart($orderItemUnit, $order);
         $giftCard->setCustomer($customer);
+        $giftCard->setOrigin(GiftCardInterface::ORIGIN_ORDER);
 
         return $giftCard;
     }
@@ -73,6 +82,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         $giftCard->setCurrencyCode($currencyCode);
         $giftCard->setChannel($channel);
         $giftCard->disable();
+        $giftCard->setOrigin(GiftCardInterface::ORIGIN_ORDER);
 
         return $giftCard;
     }

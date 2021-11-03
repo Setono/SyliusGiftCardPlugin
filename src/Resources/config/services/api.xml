@@ -5,6 +5,7 @@
     <imports>
         <import resource="api/command_handler.xml"/>
         <import resource="api/controller.xml"/>
+        <import resource="api/data_persister.xml"/>
         <import resource="api/data_transformer.xml"/>
         <import resource="api/doctrine.xml"/>
     </imports>

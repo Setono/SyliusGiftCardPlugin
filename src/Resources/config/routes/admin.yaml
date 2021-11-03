@@ -83,7 +83,7 @@ setono_sylius_gift_card_admin_gift_card_create:
         _controller: setono_sylius_gift_card.controller.gift_card:createAction
         _sylius:
             factory:
-                method: createForChannel
+                method: createForChannelFromAdmin
                 arguments:
                     channel: "expr:service('sylius.repository.channel').findOneByCode($channelCode)"
             template: '@SyliusAdmin/Crud/create.html.twig'

@@ -44,6 +44,8 @@ class GiftCard implements GiftCardInterface
 
     protected ?string $customMessage = null;
 
+    protected ?string $origin = null;
+
     public function __construct()
     {
         $this->appliedOrders = new ArrayCollection();
@@ -256,5 +258,15 @@ class GiftCard implements GiftCardInterface
     public function setCustomMessage(?string $customMessage): void
     {
         $this->customMessage = $customMessage;
+    }
+
+    public function setOrigin(?string $origin): void
+    {
+        $this->origin = $origin;
+    }
+
+    public function getOrigin(): ?string
+    {
+        return $this->origin;
     }
 }

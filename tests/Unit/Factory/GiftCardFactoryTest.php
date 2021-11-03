@@ -9,6 +9,7 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactory;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Resource\Factory\FactoryInterface;
@@ -64,6 +65,28 @@ final class GiftCardFactoryTest extends TestCase
     /**
      * @test
      */
+    public function it_creates_a_new_gift_card_for_channel_from_admin(): void
+    {
+        $giftCard = new GiftCard();
+        $channel = new Channel();
+
+        $decoratedFactory = $this->prophesize(FactoryInterface::class);
+        $giftCardCodeGenerator = $this->prophesize(GiftCardCodeGeneratorInterface::class);
+
+        $decoratedFactory->createNew()->willReturn($giftCard);
+        $giftCardCodeGenerator->generate()->willReturn('super-code');
+
+        $factory = new GiftCardFactory($decoratedFactory->reveal(), $giftCardCodeGenerator->reveal());
+        $createdGiftCard = $factory->createForChannelFromAdmin($channel);
+
+        $this->assertSame($giftCard, $createdGiftCard);
+        $this->assertSame($channel, $createdGiftCard->getChannel());
+        $this->assertSame(GiftCardInterface::ORIGIN_ADMIN, $createdGiftCard->getOrigin());
+    }
+
+    /**
+     * @test
+     */
     public function it_creates_a_new_gift_card_for_order_item_unit_and_cart(): void
     {
         $giftCard = new GiftCard();
@@ -91,6 +114,7 @@ final class GiftCardFactoryTest extends TestCase
         $this->assertSame($currencyCode, $createdGiftCard->getCurrencyCode());
         $this->assertSame(1000, $createdGiftCard->getAmount());
         $this->assertFalse($createdGiftCard->isEnabled());
+        $this->assertSame(GiftCardInterface::ORIGIN_ORDER, $createdGiftCard->getOrigin());
     }
 
     /**
@@ -129,5 +153,6 @@ final class GiftCardFactoryTest extends TestCase
         $this->assertSame(1000, $createdGiftCard->getAmount());
         $this->assertSame($customer, $createdGiftCard->getCustomer());
         $this->assertFalse($createdGiftCard->isEnabled());
+        $this->assertSame(GiftCardInterface::ORIGIN_ORDER, $createdGiftCard->getOrigin());
     }
 }

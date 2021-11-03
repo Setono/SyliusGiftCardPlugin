@@ -16,6 +16,8 @@ interface GiftCardFactoryInterface extends FactoryInterface
 
     public function createForChannel(ChannelInterface $channel): GiftCardInterface;
 
+    public function createForChannelFromAdmin(ChannelInterface $channel): GiftCardInterface;
+
     public function createFromOrderItemUnit(OrderItemUnitInterface $orderItemUnit): GiftCardInterface;
 
     public function createFromOrderItemUnitAndCart(

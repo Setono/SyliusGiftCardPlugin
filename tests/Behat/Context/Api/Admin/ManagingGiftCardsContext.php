@@ -6,6 +6,7 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Behat\Context\Api\Admin;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use Behat\Behat\Context\Context;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Behat\Client\ApiClientInterface;
 use Sylius\Behat\Client\ResponseCheckerInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -102,6 +103,17 @@ final class ManagingGiftCardsContext implements Context
             $giftCardCustomer = $this->responseChecker->getValue($response, 'customer');
             Assert::same($customerEmail, $giftCardCustomer['email']);
         }
+    }
+
+    /**
+     * @Then this gift card should have api origin
+     */
+    public function giftCardShouldHaveAPIOrigin(): void
+    {
+        $response = $this->client->getLastResponse();
+
+        $origin = $this->responseChecker->getValue($response, 'origin');
+        Assert::same(GiftCardInterface::ORIGIN_API, $origin);
     }
 
     /**
