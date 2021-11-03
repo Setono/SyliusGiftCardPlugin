@@ -25,7 +25,7 @@ final class GiftCardDataPersister implements ContextAwareDataPersisterInterface
     /**
      * @param GiftCardInterface $data
      *
-     * @return mixed
+     * @return object|void
      */
     public function persist($data, array $context = [])
     {
