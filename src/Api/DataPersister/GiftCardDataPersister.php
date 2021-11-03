@@ -22,9 +22,13 @@ final class GiftCardDataPersister implements ContextAwareDataPersisterInterface
         return $data instanceof GiftCardInterface;
     }
 
+    /**
+     * @param GiftCardInterface $data
+     *
+     * @return mixed
+     */
     public function persist($data, array $context = [])
     {
-        /** @var GiftCardInterface $data */
         Assert::isInstanceOf($data, GiftCardInterface::class);
 
         $data->setOrigin(GiftCardInterface::ORIGIN_API);
@@ -32,6 +36,11 @@ final class GiftCardDataPersister implements ContextAwareDataPersisterInterface
         return $this->decoratedDataPersister->persist($data, $context);
     }
 
+    /**
+     * @param GiftCardInterface $data
+     *
+     * @return mixed
+     */
     public function remove($data, array $context = [])
     {
         return $this->decoratedDataPersister->remove($data, $context);

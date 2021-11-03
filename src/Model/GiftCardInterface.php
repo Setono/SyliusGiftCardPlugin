@@ -16,7 +16,9 @@ use Sylius\Component\Resource\Model\ToggleableInterface;
 interface GiftCardInterface extends ResourceInterface, ToggleableInterface, CodeAwareInterface, TimestampableInterface
 {
     public const ORIGIN_ADMIN = 'admin';
+
     public const ORIGIN_API = 'api';
+
     public const ORIGIN_ORDER = 'order';
 
     public function __toString(): string;
