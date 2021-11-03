@@ -54,6 +54,9 @@ final class GiftCardTest extends TestCase
 
         $giftCard->setCustomMessage('custom message');
         $this->assertSame('custom message', $giftCard->getCustomMessage());
+
+        $giftCard->setOrigin('My origin');
+        $this->assertSame('My origin', $giftCard->getOrigin());
     }
 
     /**
@@ -130,5 +133,11 @@ final class GiftCardTest extends TestCase
         $giftCard->removeAppliedOrder($order1);
         $this->assertSame(1, $giftCard->getAppliedOrders()->count());
         $this->assertFalse($giftCard->hasAppliedOrder($order1));
+    }
+
+    public function it_has_null_origin_by_default(): void
+    {
+        $giftCard = new GiftCard();
+        $this->assertSame(null, $giftCard->getOrigin());
     }
 }

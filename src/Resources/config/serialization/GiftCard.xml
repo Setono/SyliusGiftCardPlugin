@@ -42,6 +42,10 @@
             <group>shop:gift_card:read</group>
         </attribute>
 
+        <attribute name="origin">
+            <group>admin:gift_card:read</group>
+        </attribute>
+
         <attribute name="channel">
             <group>admin:gift_card:read</group>
             <group>admin:gift_card:create</group>

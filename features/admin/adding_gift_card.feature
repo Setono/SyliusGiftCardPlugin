@@ -20,6 +20,7 @@ Feature: Creating a gift card
     And I add it
     Then I should be notified that it has been successfully created
     And I should see a gift card with code "GIFT-CARD-100" valued at "$100"
+    And this gift card should have api origin
 
   @api
   Scenario: Creating a gift card for a customer
@@ -32,3 +33,4 @@ Feature: Creating a gift card
     And I add it
     Then I should be notified that it has been successfully created
     And I should see a gift card with code "GIFT-CARD-100" valued at "$100" associated to the customer "john-doe@setono.com"
+    And this gift card should have api origin
