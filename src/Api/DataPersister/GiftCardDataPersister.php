@@ -17,6 +17,9 @@ final class GiftCardDataPersister implements ContextAwareDataPersisterInterface
         $this->decoratedDataPersister = $decoratedDataPersister;
     }
 
+    /**
+     * @param mixed $data
+     */
     public function supports($data, array $context = []): bool
     {
         return $data instanceof GiftCardInterface;
