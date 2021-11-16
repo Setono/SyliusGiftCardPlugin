@@ -39,10 +39,12 @@ final class GiftCardChannelConfigurationProvider implements GiftCardChannelConfi
 
     public function getConfiguration(ChannelInterface $channel, LocaleInterface $locale): ?GiftCardConfigurationInterface
     {
+        /** @var GiftCardChannelConfigurationInterface|null $channelConfiguration */
         $channelConfiguration = $this->configurationRepository->findOneBy(['channel' => $channel, 'locale' => $locale]);
         if ($channelConfiguration instanceof GiftCardChannelConfigurationInterface) {
             $configuration = $channelConfiguration->getConfiguration();
         } else {
+            /** @var GiftCardConfigurationInterface $configuration */
             $configuration = $this->defaultConfigurationRepository->findOneBy(['default' => true]);
         }
 
