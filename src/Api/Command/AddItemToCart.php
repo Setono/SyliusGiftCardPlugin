@@ -12,9 +12,9 @@ class AddItemToCart extends BaseAddItemToCart
 
     protected ?string $customMessage;
 
-    public function __construct(string $productVariantCode, int $quantity, int $amount = null, string $customMessage = null)
+    public function __construct(string $productCode, string $productVariantCode, int $quantity, int $amount = null, string $customMessage = null)
     {
-        parent::__construct($productVariantCode, $quantity);
+        parent::__construct($productCode, $productVariantCode, $quantity);
 
         $this->amount = $amount;
         $this->customMessage = $customMessage;

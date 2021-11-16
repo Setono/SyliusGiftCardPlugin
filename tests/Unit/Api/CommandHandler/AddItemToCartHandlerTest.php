@@ -110,7 +110,7 @@ final class AddItemToCartHandlerTest extends TestCase
             $giftCardFactory->reveal(),
             $giftCardManager->reveal(),
         );
-        $message = new SetonoSyliusGiftCardAddItemToCart('variant', 1, 1500, 'Custom message');
+        $message = new SetonoSyliusGiftCardAddItemToCart('product', 'variant', 1, 1500, 'Custom message');
         $message->setOrderTokenValue($orderTokenValue);
         $handler($message);
     }
@@ -162,7 +162,7 @@ final class AddItemToCartHandlerTest extends TestCase
             $giftCardFactory->reveal(),
             $giftCardManager->reveal(),
         );
-        $message = new SyliusAddItemToCart('variant', 1);
+        $message = new SyliusAddItemToCart('product', 'variant', 1);
         $message->setOrderTokenValue($orderTokenValue);
         $handler($message);
     }
@@ -229,7 +229,7 @@ final class AddItemToCartHandlerTest extends TestCase
             $giftCardFactory->reveal(),
             $giftCardManager->reveal(),
         );
-        $message = new SetonoSyliusGiftCardAddItemToCart('variant', 1);
+        $message = new SetonoSyliusGiftCardAddItemToCart('product', 'variant', 1);
         $message->setOrderTokenValue($orderTokenValue);
         $handler($message);
     }

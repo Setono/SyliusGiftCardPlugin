@@ -17,7 +17,7 @@
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
             <argument type="service" id="sylius.manager.product"/>
-            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_default.bus"/>
         </service>
     </services>
 </container>

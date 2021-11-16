@@ -13,7 +13,6 @@
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_channel_configuration" />
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card_channel_configuration" />
 
-            <tag name="messenger.message_handler" bus="sylius.command_bus" />
             <tag name="messenger.message_handler" bus="sylius_default.bus" />
         </service>
 
@@ -23,7 +22,6 @@
             <argument type="service" id="sylius.repository.order" />
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card" />
 
-            <tag name="messenger.message_handler" bus="sylius.command_bus" />
             <tag name="messenger.message_handler" bus="sylius_default.bus" />
         </service>
 
@@ -33,7 +31,6 @@
             <argument type="service" id="sylius.repository.order" />
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card" />
 
-            <tag name="messenger.message_handler" bus="sylius.command_bus" />
             <tag name="messenger.message_handler" bus="sylius_default.bus" />
         </service>
 
@@ -45,7 +42,6 @@
             <argument type="service" id="sylius.order_item_quantity_modifier" />
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card" />
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card" />
-            <tag name="messenger.message_handler" bus="sylius.command_bus" />
             <tag name="messenger.message_handler" bus="sylius_default.bus" />
         </service>
     </services>
