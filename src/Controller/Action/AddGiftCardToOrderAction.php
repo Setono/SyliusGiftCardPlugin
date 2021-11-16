@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
-use FOS\RestBundle\View\View;
-use FOS\RestBundle\View\ViewHandlerInterface;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
@@ -17,12 +15,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Twig\Environment;
 use Webmozart\Assert\Assert;
 
 final class AddGiftCardToOrderAction
 {
-    private ViewHandlerInterface $viewHandler;
-
     private FormFactoryInterface $formFactory;
 
     private CartContextInterface $cartContext;
@@ -33,20 +30,22 @@ final class AddGiftCardToOrderAction
 
     private RedirectUrlResolverInterface $redirectRouteResolver;
 
+    private Environment $twig;
+
     public function __construct(
-        ViewHandlerInterface $viewHandler,
         FormFactoryInterface $formFactory,
         CartContextInterface $cartContext,
         FlashBagInterface $flashBag,
         GiftCardApplicatorInterface $giftCardApplicator,
-        RedirectUrlResolverInterface $redirectRouteResolver
+        RedirectUrlResolverInterface $redirectRouteResolver,
+        Environment $twig
     ) {
-        $this->viewHandler = $viewHandler;
         $this->formFactory = $formFactory;
         $this->cartContext = $cartContext;
         $this->flashBag = $flashBag;
         $this->giftCardApplicator = $giftCardApplicator;
         $this->redirectRouteResolver = $redirectRouteResolver;
+        $this->twig = $twig;
     }
 
     public function __invoke(Request $request): Response
@@ -72,14 +71,8 @@ final class AddGiftCardToOrderAction
             return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));
         }
 
-        $view = View::create()
-            ->setData([
-                // Apparently we have to pass the form, and not the createdView
-                'form' => $form,
-            ])
-            ->setTemplate('@SetonoSyliusGiftCardPlugin/Shop/addGiftCardToOrder.html.twig')
-        ;
-
-        return $this->viewHandler->handle($view);
+        return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/addGiftCardToOrder.html.twig', [
+            'form' => $form->createView(),
+        ]));
     }
 }
