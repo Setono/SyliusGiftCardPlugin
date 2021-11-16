@@ -8,7 +8,6 @@
         "ext-filter": "*",
         "ext-mbstring": "*",
         "doctrine/collections": "^1.6",
-        "doctrine/dbal": "^2.13",
         "doctrine/orm": "^2.7",
         "doctrine/persistence": "^1.3 || ^2.2",
         "friendsofsymfony/rest-bundle": "^3.0",
