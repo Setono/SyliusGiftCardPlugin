@@ -49,6 +49,7 @@
         "sylius/sylius": "~1.10.7",
         "symfony/debug-bundle": "^4.4 || ^5.0",
         "symfony/dotenv": "^4.4 || ^5.0",
+        "symfony/framework-bundle": "^4.4 || ~5.2.12",
         "symfony/intl": "^4.4 || ^5.0",
         "symfony/proxy-manager-bridge": "^4.4.25 || ^5.0",
         "symfony/web-profiler-bundle": "^4.4 || ^5.0",
