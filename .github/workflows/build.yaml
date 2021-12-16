@@ -1,6 +1,8 @@
 name: "build"
 on:
     push:
+        branches:
+            - "0.12.x"
         paths-ignore:
             - "*.md"
     pull_request:
@@ -10,12 +12,12 @@ on:
 
 env:
     APP_ENV: "test"
-    DATABASE_URL: "mysql://root:root@127.0.0.1/sylius?serverVersion=5.7"
+    DATABASE_URL: "mysql://root:root@127.0.0.1/sylius?serverVersion=8.0"
     PHP_EXTENSIONS: "intl, mbstring"
 
 jobs:
     coding-standards:
-        name: "Coding Standards"
+        name: "Coding Standards (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }})"
 
         runs-on: "ubuntu-latest"
 
@@ -59,7 +61,7 @@ jobs:
                 run: "(cd tests/Application && bin/console lint:twig ../../src/Resources)"
 
     dependency-analysis:
-        name: "Dependency Analysis"
+        name: "Dependency Analysis (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }} | Symfony: ${{ matrix.symfony }})"
 
         runs-on: "ubuntu-latest"
 
@@ -71,6 +73,10 @@ jobs:
                 dependencies:
                     - "highest"
 
+                symfony:
+                    - "^4.4"
+                    - "^5.0"
+
         steps:
             -   name: "Checkout"
                 uses: "actions/checkout@v2"
@@ -81,10 +87,12 @@ jobs:
                     coverage: "none"
                     extensions: "${{ env.PHP_EXTENSIONS }}"
                     php-version: "${{ matrix.php-version }}"
-                    tools: "composer-require-checker, composer-unused"
+                    tools: "composer-require-checker, composer-unused, flex"
 
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v1"
+                env:
+                    SYMFONY_REQUIRE: "${{ matrix.symfony }}"
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
 
@@ -95,7 +103,7 @@ jobs:
                 run: "composer-unused"
 
     static-code-analysis:
-        name: "Static Code Analysis"
+        name: "Static Code Analysis (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }} | Symfony: ${{ matrix.symfony }})"
 
         runs-on: "ubuntu-latest"
 
@@ -107,6 +115,10 @@ jobs:
                 dependencies:
                     - "highest"
 
+                symfony:
+                    - "^4.4"
+                    - "^5.0"
+
         steps:
             -   name: "Checkout"
                 uses: "actions/checkout@v2"
@@ -114,12 +126,15 @@ jobs:
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
                 with:
-                    php-version: "${{ matrix.php-version }}"
-                    extensions: "${{ env.PHP_EXTENSIONS }}"
                     coverage: "none"
+                    extensions: "${{ env.PHP_EXTENSIONS }}"
+                    php-version: "${{ matrix.php-version }}"
+                    tools: "flex"
 
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v1"
+                env:
+                    SYMFONY_REQUIRE: "${{ matrix.symfony }}"
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
 
@@ -128,11 +143,9 @@ jobs:
 
             -   name: "Static analysis"
                 run: "composer analyse"
-                env:
-                    APP_DEBUG: 1
 
     unit-tests:
-        name: "Unit tests"
+        name: "Unit tests (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }} | Symfony: ${{ matrix.symfony }})"
 
         runs-on: "ubuntu-latest"
 
@@ -142,8 +155,11 @@ jobs:
                     - "7.4"
 
                 dependencies:
-                    - "lowest"
                     - "highest"
+
+                symfony:
+                    - "^4.4"
+                    - "^5.0"
 
         steps:
             -   name: "Checkout"
@@ -152,12 +168,15 @@ jobs:
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
                 with:
-                    php-version: "${{ matrix.php-version }}"
-                    extensions: "${{ env.PHP_EXTENSIONS }}"
                     coverage: "none"
+                    extensions: "${{ env.PHP_EXTENSIONS }}"
+                    php-version: "${{ matrix.php-version }}"
+                    tools: "flex"
 
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v1"
+                env:
+                    SYMFONY_REQUIRE: "${{ matrix.symfony }}"
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
 
@@ -165,7 +184,7 @@ jobs:
                 run: "composer phpunit"
 
     integration-tests:
-        name: "Integration tests"
+        name: "Integration tests (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }} | Symfony: ${{ matrix.symfony }})"
 
         runs-on: "ubuntu-latest"
 
@@ -176,6 +195,10 @@ jobs:
 
                 dependencies:
                     - "highest"
+
+                symfony:
+                    - "^4.4"
+                    - "^5.0"
 
         steps:
             -   name: "Start MySQL"
@@ -187,23 +210,22 @@ jobs:
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
                 with:
-                    php-version: "${{ matrix.php-version }}"
-                    extensions: "${{ env.PHP_EXTENSIONS }}"
                     coverage: "none"
-                    tools: "symfony"
-
-            -   name: "Setup node"
-                uses: "actions/setup-node@v2"
-                with:
-                    node-version: "10.x"
+                    extensions: "${{ env.PHP_EXTENSIONS }}"
+                    php-version: "${{ matrix.php-version }}"
+                    tools: "flex"
 
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v1"
+                env:
+                    SYMFONY_REQUIRE: "${{ matrix.symfony }}"
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
 
             -   name: "Lint container"
-                run: "(cd tests/Application && bin/console lint:container) || true"
+                # Do not lint on SF4 because we get this error: Invalid definition for service "doctrine.migrations.dependency_factory": argument 2 of "Doctrine\Migrations\DependencyFactory::setDefinition()" accepts "callable", "SyliusLabs\DoctrineMigrationsExtraBundle\Factory\ContainerAwareVersionFactory" passed.
+                # Note: We cannot use the if statement here, because of https://github.community/t/matrix-cannot-be-used-in-jobs-level-if/17177/10
+                run: 'if [ "${{ matrix.symfony }}" != "^4.4" ]; then (cd tests/Application && bin/console lint:container); fi'
 
             -   name: "Create database"
                 run: "(cd tests/Application && bin/console doctrine:database:create -vvv)"
@@ -272,7 +294,7 @@ jobs:
                     if-no-files-found: "ignore"
 
     code-coverage:
-        name: "Code Coverage"
+        name: "Code Coverage (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }})"
 
         runs-on: "ubuntu-latest"
 
