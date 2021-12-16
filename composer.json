@@ -1,8 +1,8 @@
 {
     "name": "setono/sylius-gift-card-plugin",
-    "type": "sylius-plugin",
     "description": "Gift card plugin for Sylius",
     "license": "MIT",
+    "type": "sylius-plugin",
     "require": {
         "php": ">=7.4",
         "ext-filter": "*",
@@ -54,14 +54,7 @@
         "symfony/web-profiler-bundle": "^4.4 || ^5.0",
         "weirdan/doctrine-psalm-plugin": "^2.0"
     },
-    "config": {
-        "sort-packages": true
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0-dev"
-        }
-    },
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Setono\\SyliusGiftCardPlugin\\": "src/"
@@ -75,7 +68,14 @@
             "tests/Application/Kernel.php"
         ]
     },
-    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    },
     "scripts": {
         "all": [
             "@checks",
