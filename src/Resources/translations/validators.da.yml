@@ -1,7 +1,7 @@
 setono_sylius_gift_card:
     add_gift_card_to_order_command:
         gift_card:
-            does_not_exist: Gavekort med denne kode eksisterer ikke
+            does_not_exist: Der findes ikke et gavekort med denne kode
             is_expired: Gavekortet er udløbet
             not_blank: Indtast venligst din kode
     channel_configuration:
