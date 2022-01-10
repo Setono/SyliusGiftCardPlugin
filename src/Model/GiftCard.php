@@ -295,6 +295,6 @@ class GiftCard implements GiftCardInterface
             return false;
         }
 
-        return new $date > $giftCardValidUntil;
+        return $date > $giftCardValidUntil;
     }
 }

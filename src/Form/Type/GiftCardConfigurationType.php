@@ -54,7 +54,8 @@ final class GiftCardConfigurationType extends AbstractResourceType
                         'value' => $value,
                         'unit' => $unit,
                     ];
-                }, function (array $data): ?string {
+                },
+                function (array $data): ?string {
                     if (null === $data['value']) {
                         return null;
                     }
