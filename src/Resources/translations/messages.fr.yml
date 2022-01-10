@@ -8,6 +8,14 @@ setono_sylius_gift_card:
         channel_configuration:
             channel: Canal
             locale: Langue
+        date_period:
+            unit: Unité
+            unit_day: Jours
+            unit_hour: Heures
+            unit_month: Mois
+            unit_week: Semaines
+            unit_year: Années
+            value: Valeur
         gift_card:
             channel: Canal
             custom_message: Message personnalisé
@@ -16,6 +24,7 @@ setono_sylius_gift_card:
             channel_configurations: Configurations des canaux
             code: Code
             default: Configuration par défaut
+            default_validity_period: Durée de validité par défaut
             enabled: Activé
         product:
             gift_card: Chèque-cadeau

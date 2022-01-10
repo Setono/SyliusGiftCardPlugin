@@ -7,6 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Factory;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardChannelConfigurationProviderInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -19,10 +20,16 @@ final class GiftCardFactory implements GiftCardFactoryInterface
 
     private GiftCardCodeGeneratorInterface $giftCardCodeGenerator;
 
-    public function __construct(FactoryInterface $decoratedFactory, GiftCardCodeGeneratorInterface $giftCardCodeGenerator)
-    {
+    private GiftCardChannelConfigurationProviderInterface $giftCardChannelConfigurationProvider;
+
+    public function __construct(
+        FactoryInterface $decoratedFactory,
+        GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
+        GiftCardChannelConfigurationProviderInterface $giftCardChannelConfigurationProvider
+    ) {
         $this->decoratedFactory = $decoratedFactory;
         $this->giftCardCodeGenerator = $giftCardCodeGenerator;
+        $this->giftCardChannelConfigurationProvider = $giftCardChannelConfigurationProvider;
     }
 
     public function createNew(): GiftCardInterface
@@ -38,6 +45,16 @@ final class GiftCardFactory implements GiftCardFactoryInterface
     {
         $giftCard = $this->createNew();
         $giftCard->setChannel($channel);
+
+        $channelConfiguration = $this->giftCardChannelConfigurationProvider->getConfigurationForGiftCard($giftCard);
+        if (null !== $channelConfiguration) {
+            $validityPeriod = $channelConfiguration->getDefaultValidityPeriod();
+            if (null !== $validityPeriod) {
+                $today = new \DateTime();
+                $today->modify('+' . $validityPeriod);
+                $giftCard->setValidUntil($today);
+            }
+        }
 
         return $giftCard;
     }
@@ -76,7 +93,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         $currencyCode = $cart->getCurrencyCode();
         Assert::notNull($currencyCode);
 
-        $giftCard = $this->createNew();
+        $giftCard = $this->createForChannel($channel);
         $giftCard->setOrderItemUnit($orderItemUnit);
         $giftCard->setAmount($orderItemUnit->getTotal());
         $giftCard->setCurrencyCode($currencyCode);

@@ -2,6 +2,7 @@ setono_sylius_gift_card:
     add_gift_card_to_order_command:
         gift_card:
             does_not_exist: The gift card with this code does not exist
+            is_expired: The entered gift card is expired
             not_blank: Please enter code
     channel_configuration:
         unique_channel_locale: This combination of channel and locale are already used

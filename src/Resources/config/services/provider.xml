@@ -18,5 +18,10 @@
         <service id="Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProviderInterfae"
                  alias="setono_sylius_gift_card.provider.order_eligible_total">
         </service>
+
+        <service id="setono_sylius_gift_card.provider.date_period_unit"
+                 class="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProvider" />
+        <service id="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProviderInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProvider"/>
     </services>
 </container>

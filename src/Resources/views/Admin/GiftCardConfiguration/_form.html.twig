@@ -5,6 +5,12 @@
     <div class="column">
         <div class="ui segment">
             {{ form_row(form.code) }}
+            <div class="required field">
+                <div class="ui action input">
+                    {{ form_widget(form.defaultValidityPeriod.value) }}
+                    {{ form_widget(form.defaultValidityPeriod.unit, {'attr': {'class': 'ui compact selection dropdown'}}) }}
+                </div>
+            </div>
             {{ form_row(form.backgroundImage) }}
         </div>
     </div>

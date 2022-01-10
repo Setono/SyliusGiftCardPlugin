@@ -14,6 +14,7 @@ use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -53,6 +54,11 @@ final class GiftCardType extends AbstractResourceType
             ->add('customMessage', TextareaType::class, [
                 'label' => 'setono_sylius_gift_card.form.gift_card.custom_message',
                 'required' => false,
+            ])
+            ->add('validUntil', DateTimeType::class, [
+                'label' => 'setono_sylius_gift_card.form.gift_card.valid_until',
+                'widget' => 'single_text',
+                'html5' => true,
             ])
             ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
                 /** @var GiftCardInterface $giftCard */

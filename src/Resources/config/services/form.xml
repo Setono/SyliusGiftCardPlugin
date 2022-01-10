@@ -114,5 +114,11 @@
         <service id="Setono\SyliusGiftCardPlugin\Form\Type\Rule\HasNoGiftCardConfigurationType">
             <tag name="form.type" alias="setono_sylius_gift_card_plugin_promotion_rule_has_no_gift_card_configuration" />
         </service>
+
+        <service id="setono_sylius_gift_card.form.type.date_period"
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\DatePeriodType">
+            <argument type="service" id="setono_sylius_gift_card.provider.date_period_unit"/>
+            <tag name="form.type"/>
+        </service>
     </services>
 </container>

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Model;
 
+use DateTime;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use RuntimeException;
@@ -45,6 +47,8 @@ class GiftCard implements GiftCardInterface
     protected ?string $customMessage = null;
 
     protected ?string $origin = null;
+
+    protected ?DateTimeInterface $validUntil = null;
 
     public function __construct()
     {
@@ -268,5 +272,29 @@ class GiftCard implements GiftCardInterface
     public function getOrigin(): ?string
     {
         return $this->origin;
+    }
+
+    public function getValidUntil(): ?DateTimeInterface
+    {
+        return $this->validUntil;
+    }
+
+    public function setValidUntil(?DateTimeInterface $validUntil): void
+    {
+        $this->validUntil = $validUntil;
+    }
+
+    public function isExpired(DateTimeInterface $date = null): bool
+    {
+        if (null === $date) {
+            $date = new DateTime();
+        }
+
+        $giftCardValidUntil = $this->getValidUntil();
+        if (null === $giftCardValidUntil) {
+            return false;
+        }
+
+        return new $date > $giftCardValidUntil;
     }
 }

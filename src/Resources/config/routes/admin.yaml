@@ -50,8 +50,6 @@ setono_sylius_gift_card_admin_gift_card_configuration:
         vars:
             all:
                 subheader: setono_sylius_gift_card.ui.manage_gift_card_configurations
-                templates:
-                    form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardConfiguration/_form.html.twig"
             index:
                 icon: 'gift'
                 templates:
@@ -59,9 +57,11 @@ setono_sylius_gift_card_admin_gift_card_configuration:
             create:
                 templates:
                     breadcrumb: '@SetonoSyliusGiftCardPlugin/Admin/GiftCardConfiguration/Create/_breadcrumb.html.twig'
+                    form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardConfiguration/_form.html.twig"
             update:
                 templates:
                     breadcrumb: '@SetonoSyliusGiftCardPlugin/Admin/GiftCardConfiguration/Update/_breadcrumb.html.twig'
+                    form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardConfiguration/_form.html.twig"
     type: sylius.resource
 
 # todo what is this route doing?
