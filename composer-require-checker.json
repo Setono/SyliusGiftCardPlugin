@@ -34,6 +34,7 @@
     "Sylius\\Bundle\\OrderBundle\\Controller\\AddToCartCommandInterface",
     "Sylius\\Bundle\\OrderBundle\\Factory\\AddToCartCommandFactoryInterface",
     "Sylius\\Bundle\\ProductBundle\\Form\\Type\\ProductType",
+    "Sylius\\Bundle\\ShippingBundle\\Provider\\DateTimeProvider",
     "Sylius\\Bundle\\UiBundle\\Menu\\Event\\MenuBuilderEvent",
     "Sylius\\Component\\Channel\\Context\\ChannelContextInterface",
     "Sylius\\Component\\Channel\\Model\\ChannelAwareInterface",

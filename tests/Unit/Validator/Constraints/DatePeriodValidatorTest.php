@@ -6,12 +6,9 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Validator\Constraints;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProvider;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\DatePeriod;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\DatePeriodValidator;
-use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsNotExpired;
-use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsNotExpiredValidator;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
