@@ -57,6 +57,10 @@ final class GiftCardTest extends TestCase
 
         $giftCard->setOrigin('My origin');
         $this->assertSame('My origin', $giftCard->getOrigin());
+
+        $validUntil = new \DateTime();
+        $giftCard->setValidUntil($validUntil);
+        $this->assertSame($validUntil, $giftCard->getValidUntil());
     }
 
     /**
@@ -139,5 +143,30 @@ final class GiftCardTest extends TestCase
     {
         $giftCard = new GiftCard();
         $this->assertSame(null, $giftCard->getOrigin());
+    }
+
+    public function it_can_expire(): void
+    {
+        $today = new \DateTime('2022-01-01 00:00:00');
+        $giftCard = new GiftCard();
+        $giftCard->setValidUntil(new \DateTime('2021-12-15 14:00:00'));
+
+        $this->assertTrue($giftCard->isExpired($today));
+    }
+
+    public function it_is_not_expired_if_valid_until_is_null(): void
+    {
+        $giftCard = new GiftCard();
+
+        $this->assertFalse($giftCard->isExpired());
+    }
+
+    public function it_is_not_expired_if_valid_until_is_in_future(): void
+    {
+        $today = new \DateTime('2022-01-01 00:00:00');
+        $giftCard = new GiftCard();
+        $giftCard->setValidUntil(new \DateTime('2022-12-15 14:00:00'));
+
+        $this->assertFalse($giftCard->isExpired($today));
     }
 }

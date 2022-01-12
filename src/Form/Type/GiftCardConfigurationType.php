@@ -60,6 +60,7 @@ final class GiftCardConfigurationType extends AbstractResourceType
                         return null;
                     }
 
+                    /** @psalm-suppress MixedArgumentTypeCoercion */
                     return \implode(' ', $data);
                 }
             )

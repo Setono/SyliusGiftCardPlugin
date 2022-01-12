@@ -24,7 +24,7 @@ final class GiftCardIsNotExpiredValidator extends ConstraintValidator
 
         Assert::isInstanceOf($value, GiftCardInterface::class);
         if ($value->isExpired()) {
-            $this->context->addViolation($constraint->message);
+            $this->context->buildViolation($constraint->message)->addViolation();
         }
     }
 }

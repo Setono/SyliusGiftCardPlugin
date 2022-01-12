@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Factory;
 
+use DateTimeImmutable;
+use DateTimeInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardChannelConfigurationProviderInterface;
+use Sylius\Bundle\ShippingBundle\Provider\DateTimeProvider;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -22,14 +25,18 @@ final class GiftCardFactory implements GiftCardFactoryInterface
 
     private GiftCardChannelConfigurationProviderInterface $giftCardChannelConfigurationProvider;
 
+    private DateTimeProvider $dateTimeProvider;
+
     public function __construct(
         FactoryInterface $decoratedFactory,
         GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
-        GiftCardChannelConfigurationProviderInterface $giftCardChannelConfigurationProvider
+        GiftCardChannelConfigurationProviderInterface $giftCardChannelConfigurationProvider,
+        DateTimeProvider $dateTimeProvider
     ) {
         $this->decoratedFactory = $decoratedFactory;
         $this->giftCardCodeGenerator = $giftCardCodeGenerator;
         $this->giftCardChannelConfigurationProvider = $giftCardChannelConfigurationProvider;
+        $this->dateTimeProvider = $dateTimeProvider;
     }
 
     public function createNew(): GiftCardInterface
@@ -50,8 +57,10 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         if (null !== $channelConfiguration) {
             $validityPeriod = $channelConfiguration->getDefaultValidityPeriod();
             if (null !== $validityPeriod) {
-                $today = new \DateTime();
-                $today->modify('+' . $validityPeriod);
+                /** @var DateTimeImmutable $today */
+                $today = $this->dateTimeProvider->today();
+                /** @var DateTimeInterface $today */
+                $today = $today->modify('+' . $validityPeriod);
                 $giftCard->setValidUntil($today);
             }
         }
