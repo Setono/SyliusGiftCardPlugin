@@ -19,6 +19,7 @@ setono_sylius_gift_card:
         gift_card:
             channel: Channel
             custom_message: Custom message
+            valid_until: Valid until
         gift_card_configuration:
             background_image: Background image
             channel_configurations: Channel configurations
