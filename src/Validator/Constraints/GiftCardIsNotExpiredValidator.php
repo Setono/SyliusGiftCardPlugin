@@ -8,6 +8,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
+use Webmozart\Assert\Assert;
 
 final class GiftCardIsNotExpiredValidator extends ConstraintValidator
 {
@@ -21,9 +22,8 @@ final class GiftCardIsNotExpiredValidator extends ConstraintValidator
             return;
         }
 
-        /** @var GiftCardInterface $giftCard */
-        $giftCard = $value;
-        if ($giftCard->isExpired()) {
+        Assert::isInstanceOf($value, GiftCardInterface::class);
+        if ($value->isExpired()) {
             $this->context->addViolation($constraint->message);
         }
     }
