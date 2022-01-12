@@ -139,12 +139,18 @@ final class GiftCardTest extends TestCase
         $this->assertFalse($giftCard->hasAppliedOrder($order1));
     }
 
+    /**
+     * @test
+     */
     public function it_has_null_origin_by_default(): void
     {
         $giftCard = new GiftCard();
         $this->assertSame(null, $giftCard->getOrigin());
     }
 
+    /**
+     * @test
+     */
     public function it_can_expire(): void
     {
         $today = new \DateTime('2022-01-01 00:00:00');
@@ -154,6 +160,9 @@ final class GiftCardTest extends TestCase
         $this->assertTrue($giftCard->isExpired($today));
     }
 
+    /**
+     * @test
+     */
     public function it_is_not_expired_if_valid_until_is_null(): void
     {
         $giftCard = new GiftCard();
@@ -161,6 +170,9 @@ final class GiftCardTest extends TestCase
         $this->assertFalse($giftCard->isExpired());
     }
 
+    /**
+     * @test
+     */
     public function it_is_not_expired_if_valid_until_is_in_future(): void
     {
         $today = new \DateTime('2022-01-01 00:00:00');
