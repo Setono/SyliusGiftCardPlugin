@@ -9,13 +9,13 @@ setono_sylius_gift_card:
             channel: Kanal
             locale: Lokalitet
         date_period:
-            unit: Unit
-            unit_day: Days
-            unit_hour: Hours
-            unit_month: Months
-            unit_week: Weeks
-            unit_year: Years
-            value: Value
+            unit: Enhed
+            unit_day: Dage
+            unit_hour: Timer
+            unit_month: Måneder
+            unit_week: Uger
+            unit_year: År
+            value: Værdi
         gift_card:
             channel: Kanal
             custom_message: Personlig besked
