@@ -26,7 +26,7 @@ final class GiftCardDataPersister implements ContextAwareDataPersisterInterface
     }
 
     /**
-     * @param GiftCardInterface $data
+     * @param GiftCardInterface|mixed $data
      *
      * @return object|void
      */
@@ -40,7 +40,7 @@ final class GiftCardDataPersister implements ContextAwareDataPersisterInterface
     }
 
     /**
-     * @param GiftCardInterface $data
+     * @param GiftCardInterface|mixed $data
      *
      * @return mixed
      */
