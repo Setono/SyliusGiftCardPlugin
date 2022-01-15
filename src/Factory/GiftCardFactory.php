@@ -59,6 +59,9 @@ final class GiftCardFactory implements GiftCardFactoryInterface
             if (null !== $validityPeriod) {
                 /** @var DateTimeImmutable $today */
                 $today = $this->dateTimeProvider->today();
+                // Since the interface is types to DateTimeInterface, the modify method does not exist
+                // whereas it does in DateTime and DateTimeImmutable
+                Assert::isInstanceOf($today, DateTimeImmutable::class);
                 /** @var DateTimeInterface $today */
                 $today = $today->modify('+' . $validityPeriod);
                 $giftCard->setValidUntil($today);
