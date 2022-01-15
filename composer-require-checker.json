@@ -57,6 +57,7 @@
     "Sylius\\Component\\Core\\Repository\\OrderRepositoryInterface",
     "Sylius\\Component\\Core\\Repository\\ProductVariantRepositoryInterface",
     "Sylius\\Component\\Core\\Uploader\\ImageUploaderInterface",
+    "Sylius\\Component\\Currency\\Context\\CurrencyContextInterface",
     "Sylius\\Component\\Currency\\Model\\CurrencyInterface",
     "Sylius\\Component\\Customer\\Model\\CustomerInterface",
     "Sylius\\Component\\Grid\\Definition\\Field",
@@ -72,6 +73,7 @@
     "Sylius\\Component\\Order\\Modifier\\OrderItemQuantityModifierInterface",
     "Sylius\\Component\\Order\\Modifier\\OrderModifierInterface",
     "Sylius\\Component\\Order\\Processor\\OrderProcessorInterface",
+    "Sylius\\Component\\Product\\Resolver\\ProductVariantResolverInterface",
     "Sylius\\Component\\Promotion\\Checker\\Rule\\RuleCheckerInterface",
     "Sylius\\Component\\Promotion\\Model\\PromotionSubjectInterface",
     "Sylius\\Component\\User\\Model\\UserInterface"
