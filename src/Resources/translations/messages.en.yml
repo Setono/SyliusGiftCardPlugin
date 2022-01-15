@@ -4,6 +4,7 @@ setono_sylius_gift_card:
             gift_card_information:
                 amount: Amount
                 custom_message: Custom message
+                custom_message_placeholder: If you want to add a short message to the gift card, you can write it here...
         channel_configuration:
             channel: Channel
             locale: Locale
