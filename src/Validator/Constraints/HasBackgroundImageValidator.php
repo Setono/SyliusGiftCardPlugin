@@ -27,7 +27,7 @@ final class HasBackgroundImageValidator extends ConstraintValidator
             return;
         }
 
-        if (null === $backgroundImage->getFile()) {
+        if (null === $backgroundImage->getFile() && null === $backgroundImage->getPath()) {
             $this->context->buildViolation($constraint->message)
                 ->addViolation();
         }
