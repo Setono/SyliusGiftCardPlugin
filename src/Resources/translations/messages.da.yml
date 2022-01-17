@@ -4,7 +4,7 @@ setono_sylius_gift_card:
             gift_card_information:
                 amount: Beløb
                 custom_message: Personlig besked
-                custom_message_placeholder: If you want to add a short message to the gift card, you can write it here...
+                custom_message_placeholder: Hvis du ønsker at tilføje en kort besked på gavekortet, så kan du skrive den her...
         channel_configuration:
             channel: Kanal
             locale: Lokalitet
