@@ -8,14 +8,24 @@ setono_sylius_gift_card:
         channel_configuration:
             channel: Kanal
             locale: Lokalitet
+        date_period:
+            unit: Enhed
+            unit_day: Dage
+            unit_hour: Timer
+            unit_month: Måneder
+            unit_week: Uger
+            unit_year: År
+            value: Værdi
         gift_card:
             channel: Kanal
             custom_message: Personlig besked
+            valid_until: Gyldig til og med
         gift_card_configuration:
             background_image: Baggrundsbillede 
             channel_configurations: Kanalkonfigurationer
             code: Kode
             default: Standardkonfiguration
+            default_validity_period: Standard gyldighedsperiode
             enabled: Aktiveret
         product:
             gift_card: Gavekort

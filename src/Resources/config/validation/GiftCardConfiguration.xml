@@ -34,5 +34,10 @@
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>
+        <property name="defaultValidityPeriod">
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\DatePeriod">
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
     </class>
 </constraint-mapping>

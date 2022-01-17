@@ -36,6 +36,8 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
 
     protected bool $default = false;
 
+    protected ?string $defaultValidityPeriod = null;
+
     public function __construct()
     {
         $this->images = new ArrayCollection();
@@ -164,5 +166,15 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
     public function setDefault(bool $default): void
     {
         $this->default = $default;
+    }
+
+    public function getDefaultValidityPeriod(): ?string
+    {
+        return $this->defaultValidityPeriod;
+    }
+
+    public function setDefaultValidityPeriod(?string $defaultValidityPeriod): void
+    {
+        $this->defaultValidityPeriod = $defaultValidityPeriod;
     }
 }

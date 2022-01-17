@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
+use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -37,6 +38,33 @@ final class GiftCardConfigurationType extends AbstractResourceType
             'allow_delete' => true,
             'by_reference' => false,
         ]);
+        $builder->add('defaultValidityPeriod', DatePeriodType::class, [
+            'label' => 'setono_sylius_gift_card.form.gift_card_configuration.default_validity_period',
+        ]);
+        $builder->get('defaultValidityPeriod')->addModelTransformer(
+            new CallbackTransformer(
+                function (?string $period): array {
+                    $value = null;
+                    $unit = null;
+                    if (null !== $period) {
+                        [$value, $unit] = \explode(' ', $period);
+                    }
+
+                    return [
+                        'value' => $value,
+                        'unit' => $unit,
+                    ];
+                },
+                function (array $data): ?string {
+                    if (null === $data['value']) {
+                        return null;
+                    }
+
+                    /** @psalm-suppress MixedArgumentTypeCoercion */
+                    return \implode(' ', $data);
+                }
+            )
+        );
     }
 
     public function getBlockPrefix(): string

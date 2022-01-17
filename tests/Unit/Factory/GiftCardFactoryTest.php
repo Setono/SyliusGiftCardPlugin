@@ -9,7 +9,11 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactory;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardChannelConfigurationProviderInterface;
+use Sylius\Bundle\ShippingBundle\Provider\Calendar;
+use Sylius\Bundle\ShippingBundle\Provider\DateTimeProvider;
 use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Resource\Factory\FactoryInterface;
@@ -30,11 +34,17 @@ final class GiftCardFactoryTest extends TestCase
 
         $decoratedFactory = $this->prophesize(FactoryInterface::class);
         $giftCardCodeGenerator = $this->prophesize(GiftCardCodeGeneratorInterface::class);
+        $configurationProvider = $this->prophesize(GiftCardChannelConfigurationProviderInterface::class);
 
         $decoratedFactory->createNew()->willReturn($giftCard);
         $giftCardCodeGenerator->generate()->willReturn('super-code');
 
-        $factory = new GiftCardFactory($decoratedFactory->reveal(), $giftCardCodeGenerator->reveal());
+        $factory = new GiftCardFactory(
+            $decoratedFactory->reveal(),
+            $giftCardCodeGenerator->reveal(),
+            $configurationProvider->reveal(),
+            new Calendar()
+        );
         $createdGiftCard = $factory->createNew();
 
         $this->assertSame($giftCard, $createdGiftCard);
@@ -51,15 +61,56 @@ final class GiftCardFactoryTest extends TestCase
 
         $decoratedFactory = $this->prophesize(FactoryInterface::class);
         $giftCardCodeGenerator = $this->prophesize(GiftCardCodeGeneratorInterface::class);
+        $configurationProvider = $this->prophesize(GiftCardChannelConfigurationProviderInterface::class);
 
         $decoratedFactory->createNew()->willReturn($giftCard);
         $giftCardCodeGenerator->generate()->willReturn('super-code');
 
-        $factory = new GiftCardFactory($decoratedFactory->reveal(), $giftCardCodeGenerator->reveal());
+        $factory = new GiftCardFactory(
+            $decoratedFactory->reveal(),
+            $giftCardCodeGenerator->reveal(),
+            $configurationProvider->reveal(),
+            new Calendar()
+        );
         $createdGiftCard = $factory->createForChannel($channel);
 
         $this->assertSame($giftCard, $createdGiftCard);
         $this->assertSame($channel, $createdGiftCard->getChannel());
+    }
+
+    /**
+     * @test
+     */
+    public function it_creates_a_new_gift_card_for_channel_with_expiration_date(): void
+    {
+        $giftCard = new GiftCard();
+        $channel = new Channel();
+        $giftCardConfiguration = new GiftCardConfiguration();
+        $giftCardConfiguration->setDefaultValidityPeriod('1 month');
+        $expectedValidUntilDate = new \DateTime('2022-01-01 12:00:00');
+        $expectedValidUntilDate->modify('+1 month');
+
+        $decoratedFactory = $this->prophesize(FactoryInterface::class);
+        $giftCardCodeGenerator = $this->prophesize(GiftCardCodeGeneratorInterface::class);
+        $configurationProvider = $this->prophesize(GiftCardChannelConfigurationProviderInterface::class);
+        $calendar = $this->prophesize(DateTimeProvider::class);
+
+        $decoratedFactory->createNew()->willReturn($giftCard);
+        $giftCardCodeGenerator->generate()->willReturn('super-code');
+        $configurationProvider->getConfigurationForGiftCard($giftCard)->willReturn($giftCardConfiguration);
+        $calendar->today()->willReturn(new \DateTimeImmutable('2022-01-01 12:00:00'));
+
+        $factory = new GiftCardFactory(
+            $decoratedFactory->reveal(),
+            $giftCardCodeGenerator->reveal(),
+            $configurationProvider->reveal(),
+            $calendar->reveal()
+        );
+        $createdGiftCard = $factory->createForChannel($channel);
+
+        $this->assertSame($giftCard, $createdGiftCard);
+        $this->assertSame($channel, $createdGiftCard->getChannel());
+        $this->assertEquals($expectedValidUntilDate, $giftCard->getValidUntil());
     }
 
     /**
@@ -72,11 +123,17 @@ final class GiftCardFactoryTest extends TestCase
 
         $decoratedFactory = $this->prophesize(FactoryInterface::class);
         $giftCardCodeGenerator = $this->prophesize(GiftCardCodeGeneratorInterface::class);
+        $configurationProvider = $this->prophesize(GiftCardChannelConfigurationProviderInterface::class);
 
         $decoratedFactory->createNew()->willReturn($giftCard);
         $giftCardCodeGenerator->generate()->willReturn('super-code');
 
-        $factory = new GiftCardFactory($decoratedFactory->reveal(), $giftCardCodeGenerator->reveal());
+        $factory = new GiftCardFactory(
+            $decoratedFactory->reveal(),
+            $giftCardCodeGenerator->reveal(),
+            $configurationProvider->reveal(),
+            new Calendar()
+        );
         $createdGiftCard = $factory->createForChannelFromAdmin($channel);
 
         $this->assertSame($giftCard, $createdGiftCard);
@@ -100,11 +157,17 @@ final class GiftCardFactoryTest extends TestCase
 
         $decoratedFactory = $this->prophesize(FactoryInterface::class);
         $giftCardCodeGenerator = $this->prophesize(GiftCardCodeGeneratorInterface::class);
+        $configurationProvider = $this->prophesize(GiftCardChannelConfigurationProviderInterface::class);
 
         $decoratedFactory->createNew()->willReturn($giftCard);
         $giftCardCodeGenerator->generate()->willReturn('super-code');
 
-        $factory = new GiftCardFactory($decoratedFactory->reveal(), $giftCardCodeGenerator->reveal());
+        $factory = new GiftCardFactory(
+            $decoratedFactory->reveal(),
+            $giftCardCodeGenerator->reveal(),
+            $configurationProvider->reveal(),
+            new Calendar()
+        );
         $createdGiftCard = $factory->createFromOrderItemUnitAndCart($orderItemUnit->reveal(), $cart);
 
         $orderItemUnit->setGiftCard($giftCard)->shouldBeCalled();
@@ -138,11 +201,17 @@ final class GiftCardFactoryTest extends TestCase
 
         $decoratedFactory = $this->prophesize(FactoryInterface::class);
         $giftCardCodeGenerator = $this->prophesize(GiftCardCodeGeneratorInterface::class);
+        $configurationProvider = $this->prophesize(GiftCardChannelConfigurationProviderInterface::class);
 
         $decoratedFactory->createNew()->willReturn($giftCard);
         $giftCardCodeGenerator->generate()->willReturn('super-code');
 
-        $factory = new GiftCardFactory($decoratedFactory->reveal(), $giftCardCodeGenerator->reveal());
+        $factory = new GiftCardFactory(
+            $decoratedFactory->reveal(),
+            $giftCardCodeGenerator->reveal(),
+            $configurationProvider->reveal(),
+            new Calendar()
+        );
         $createdGiftCard = $factory->createFromOrderItemUnit($orderItemUnit->reveal());
 
         $orderItemUnit->setGiftCard($giftCard)->shouldBeCalled();

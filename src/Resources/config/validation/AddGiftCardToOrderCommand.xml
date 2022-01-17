@@ -9,6 +9,9 @@
                 <option name="message">setono_sylius_gift_card.add_gift_card_to_order_command.gift_card.not_blank</option>
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsNotExpired">
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
         </property>
     </class>
 </constraint-mapping>

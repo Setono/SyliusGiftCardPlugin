@@ -13,6 +13,7 @@
                 <option name="default">0</option>
             </options>
         </field>
+        <field name="defaultValidityPeriod" nullable="true" />
 
         <field name="createdAt" column="created_at" type="datetime">
             <gedmo:timestampable on="create"/>

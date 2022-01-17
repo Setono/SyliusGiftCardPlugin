@@ -2,6 +2,7 @@ setono_sylius_gift_card:
     add_gift_card_to_order_command:
         gift_card:
             does_not_exist: Ce code de chèque-cadeau n'existe pas
+            is_expired: Ce chèque-cadeau a expiré
             not_blank: Veuillez renseigner un code
     channel_configuration:
         unique_channel_locale: Cette combinaison de canal et langue est déjà utilisée

@@ -38,4 +38,8 @@ interface GiftCardConfigurationInterface extends
     public function isDefault(): bool;
 
     public function setDefault(bool $default): void;
+
+    public function getDefaultValidityPeriod(): ?string;
+
+    public function setDefaultValidityPeriod(?string $defaultValidityPeriod): void;
 }

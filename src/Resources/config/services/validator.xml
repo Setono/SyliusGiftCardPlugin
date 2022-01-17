@@ -7,5 +7,19 @@
         <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\HasBackgroundImage">
             <tag name="validator.constraint_validator" />
         </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsNotExpired">
+            <tag name="validator.constraint_validator" />
+        </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\DatePeriod">
+            <tag name="validator.constraint_validator" />
+        </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\DatePeriodValidator">
+            <argument type="service" id="setono_sylius_gift_card.provider.date_period_unit"/>
+
+            <tag name="validator.constraint_validator" />
+        </service>
     </services>
 </container>
