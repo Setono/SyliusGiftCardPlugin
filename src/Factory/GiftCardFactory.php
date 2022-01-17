@@ -57,7 +57,6 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         if (null !== $channelConfiguration) {
             $validityPeriod = $channelConfiguration->getDefaultValidityPeriod();
             if (null !== $validityPeriod) {
-                /** @var DateTimeImmutable $today */
                 $today = $this->dateTimeProvider->today();
                 // Since the interface is types to DateTimeInterface, the modify method does not exist
                 // whereas it does in DateTime and DateTimeImmutable
