@@ -6,6 +6,8 @@ namespace Setono\SyliusGiftCardPlugin\Model;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Setono\SyliusGiftCardPlugin\Provider\PdfOrientationProviderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\PdfPageSizeProviderInterface;
 use Sylius\Component\Core\Model\ImageInterface;
 use Sylius\Component\Resource\Model\TimestampableTrait;
 use Sylius\Component\Resource\Model\ToggleableTrait;
@@ -37,6 +39,10 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
     protected bool $default = false;
 
     protected ?string $defaultValidityPeriod = null;
+
+    protected ?string $pageSize = PdfPageSizeProviderInterface::FORMAT_A5;
+
+    protected ?string $orientation = PdfOrientationProviderInterface::ORIENTATION_PORTRAIT;
 
     public function __construct()
     {
@@ -176,5 +182,25 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
     public function setDefaultValidityPeriod(?string $defaultValidityPeriod): void
     {
         $this->defaultValidityPeriod = $defaultValidityPeriod;
+    }
+
+    public function getPageSize(): ?string
+    {
+        return $this->pageSize;
+    }
+
+    public function setPageSize(?string $pageSize): void
+    {
+        $this->pageSize = $pageSize;
+    }
+
+    public function getOrientation(): ?string
+    {
+        return $this->orientation;
+    }
+
+    public function setOrientation(?string $orientation): void
+    {
+        $this->orientation = $orientation;
     }
 }

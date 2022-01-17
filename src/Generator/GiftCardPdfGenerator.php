@@ -8,6 +8,7 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Knp\Snappy\GeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProviderInterface;
 use Twig\Environment;
 
 class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
@@ -16,10 +17,16 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
 
     private GeneratorInterface $snappy;
 
-    public function __construct(Environment $twig, GeneratorInterface $snappy)
-    {
+    private PdfRenderingOptionProviderInterface $renderingOptionProvider;
+
+    public function __construct(
+        Environment $twig,
+        GeneratorInterface $snappy,
+        PdfRenderingOptionProviderInterface $renderingOptionProvider
+    ) {
         $this->twig = $twig;
         $this->snappy = $snappy;
+        $this->renderingOptionProvider = $renderingOptionProvider;
     }
 
     public function generatePdfResponse(
@@ -31,6 +38,8 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
             'configuration' => $giftCardChannelConfiguration,
         ]);
 
-        return new PdfResponse($this->snappy->getOutputFromHtml($html), 'gift_card.pdf');
+        $renderingOptions = $this->renderingOptionProvider->getRenderingOptions($giftCardChannelConfiguration);
+
+        return new PdfResponse($this->snappy->getOutputFromHtml($html, $renderingOptions), 'gift_card.pdf');
     }
 }
