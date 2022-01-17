@@ -43,6 +43,9 @@ final class AddToCartGiftCardInformationType extends AbstractType
         $builder->add('customMessage', TextareaType::class, [
             'required' => false,
             'label' => 'setono_sylius_gift_card.form.add_to_cart.gift_card_information.custom_message',
+            'attr' => [
+                'placeholder' => 'setono_sylius_gift_card.form.add_to_cart.gift_card_information.custom_message_placeholder',
+            ],
         ]);
     }
 

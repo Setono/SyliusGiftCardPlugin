@@ -4,6 +4,7 @@ setono_sylius_gift_card:
             gift_card_information:
                 amount: Valeure
                 custom_message: Message personnalisé
+                custom_message_placeholder: Si vous souhaitez ajouter un message personnalisé à votre chèque-cadeau, écrivez le ici...
         channel_configuration:
             channel: Canal
             locale: Langue
