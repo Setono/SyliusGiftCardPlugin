@@ -62,6 +62,9 @@
                  class="Setono\SyliusGiftCardPlugin\Form\Type\AddToCartGiftCardInformationType">
             <argument>%setono_sylius_gift_card.order.model.gift_card_information.class%</argument>
             <argument>%setono_sylius_gift_card.form.type.add_to_cart_gift_card_information.validation_groups%</argument>
+            <argument type="service" id="sylius.context.currency"/>
+            <argument type="service" id="sylius.product_variant_resolver.default"/>
+            <argument type="service" id="sylius.context.channel"/>
             <tag name="form.type"/>
         </service>
 
