@@ -25,3 +25,24 @@
         </div>
     </div>
 </div>
+
+<div class="ui segment">
+    {{ 'setono_sylius_gift_card.ui.gift_card_configuration.pdf_live_rendering.title'|trans }}
+
+    <div class="ui two column stackable grid">
+        <div class="column">
+            <div class="ui info message">
+                <div class="header">{{ 'setono_sylius_gift_card.ui.gift_card_configuration.pdf_live_rendering.hint_title'|trans }}</div>
+                <ul class="list">
+                    {% for optionName, hint in ssgc_get_pdf_options_hint() %}
+                        <li><code>{{ optionName }}</code> {{ hint }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {{ form_row(form.pdfRenderingCss) }}
+        </div>
+        <div class="column">
+            {# TODO: live rendering #}
+        </div>
+    </div>
+</div>

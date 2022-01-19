@@ -9,16 +9,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css">
         <style>
-            body {
-                font-family: sans-serif;
-                font-size: 3rem;
-                background: transparent url("{{ path }}") no-repeat left bottom;
-                background-size: 100px;
-            }
-
-            img {
-                display: block;
-            }
+            {{ configuration.pdfRenderingCss|ssgc_replace_css_option(_context)|raw }}
         </style>
     </head>
     <body>

@@ -50,4 +50,8 @@ interface GiftCardConfigurationInterface extends
     public function getOrientation(): ?string;
 
     public function setOrientation(?string $orientation): void;
+
+    public function getPdfRenderingCss(): ?string;
+
+    public function setPdfRenderingCss(?string $pdfRenderingCss): void;
 }

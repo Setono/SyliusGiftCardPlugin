@@ -19,6 +19,7 @@
         <import resource="services/promotion_rule.xml"/>
         <import resource="services/provider.xml"/>
         <import resource="services/resolver.xml"/>
+        <import resource="services/twig.xml"/>
         <import resource="services/validator.xml"/>
         <import resource="services/voter.xml"/>
     </imports>

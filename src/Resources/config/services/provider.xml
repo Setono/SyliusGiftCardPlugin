@@ -15,7 +15,7 @@
         <service id="setono_sylius_gift_card.provider.order_eligible_total"
                  class="Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProvider">
         </service>
-        <service id="Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProviderInterfae"
+        <service id="Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProviderInterface"
                  alias="setono_sylius_gift_card.provider.order_eligible_total">
         </service>
 
@@ -28,5 +28,10 @@
                  class="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProvider" />
         <service id="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface"
                  alias="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProvider"/>
+
+        <service id="setono_sylius_gift_card.provider.pdf_available_css_option"
+                 class="Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProvider" />
+        <service id="Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProviderInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProvider"/>
     </services>
 </container>
