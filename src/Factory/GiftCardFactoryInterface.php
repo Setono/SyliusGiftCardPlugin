@@ -24,4 +24,6 @@ interface GiftCardFactoryInterface extends FactoryInterface
         OrderItemUnitInterface $orderItemUnit,
         OrderInterface $cart
     ): GiftCardInterface;
+
+    public function createDummy(): GiftCardInterface;
 }

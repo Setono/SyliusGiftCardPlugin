@@ -24,3 +24,10 @@ setono_sylius_gift_card_admin_ajax_customer_by_email:
             repository:
                 method: findBy
                 arguments: [email: $email]
+
+setono_sylius_gift_card_admin_ajax_generate_pdf:
+    path: /gift-card-configurations/{id}/generate-pdf
+    methods: [ GET, POST, PUT ]
+    controller: setono_sylius_gift_card.controller.action.generate_pdf
+    requirements:
+        id: \d+

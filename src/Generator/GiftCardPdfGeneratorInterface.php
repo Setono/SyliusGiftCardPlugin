@@ -14,4 +14,9 @@ interface GiftCardPdfGeneratorInterface
         GiftCardInterface $giftCard,
         GiftCardConfigurationInterface $giftCardChannelConfiguration
     ): PdfResponse;
+
+    public function generateAndSavePdf(
+        GiftCardInterface $giftCard,
+        GiftCardConfigurationInterface $giftCardChannelConfiguration
+    ): void;
 }

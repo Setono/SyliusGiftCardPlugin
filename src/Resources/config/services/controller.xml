@@ -55,6 +55,20 @@
             <argument type="service" id="router"/>
         </service>
 
+        <service id="setono_sylius_gift_card.controller.action.admin_render"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\AdminRenderPdfAction">
+            <argument type="service" id="knp_snappy.pdf"/>
+            <argument>%kernel.project_dir%/public</argument>
+        </service>
+
+        <service id="setono_sylius_gift_card.controller.action.generate_pdf"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\AdminGeneratePdfAction">
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration"/>
+            <argument type="service" id="setono_sylius_gift_card.generator.gift_card_pdf"/>
+            <argument type="service" id="form.factory"/>
+        </service>
+
     </services>
 
 </container>

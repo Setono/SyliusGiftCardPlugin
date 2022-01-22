@@ -1,0 +1,6 @@
+setono_sylius_gift_card_admin_partial_render_pdf:
+    path: /gift-card-configurations/{id}/render-pdf
+    controller: setono_sylius_gift_card.controller.action.admin_render
+    methods: [GET, POST, PUT]
+    requirements:
+        id: \d+

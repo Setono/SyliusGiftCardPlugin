@@ -40,9 +40,18 @@
                 </ul>
             </div>
             {{ form_row(form.pdfRenderingCss) }}
+
+            <button class="ui button primary labeled icon js-ssgc-apply-pdf-changes"
+                    data-url="{{ path('setono_sylius_gift_card_admin_ajax_generate_pdf', {'id': resource.id}) }}">
+                <i class="icon check"></i>
+                {{ 'setono_sylius_gift_card.ui.apply'|trans }}
+            </button>
         </div>
-        <div class="column">
-            {# TODO: live rendering #}
+        <div class="column js-ssgc-live-render-container" style="height: 900px;">
+            <embed id="js-ssgc-live-render-box"
+                   src="{{ url('setono_sylius_gift_card_admin_partial_render_pdf', {id: resource.id}) }}"
+                   style="width: 100%;height: 100%;"
+            />
         </div>
     </div>
 </div>
