@@ -12,7 +12,7 @@
         <field name="currencyCode" length="3"/>
         <field name="customMessage" type="text" nullable="true"/>
         <field name="origin" nullable="true"/>
-        <field name="validUntil" type="datetime" nullable="true" />
+        <field name="expiresAt" type="datetime" nullable="true" />
 
         <field name="createdAt" column="created_at" type="datetime">
             <gedmo:timestampable on="create"/>

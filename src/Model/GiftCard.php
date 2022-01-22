@@ -48,7 +48,7 @@ class GiftCard implements GiftCardInterface
 
     protected ?string $origin = null;
 
-    protected ?DateTimeInterface $validUntil = null;
+    protected ?DateTimeInterface $expiresAt = null;
 
     public function __construct()
     {
@@ -274,14 +274,14 @@ class GiftCard implements GiftCardInterface
         return $this->origin;
     }
 
-    public function getValidUntil(): ?DateTimeInterface
+    public function getExpiresAt(): ?DateTimeInterface
     {
-        return $this->validUntil;
+        return $this->expiresAt;
     }
 
-    public function setValidUntil(?DateTimeInterface $validUntil): void
+    public function setExpiresAt(?DateTimeInterface $expiresAt): void
     {
-        $this->validUntil = $validUntil;
+        $this->expiresAt = $expiresAt;
     }
 
     public function isExpired(DateTimeInterface $date = null): bool
@@ -290,7 +290,7 @@ class GiftCard implements GiftCardInterface
             $date = new DateTime();
         }
 
-        $giftCardValidUntil = $this->getValidUntil();
+        $giftCardValidUntil = $this->getExpiresAt();
         if (null === $giftCardValidUntil) {
             return false;
         }
