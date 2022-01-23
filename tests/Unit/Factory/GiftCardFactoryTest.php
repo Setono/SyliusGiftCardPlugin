@@ -110,7 +110,7 @@ final class GiftCardFactoryTest extends TestCase
 
         $this->assertSame($giftCard, $createdGiftCard);
         $this->assertSame($channel, $createdGiftCard->getChannel());
-        $this->assertEquals($expectedValidUntilDate, $giftCard->getValidUntil());
+        $this->assertEquals($expectedValidUntilDate, $giftCard->getExpiresAt());
     }
 
     /**

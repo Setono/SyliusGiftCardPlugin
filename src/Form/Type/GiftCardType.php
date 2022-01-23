@@ -55,8 +55,8 @@ final class GiftCardType extends AbstractResourceType
                 'label' => 'setono_sylius_gift_card.form.gift_card.custom_message',
                 'required' => false,
             ])
-            ->add('validUntil', DateTimeType::class, [
-                'label' => 'setono_sylius_gift_card.form.gift_card.valid_until',
+            ->add('expiresAt', DateTimeType::class, [
+                'label' => 'setono_sylius_gift_card.form.gift_card.expires_at',
                 'widget' => 'single_text',
                 'html5' => true,
             ])

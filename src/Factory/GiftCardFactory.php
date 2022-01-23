@@ -63,7 +63,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
                 Assert::isInstanceOf($today, DateTimeImmutable::class);
                 /** @var DateTimeInterface $today */
                 $today = $today->modify('+' . $validityPeriod);
-                $giftCard->setValidUntil($today);
+                $giftCard->setExpiresAt($today);
             }
         }
 

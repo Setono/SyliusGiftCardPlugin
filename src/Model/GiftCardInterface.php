@@ -122,9 +122,9 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
 
     public function getOrigin(): ?string;
 
-    public function getValidUntil(): ?\DateTimeInterface;
+    public function getExpiresAt(): ?\DateTimeInterface;
 
-    public function setValidUntil(?\DateTimeInterface $validUntil): void;
+    public function setExpiresAt(?\DateTimeInterface $expiresAt): void;
 
     public function isExpired(\DateTimeInterface $date = null): bool;
 }

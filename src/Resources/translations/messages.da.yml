@@ -19,7 +19,7 @@ setono_sylius_gift_card:
         gift_card:
             channel: Kanal
             custom_message: Personlig besked
-            valid_until: Gyldig til og med
+            expires_at: Udløber
         gift_card_configuration:
             background_image: Baggrundsbillede 
             channel_configurations: Kanalkonfigurationer
