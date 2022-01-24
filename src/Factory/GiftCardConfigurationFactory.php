@@ -14,10 +14,20 @@ final class GiftCardConfigurationFactory implements GiftCardConfigurationFactory
 
     private FactoryInterface $imageFactory;
 
-    public function __construct(FactoryInterface $decoratedFactory, FactoryInterface $imageFactory)
-    {
+    private string $defaultOrientation;
+
+    private string $defaultPageSize;
+
+    public function __construct(
+        FactoryInterface $decoratedFactory,
+        FactoryInterface $imageFactory,
+        string $defaultOrientation,
+        string $defaultPageSize
+    ) {
         $this->decoratedFactory = $decoratedFactory;
         $this->imageFactory = $imageFactory;
+        $this->defaultOrientation = $defaultOrientation;
+        $this->defaultPageSize = $defaultPageSize;
     }
 
     public function createNew(): GiftCardConfigurationInterface
@@ -28,6 +38,9 @@ final class GiftCardConfigurationFactory implements GiftCardConfigurationFactory
         /** @var GiftCardConfigurationImageInterface $backgroundImage */
         $backgroundImage = $this->imageFactory->createNew();
         $configuration->setBackgroundImage($backgroundImage);
+
+        $configuration->setOrientation($this->defaultOrientation);
+        $configuration->setPageSize($this->defaultPageSize);
 
         return $configuration;
     }

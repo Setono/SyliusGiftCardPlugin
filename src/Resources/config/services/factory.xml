@@ -18,6 +18,8 @@
                  decorates="setono_sylius_gift_card.factory.gift_card_configuration">
             <argument type="service" id="setono_sylius_gift_card.custom_factory.gift_card_configuration.inner" />
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card_configuration_image" />
+            <argument>%setono_sylius_gift_card.pdf_rendering.default_orientation%</argument>
+            <argument>%setono_sylius_gift_card.pdf_rendering.default_page_size%</argument>
         </service>
     </services>
 </container>

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
-use Setono\SyliusGiftCardPlugin\Provider\PdfOrientationProviderInterface;
-use Setono\SyliusGiftCardPlugin\Provider\PdfPageSizeProviderInterface;
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -16,23 +14,23 @@ use Symfony\Component\Form\FormBuilderInterface;
 
 final class GiftCardConfigurationType extends AbstractResourceType
 {
-    private PdfPageSizeProviderInterface $pdfFormatProvider;
+    private array $availableOrientations;
 
-    private PdfOrientationProviderInterface $pdfOrientationProvider;
+    private array $availablePageSizes;
 
     /**
      * @psalm-param array<array-key, string> $validationGroups
      */
     public function __construct(
-        PdfPageSizeProviderInterface $pdfFormatProvider,
-        PdfOrientationProviderInterface $pdfOrientationProvider,
+        array $availableOrientations,
+        array $availablePageSizes,
         string $dataClass,
-        array $validationGroups
+        array $validationGroups = []
     ) {
-        parent::__construct($dataClass, $validationGroups);
+        $this->availableOrientations = $availableOrientations;
+        $this->availablePageSizes = $availablePageSizes;
 
-        $this->pdfFormatProvider = $pdfFormatProvider;
-        $this->pdfOrientationProvider = $pdfOrientationProvider;
+        parent::__construct($dataClass, $validationGroups);
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -65,17 +63,15 @@ final class GiftCardConfigurationType extends AbstractResourceType
             'label' => 'setono_sylius_gift_card.form.gift_card_configuration.default_validity_period',
         ]);
         $builder->add('pageSize', ChoiceType::class, [
-            'choices' => $this->pdfFormatProvider->getAvailablePageSizes(),
+            'choices' => $this->availablePageSizes,
             'label' => 'setono_sylius_gift_card.form.gift_card_configuration.page_size',
             'choice_translation_domain' => false,
             'choice_label' => function (string $value) {
                 return $value;
             },
-            'placeholder' => PdfPageSizeProviderInterface::FORMAT_A5,
-            'empty_data' => PdfPageSizeProviderInterface::FORMAT_A5,
         ]);
         $builder->add('orientation', ChoiceType::class, [
-            'choices' => $this->pdfOrientationProvider->getAvailableOrientations(),
+            'choices' => $this->availableOrientations,
             'label' => 'setono_sylius_gift_card.form.gift_card_configuration.orientation',
             'choice_translation_domain' => false,
             'choice_label' => function (string $value) {

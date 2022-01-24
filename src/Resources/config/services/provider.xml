@@ -24,16 +24,6 @@
         <service id="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProviderInterface"
                  alias="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProvider"/>
 
-        <service id="setono_sylius_gift_card.provider.pdf_page_size"
-                 class="Setono\SyliusGiftCardPlugin\Provider\PdfPageSizeProvider" />
-        <service id="Setono\SyliusGiftCardPlugin\Provider\PdfPageSizeProviderInterface"
-                 alias="Setono\SyliusGiftCardPlugin\Provider\PdfPageSizeProvider"/>
-
-        <service id="setono_sylius_gift_card.provider.pdf_orientation"
-                 class="Setono\SyliusGiftCardPlugin\Provider\PdfOrientationProvider" />
-        <service id="Setono\SyliusGiftCardPlugin\Provider\PdfOrientationProviderInterface"
-                 alias="Setono\SyliusGiftCardPlugin\Provider\PdfOrientationProvider"/>
-
         <service id="setono_sylius_gift_card.provider.pdf_rendering_option"
                  class="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProvider" />
         <service id="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProviderInterface"

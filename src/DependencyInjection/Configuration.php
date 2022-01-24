@@ -37,6 +37,55 @@ final class Configuration implements ConfigurationInterface
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
+                ->arrayNode('pdf_rendering')
+                ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('default_orientation')->defaultValue('Portrait')->end()
+                        ->arrayNode('available_orientations')
+                            ->scalarPrototype()->end()
+                            ->defaultValue([
+                                'Portrait',
+                                'Landscape',
+                            ])
+                        ->end()
+                        ->scalarNode('default_page_size')->defaultValue('A4')->end()
+                        ->arrayNode('available_page_sizes')
+                            ->scalarPrototype()->end()
+                            ->defaultValue([
+                                'A0',
+                                'A1',
+                                'A2',
+                                'A3',
+                                'A4',
+                                'A5',
+                                'A6',
+                                'A7',
+                                'A8',
+                                'A9',
+                                'B0',
+                                'B1',
+                                'B2',
+                                'B3',
+                                'B4',
+                                'B5',
+                                'B6',
+                                'B7',
+                                'B8',
+                                'B9',
+                                'B10',
+                                'C5E',
+                                'Comm10E',
+                                'DLE',
+                                'Executive',
+                                'Folio',
+                                'Ledger',
+                                'Legal',
+                                'Letter',
+                                'Tabloid',
+                            ])
+                        ->end()
+                    ->end()
+                ->end()
                 ->scalarNode('driver')->defaultValue(SyliusResourceBundle::DRIVER_DOCTRINE_ORM)->end()
                 ->integerNode('code_length')
                     ->defaultValue(20)

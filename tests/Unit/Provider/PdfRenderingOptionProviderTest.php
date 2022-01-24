@@ -6,8 +6,6 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Provider;
 
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
-use Setono\SyliusGiftCardPlugin\Provider\PdfOrientationProviderInterface;
-use Setono\SyliusGiftCardPlugin\Provider\PdfPageSizeProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProvider;
 
 final class PdfRenderingOptionProviderTest extends TestCase
@@ -31,11 +29,11 @@ final class PdfRenderingOptionProviderTest extends TestCase
     {
         $provider = new PdfRenderingOptionProvider();
         $giftCardConfiguration = new GiftCardConfiguration();
-        $giftCardConfiguration->setPageSize(PdfPageSizeProviderInterface::FORMAT_A8);
+        $giftCardConfiguration->setPageSize('A8');
 
         $renderingOptions = $provider->getRenderingOptions($giftCardConfiguration);
         $this->assertArrayHasKey('page-size', $renderingOptions);
-        $this->assertEquals(PdfPageSizeProviderInterface::FORMAT_A8, $renderingOptions['page-size']);
+        $this->assertEquals('A8', $renderingOptions['page-size']);
     }
 
     /**
@@ -45,10 +43,10 @@ final class PdfRenderingOptionProviderTest extends TestCase
     {
         $provider = new PdfRenderingOptionProvider();
         $giftCardConfiguration = new GiftCardConfiguration();
-        $giftCardConfiguration->setOrientation(PdfOrientationProviderInterface::ORIENTATION_LANDSCAPE);
+        $giftCardConfiguration->setOrientation('Landscape');
 
         $renderingOptions = $provider->getRenderingOptions($giftCardConfiguration);
         $this->assertArrayHasKey('orientation', $renderingOptions);
-        $this->assertEquals(PdfOrientationProviderInterface::ORIENTATION_LANDSCAPE, $renderingOptions['orientation']);
+        $this->assertEquals('Landscape', $renderingOptions['orientation']);
     }
 }

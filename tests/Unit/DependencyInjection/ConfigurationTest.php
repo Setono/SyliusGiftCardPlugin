@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Setono\SyliusGiftCardPlugin\Unit\DependencyInjection;
 
 use Matthias\SymfonyConfigTest\PhpUnit\ConfigurationTestCaseTrait;
-use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\Configuration;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepository;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardChannelConfigurationType;
@@ -24,8 +23,9 @@ use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
 use Sylius\Component\Resource\Factory\Factory;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-final class ConfigurationTest extends TestCase
+final class ConfigurationTest extends KernelTestCase
 {
     use ConfigurationTestCaseTrait;
 
@@ -43,6 +43,46 @@ final class ConfigurationTest extends TestCase
             'setono_sylius_gift_card' => [],
         ], [
             'code_length' => 20,
+            'pdf_rendering' => [
+                'default_orientation' => 'Portrait',
+                'available_orientations' => [
+                    'Portrait',
+                    'Landscape',
+                ],
+                'default_page_size' => 'A4',
+                'available_page_sizes' => [
+                    'A0',
+                    'A1',
+                    'A2',
+                    'A3',
+                    'A4',
+                    'A5',
+                    'A6',
+                    'A7',
+                    'A8',
+                    'A9',
+                    'B0',
+                    'B1',
+                    'B2',
+                    'B3',
+                    'B4',
+                    'B5',
+                    'B6',
+                    'B7',
+                    'B8',
+                    'B9',
+                    'B10',
+                    'C5E',
+                    'Comm10E',
+                    'DLE',
+                    'Executive',
+                    'Folio',
+                    'Ledger',
+                    'Legal',
+                    'Letter',
+                    'Tabloid',
+                ]
+            ],
             'driver' => SyliusResourceBundle::DRIVER_DOCTRINE_ORM,
             'resources' => [
                 'gift_card' => [
@@ -87,5 +127,24 @@ final class ConfigurationTest extends TestCase
                 ],
             ],
         ]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_overrides_default_configuration(): void
+    {
+        self::bootKernel();
+        $container = self::$container;
+
+        self::assertEquals(
+            $container->getParameter('setono_sylius_gift_card.pdf_rendering.available_page_sizes'),
+            ['A5', 'B0']
+        );
+
+        self::assertEquals(
+            $container->getParameter('setono_sylius_gift_card.pdf_rendering.available_orientations'),
+            ['Landscape']
+        );
     }
 }

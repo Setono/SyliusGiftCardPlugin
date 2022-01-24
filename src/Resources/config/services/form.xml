@@ -79,8 +79,9 @@
 
         <service id="setono_sylius_gift_card.form.type.gift_card_configuration"
                  class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType">
-            <argument type="service" id="setono_sylius_gift_card.provider.pdf_page_size"/>
-            <argument type="service" id="setono_sylius_gift_card.provider.pdf_orientation"/>
+
+            <argument>%setono_sylius_gift_card.pdf_rendering.available_orientations%</argument>
+            <argument>%setono_sylius_gift_card.pdf_rendering.available_page_sizes%</argument>
             <argument>%setono_sylius_gift_card.model.gift_card_configuration.class%</argument>
             <argument>%setono_sylius_gift_card.form.type.gift_card_configuration.validation_groups%</argument>
             <tag name="form.type"/>

@@ -13,6 +13,7 @@
             <directory name="src/Fixture"/>
             <directory name="tests/Application"/>
             <directory name="vendor"/>
+            <file name="src/DependencyInjection/Configuration.php"/>
         </ignoreFiles>
     </projectFiles>
     <plugins>

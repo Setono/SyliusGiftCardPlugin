@@ -21,5 +21,17 @@
 
             <tag name="validator.constraint_validator" />
         </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidOrientationValidator">
+            <argument>%setono_sylius_gift_card.pdf_rendering.available_orientations%</argument>
+
+            <tag name="validator.constraint_validator" />
+        </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidPageSizeValidator">
+            <argument>%setono_sylius_gift_card.pdf_rendering.available_page_sizes%</argument>
+
+            <tag name="validator.constraint_validator" />
+        </service>
     </services>
 </container>
