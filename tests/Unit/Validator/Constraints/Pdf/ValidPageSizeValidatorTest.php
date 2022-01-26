@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Validator\Constraints\Pdf;
 
-use Prophecy\PhpUnit\ProphecyTrait;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidPageSize;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidPageSizeValidator;
 use Symfony\Component\Validator\Constraints\NotBlank;

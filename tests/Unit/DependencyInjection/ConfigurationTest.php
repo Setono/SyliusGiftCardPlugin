@@ -81,7 +81,7 @@ final class ConfigurationTest extends KernelTestCase
                     'Legal',
                     'Letter',
                     'Tabloid',
-                ]
+                ],
             ],
             'driver' => SyliusResourceBundle::DRIVER_DOCTRINE_ORM,
             'resources' => [

@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Validator\Constraints\Pdf;
 
+use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidOrientation;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidOrientationValidator;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
