@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Generator;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
-use Webmozart\Assert\Assert;
 use function sprintf;
+use Webmozart\Assert\Assert;
 
 final class GiftCardPdfPathGenerator implements GiftCardPdfPathGeneratorInterface
 {

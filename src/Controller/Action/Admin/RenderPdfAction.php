@@ -42,7 +42,7 @@ final class RenderPdfAction
         $response = new PdfResponse($this->filesystem->read($filePath), 'gift_card.pdf');
 
         $response->headers->add([
-            'Content-Disposition' => $response->headers->makeDisposition(HeaderUtils::DISPOSITION_INLINE, 'gift_card.pdf')
+            'Content-Disposition' => $response->headers->makeDisposition(HeaderUtils::DISPOSITION_INLINE, 'gift_card.pdf'),
         ]);
         $response->setPublic();
         $response->setMaxAge(0);

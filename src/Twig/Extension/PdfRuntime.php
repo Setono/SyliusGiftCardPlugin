@@ -7,8 +7,8 @@ namespace Setono\SyliusGiftCardPlugin\Twig\Extension;
 use Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProviderInterface;
 use Twig\Error\RuntimeError;
 use Twig\Extension\RuntimeExtensionInterface;
-use Webmozart\Assert\Assert;
 use function twig_replace_filter;
+use Webmozart\Assert\Assert;
 
 final class PdfRuntime implements RuntimeExtensionInterface
 {
