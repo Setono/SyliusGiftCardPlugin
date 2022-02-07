@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\Controller\Action;
+namespace Setono\SyliusGiftCardPlugin\Controller\Action\Admin;
 
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Factory\DummyGiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
@@ -12,39 +12,41 @@ use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Webmozart\Assert\Assert;
 
-final class AdminGeneratePdfAction
+final class GeneratePdfAction
 {
-    private GiftCardFactoryInterface $giftCardFactory;
+    private DummyGiftCardFactoryInterface $dummyGiftCardFactory;
 
     private RepositoryInterface $giftCardConfigurationRepository;
 
-    private GiftCardPdfGeneratorInterface $pdfGenerator;
+    private GiftCardPdfGeneratorInterface $giftCardPdfGenerator;
 
     private FormFactoryInterface $formFactory;
 
     public function __construct(
-        GiftCardFactoryInterface $giftCardFactory,
+        DummyGiftCardFactoryInterface $dummyGiftCardFactory,
         RepositoryInterface $giftCardConfigurationRepository,
-        GiftCardPdfGeneratorInterface $pdfGenerator,
+        GiftCardPdfGeneratorInterface $giftCardPdfGenerator,
         FormFactoryInterface $formFactory
     ) {
-        $this->giftCardFactory = $giftCardFactory;
+        $this->dummyGiftCardFactory = $dummyGiftCardFactory;
         $this->giftCardConfigurationRepository = $giftCardConfigurationRepository;
-        $this->pdfGenerator = $pdfGenerator;
+        $this->giftCardPdfGenerator = $giftCardPdfGenerator;
         $this->formFactory = $formFactory;
     }
 
     public function __invoke(Request $request, int $id): Response
     {
-        $giftCard = $this->giftCardFactory->createDummy();
+        $giftCard = $this->dummyGiftCardFactory->createNew();
         /** @var GiftCardConfigurationInterface|null $giftCardConfiguration */
         $giftCardConfiguration = $this->giftCardConfigurationRepository->find($id);
+        Assert::isInstanceOf($giftCardConfiguration, GiftCardConfigurationInterface::class);
 
         $form = $this->formFactory->create(GiftCardConfigurationType::class, $giftCardConfiguration);
         $form->handleRequest($request);
 
-        $this->pdfGenerator->generateAndSavePdf($giftCard, $giftCardConfiguration);
+        $this->giftCardPdfGenerator->generateAndSavePdf($giftCard, $giftCardConfiguration);
 
         return new Response(null, Response::HTTP_NO_CONTENT);
     }

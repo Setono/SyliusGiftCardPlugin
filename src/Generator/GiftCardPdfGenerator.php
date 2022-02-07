@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Generator;
 
+use Gaufrette\Filesystem;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Knp\Snappy\GeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
@@ -19,18 +20,21 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
 
     private PdfRenderingOptionsProviderInterface $renderingOptionsProvider;
 
-    private string $publicDir;
+    private GiftCardPdfPathGeneratorInterface $giftCardPdfPathGenerator;
+
+    private Filesystem $filesystem;
 
     public function __construct(
         Environment $twig,
         GeneratorInterface $snappy,
-        PdfRenderingOptionsProviderInterface $renderingOptionsProvider,
-        string $publicDir
+        GiftCardPdfPathGeneratorInterface $giftCardPdfPathGenerator,
+        Filesystem $filesystem
     ) {
         $this->twig = $twig;
         $this->snappy = $snappy;
         $this->renderingOptionsProvider = $renderingOptionsProvider;
-        $this->publicDir = $publicDir;
+        $this->giftCardPdfPathGenerator = $giftCardPdfPathGenerator;
+        $this->filesystem = $filesystem;
     }
 
     public function generatePdfResponse(
@@ -56,11 +60,13 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
             'configuration' => $giftCardChannelConfiguration,
         ]);
 
-        $filePath = \sprintf(
-            '%s/gift_card_configuration_pdf_%d.pdf',
-            $this->publicDir,
-            $giftCardChannelConfiguration->getId()
+        $filePath = $this->giftCardPdfPathGenerator->generatePath($giftCardChannelConfiguration);
+        $pdfContent = $this->snappy->getOutputFromHtml($html, []);
+
+        $this->filesystem->write(
+            $filePath,
+            $pdfContent,
+            true
         );
-        $this->snappy->generateFromHtml($html, $filePath, [], true);
     }
 }

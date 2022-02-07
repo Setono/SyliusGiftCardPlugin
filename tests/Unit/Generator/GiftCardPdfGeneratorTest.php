@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Generator;
 
+use Gaufrette\Filesystem;
 use Knp\Snappy\Pdf;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGenerator;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfPathGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
 use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
@@ -28,6 +30,8 @@ final class GiftCardPdfGeneratorTest extends TestCase
         $twig = $this->prophesize(Environment::class);
         $snappy = $this->prophesize(Pdf::class);
         $renderingOptionsProvider = $this->prophesize(PdfRenderingOptionsProviderInterface::class);
+        $pathGenerator = $this->prophesize(GiftCardPdfPathGeneratorInterface::class);
+        $filesystem = $this->prophesize(Filesystem::class);
 
         $renderingOptionsProvider->getRenderingOptions($giftCardChannelConfiguration)->willReturn([]);
         $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
@@ -39,7 +43,8 @@ final class GiftCardPdfGeneratorTest extends TestCase
         $giftCardPdfGenerator = new GiftCardPdfGenerator(
             $twig->reveal(),
             $snappy->reveal(),
-            $renderingOptionsProvider->reveal()
+            $pathGenerator->reveal(),
+            $filesystem->reveal()
         );
         $response = $giftCardPdfGenerator->generatePdfResponse($giftCard, $giftCardChannelConfiguration);
 

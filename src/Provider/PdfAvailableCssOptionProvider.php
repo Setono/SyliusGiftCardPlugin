@@ -6,6 +6,9 @@ namespace Setono\SyliusGiftCardPlugin\Provider;
 
 final class PdfAvailableCssOptionProvider implements PdfAvailableCssOptionProviderInterface
 {
+    /**
+     * @return array<array-key, array<array-key, string>>
+     */
     public function getAvailableOptions(): array
     {
         return [
@@ -21,6 +24,7 @@ final class PdfAvailableCssOptionProvider implements PdfAvailableCssOptionProvid
         $availableOptions = $this->getAvailableOptions();
         $options = [];
         foreach ($availableOptions as $optionName => $definition) {
+            /** @psalm-suppress MixedAssignment */
             $options[$optionName] = $context[$definition['accessPath']];
         }
 

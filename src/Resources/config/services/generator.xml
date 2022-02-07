@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="setono_sylius_gift_card.generator.gift_card_code"
+                 class="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+            <argument>%setono_sylius_gift_card.code_length%</argument>
+        </service>
+
+        <service id="setono_sylius_gift_card.generator.gift_card_pdf"
+                 class="Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGenerator">
+            <argument type="service" id="twig"/>
+            <argument type="service" id="knp_snappy.pdf"/>
+            <argument type="service" id="setono_sylius_gift_card.generator.gift_card_pdf_path"/>
+            <argument type="service" id="gaufrette.sylius_image_filesystem"/>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface"
+                 alias="setono_sylius_gift_card.generator.gift_card_pdf" />
+
+        <service id="setono_sylius_gift_card.generator.gift_card_pdf_path"
+                 class="Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfPathGenerator"/>
+        <service id="Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfPathGeneratorInterface"
+                 alias="setono_sylius_gift_card.generator.gift_card_pdf_path" />
+
+        <service id="setono_sylius_gift_card.email_manager.gift_card_order"
+                 class="Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManager">
+            <argument type="service" id="sylius.email_sender"/>
+            <argument type="service" id="translator"/>
+            <argument type="service" id="setono_sylius_gift_card.resolver.customer_channel"/>
+        </service>
+    </services>
+</container>

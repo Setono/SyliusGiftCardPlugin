@@ -9,7 +9,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css">
         <style>
-            {{ configuration.pdfRenderingCss|ssgc_replace_css_option(_context)|raw }}
+            {{ configuration.pdfRenderingCss|default('')|ssgc_replace_css_option(_context)|raw }}
         </style>
     </head>
     <body>

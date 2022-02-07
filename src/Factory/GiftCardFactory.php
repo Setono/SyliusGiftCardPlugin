@@ -14,7 +14,6 @@ use Sylius\Bundle\ShippingBundle\Provider\DateTimeProvider;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
-use Sylius\Component\Currency\Context\CurrencyContextInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Webmozart\Assert\Assert;
 
@@ -28,20 +27,16 @@ final class GiftCardFactory implements GiftCardFactoryInterface
 
     private DateTimeProvider $dateTimeProvider;
 
-    private CurrencyContextInterface $currencyContext;
-
     public function __construct(
         FactoryInterface $decoratedFactory,
         GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         GiftCardChannelConfigurationProviderInterface $giftCardChannelConfigurationProvider,
-        DateTimeProvider $dateTimeProvider,
-        CurrencyContextInterface $currencyContext
+        DateTimeProvider $dateTimeProvider
     ) {
         $this->decoratedFactory = $decoratedFactory;
         $this->giftCardCodeGenerator = $giftCardCodeGenerator;
         $this->giftCardChannelConfigurationProvider = $giftCardChannelConfigurationProvider;
         $this->dateTimeProvider = $dateTimeProvider;
-        $this->currencyContext = $currencyContext;
     }
 
     public function createNew(): GiftCardInterface
@@ -116,15 +111,6 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         $giftCard->setChannel($channel);
         $giftCard->disable();
         $giftCard->setOrigin(GiftCardInterface::ORIGIN_ORDER);
-
-        return $giftCard;
-    }
-
-    public function createDummy(): GiftCardInterface
-    {
-        $giftCard = $this->createNew();
-        $giftCard->setAmount(1500);
-        $giftCard->setCurrencyCode($this->currencyContext->getCurrencyCode());
 
         return $giftCard;
     }

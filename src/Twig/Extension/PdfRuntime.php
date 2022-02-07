@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Twig\Extension;
 
 use Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProviderInterface;
+use Twig\Error\RuntimeError;
 use Twig\Extension\RuntimeExtensionInterface;
+use Webmozart\Assert\Assert;
 use function twig_replace_filter;
 
 final class PdfRuntime implements RuntimeExtensionInterface
@@ -21,7 +23,15 @@ final class PdfRuntime implements RuntimeExtensionInterface
     {
         $options = $this->cssOptionProvider->getOptionsValue($twigContext);
 
-        return twig_replace_filter($rawCss, $options);
+        try {
+            /** @psalm-suppress UndefinedFunction */
+            $replacedCss = twig_replace_filter($rawCss, $options);
+            Assert::string($replacedCss);
+
+            return $replacedCss;
+        } catch (RuntimeError $e) {
+            return $rawCss;
+        }
     }
 
     public function getOptionsHint(): array
