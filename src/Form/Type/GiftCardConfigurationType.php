@@ -32,6 +32,7 @@ final class GiftCardConfigurationType extends AbstractResourceType
             'remove_type' => true,
         ]);
         $builder->add('channelConfigurations', CollectionType::class, [
+            'required' => false,
             'label' => 'setono_sylius_gift_card.form.gift_card_configuration.channel_configurations',
             'entry_type' => GiftCardChannelConfigurationType::class,
             'allow_add' => true,
