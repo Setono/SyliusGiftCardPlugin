@@ -13,5 +13,10 @@
             <option name="message">setono_sylius_gift_card.channel_configuration.unique_channel_locale</option>
             <option name="groups">setono_sylius_gift_card</option>
         </constraint>
+        <property name="locale">
+            <constraint name="NotBlank">
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
     </class>
 </constraint-mapping>
