@@ -18,5 +18,5 @@ interface GiftCardPdfGeneratorInterface
     public function generateAndSavePdf(
         GiftCardInterface $giftCard,
         GiftCardConfigurationInterface $giftCardChannelConfiguration
-    ): void;
+    ): string;
 }

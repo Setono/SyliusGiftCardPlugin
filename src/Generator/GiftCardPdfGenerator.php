@@ -54,7 +54,7 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
     public function generateAndSavePdf(
         GiftCardInterface $giftCard,
         GiftCardConfigurationInterface $giftCardChannelConfiguration
-    ): void {
+    ): string {
         $html = $this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
@@ -68,5 +68,7 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
             $pdfContent,
             true
         );
+
+        return $filePath;
     }
 }
