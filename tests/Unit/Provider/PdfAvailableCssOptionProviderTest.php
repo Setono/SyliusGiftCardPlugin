@@ -6,9 +6,7 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Provider;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
-use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator;
 use Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProvider;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 
 final class PdfAvailableCssOptionProviderTest extends TestCase
 {
