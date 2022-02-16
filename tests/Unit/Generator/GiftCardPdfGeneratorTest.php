@@ -51,4 +51,41 @@ final class GiftCardPdfGeneratorTest extends TestCase
         $this->assertEquals('application/pdf', $response->headers->get('Content-type'));
         $this->assertEquals('<PDF>super GiftCard template</PDF>', $response->getContent());
     }
+
+    /**
+     * @test
+     */
+    public function it_generates_and_saves_pdf(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCardChannelConfiguration = new GiftCardConfiguration();
+
+        $twig = $this->prophesize(Environment::class);
+        $snappy = $this->prophesize(Pdf::class);
+        $pathGenerator = $this->prophesize(GiftCardPdfPathGeneratorInterface::class);
+        $pathGenerator->generatePath($giftCardChannelConfiguration)->willReturn('super/path.pdf');
+        $filesystem = $this->prophesize(Filesystem::class);
+
+        $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
+            'giftCard' => $giftCard,
+            'configuration' => $giftCardChannelConfiguration,
+        ])->willReturn('super GiftCard template');
+        $snappy->getOutputFromHtml('super GiftCard template', [])->willReturn('<PDF>super GiftCard template</PDF>');
+
+        $filesystem->write(
+            'super/path.pdf',
+            '<PDF>super GiftCard template</PDF>',
+            true
+        )->shouldBeCalled();
+
+        $giftCardPdfGenerator = new GiftCardPdfGenerator(
+            $twig->reveal(),
+            $snappy->reveal(),
+            $pathGenerator->reveal(),
+            $filesystem->reveal()
+        );
+        $filePath = $giftCardPdfGenerator->generateAndSavePdf($giftCard, $giftCardChannelConfiguration);
+
+        $this->assertEquals('super/path.pdf', $filePath);
+    }
 }
