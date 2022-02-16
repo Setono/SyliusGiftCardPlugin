@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-final class RenderPdfAction
+final class RenderExamplePdfAction
 {
     private RepositoryInterface $giftCardConfigurationRepository;
 

@@ -7,7 +7,7 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Controller\Action\Admin;
 use Gaufrette\Filesystem;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
-use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\RenderPdfAction;
+use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\RenderExamplePdfAction;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfPathGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-final class RenderPdfActionTest extends TestCase
+final class RenderExamplePdfActionTest extends TestCase
 {
     use ProphecyTrait;
 
@@ -28,7 +28,7 @@ final class RenderPdfActionTest extends TestCase
         $giftCardPdfPathGenerator = $this->prophesize(GiftCardPdfPathGeneratorInterface::class);
         $filesystem = $this->prophesize(Filesystem::class);
 
-        $action = new RenderPdfAction(
+        $action = new RenderExamplePdfAction(
             $giftCardConfigurationRepository->reveal(),
             $giftCardPdfPathGenerator->reveal(),
             $filesystem->reveal()
@@ -50,7 +50,7 @@ final class RenderPdfActionTest extends TestCase
         $giftCardPdfPathGenerator = $this->prophesize(GiftCardPdfPathGeneratorInterface::class);
         $filesystem = $this->prophesize(Filesystem::class);
 
-        $action = new RenderPdfAction(
+        $action = new RenderExamplePdfAction(
             $giftCardConfigurationRepository->reveal(),
             $giftCardPdfPathGenerator->reveal(),
             $filesystem->reveal()

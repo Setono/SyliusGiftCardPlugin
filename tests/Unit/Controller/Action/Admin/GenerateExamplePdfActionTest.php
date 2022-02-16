@@ -6,7 +6,7 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Controller\Action\Admin;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
-use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GeneratePdfAction;
+use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GenerateExamplePdfAction;
 use Setono\SyliusGiftCardPlugin\Factory\DummyGiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
@@ -17,7 +17,7 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 
-final class GeneratePdfActionTest extends TestCase
+final class GenerateExamplePdfActionTest extends TestCase
 {
     use ProphecyTrait;
 
@@ -43,7 +43,7 @@ final class GeneratePdfActionTest extends TestCase
         $giftCardPdfGenerator = $this->prophesize(GiftCardPdfGeneratorInterface::class);
         $giftCardPdfGenerator->generateAndSavePdf($giftCard, $giftCardConfiguration)->shouldBeCalled();
 
-        $action = new GeneratePdfAction(
+        $action = new GenerateExamplePdfAction(
             $dummyGiftCardFactory->reveal(),
             $giftCardConfigurationRepository->reveal(),
             $giftCardPdfGenerator->reveal(),

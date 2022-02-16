@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Webmozart\Assert\Assert;
 
-final class GeneratePdfAction
+final class GenerateExamplePdfAction
 {
     private DummyGiftCardFactoryInterface $dummyGiftCardFactory;
 
