@@ -7,7 +7,7 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Unit\EventListener;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\EventListener\GiftCardConfigurationInitializeUpdateSubscriber;
-use Setono\SyliusGiftCardPlugin\Factory\DummyGiftCardFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Factory\ExampleGiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
@@ -24,16 +24,16 @@ final class GiftCardConfigurationInitializeUpdateSubscriberTest extends TestCase
     {
         $giftCardConfiguration = new GiftCardConfiguration();
         $event = new ResourceControllerEvent($giftCardConfiguration);
-        $dummyFactory = $this->prophesize(DummyGiftCardFactoryInterface::class);
+        $exampleFactory = $this->prophesize(ExampleGiftCardFactoryInterface::class);
         $giftCard = new GiftCard();
-        $dummyFactory->createNew()->willReturn($giftCard);
+        $exampleFactory->createNew()->willReturn($giftCard);
 
         $giftCardPdfGenerator = $this->prophesize(GiftCardPdfGeneratorInterface::class);
         $giftCardPdfGenerator->generateAndSavePdf($giftCard, $giftCardConfiguration)->shouldBeCalled();
 
         $giftCardConfigurationInitializeUpdateSubscriber = new GiftCardConfigurationInitializeUpdateSubscriber(
             $giftCardPdfGenerator->reveal(),
-            $dummyFactory->reveal()
+            $exampleFactory->reveal()
         );
         $giftCardConfigurationInitializeUpdateSubscriber->initializeUpdate($event);
     }

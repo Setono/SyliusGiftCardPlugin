@@ -7,7 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Factory;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Currency\Context\CurrencyContextInterface;
 
-final class DummyGiftCardFactory implements DummyGiftCardFactoryInterface
+final class ExampleGiftCardFactory implements ExampleGiftCardFactoryInterface
 {
     private GiftCardFactoryInterface $giftCardFactory;
 

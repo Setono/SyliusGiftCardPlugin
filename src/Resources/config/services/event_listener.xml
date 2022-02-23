@@ -12,7 +12,7 @@
         <service id="setono_sylius_gift_card.listener.gift_card_configuration_initialize_update"
                  class="Setono\SyliusGiftCardPlugin\EventListener\GiftCardConfigurationInitializeUpdateSubscriber">
             <argument type="service" id="setono_sylius_gift_card.generator.gift_card_pdf"/>
-            <argument type="service" id="setono_sylius_gift_card.factory.dummy_gift_card"/>
+            <argument type="service" id="setono_sylius_gift_card.factory.example_gift_card"/>
 
             <tag name="kernel.event_subscriber"/>
         </service>

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\EventListener;
 
-use Setono\SyliusGiftCardPlugin\Factory\DummyGiftCardFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Factory\ExampleGiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Sylius\Bundle\ResourceBundle\Event\ResourceControllerEvent;
@@ -15,14 +15,14 @@ final class GiftCardConfigurationInitializeUpdateSubscriber implements EventSubs
 {
     private GiftCardPdfGeneratorInterface $giftCardPdfGenerator;
 
-    private DummyGiftCardFactoryInterface $dummyGiftCardFactory;
+    private ExampleGiftCardFactoryInterface $exampleGiftCardFactory;
 
     public function __construct(
         GiftCardPdfGeneratorInterface $giftCardPdfGenerator,
-        DummyGiftCardFactoryInterface $dummyGiftCardFactory
+        ExampleGiftCardFactoryInterface $exampleGiftCardFactory
     ) {
         $this->giftCardPdfGenerator = $giftCardPdfGenerator;
-        $this->dummyGiftCardFactory = $dummyGiftCardFactory;
+        $this->exampleGiftCardFactory = $exampleGiftCardFactory;
     }
 
     public static function getSubscribedEvents(): array
@@ -36,7 +36,7 @@ final class GiftCardConfigurationInitializeUpdateSubscriber implements EventSubs
     {
         $giftCardConfiguration = $event->getSubject();
         Assert::isInstanceOf($giftCardConfiguration, GiftCardConfigurationInterface::class);
-        $giftCard = $this->dummyGiftCardFactory->createNew();
+        $giftCard = $this->exampleGiftCardFactory->createNew();
 
         $this->giftCardPdfGenerator->generateAndSavePdf($giftCard, $giftCardConfiguration);
     }

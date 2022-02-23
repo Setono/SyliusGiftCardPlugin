@@ -23,12 +23,12 @@
             <argument>%setono_sylius_gift_card.pdf_rendering.default_page_size%</argument>
         </service>
 
-        <service id="setono_sylius_gift_card.factory.dummy_gift_card"
-                 class="Setono\SyliusGiftCardPlugin\Factory\DummyGiftCardFactory">
+        <service id="setono_sylius_gift_card.factory.example_gift_card"
+                 class="Setono\SyliusGiftCardPlugin\Factory\ExampleGiftCardFactory">
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
             <argument type="service" id="sylius.context.currency"/>
         </service>
-        <service id="Setono\SyliusGiftCardPlugin\Factory\DummyGiftCardFactoryInterface"
-                 alias="setono_sylius_gift_card.factory.dummy_gift_card"/>
+        <service id="Setono\SyliusGiftCardPlugin\Factory\ExampleGiftCardFactoryInterface"
+                 alias="setono_sylius_gift_card.factory.example_gift_card"/>
     </services>
 </container>
