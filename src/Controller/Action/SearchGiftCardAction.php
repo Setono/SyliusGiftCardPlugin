@@ -32,10 +32,6 @@ final class SearchGiftCardAction
 
     public function __invoke(Request $request): Response
     {
-        if (null === $this->viewHandler && null === $this->twig) {
-            throw new \RuntimeException('Both the view handler and twig environment is null. This means we cannot render the template.');
-        }
-
         $searchGiftCardCommand = new SearchGiftCardCommand();
         $form = $this->formFactory->create(GiftCardSearchType::class, $searchGiftCardCommand);
         $form->handleRequest($request);

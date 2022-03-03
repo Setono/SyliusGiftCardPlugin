@@ -56,10 +56,6 @@ final class AddGiftCardToOrderAction
 
     public function __invoke(Request $request): Response
     {
-        if (null === $this->viewHandler && null === $this->twig) {
-            throw new \RuntimeException('Both the view handler and twig environment is null. This means we cannot render the template.');
-        }
-
         /** @var OrderInterface|null $order */
         $order = $this->cartContext->getCart();
 
