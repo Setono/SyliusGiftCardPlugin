@@ -10,6 +10,7 @@ use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardSearchType;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Twig\Environment;
 
 final class SearchGiftCardAction
 {
@@ -17,12 +18,16 @@ final class SearchGiftCardAction
 
     private FormFactoryInterface $formFactory;
 
+    private ?Environment $twig;
+
     public function __construct(
         ViewHandlerInterface $viewHandler,
-        FormFactoryInterface $formFactory
+        FormFactoryInterface $formFactory,
+        Environment $twig = null
     ) {
         $this->viewHandler = $viewHandler;
         $this->formFactory = $formFactory;
+        $this->twig = $twig;
     }
 
     public function __invoke(Request $request): Response
@@ -31,14 +36,20 @@ final class SearchGiftCardAction
         $form = $this->formFactory->create(GiftCardSearchType::class, $searchGiftCardCommand);
         $form->handleRequest($request);
 
+        if (null !== $this->twig) {
+            return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/search.html.twig', [
+                'form' => $form->createView(),
+                'giftCard' => ($form->isSubmitted() && $form->isValid()) ? $searchGiftCardCommand->getGiftCard() : null,
+            ]));
+        }
+
         $view = View::create();
         $view
             ->setTemplate('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/search.html.twig')
             ->setData([
                 'form' => $form->createView(),
                 'giftCard' => ($form->isSubmitted() && $form->isValid()) ? $searchGiftCardCommand->getGiftCard() : null,
-            ])
-        ;
+            ]);
 
         return $this->viewHandler->handle($view);
     }
