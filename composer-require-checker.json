@@ -18,7 +18,6 @@
     "Setono\\SyliusCatalogPromotionPlugin\\Rule\\Rule",
     "Sylius\\Bundle\\ChannelBundle\\Form\\Type\\ChannelChoiceType",
     "Sylius\\Bundle\\CoreBundle\\Application\\SyliusPluginTrait",
-    "Sylius\\Bundle\\CoreBundle\\Application\\SyliusPluginTrait",
     "Sylius\\Bundle\\CoreBundle\\Fixture\\AbstractResourceFixture",
     "Sylius\\Bundle\\CoreBundle\\Fixture\\Factory\\AbstractExampleFactory",
     "Sylius\\Bundle\\CoreBundle\\Fixture\\Factory\\ExampleFactoryInterface",
