@@ -15,7 +15,6 @@
     "string",
     "true",
     "void",
-    "FOS\\RestBundle\\View\\View",
     "Setono\\SyliusCatalogPromotionPlugin\\Rule\\Rule",
     "Sylius\\Bundle\\ChannelBundle\\Form\\Type\\ChannelChoiceType",
     "Sylius\\Bundle\\CoreBundle\\Application\\SyliusPluginTrait",
