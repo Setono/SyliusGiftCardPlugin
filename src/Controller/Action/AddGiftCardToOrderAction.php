@@ -17,11 +17,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Twig\Environment;
 use Webmozart\Assert\Assert;
 
 final class AddGiftCardToOrderAction
 {
-    private ViewHandlerInterface $viewHandler;
+    private ?ViewHandlerInterface $viewHandler;
 
     private FormFactoryInterface $formFactory;
 
@@ -33,13 +34,16 @@ final class AddGiftCardToOrderAction
 
     private RedirectUrlResolverInterface $redirectRouteResolver;
 
+    private ?Environment $twig;
+
     public function __construct(
-        ViewHandlerInterface $viewHandler,
+        ?ViewHandlerInterface $viewHandler,
         FormFactoryInterface $formFactory,
         CartContextInterface $cartContext,
         FlashBagInterface $flashBag,
         GiftCardApplicatorInterface $giftCardApplicator,
-        RedirectUrlResolverInterface $redirectRouteResolver
+        RedirectUrlResolverInterface $redirectRouteResolver,
+        Environment $twig = null
     ) {
         $this->viewHandler = $viewHandler;
         $this->formFactory = $formFactory;
@@ -47,10 +51,15 @@ final class AddGiftCardToOrderAction
         $this->flashBag = $flashBag;
         $this->giftCardApplicator = $giftCardApplicator;
         $this->redirectRouteResolver = $redirectRouteResolver;
+        $this->twig = $twig;
     }
 
     public function __invoke(Request $request): Response
     {
+        if (null === $this->viewHandler && null === $this->twig) {
+            throw new \RuntimeException('Both the view handler and twig environment is null. This means we cannot render the template.');
+        }
+
         /** @var OrderInterface|null $order */
         $order = $this->cartContext->getCart();
 
@@ -70,6 +79,13 @@ final class AddGiftCardToOrderAction
             $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_added');
 
             return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));
+        }
+
+        if (null !== $this->twig) {
+            return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/addGiftCardToOrder.html.twig', [
+                // Apparently we have to pass the form, and not the createdView
+                'form' => $form,
+            ]));
         }
 
         $view = View::create()

@@ -10,6 +10,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardBalanceCollection;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Twig\Environment;
 
 /**
  * The purpose of this class is to show the gift card balance, i.e. what amount is still available on enabled gift cards
@@ -18,21 +19,35 @@ final class GiftCardBalanceAction
 {
     private GiftCardRepositoryInterface $giftCardRepository;
 
-    private ViewHandlerInterface $viewHandler;
+    private ?ViewHandlerInterface $viewHandler;
+
+    private ?Environment $twig;
 
     public function __construct(
         GiftCardRepositoryInterface $giftCardRepository,
-        ViewHandlerInterface $viewHandler
+        ?ViewHandlerInterface $viewHandler,
+        Environment $twig = null
     ) {
         $this->giftCardRepository = $giftCardRepository;
         $this->viewHandler = $viewHandler;
+        $this->twig = $twig;
     }
 
     public function __invoke(Request $request): Response
     {
+        if (null === $this->viewHandler && null === $this->twig) {
+            throw new \RuntimeException('Both the view handler and twig environment is null. This means we cannot render the template.');
+        }
+
         $giftCardBalanceCollection = GiftCardBalanceCollection::createFromGiftCards(
             $this->giftCardRepository->findEnabled()
         );
+
+        if (null !== $this->twig) {
+            return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/Admin/giftCardBalance.html.twig', [
+                'giftCardBalanceCollection' => $giftCardBalanceCollection,
+            ]));
+        }
 
         $view = View::create();
         $view
