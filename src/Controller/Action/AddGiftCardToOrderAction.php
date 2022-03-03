@@ -83,8 +83,7 @@ final class AddGiftCardToOrderAction
 
         if (null !== $this->twig) {
             return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/addGiftCardToOrder.html.twig', [
-                // Apparently we have to pass the form, and not the createdView
-                'form' => $form,
+                'form' => $form->createView(),
             ]));
         }
 
