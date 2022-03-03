@@ -14,14 +14,17 @@ use Twig\Environment;
 
 final class SearchGiftCardAction
 {
-    private ?ViewHandlerInterface $viewHandler;
+    private ViewHandlerInterface $viewHandler;
 
     private FormFactoryInterface $formFactory;
 
     private ?Environment $twig;
 
-    public function __construct(?ViewHandlerInterface $viewHandler, FormFactoryInterface $formFactory, Environment $twig = null)
-    {
+    public function __construct(
+        ViewHandlerInterface $viewHandler,
+        FormFactoryInterface $formFactory,
+        Environment $twig = null
+    ) {
         $this->viewHandler = $viewHandler;
         $this->formFactory = $formFactory;
         $this->twig = $twig;

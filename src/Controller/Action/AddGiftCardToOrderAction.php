@@ -22,7 +22,7 @@ use Webmozart\Assert\Assert;
 
 final class AddGiftCardToOrderAction
 {
-    private ?ViewHandlerInterface $viewHandler;
+    private ViewHandlerInterface $viewHandler;
 
     private FormFactoryInterface $formFactory;
 
@@ -37,7 +37,7 @@ final class AddGiftCardToOrderAction
     private ?Environment $twig;
 
     public function __construct(
-        ?ViewHandlerInterface $viewHandler,
+        ViewHandlerInterface $viewHandler,
         FormFactoryInterface $formFactory,
         CartContextInterface $cartContext,
         FlashBagInterface $flashBag,

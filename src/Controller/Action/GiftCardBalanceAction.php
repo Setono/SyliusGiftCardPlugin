@@ -19,13 +19,13 @@ final class GiftCardBalanceAction
 {
     private GiftCardRepositoryInterface $giftCardRepository;
 
-    private ?ViewHandlerInterface $viewHandler;
+    private ViewHandlerInterface $viewHandler;
 
     private ?Environment $twig;
 
     public function __construct(
         GiftCardRepositoryInterface $giftCardRepository,
-        ?ViewHandlerInterface $viewHandler,
+        ViewHandlerInterface $viewHandler,
         Environment $twig = null
     ) {
         $this->giftCardRepository = $giftCardRepository;
