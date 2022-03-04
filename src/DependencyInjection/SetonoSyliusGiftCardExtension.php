@@ -51,7 +51,10 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
 
         // Load default CSS file path
         if ($container->hasParameter('kernel.project_dir')) {
-            /** @var string $kernelProjectDir */
+            /**
+             * @psalm-suppress UndefinedDocblockClass
+             * @var string $kernelProjectDir
+             */
             $kernelProjectDir = $container->getParameter('kernel.project_dir');
             $fileLocator = new FileLocator([
                 $kernelProjectDir . '/private',

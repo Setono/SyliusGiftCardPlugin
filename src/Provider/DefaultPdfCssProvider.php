@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Provider;
 
-use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
-use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 final class DefaultPdfCssProvider implements DefaultPdfCssProviderInterface
 {
@@ -18,12 +17,12 @@ final class DefaultPdfCssProvider implements DefaultPdfCssProviderInterface
 
     public function getDefaultCss(): string
     {
-        try {
-            $file = new File($this->defaultCssFilePath);
+        $content = file_get_contents($this->defaultCssFilePath);
 
-            return $file->getContent();
-        } catch (FileNotFoundException $e) {
+        if (false === $content) {
             return '';
         }
+
+        return $content;
     }
 }
