@@ -12,6 +12,7 @@
         <service id="setono_sylius_gift_card.twig.extension.pdf_runtime"
                  class="Setono\SyliusGiftCardPlugin\Twig\Extension\PdfRuntime">
             <argument type="service" id="setono_sylius_gift_card.provider.pdf_available_css_option" />
+            <argument type="service" id="twig" />
 
             <tag name="twig.runtime" />
         </service>

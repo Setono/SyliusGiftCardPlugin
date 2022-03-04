@@ -13,7 +13,7 @@ final class PdfAvailableCssOptionProvider implements PdfAvailableCssOptionProvid
     {
         return [
             '%logo_url%' => [
-                'hint' => 'setono_sylius_gift_card.form.gift_card_configuration.css_option.logo_url_hint',
+                'hint' => 'setono_sylius_gift_card.form.gift_card_configuration.pdf_live_rendering.css_option.logo_url_hint',
                 'accessPath' => 'path',
             ],
         ];

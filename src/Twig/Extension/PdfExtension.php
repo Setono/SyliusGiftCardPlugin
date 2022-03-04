@@ -21,6 +21,7 @@ final class PdfExtension extends AbstractExtension
     {
         return [
             new TwigFunction('ssgc_get_pdf_options_hint', [PdfRuntime::class, 'getOptionsHint']),
+            new TwigFunction('ssgc_get_pdf_template_content', [PdfRuntime::class, 'getPdfTemplateContent']),
         ];
     }
 }

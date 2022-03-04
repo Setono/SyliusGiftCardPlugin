@@ -35,16 +35,28 @@
                 <div class="header">{{ 'setono_sylius_gift_card.ui.gift_card_configuration.pdf_live_rendering.hint_title'|trans }}</div>
                 <ul class="list">
                     {% for optionName, hint in ssgc_get_pdf_options_hint() %}
-                        <li><code>{{ optionName }}</code> {{ hint }}</li>
+                        <li><code>{{ optionName }}</code> - {{ hint|trans }}</li>
                     {% endfor %}
                 </ul>
             </div>
             {{ form_row(form.pdfRenderingCss) }}
+            <div>
+                {% if resource is not null %}
+                    <label for="pdf_live_render_html_content">{{ 'setono_sylius_gift_card.form.gift_card_configuration.pdf_rendering_html'|trans }}</label>
+                    <textarea id="pdf_live_render_html_content" disabled>{{ ssgc_get_pdf_template_content() }}</textarea>
+                {% endif %}
+            </div>
 
             <button class="ui button primary labeled icon js-ssgc-apply-pdf-changes"
                     data-url="{{ path('setono_sylius_gift_card_admin_ajax_generate_pdf', {'id': resource.id}) }}">
                 <i class="icon check"></i>
                 {{ 'setono_sylius_gift_card.ui.apply'|trans }}
+            </button>
+
+            <button class="ui button primary labeled icon js-ssgc-load-default-pdf-css"
+                    data-url="{{ path('setono_sylius_gift_card_admin_ajax_load_default_pdf_css', {'id': resource.id}) }}">
+                <i class="icon check"></i>
+                {{ 'setono_sylius_gift_card.ui.load_default_css'|trans }}
             </button>
         </div>
         <div class="column js-ssgc-live-render-container" style="height: 900px;">

@@ -21,7 +21,7 @@ final class PdfAvailableCssOptionProviderTest extends TestCase
 
         $expected = [
             '%logo_url%' => [
-                'hint' => 'setono_sylius_gift_card.form.gift_card_configuration.css_option.logo_url_hint',
+                'hint' => 'setono_sylius_gift_card.form.gift_card_configuration.pdf_live_rendering.css_option.logo_url_hint',
                 'accessPath' => 'path',
             ],
         ];
@@ -56,7 +56,7 @@ final class PdfAvailableCssOptionProviderTest extends TestCase
         $pdfAvailableCssOptionProvider = new PdfAvailableCssOptionProvider();
 
         $expected = [
-            '%logo_url%' => 'setono_sylius_gift_card.form.gift_card_configuration.css_option.logo_url_hint',
+            '%logo_url%' => 'setono_sylius_gift_card.form.gift_card_configuration.pdf_live_rendering.css_option.logo_url_hint',
         ];
         $result = $pdfAvailableCssOptionProvider->getOptionsHint();
 
