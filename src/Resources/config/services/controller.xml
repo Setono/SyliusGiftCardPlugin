@@ -64,7 +64,7 @@
 
         <service id="setono_sylius_gift_card.controller.action.generate_pdf"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GenerateExamplePdfAction">
-            <argument type="service" id="setono_sylius_gift_card.factory.example_gift_card"/>
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration"/>
             <argument type="service" id="setono_sylius_gift_card.generator.gift_card_pdf"/>
             <argument type="service" id="form.factory"/>
@@ -72,7 +72,7 @@
 
         <service id="setono_sylius_gift_card.controller.action.load_default_pdf_css"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\LoadDefaultPdfCssAction">
-            <argument type="service" id="setono_sylius_gift_card.factory.example_gift_card"/>
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration"/>
             <argument type="service" id="setono_sylius_gift_card.generator.gift_card_pdf"/>
             <argument type="service" id="setono_sylius_gift_card.provider.default_pdf_css"/>

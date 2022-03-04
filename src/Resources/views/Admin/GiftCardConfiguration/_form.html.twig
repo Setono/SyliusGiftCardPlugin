@@ -61,7 +61,7 @@
         </div>
         <div class="column js-ssgc-live-render-container" style="height: 900px;">
             <embed id="js-ssgc-live-render-box"
-                   src="{{ url('setono_sylius_gift_card_admin_partial_render_pdf', {id: resource.id}) }}"
+                   src="data:application/pdf;base64,{{ ssgc_get_base64_encoded_example_pdf_content(resource, true) }}"
                    style="width: 100%;height: 100%;"
             />
         </div>

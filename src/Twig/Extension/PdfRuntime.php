@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Twig\Extension;
 
+use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProviderInterface;
 use Symfony\Component\DomCrawler\Crawler;
 use Twig\Environment;
@@ -18,12 +21,20 @@ final class PdfRuntime implements RuntimeExtensionInterface
 
     private Environment $twig;
 
+    private GiftCardPdfGeneratorInterface $giftCardPdfGenerator;
+
+    private GiftCardFactoryInterface $giftCardFactory;
+
     public function __construct(
         PdfAvailableCssOptionProviderInterface $cssOptionProvider,
-        Environment $twig
+        Environment $twig,
+        GiftCardPdfGeneratorInterface $giftCardPdfGenerator,
+        GiftCardFactoryInterface $giftCardFactory
     ) {
         $this->cssOptionProvider = $cssOptionProvider;
         $this->twig = $twig;
+        $this->giftCardPdfGenerator = $giftCardPdfGenerator;
+        $this->giftCardFactory = $giftCardFactory;
     }
 
     public function replaceCssOptions(string $rawCss, array $twigContext): string
@@ -58,5 +69,14 @@ final class PdfRuntime implements RuntimeExtensionInterface
         $domCrawler = new Crawler($bodyContent[0]);
 
         return $domCrawler->filter('html > body')->html();
+    }
+
+    public function getBase64EncodedExamplePdfContent(GiftCardConfigurationInterface $giftCardChannelConfiguration): string
+    {
+        $giftCard = $this->giftCardFactory->createExample();
+
+        $content = $this->giftCardPdfGenerator->generateAndGetContent($giftCard, $giftCardChannelConfiguration);
+
+        return \base64_encode($content);
     }
 }

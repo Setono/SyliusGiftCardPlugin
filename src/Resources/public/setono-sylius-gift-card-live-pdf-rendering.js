@@ -12,9 +12,8 @@
         $.ajax(url, {
           method: 'POST',
           data: $('form[name="setono_sylius_gift_card_gift_card_configuration"]').serialize(),
-          success() {
-            const src = document.getElementById('js-ssgc-live-render-box').src;
-            $('.js-ssgc-live-render-container').html(`<embed id="js-ssgc-live-render-box" src="${src}" style="width: 100%;height: 100%;"/>`);
+          success(response) {
+            $('.js-ssgc-live-render-container').html(`<embed id="js-ssgc-live-render-box" src="data:application/pdf;base64,${response}" style="width: 100%;height: 100%;"/>`);
           },
         });
       });
@@ -32,9 +31,9 @@
         $.ajax(url, {
           method: 'POST',
           success(response) {
-            $('#setono_sylius_gift_card_gift_card_configuration_pdfRenderingCss').val(response);
+            $('#setono_sylius_gift_card_gift_card_configuration_pdfRenderingCss').val(response.css);
             const src = document.getElementById('js-ssgc-live-render-box').src;
-            $('.js-ssgc-live-render-container').html(`<embed id="js-ssgc-live-render-box" src="${src}" style="width: 100%;height: 100%;"/>`);
+            $('.js-ssgc-live-render-container').html(`<embed id="js-ssgc-live-render-box" src="data:application/pdf;base64,${response.pdfContent}" style="width: 100%;height: 100%;"/>`);
           },
         });
       });

@@ -22,6 +22,7 @@ final class PdfExtension extends AbstractExtension
         return [
             new TwigFunction('ssgc_get_pdf_options_hint', [PdfRuntime::class, 'getOptionsHint']),
             new TwigFunction('ssgc_get_pdf_template_content', [PdfRuntime::class, 'getPdfTemplateContent']),
+            new TwigFunction('ssgc_get_base64_encoded_example_pdf_content', [PdfRuntime::class, 'getBase64EncodedExamplePdfContent']),
         ];
     }
 }

@@ -51,6 +51,18 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
         return new PdfResponse($this->snappy->getOutputFromHtml($html, $renderingOptions), 'gift_card.pdf');
     }
 
+    public function generateAndGetContent(
+        GiftCardInterface $giftCard,
+        GiftCardConfigurationInterface $giftCardChannelConfiguration
+    ): string {
+        $html = $this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
+            'giftCard' => $giftCard,
+            'configuration' => $giftCardChannelConfiguration,
+        ]);
+
+        return $this->snappy->getOutputFromHtml($html);
+    }
+
     public function generateAndSavePdf(
         GiftCardInterface $giftCard,
         GiftCardConfigurationInterface $giftCardChannelConfiguration
