@@ -77,7 +77,6 @@
     "Sylius\\Component\\Product\\Resolver\\ProductVariantResolverInterface",
     "Sylius\\Component\\Promotion\\Checker\\Rule\\RuleCheckerInterface",
     "Sylius\\Component\\Promotion\\Model\\PromotionSubjectInterface",
-    "Sylius\\Component\\User\\Model\\UserInterface",
-    "Symfony\\Component\\DomCrawler\\Crawler"
+    "Sylius\\Component\\User\\Model\\UserInterface"
   ]
 }
