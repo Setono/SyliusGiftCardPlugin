@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Generator;
 
-use Gaufrette\Filesystem;
+use Gaufrette\FilesystemInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Knp\Snappy\GeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
@@ -22,13 +22,13 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
 
     private GiftCardPdfPathGeneratorInterface $giftCardPdfPathGenerator;
 
-    private Filesystem $filesystem;
+    private FilesystemInterface $filesystem;
 
     public function __construct(
         Environment $twig,
         GeneratorInterface $snappy,
         GiftCardPdfPathGeneratorInterface $giftCardPdfPathGenerator,
-        Filesystem $filesystem
+        FilesystemInterface $filesystem
     ) {
         $this->twig = $twig;
         $this->snappy = $snappy;
