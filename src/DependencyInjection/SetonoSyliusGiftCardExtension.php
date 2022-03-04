@@ -53,6 +53,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
         if ($container->hasParameter('kernel.project_dir')) {
             /**
              * @psalm-suppress UndefinedDocblockClass
+             *
              * @var string $kernelProjectDir
              */
             $kernelProjectDir = $container->getParameter('kernel.project_dir');

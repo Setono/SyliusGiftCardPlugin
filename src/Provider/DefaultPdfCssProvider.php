@@ -15,6 +15,7 @@ final class DefaultPdfCssProvider implements DefaultPdfCssProviderInterface
 
     public function getDefaultCss(): string
     {
+        // TODO: When dropping Symfony 4.4, switch to Symfony File class
         $content = file_get_contents($this->defaultCssFilePath);
 
         if (false === $content) {
