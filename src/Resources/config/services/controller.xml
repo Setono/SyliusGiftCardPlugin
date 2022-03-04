@@ -55,13 +55,6 @@
             <argument type="service" id="router"/>
         </service>
 
-        <service id="setono_sylius_gift_card.controller.action.admin_render"
-                 class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\RenderExamplePdfAction">
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration"/>
-            <argument type="service" id="setono_sylius_gift_card.generator.gift_card_pdf_path"/>
-            <argument type="service" id="gaufrette.sylius_image_filesystem"/>
-        </service>
-
         <service id="setono_sylius_gift_card.controller.action.generate_pdf"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GenerateExamplePdfAction">
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
