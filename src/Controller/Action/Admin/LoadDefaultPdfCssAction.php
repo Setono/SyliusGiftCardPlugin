@@ -35,7 +35,7 @@ final class LoadDefaultPdfCssAction
         $this->defaultPdfCssProvider = $defaultPdfCssProvider;
     }
 
-    public function __invoke(Request $request, int $id): JsonResponse
+    public function __invoke(int $id): JsonResponse
     {
         $giftCard = $this->giftCardFactory->createExample();
         /** @var GiftCardConfigurationInterface|null $giftCardConfiguration */

@@ -55,6 +55,36 @@ final class GiftCardPdfGeneratorTest extends TestCase
     /**
      * @test
      */
+    public function it_generates_pdf_and_gets_content(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCardChannelConfiguration = new GiftCardConfiguration();
+
+        $twig = $this->prophesize(Environment::class);
+        $snappy = $this->prophesize(Pdf::class);
+        $pathGenerator = $this->prophesize(GiftCardPdfPathGeneratorInterface::class);
+        $filesystem = $this->prophesize(Filesystem::class);
+
+        $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
+            'giftCard' => $giftCard,
+            'configuration' => $giftCardChannelConfiguration,
+        ])->willReturn('super GiftCard template');
+        $snappy->getOutputFromHtml('super GiftCard template')->willReturn('<PDF>super GiftCard template</PDF>');
+
+        $giftCardPdfGenerator = new GiftCardPdfGenerator(
+            $twig->reveal(),
+            $snappy->reveal(),
+            $pathGenerator->reveal(),
+            $filesystem->reveal()
+        );
+        $content = $giftCardPdfGenerator->generateAndGetContent($giftCard, $giftCardChannelConfiguration);
+
+        $this->assertEquals('<PDF>super GiftCard template</PDF>', $content);
+    }
+
+    /**
+     * @test
+     */
     public function it_generates_and_saves_pdf(): void
     {
         $giftCard = new GiftCard();

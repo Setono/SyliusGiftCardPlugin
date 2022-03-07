@@ -25,5 +25,8 @@ interface GiftCardFactoryInterface extends FactoryInterface
         OrderInterface $cart
     ): GiftCardInterface;
 
+    /**
+     * Create an example GiftCard that is used to generate the example PDF for configuration live rendering
+     */
     public function createExample(): GiftCardInterface;
 }

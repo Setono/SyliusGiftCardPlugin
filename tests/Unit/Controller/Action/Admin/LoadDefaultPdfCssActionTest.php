@@ -6,25 +6,22 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Controller\Action\Admin;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
-use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GenerateExamplePdfAction;
+use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\LoadDefaultPdfCssAction;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
-use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
+use Setono\SyliusGiftCardPlugin\Provider\DefaultPdfCssProviderInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
-use Symfony\Component\Form\FormFactoryInterface;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\Request;
 
-final class GenerateExamplePdfActionTest extends TestCase
+final class LoadDefaultPdfCssActionTest extends TestCase
 {
     use ProphecyTrait;
 
     /**
      * @test
      */
-    public function it_generates_pdf(): void
+    public function it_loads_default_css_and_generates_pdf(): void
     {
         $id = 8;
         $giftCard = new GiftCard();
@@ -33,23 +30,20 @@ final class GenerateExamplePdfActionTest extends TestCase
         $giftCardConfiguration = new GiftCardConfiguration();
         $giftCardConfigurationRepository = $this->prophesize(RepositoryInterface::class);
         $giftCardConfigurationRepository->find($id)->willReturn($giftCardConfiguration);
-
-        $request = new Request();
-        $form = $this->prophesize(FormInterface::class);
-        $formFactory = $this->prophesize(FormFactoryInterface::class);
-        $formFactory->create(GiftCardConfigurationType::class, $giftCardConfiguration)->willReturn($form);
-        $form->handleRequest($request)->shouldBeCalled();
+        $defaultCssProvider = $this->prophesize(DefaultPdfCssProviderInterface::class);
+        $defaultCssProvider->getDefaultCss()->willReturn('body {background-color: red;}');
 
         $giftCardPdfGenerator = $this->prophesize(GiftCardPdfGeneratorInterface::class);
         $giftCardPdfGenerator->generateAndGetContent($giftCard, $giftCardConfiguration)->shouldBeCalled();
 
-        $action = new GenerateExamplePdfAction(
+        $action = new LoadDefaultPdfCssAction(
             $exampleGiftCardFactory->reveal(),
             $giftCardConfigurationRepository->reveal(),
             $giftCardPdfGenerator->reveal(),
-            $formFactory->reveal()
+            $defaultCssProvider->reveal()
         );
-        $response = $action($request, $id);
-        $this->assertEquals(null, $response->getContent());
+        $jsonResponse = $action($id);
+        $response = \json_decode($jsonResponse->getContent(), true);
+        $this->assertEquals('body {background-color: red;}', $response['css']);
     }
 }

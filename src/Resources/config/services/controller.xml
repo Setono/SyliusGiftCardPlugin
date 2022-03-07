@@ -56,7 +56,7 @@
         </service>
 
         <service id="setono_sylius_gift_card.controller.action.generate_pdf"
-                 class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GenerateExamplePdfAction">
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GenerateEncodedExamplePdfAction">
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration"/>
             <argument type="service" id="setono_sylius_gift_card.generator.gift_card_pdf"/>
