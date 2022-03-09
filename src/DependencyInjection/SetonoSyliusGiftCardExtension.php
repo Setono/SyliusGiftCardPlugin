@@ -49,23 +49,11 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
             $config['pdf_rendering']['available_page_sizes']
         );
 
-        // Load default CSS file path
-        if ($container->hasParameter('kernel.project_dir')) {
-            /**
-             * @psalm-suppress UndefinedDocblockClass
-             *
-             * @var string $kernelProjectDir
-             */
-            $kernelProjectDir = $container->getParameter('kernel.project_dir');
-            $fileLocator = new FileLocator([
-                $kernelProjectDir . '/private',
-                __DIR__ . '/../Resources/private',
-            ]);
-            $container->setParameter(
-                'setono_sylius_gift_card.default_css_file_path',
-                $fileLocator->locate('default-gift-card-configuration-css.txt')
-            );
-        }
+        // Load default CSS file
+        $container->setParameter(
+            'setono_sylius_gift_card.default_css_file',
+            '@SetonoSyliusGiftCardPlugin/Shop/GiftCard/defaultGiftCardConfiguration.css.twig'
+        );
 
         $this->registerResources('setono_sylius_gift_card', $config['driver'], $config['resources'], $container);
 

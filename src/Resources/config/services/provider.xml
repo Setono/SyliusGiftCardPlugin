@@ -36,7 +36,8 @@
 
         <service id="setono_sylius_gift_card.provider.default_pdf_css"
                  class="Setono\SyliusGiftCardPlugin\Provider\DefaultPdfCssProvider">
-            <argument>%setono_sylius_gift_card.default_css_file_path%</argument>
+            <argument>%setono_sylius_gift_card.default_css_file%</argument>
+            <argument type="service" id="twig"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Provider\DefaultPdfCssProviderInterface"
                  alias="setono_sylius_gift_card.provider.default_pdf_css"/>
