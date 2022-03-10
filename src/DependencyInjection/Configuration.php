@@ -17,6 +17,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImage;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImageInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
 use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
@@ -40,49 +41,19 @@ final class Configuration implements ConfigurationInterface
                 ->arrayNode('pdf_rendering')
                 ->addDefaultsIfNotSet()
                     ->children()
-                        ->scalarNode('default_orientation')->defaultValue('Portrait')->end()
+                        ->scalarNode('default_orientation')
+                            ->defaultValue(PdfRenderingOptionsProviderInterface::ORIENTATION_PORTRAIT)
+                        ->end()
                         ->arrayNode('available_orientations')
                             ->scalarPrototype()->end()
-                            ->defaultValue([
-                                'Portrait',
-                                'Landscape',
-                            ])
+                            ->defaultValue(PdfRenderingOptionsProviderInterface::AVAILABLE_ORIENTATIONS)
                         ->end()
-                        ->scalarNode('default_page_size')->defaultValue('A4')->end()
+                        ->scalarNode('default_page_size')
+                            ->defaultValue(PdfRenderingOptionsProviderInterface::PAGE_SIZE_A4)
+                        ->end()
                         ->arrayNode('available_page_sizes')
                             ->scalarPrototype()->end()
-                            ->defaultValue([
-                                'A0',
-                                'A1',
-                                'A2',
-                                'A3',
-                                'A4',
-                                'A5',
-                                'A6',
-                                'A7',
-                                'A8',
-                                'A9',
-                                'B0',
-                                'B1',
-                                'B2',
-                                'B3',
-                                'B4',
-                                'B5',
-                                'B6',
-                                'B7',
-                                'B8',
-                                'B9',
-                                'B10',
-                                'C5E',
-                                'Comm10E',
-                                'DLE',
-                                'Executive',
-                                'Folio',
-                                'Ledger',
-                                'Legal',
-                                'Letter',
-                                'Tabloid',
-                            ])
+                            ->defaultValue(PdfRenderingOptionsProviderInterface::AVAILABLE_PAGE_SIZES)
                         ->end()
                     ->end()
                 ->end()

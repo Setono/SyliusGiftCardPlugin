@@ -6,7 +6,8 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Provider;
 
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
-use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProvider;
+use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProvider;
+use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
 
 final class PdfRenderingOptionProviderTest extends TestCase
 {
@@ -15,7 +16,7 @@ final class PdfRenderingOptionProviderTest extends TestCase
      */
     public function it_provides_rendering_options(): void
     {
-        $provider = new PdfRenderingOptionProvider();
+        $provider = new PdfRenderingOptionsProvider();
         $giftCardConfiguration = new GiftCardConfiguration();
 
         $renderingOptions = $provider->getRenderingOptions($giftCardConfiguration);
@@ -27,13 +28,13 @@ final class PdfRenderingOptionProviderTest extends TestCase
      */
     public function it_provides_page_size_if_not_null(): void
     {
-        $provider = new PdfRenderingOptionProvider();
+        $provider = new PdfRenderingOptionsProvider();
         $giftCardConfiguration = new GiftCardConfiguration();
-        $giftCardConfiguration->setPageSize('A8');
+        $giftCardConfiguration->setPageSize(PdfRenderingOptionsProviderInterface::PAGE_SIZE_A8);
 
         $renderingOptions = $provider->getRenderingOptions($giftCardConfiguration);
         $this->assertArrayHasKey('page-size', $renderingOptions);
-        $this->assertEquals('A8', $renderingOptions['page-size']);
+        $this->assertEquals(PdfRenderingOptionsProviderInterface::PAGE_SIZE_A8, $renderingOptions['page-size']);
     }
 
     /**
@@ -41,7 +42,7 @@ final class PdfRenderingOptionProviderTest extends TestCase
      */
     public function it_provides_orientation_if_not_null(): void
     {
-        $provider = new PdfRenderingOptionProvider();
+        $provider = new PdfRenderingOptionsProvider();
         $giftCardConfiguration = new GiftCardConfiguration();
         $giftCardConfiguration->setOrientation('Landscape');
 

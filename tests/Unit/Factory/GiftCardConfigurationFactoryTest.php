@@ -9,6 +9,7 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardConfigurationFactory;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImage;
+use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 
 final class GiftCardConfigurationFactoryTest extends TestCase
@@ -24,8 +25,8 @@ final class GiftCardConfigurationFactoryTest extends TestCase
 
         $decoratedFactory = $this->prophesize(FactoryInterface::class);
         $imageFactory = $this->prophesize(FactoryInterface::class);
-        $defaultOrientation = 'Portrait';
-        $defaultPageSize = 'A8';
+        $defaultOrientation = PdfRenderingOptionsProviderInterface::ORIENTATION_PORTRAIT;
+        $defaultPageSize = PdfRenderingOptionsProviderInterface::PAGE_SIZE_A8;
 
         $decoratedFactory->createNew()->willReturn($giftCardConfiguration);
         $imageFactory->createNew()->willReturn(new GiftCardConfigurationImage());

@@ -10,7 +10,7 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGenerator;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
-use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProviderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
 use Twig\Environment;
 
 final class GiftCardPdfGeneratorTest extends TestCase
@@ -27,9 +27,9 @@ final class GiftCardPdfGeneratorTest extends TestCase
 
         $twig = $this->prophesize(Environment::class);
         $snappy = $this->prophesize(Pdf::class);
-        $renderingOptionProvider = $this->prophesize(PdfRenderingOptionProviderInterface::class);
+        $renderingOptionsProvider = $this->prophesize(PdfRenderingOptionsProviderInterface::class);
 
-        $renderingOptionProvider->getRenderingOptions($giftCardChannelConfiguration)->willReturn([]);
+        $renderingOptionsProvider->getRenderingOptions($giftCardChannelConfiguration)->willReturn([]);
         $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
@@ -39,7 +39,7 @@ final class GiftCardPdfGeneratorTest extends TestCase
         $giftCardPdfGenerator = new GiftCardPdfGenerator(
             $twig->reveal(),
             $snappy->reveal(),
-            $renderingOptionProvider->reveal()
+            $renderingOptionsProvider->reveal()
         );
         $response = $giftCardPdfGenerator->generatePdfResponse($giftCard, $giftCardChannelConfiguration);
 

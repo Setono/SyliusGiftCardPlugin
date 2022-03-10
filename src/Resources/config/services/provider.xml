@@ -25,8 +25,8 @@
                  alias="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProvider"/>
 
         <service id="setono_sylius_gift_card.provider.pdf_rendering_option"
-                 class="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProvider" />
-        <service id="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProviderInterface"
+                 class="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProvider" />
+        <service id="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface"
                  alias="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProvider"/>
     </services>
 </container>

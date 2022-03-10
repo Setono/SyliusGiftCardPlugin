@@ -6,7 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Provider;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 
-final class PdfRenderingOptionProvider implements PdfRenderingOptionProviderInterface
+final class PdfRenderingOptionsProvider implements PdfRenderingOptionsProviderInterface
 {
     public function getRenderingOptions(GiftCardConfigurationInterface $giftCardConfiguration): array
     {
