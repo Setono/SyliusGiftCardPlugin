@@ -6,6 +6,7 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Validator\Constraints\Pdf;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidPageSize;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidPageSizeValidator;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -20,13 +21,27 @@ class ValidPageSizeValidatorTest extends TestCase
     /**
      * @test
      */
-    public function it_throws_exception_if_constraint_has_wrong_type()
+    public function it_throws_exception_if_constraint_has_wrong_type(): void
     {
-        $validator = new ValidPageSizeValidator(['A0']);
+        $validator = new ValidPageSizeValidator([PdfRenderingOptionsProviderInterface::PAGE_SIZE_A0]);
         $constraint = new NotBlank();
 
         $this->expectExceptionObject(new UnexpectedTypeException($constraint, ValidPageSize::class));
-        $validator->validate('super', $constraint);
+        $validator->validate('Any value', $constraint);
+    }
+
+    /**
+     * @test
+     */
+    public function it_does_nothing_if_value_is_null(): void
+    {
+        $validator = new ValidPageSizeValidator([PdfRenderingOptionsProviderInterface::PAGE_SIZE_A0]);
+        $constraint = new ValidPageSize();
+
+        $constraintViolationBuilder = $this->prophesize(ConstraintViolationBuilderInterface::class);
+
+        $constraintViolationBuilder->addViolation()->shouldNotBeCalled();
+        $validator->validate(null, $constraint);
     }
 
     /**
@@ -34,7 +49,7 @@ class ValidPageSizeValidatorTest extends TestCase
      */
     public function it_adds_violation_if_orientation_is_invalid(): void
     {
-        $validator = new ValidPageSizeValidator(['A1']);
+        $validator = new ValidPageSizeValidator([PdfRenderingOptionsProviderInterface::PAGE_SIZE_A1]);
         $constraint = new ValidPageSize();
 
         $executionContext = $this->prophesize(ExecutionContextInterface::class);
@@ -44,6 +59,6 @@ class ValidPageSizeValidatorTest extends TestCase
         $constraintViolationBuilder->addViolation()->shouldBeCalled();
 
         $validator->initialize($executionContext->reveal());
-        $validator->validate('A0', $constraint);
+        $validator->validate(PdfRenderingOptionsProviderInterface::PAGE_SIZE_A0, $constraint);
     }
 }

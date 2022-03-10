@@ -21,13 +21,28 @@ class ValidOrientationValidatorTest extends TestCase
     /**
      * @test
      */
-    public function it_throws_exception_if_constraint_has_wrong_type()
+    public function it_throws_exception_if_constraint_has_wrong_type(): void
     {
         $validator = new ValidOrientationValidator([PdfRenderingOptionsProviderInterface::ORIENTATION_PORTRAIT]);
         $constraint = new NotBlank();
 
         $this->expectExceptionObject(new UnexpectedTypeException($constraint, ValidOrientation::class));
         $validator->validate('Any orientation', $constraint);
+    }
+
+    /**
+     * @test
+     */
+    public function it_does_nothing_if_value_is_null(): void
+    {
+        $validator = new ValidOrientationValidator([PdfRenderingOptionsProviderInterface::ORIENTATION_PORTRAIT]);
+        $constraint = new ValidOrientation();
+
+        $constraintViolationBuilder = $this->prophesize(ConstraintViolationBuilderInterface::class);
+
+        $constraintViolationBuilder->addViolation()->shouldNotBeCalled();
+
+        $validator->validate(null, $constraint);
     }
 
     /**
