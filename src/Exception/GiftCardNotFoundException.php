@@ -13,6 +13,7 @@ final class GiftCardNotFoundException extends InvalidArgumentException implement
 
     public function __construct(string $giftCard)
     {
+        $this->giftCard = $giftCard;
         $message = sprintf('The gift card with code "%s" was not found', $giftCard);
 
         parent::__construct($message);

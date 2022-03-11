@@ -32,17 +32,12 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
     }
 
     /**
-     * @param string|GiftCardInterface|mixed $giftCard
+     * @throws GiftCardNotFoundException if gift card is not found
+     * @throws ChannelMismatchException if the orders channel does not match the gift cards channel
      */
-    public function apply(OrderInterface $order, $giftCard): void
+    public function apply(OrderInterface $order, string $giftCardOrPromotionCode): void
     {
-        if (is_string($giftCard)) {
-            $giftCard = $this->getGiftCard($giftCard);
-        }
-
-        if (!$giftCard instanceof GiftCardInterface) {
-            throw new GiftCardNotFoundException($giftCard);
-        }
+        $giftCard = $this->getGiftCard($giftCardOrPromotionCode);
 
         $orderChannel = $order->getChannel();
         if (null === $orderChannel) {
@@ -59,10 +54,6 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
         }
 
         $order->addGiftCard($giftCard);
-
-        $this->orderProcessor->process($order);
-
-        $this->orderManager->flush();
     }
 
     /**

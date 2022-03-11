@@ -10,8 +10,20 @@
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card" />
             <argument type="service" id="sylius.order_processing.order_processor.composite" />
             <argument type="service" id="sylius.manager.order" />
+            <tag name="setono_sylius_gift_card.gift_card_or_promotion_applicator" priority="50"/>
         </service>
 
+        <service id="setono_sylius_gift_card.applicator.promotion"
+                 class="Setono\SyliusGiftCardPlugin\Applicator\PromotionApplicator">
+            <argument type="service" id="sylius.repository.promotion_coupon" />
+            <tag name="setono_sylius_gift_card.gift_card_or_promotion_applicator" priority="20"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.applicator.gift_card_or_promotion.composite"
+                 class="Setono\SyliusGiftCardPlugin\Applicator\GiftCardOrPromotionApplicator">
+            <argument type="service" id="sylius.order_processing.order_processor.composite" />
+            <argument type="service" id="sylius.manager.order" />
+        </service>
     </services>
 
 </container>
