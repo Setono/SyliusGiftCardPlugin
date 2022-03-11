@@ -44,6 +44,13 @@ final class Configuration implements ConfigurationInterface
                     ->min(1)
                     ->max(255)
                     ->example(16)
+                ->end()
+                ->arrayNode('cart')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('use_same_input_for_promotion_and_gift_card')->defaultFalse()->end()
+                    ->end()
+                ->end()
         ;
 
         $this->addResourcesSection($rootNode);

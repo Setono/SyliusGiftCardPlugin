@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
-use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
-use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
+use Setono\SyliusGiftCardPlugin\Applicator\GiftCardOrPromotionApplicatorInterface;
+use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardOrPromotionToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
@@ -16,9 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Twig\Environment;
-use Webmozart\Assert\Assert;
 
-final class AddGiftCardToOrderAction
+final class AddGiftCardOrPromotionToOrderAction
 {
     private FormFactoryInterface $formFactory;
 
@@ -26,7 +25,7 @@ final class AddGiftCardToOrderAction
 
     private FlashBagInterface $flashBag;
 
-    private GiftCardApplicatorInterface $giftCardApplicator;
+    private GiftCardOrPromotionApplicatorInterface $giftCardOrPromotionApplicator;
 
     private RedirectUrlResolverInterface $redirectRouteResolver;
 
@@ -36,14 +35,14 @@ final class AddGiftCardToOrderAction
         FormFactoryInterface $formFactory,
         CartContextInterface $cartContext,
         FlashBagInterface $flashBag,
-        GiftCardApplicatorInterface $giftCardApplicator,
+        GiftCardOrPromotionApplicatorInterface $giftCardOrPromotionApplicator,
         RedirectUrlResolverInterface $redirectRouteResolver,
         Environment $twig
     ) {
         $this->formFactory = $formFactory;
         $this->cartContext = $cartContext;
         $this->flashBag = $flashBag;
-        $this->giftCardApplicator = $giftCardApplicator;
+        $this->giftCardOrPromotionApplicator = $giftCardOrPromotionApplicator;
         $this->redirectRouteResolver = $redirectRouteResolver;
         $this->twig = $twig;
     }
@@ -57,14 +56,16 @@ final class AddGiftCardToOrderAction
             throw new NotFoundHttpException();
         }
 
-        $addGiftCardToOrderCommand = new AddGiftCardToOrderCommand();
-        $form = $this->formFactory->create(AddGiftCardToOrderType::class, $addGiftCardToOrderCommand);
+        $addGiftCardOrPromotionToOrderCommand = new AddGiftCardOrPromotionToOrderCommand();
+        $form = $this->formFactory->create(
+            AddGiftCardOrPromotionToOrderType::class,
+            $addGiftCardOrPromotionToOrderCommand
+        );
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $giftCard = $addGiftCardToOrderCommand->getGiftCard();
-            Assert::notNull($giftCard);
-            $this->giftCardApplicator->apply($order, $giftCard);
+            $giftCardOrPromotionCode = $addGiftCardOrPromotionToOrderCommand->getCode();
+            $this->giftCardOrPromotionApplicator->apply($order, $giftCardOrPromotionCode);
 
             $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_added');
 

@@ -18,12 +18,12 @@
 
     <div>
         <div class="ui action input">
-            {{ form_widget(form.giftCard, {'attr': {'form': 'setono-sylius-gift-card-add-gift-card-to-order'}}) }}
+            {{ form_widget(form.code, {'attr': {'form': 'setono-sylius-gift-card-add-gift-card-to-order'}}) }}
             <button type="submit" class="ui primary icon labeled button" form="setono-sylius-gift-card-add-gift-card-to-order">
                 <i class="ticket icon"></i> {{ 'setono_sylius_gift_card.ui.add_gift_card_to_order'|trans }}
             </button>
         </div>
         <br>
-        {{ form_errors(form.giftCard) }}
+        {{ form_errors(form.code) }}
     </div>
 </div>

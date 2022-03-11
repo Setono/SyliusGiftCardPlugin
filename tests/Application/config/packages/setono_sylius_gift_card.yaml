@@ -1,3 +1,7 @@
 imports:
     - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
     - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
+
+setono_sylius_gift_card:
+    cart:
+        use_same_input_for_promotion_and_gift_card: true

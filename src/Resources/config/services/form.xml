@@ -39,6 +39,12 @@
             <argument type="service" id="sylius.context.channel"/>
         </service>
 
+        <service id="setono_sylius_gift_card.form.data_transformer.soft_gift_card_to_code"
+                 class="Setono\SyliusGiftCardPlugin\Form\DataTransformer\SoftGiftCardToCodeDataTransformer">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+            <argument type="service" id="sylius.context.channel"/>
+        </service>
+
         <service id="setono_sylius_gift_card.form.type.extension.add_to_cart"
                  class="Setono\SyliusGiftCardPlugin\Form\Extension\AddToCartTypeExtension">
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card" />
@@ -51,9 +57,15 @@
             <tag name="form.type_extension" extended-type="Sylius\Bundle\ProductBundle\Form\Type\ProductType"/>
         </service>
 
+        <service id="setono_sylius_gift_card.form.type.extension.cart"
+                 class="Setono\SyliusGiftCardPlugin\Form\Extension\CartTypeExtension">
+            <argument>%setono_sylius_gift_card.cart.use_same_input_for_promotion_and_gift_card%</argument>
+
+            <tag name="form.type_extension" />
+        </service>
+
         <service id="setono_sylius_gift_card.form.type.add_gift_card_to_order"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType">
-            <argument type="service" id="setono_sylius_gift_card.form.data_transformer.gift_card_to_code"/>
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardOrPromotionToOrderType">
             <argument>%setono_sylius_gift_card.form.type.add_gift_card_to_order.validation_groups%</argument>
             <tag name="form.type"/>
         </service>
