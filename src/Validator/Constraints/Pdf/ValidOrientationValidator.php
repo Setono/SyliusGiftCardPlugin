@@ -23,7 +23,7 @@ final class ValidOrientationValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, ValidOrientation::class);
         }
 
-        if (null === $value) {
+        if (null === $value || '' === $value) {
             return;
         }
 

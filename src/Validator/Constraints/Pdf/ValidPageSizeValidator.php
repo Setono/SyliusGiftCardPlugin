@@ -23,7 +23,7 @@ final class ValidPageSizeValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, ValidPageSize::class);
         }
 
-        if (null === $value) {
+        if (null === $value || '' === $value) {
             return;
         }
 
