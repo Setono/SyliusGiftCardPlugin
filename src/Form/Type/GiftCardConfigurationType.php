@@ -14,12 +14,16 @@ use Symfony\Component\Form\FormBuilderInterface;
 
 final class GiftCardConfigurationType extends AbstractResourceType
 {
+    /** @var list<string> */
     private array $availableOrientations;
 
+    /** @var list<string> */
     private array $availablePageSizes;
 
     /**
-     * @psalm-param array<array-key, string> $validationGroups
+     * @param list<string> $availableOrientations
+     * @param list<string> $availablePageSizes
+     * @param list<string> $validationGroups
      */
     public function __construct(
         array $availableOrientations,

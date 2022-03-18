@@ -18,9 +18,9 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
          * @var array{
          *     pdf_rendering: array{
          *         default_orientation: string,
-         *         available_orientations: array<array-key, string>,
+         *         available_orientations: list<string>,
          *         default_page_size: string,
-         *         available_page_sizes: array<array-key, string>,
+         *         available_page_sizes: list<string>,
          *     },
          *     code_length: int,
          *     driver: string,
@@ -54,7 +54,11 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
         $loader->load('services.xml');
 
         if ($container->hasParameter('kernel.bundles')) {
-            /** @var array $bundles */
+            /**
+             * @var array $bundles
+             *
+             * @psalm-suppress UndefinedDocblockClass
+             */
             $bundles = $container->getParameter('kernel.bundles');
             if (array_key_exists('SetonoSyliusCatalogPromotionPlugin', $bundles)) {
                 $loader->load('services/conditional/catalog_promotion_rule.xml');

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Setono\SyliusGiftCardPlugin\Unit\DependencyInjection;
 
 use Matthias\SymfonyConfigTest\PhpUnit\ConfigurationTestCaseTrait;
+use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\Configuration;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepository;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardChannelConfigurationType;
@@ -23,9 +24,8 @@ use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
 use Sylius\Component\Resource\Factory\Factory;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-final class ConfigurationTest extends KernelTestCase
+final class ConfigurationTest extends TestCase
 {
     use ConfigurationTestCaseTrait;
 
@@ -127,24 +127,5 @@ final class ConfigurationTest extends KernelTestCase
                 ],
             ],
         ]);
-    }
-
-    /**
-     * @test
-     */
-    public function it_overrides_default_configuration(): void
-    {
-        self::bootKernel();
-        $container = self::$container;
-
-        self::assertEquals(
-            $container->getParameter('setono_sylius_gift_card.pdf_rendering.available_page_sizes'),
-            ['A5', 'B0']
-        );
-
-        self::assertEquals(
-            $container->getParameter('setono_sylius_gift_card.pdf_rendering.available_orientations'),
-            ['Landscape']
-        );
     }
 }
