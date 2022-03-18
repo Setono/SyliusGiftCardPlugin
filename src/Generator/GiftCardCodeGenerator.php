@@ -6,15 +6,22 @@ namespace Setono\SyliusGiftCardPlugin\Generator;
 
 use function preg_replace;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Webmozart\Assert\Assert;
 
 final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
 {
     private GiftCardRepositoryInterface $giftCardRepository;
 
+    /** @var positive-int */
     private int $codeLength;
 
+    /**
+     * @param positive-int $codeLength
+     */
     public function __construct(GiftCardRepositoryInterface $giftCardRepository, int $codeLength)
     {
+        Assert::greaterThan($codeLength, 0);
+
         $this->giftCardRepository = $giftCardRepository;
         $this->codeLength = $codeLength;
     }

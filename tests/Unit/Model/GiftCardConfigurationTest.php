@@ -24,5 +24,11 @@ final class GiftCardConfigurationTest extends TestCase
 
         $giftCardConfiguration->setDefaultValidityPeriod('2 months');
         $this->assertEquals('2 months', $giftCardConfiguration->getDefaultValidityPeriod());
+
+        $giftCardConfiguration->setPageSize('A7');
+        $this->assertEquals('A7', $giftCardConfiguration->getPageSize());
+
+        $giftCardConfiguration->setOrientation('Landscape');
+        $this->assertEquals('Landscape', $giftCardConfiguration->getOrientation());
     }
 }

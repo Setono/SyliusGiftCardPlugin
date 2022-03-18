@@ -1,0 +1,9 @@
+setono_sylius_gift_card:
+    pdf_rendering:
+        default_orientation: 'Landscape'
+        available_orientations:
+            - Landscape
+        default_page_size: 'B0'
+        available_page_sizes:
+            - A5
+            - B0

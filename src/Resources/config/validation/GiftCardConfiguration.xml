@@ -39,5 +39,15 @@
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>
+        <property name="orientation">
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidOrientation">
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
+        <property name="pageSize">
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidPageSize">
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
     </class>
 </constraint-mapping>

@@ -38,6 +38,10 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
 
     protected ?string $defaultValidityPeriod = null;
 
+    protected ?string $pageSize = null;
+
+    protected ?string $orientation = null;
+
     public function __construct()
     {
         $this->images = new ArrayCollection();
@@ -176,5 +180,25 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
     public function setDefaultValidityPeriod(?string $defaultValidityPeriod): void
     {
         $this->defaultValidityPeriod = $defaultValidityPeriod;
+    }
+
+    public function getPageSize(): ?string
+    {
+        return $this->pageSize;
+    }
+
+    public function setPageSize(?string $pageSize): void
+    {
+        $this->pageSize = $pageSize;
+    }
+
+    public function getOrientation(): ?string
+    {
+        return $this->orientation;
+    }
+
+    public function setOrientation(?string $orientation): void
+    {
+        $this->orientation = $orientation;
     }
 }

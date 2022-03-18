@@ -17,6 +17,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImage;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImageInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
 use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
@@ -34,9 +35,31 @@ final class Configuration implements ConfigurationInterface
 
         $rootNode = $treeBuilder->getRootNode();
 
+        /**
+         * @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod
+         */
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
+                ->arrayNode('pdf_rendering')
+                ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('default_orientation')
+                            ->defaultValue(PdfRenderingOptionsProviderInterface::ORIENTATION_PORTRAIT)
+                        ->end()
+                        ->arrayNode('available_orientations')
+                            ->scalarPrototype()->end()
+                            ->defaultValue(PdfRenderingOptionsProviderInterface::AVAILABLE_ORIENTATIONS)
+                        ->end()
+                        ->scalarNode('default_page_size')
+                            ->defaultValue(PdfRenderingOptionsProviderInterface::PAGE_SIZE_A4)
+                        ->end()
+                        ->arrayNode('available_page_sizes')
+                            ->scalarPrototype()->end()
+                            ->defaultValue(PdfRenderingOptionsProviderInterface::AVAILABLE_PAGE_SIZES)
+                        ->end()
+                    ->end()
+                ->end()
                 ->scalarNode('driver')->defaultValue(SyliusResourceBundle::DRIVER_DOCTRINE_ORM)->end()
                 ->integerNode('code_length')
                     ->defaultValue(20)
@@ -64,16 +87,11 @@ final class Configuration implements ConfigurationInterface
         $this->addGiftCardConfigurationSection($resourcesNode);
         $this->addGiftCardConfigurationImageSection($resourcesNode);
         $this->addChannelConfigurationSection($resourcesNode);
-
-        $resourcesNode
-                    ->end()
-                ->end()
-            ->end()
-        ;
     }
 
     private function addGiftCardSection(NodeBuilder $nodeBuilder): void
     {
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod */
         $nodeBuilder
             ->arrayNode('gift_card')
                 ->addDefaultsIfNotSet()
@@ -93,6 +111,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addGiftCardConfigurationSection(NodeBuilder $nodeBuilder): void
     {
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod */
         $nodeBuilder
             ->arrayNode('gift_card_configuration')
                 ->addDefaultsIfNotSet()
@@ -112,6 +131,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addGiftCardConfigurationImageSection(NodeBuilder $nodeBuilder): void
     {
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod */
         $nodeBuilder
             ->arrayNode('gift_card_configuration_image')
                 ->addDefaultsIfNotSet()
@@ -131,6 +151,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addChannelConfigurationSection(NodeBuilder $nodeBuilder): void
     {
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod */
         $nodeBuilder
             ->arrayNode('gift_card_channel_configuration')
                 ->addDefaultsIfNotSet()
