@@ -27,6 +27,7 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
     public function __construct(
         Environment $twig,
         GeneratorInterface $snappy,
+        PdfRenderingOptionsProviderInterface $renderingOptionsProvider,
         GiftCardPdfPathGeneratorInterface $giftCardPdfPathGenerator,
         FilesystemInterface $filesystem
     ) {

@@ -43,6 +43,7 @@ final class GiftCardPdfGeneratorTest extends TestCase
         $giftCardPdfGenerator = new GiftCardPdfGenerator(
             $twig->reveal(),
             $snappy->reveal(),
+            $renderingOptionsProvider->reveal(),
             $pathGenerator->reveal(),
             $filesystem->reveal()
         );
@@ -62,9 +63,11 @@ final class GiftCardPdfGeneratorTest extends TestCase
 
         $twig = $this->prophesize(Environment::class);
         $snappy = $this->prophesize(Pdf::class);
+        $renderingOptionsProvider = $this->prophesize(PdfRenderingOptionsProviderInterface::class);
         $pathGenerator = $this->prophesize(GiftCardPdfPathGeneratorInterface::class);
         $filesystem = $this->prophesize(Filesystem::class);
 
+        $renderingOptionsProvider->getRenderingOptions($giftCardChannelConfiguration)->willReturn([]);
         $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
@@ -74,6 +77,7 @@ final class GiftCardPdfGeneratorTest extends TestCase
         $giftCardPdfGenerator = new GiftCardPdfGenerator(
             $twig->reveal(),
             $snappy->reveal(),
+            $renderingOptionsProvider->reveal(),
             $pathGenerator->reveal(),
             $filesystem->reveal()
         );
@@ -92,10 +96,12 @@ final class GiftCardPdfGeneratorTest extends TestCase
 
         $twig = $this->prophesize(Environment::class);
         $snappy = $this->prophesize(Pdf::class);
+        $renderingOptionsProvider = $this->prophesize(PdfRenderingOptionsProviderInterface::class);
         $pathGenerator = $this->prophesize(GiftCardPdfPathGeneratorInterface::class);
         $pathGenerator->generatePath($giftCardChannelConfiguration)->willReturn('super/path.pdf');
         $filesystem = $this->prophesize(Filesystem::class);
 
+        $renderingOptionsProvider->getRenderingOptions($giftCardChannelConfiguration)->willReturn([]);
         $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
@@ -111,6 +117,7 @@ final class GiftCardPdfGeneratorTest extends TestCase
         $giftCardPdfGenerator = new GiftCardPdfGenerator(
             $twig->reveal(),
             $snappy->reveal(),
+            $renderingOptionsProvider->reveal(),
             $pathGenerator->reveal(),
             $filesystem->reveal()
         );
