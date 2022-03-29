@@ -15,7 +15,6 @@ use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
-use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Webmozart\Assert\Assert;
 
 final class AddToCartTypeExtension extends AbstractTypeExtension
