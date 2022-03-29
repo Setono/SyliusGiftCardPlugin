@@ -76,8 +76,7 @@
             "composer/package-versions-deprecated": true,
             "dealerdirect/phpcodesniffer-composer-installer": false,
             "ergebnis/composer-normalize": true,
-            "symfony/thanks": true,
-            "composer/package-versions-deprecated": true
+            "symfony/thanks": true
         },
         "sort-packages": true
     },
