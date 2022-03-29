@@ -15,6 +15,8 @@ use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\HttpFoundation\Exception\BadRequestException;
+use Webmozart\Assert\Assert;
 
 final class AddToCartTypeExtension extends AbstractTypeExtension
 {
@@ -92,11 +94,15 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
             $cartItem->setUnitPrice($giftCardInformation->getAmount());
             $cartItem->setImmutable(true);
         } else {
-            $cartItem->setUnitPrice(
-                $data->getCartItem()
-                    ->getVariant()
-                    ->getChannelPricingForChannel($data->getCart()->getChannel())->getPrice()
-            );
+            $channel = $data->getCart()->getChannel();
+            Assert::notNull($channel);
+            $variant = $data->getCartItem()->getVariant();
+            Assert::notNull($variant);
+            $channelPricing = $variant->getChannelPricingForChannel($channel);
+            Assert::notNull($channelPricing);
+            $price = $channelPricing->getPrice();
+            Assert::notNull($price);
+            $cartItem->setUnitPrice($price);
         }
 
         $cart = $data->getCart();
