@@ -72,7 +72,7 @@ final class GiftCardPdfGeneratorTest extends TestCase
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
         ])->willReturn('super GiftCard template');
-        $snappy->getOutputFromHtml('super GiftCard template')->willReturn('<PDF>super GiftCard template</PDF>');
+        $snappy->getOutputFromHtml('super GiftCard template', [])->willReturn('<PDF>super GiftCard template</PDF>');
 
         $giftCardPdfGenerator = new GiftCardPdfGenerator(
             $twig->reveal(),

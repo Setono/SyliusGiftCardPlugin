@@ -60,8 +60,9 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
         ]);
+        $renderingOptions = $this->renderingOptionsProvider->getRenderingOptions($giftCardChannelConfiguration);
 
-        return $this->snappy->getOutputFromHtml($html);
+        return $this->snappy->getOutputFromHtml($html, $renderingOptions);
     }
 
     public function generateAndSavePdf(
@@ -72,9 +73,10 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
         ]);
+        $renderingOptions = $this->renderingOptionsProvider->getRenderingOptions($giftCardChannelConfiguration);
 
         $filePath = $this->giftCardPdfPathGenerator->generatePath($giftCardChannelConfiguration);
-        $pdfContent = $this->snappy->getOutputFromHtml($html, []);
+        $pdfContent = $this->snappy->getOutputFromHtml($html, $renderingOptions);
 
         $this->filesystem->write(
             $filePath,
