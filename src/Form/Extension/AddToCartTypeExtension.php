@@ -76,8 +76,9 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
             return;
         }
 
+        $cartItem = $data->getCartItem();
         /** @var ProductInterface|null $product */
-        $product = $data->getCartItem()->getProduct();
+        $product = $cartItem->getProduct();
         if (null === $product) {
             return;
         }
@@ -86,9 +87,7 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
             return;
         }
 
-        $cartItem = $data->getCartItem();
         $giftCardInformation = $data->getGiftCardInformation();
-
         if ($product->isGiftCardAmountConfigurable()) {
             $cartItem->setUnitPrice($giftCardInformation->getAmount());
             $cartItem->setImmutable(true);
