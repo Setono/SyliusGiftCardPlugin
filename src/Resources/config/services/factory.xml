@@ -11,6 +11,7 @@
             <argument type="service" id="setono_sylius_gift_card.generator.gift_card_code"/>
             <argument type="service" id="setono_sylius_gift_card.provider.gift_card_configuration"/>
             <argument type="service" id="sylius.calendar"/>
+            <argument type="service" id="sylius.context.currency"/>
         </service>
 
         <service id="setono_sylius_gift_card.custom_factory.gift_card_configuration"

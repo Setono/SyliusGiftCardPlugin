@@ -27,3 +27,9 @@ liip_imagine:
         setono_sylius_gift_card_background:
             filters:
                 thumbnail: { size: [1200], mode: inset }
+
+sylius_ui:
+    events:
+        setono_sylius_gift_card.admin.gift_card_configuration.update.javascripts:
+            blocks:
+                live_pdf_rendering_js: '@SetonoSyliusGiftCardPlugin/Admin/GiftCardConfiguration/Update/_javascripts.html.twig'

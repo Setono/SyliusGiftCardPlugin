@@ -14,4 +14,14 @@ interface GiftCardPdfGeneratorInterface
         GiftCardInterface $giftCard,
         GiftCardConfigurationInterface $giftCardChannelConfiguration
     ): PdfResponse;
+
+    public function generateAndGetContent(
+        GiftCardInterface $giftCard,
+        GiftCardConfigurationInterface $giftCardChannelConfiguration
+    ): string;
+
+    public function generateAndSavePdf(
+        GiftCardInterface $giftCard,
+        GiftCardConfigurationInterface $giftCardChannelConfiguration
+    ): string;
 }

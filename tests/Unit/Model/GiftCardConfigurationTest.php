@@ -30,5 +30,8 @@ final class GiftCardConfigurationTest extends TestCase
 
         $giftCardConfiguration->setOrientation('Landscape');
         $this->assertEquals('Landscape', $giftCardConfiguration->getOrientation());
+
+        $giftCardConfiguration->setPdfRenderingCss('body { color: red; }');
+        $this->assertEquals('body { color: red; }', $giftCardConfiguration->getPdfRenderingCss());
     }
 }

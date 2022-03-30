@@ -27,6 +27,11 @@ setono_sylius_gift_card:
             default: Default configuration
             default_validity_period: Default validity period
             enabled: Enabled
+            pdf_live_rendering:
+                css_option:
+                    logo_url_hint: Displays the path of the logo URL
+            pdf_rendering_css: CSS used to render the PDF
+            pdf_rendering_html: HTML used to render the PDF
         product:
             gift_card: Gift card
             gift_card_amount_configurable: Gift card amount configurable
@@ -35,6 +40,7 @@ setono_sylius_gift_card:
         add_gift_card_to_order: Add gift card
         amount: Amount
         applied_gift_cards: Applied gift cards
+        apply: Apply CSS
         average_amount: Average amount
         bought_at_order: Bought at order
         channel_configurations: Channel configurations
@@ -48,16 +54,21 @@ setono_sylius_gift_card:
         enter_gift_card_code: Enter gift card code
         edit_gift_card_configuration: Edit gift card configuration
         gift_card: Gift card
-        gift_card_configurations: Gift card configurations
-        gift_cards_balance: Gift cards balance
         gift_card_channel_does_not_match_channel: The gift card was bought on another channel, please use the gift card on %channel%
         gift_card_code_is_invalid: Gift card code is invalid
+        gift_card_configuration:
+            pdf_live_rendering:
+                hint_title: Available variables
+                title: PDF Live rendering
+        gift_card_configurations: Gift card configurations
         gift_cards: Gift cards
         gift_card_search: Gift card search
         gift_cards_adjustment_total: Gift cards total
+        gift_cards_balance: Gift cards balance
         has_no_gift_card: Has no gift card
         initial_amount: Initial amount
         list_orders: List orders
+        load_default_css: Load default CSS
         manage_gift_cards: Manage gift cards
         manage_gift_card_configurations: Manage gift card configurations
         new_gift_card: New gift card

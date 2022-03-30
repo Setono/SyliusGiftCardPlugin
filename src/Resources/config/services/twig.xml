@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="setono_sylius_gift_card.twig.extension.pdf"
+                 class="Setono\SyliusGiftCardPlugin\Twig\Extension\PdfExtension">
+            <tag name="twig.extension" />
+        </service>
+
+        <service id="setono_sylius_gift_card.twig.extension.pdf_runtime"
+                 class="Setono\SyliusGiftCardPlugin\Twig\Extension\PdfRuntime">
+            <argument type="service" id="setono_sylius_gift_card.provider.pdf_available_css_option" />
+            <argument type="service" id="twig" />
+            <argument type="service" id="setono_sylius_gift_card.generator.gift_card_pdf" />
+            <argument type="service" id="setono_sylius_gift_card.custom_factory.gift_card" />
+
+            <tag name="twig.runtime" />
+        </service>
+    </services>
+</container>

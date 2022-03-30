@@ -15,18 +15,31 @@
         <service id="setono_sylius_gift_card.provider.order_eligible_total"
                  class="Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProvider">
         </service>
-        <service id="Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProviderInterfae"
+        <service id="Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProviderInterface"
                  alias="setono_sylius_gift_card.provider.order_eligible_total">
         </service>
 
         <service id="setono_sylius_gift_card.provider.date_period_unit"
                  class="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProvider" />
         <service id="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProviderInterface"
-                 alias="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProvider"/>
+                 alias="setono_sylius_gift_card.provider.date_period_unit"/>
 
         <service id="setono_sylius_gift_card.provider.pdf_rendering_option"
                  class="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProvider" />
         <service id="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface"
                  alias="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProvider"/>
+
+        <service id="setono_sylius_gift_card.provider.pdf_available_css_option"
+                 class="Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProvider" />
+        <service id="Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProviderInterface"
+                 alias="setono_sylius_gift_card.provider.pdf_available_css_option"/>
+
+        <service id="setono_sylius_gift_card.provider.default_pdf_css"
+                 class="Setono\SyliusGiftCardPlugin\Provider\DefaultPdfCssProvider">
+            <argument>%setono_sylius_gift_card.default_css_file%</argument>
+            <argument type="service" id="twig"/>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Provider\DefaultPdfCssProviderInterface"
+                 alias="setono_sylius_gift_card.provider.default_pdf_css"/>
     </services>
 </container>
