@@ -19,6 +19,8 @@ When creating a new GC product, you have 2 choices:
 1. Simple gift card: it means that you as an administrator define the price, and the customer can only buy a gift card of that value.
 2. Configurable gift card: it means the customer can buy a gift card of any value, they will define themselves the price before adding to their cart.
 
+Make sure to check the toggle `gift card` in `Details` tab, and also the configurable amount if you created a configurable one.
+
 ## Gift cards
 
 When accessing to the route `/admin/gift-cards`, you can see the list of all gift cards.
