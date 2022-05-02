@@ -24,14 +24,14 @@ jobs:
         strategy:
             matrix:
                 php-version:
-                    - "7.4"
+                    - "8.1"
 
                 dependencies:
                     - "highest"
 
         steps:
             -   name: "Checkout"
-                uses: "actions/checkout@v2"
+                uses: "actions/checkout@v3"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -41,7 +41,7 @@ jobs:
                     coverage: "none"
 
             -   name: "Install composer dependencies"
-                uses: "ramsey/composer-install@v1"
+                uses: "ramsey/composer-install@v2"
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
 
@@ -69,6 +69,8 @@ jobs:
             matrix:
                 php-version:
                     - "7.4"
+                    - "8.0"
+                    - "8.1"
 
                 dependencies:
                     - "highest"
@@ -79,7 +81,7 @@ jobs:
 
         steps:
             -   name: "Checkout"
-                uses: "actions/checkout@v2"
+                uses: "actions/checkout@v3"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -90,7 +92,7 @@ jobs:
                     tools: "composer-require-checker, composer-unused, flex"
 
             -   name: "Install composer dependencies"
-                uses: "ramsey/composer-install@v1"
+                uses: "ramsey/composer-install@v2"
                 env:
                     SYMFONY_REQUIRE: "${{ matrix.symfony }}"
                 with:
@@ -111,6 +113,8 @@ jobs:
             matrix:
                 php-version:
                     - "7.4"
+                    - "8.0"
+                    - "8.1"
 
                 dependencies:
                     - "highest"
@@ -121,7 +125,7 @@ jobs:
 
         steps:
             -   name: "Checkout"
-                uses: "actions/checkout@v2"
+                uses: "actions/checkout@v3"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -132,7 +136,7 @@ jobs:
                     tools: "flex"
 
             -   name: "Install composer dependencies"
-                uses: "ramsey/composer-install@v1"
+                uses: "ramsey/composer-install@v2"
                 env:
                     SYMFONY_REQUIRE: "${{ matrix.symfony }}"
                 with:
@@ -153,6 +157,8 @@ jobs:
             matrix:
                 php-version:
                     - "7.4"
+                    - "8.0"
+                    - "8.1"
 
                 dependencies:
                     - "highest"
@@ -163,7 +169,7 @@ jobs:
 
         steps:
             -   name: "Checkout"
-                uses: "actions/checkout@v2"
+                uses: "actions/checkout@v3"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -174,7 +180,7 @@ jobs:
                     tools: "flex"
 
             -   name: "Install composer dependencies"
-                uses: "ramsey/composer-install@v1"
+                uses: "ramsey/composer-install@v2"
                 env:
                     SYMFONY_REQUIRE: "${{ matrix.symfony }}"
                 with:
@@ -192,6 +198,8 @@ jobs:
             matrix:
                 php-version:
                     - "7.4"
+                    - "8.0"
+                    - "8.1"
 
                 dependencies:
                     - "highest"
@@ -205,7 +213,7 @@ jobs:
                 run: "sudo /etc/init.d/mysql start"
 
             -   name: "Checkout"
-                uses: "actions/checkout@v2"
+                uses: "actions/checkout@v3"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -216,12 +224,13 @@ jobs:
                     tools: "flex,symfony"
                     
             -   name: "Setup node"
-                uses: "actions/setup-node@v2"
+                uses: "actions/setup-node@v3"
                 with:
-                    node-version: "14.x"
+                    node-version: "14"
+                    cache: "yarn"
 
             -   name: "Install composer dependencies"
-                uses: "ramsey/composer-install@v1"
+                uses: "ramsey/composer-install@v2"
                 env:
                     SYMFONY_REQUIRE: "${{ matrix.symfony }}"
                 with:
@@ -240,17 +249,6 @@ jobs:
 
             -   name: "Validate Doctrine mapping"
                 run: "(cd tests/Application && bin/console doctrine:schema:validate -vvv)"
-
-            -   name: "Get Yarn cache directory"
-                id: "yarn-cache"
-                run: "echo \"::set-output name=dir::$(yarn cache dir)\""
-
-            -   name: "Cache Yarn"
-                uses: "actions/cache@v2"
-                with:
-                    path: "${{ steps.yarn-cache.outputs.dir }}"
-                    key: "yarn-${{ hashFiles('**/package.json **/yarn.lock') }}"
-                    restore-keys: "yarn-"
 
             -   name: "Install JS dependencies"
                 run: "(cd tests/Application && yarn install)"
@@ -306,14 +304,14 @@ jobs:
         strategy:
             matrix:
                 php-version:
-                    - "7.4"
+                    - "8.1"
 
                 dependencies:
                     - "highest"
 
         steps:
             -   name: "Checkout"
-                uses: "actions/checkout@v2"
+                uses: "actions/checkout@v3"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -322,11 +320,8 @@ jobs:
                     extensions: "${{ env.PHP_EXTENSIONS }}"
                     php-version: "${{ matrix.php-version }}"
 
-            -   name: "Set up problem matchers for phpunit/phpunit"
-                run: "echo \"::add-matcher::${{ runner.tool_cache }}/phpunit.json\""
-
             -   name: "Install composer dependencies"
-                uses: "ramsey/composer-install@v1"
+                uses: "ramsey/composer-install@v2"
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
 
