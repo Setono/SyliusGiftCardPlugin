@@ -90,8 +90,8 @@ final class GiftCardConfigurationType extends AbstractResourceType
                 return $value;
             },
         ]);
-        $builder->add('pdfRenderingCss', TextareaType::class, [
-            'label' => 'setono_sylius_gift_card.form.gift_card_configuration.pdf_rendering_css',
+        $builder->add('template', TextareaType::class, [
+            'label' => 'setono_sylius_gift_card.form.gift_card_configuration.template',
         ]);
         $builder->get('defaultValidityPeriod')->addModelTransformer(
             new CallbackTransformer(

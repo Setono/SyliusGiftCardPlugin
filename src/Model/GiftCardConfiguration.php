@@ -42,7 +42,7 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
 
     protected ?string $orientation = null;
 
-    protected ?string $pdfRenderingCss = null;
+    protected ?string $template = null;
 
     public function __construct()
     {
@@ -204,13 +204,13 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         $this->orientation = $orientation;
     }
 
-    public function getPdfRenderingCss(): ?string
+    public function getTemplate(): ?string
     {
-        return $this->pdfRenderingCss;
+        return $this->template;
     }
 
-    public function setPdfRenderingCss(?string $pdfRenderingCss): void
+    public function setTemplate(?string $template): void
     {
-        $this->pdfRenderingCss = $pdfRenderingCss;
+        $this->template = $template;
     }
 }

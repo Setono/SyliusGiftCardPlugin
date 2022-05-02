@@ -59,7 +59,7 @@ final class PdfRuntime implements RuntimeExtensionInterface
 
     public function getPdfTemplateContent(): string
     {
-        $templateWrapper = $this->twig->load('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig');
+        $templateWrapper = $this->twig->load('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf_layout.html.twig');
         \preg_match(
             '/<body(.|\n)*>(.|\n)*<\/body>/',
             $templateWrapper->getSourceContext()->getCode(),

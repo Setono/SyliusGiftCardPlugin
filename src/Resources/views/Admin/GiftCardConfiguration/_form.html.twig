@@ -50,7 +50,7 @@
                     {% endfor %}
                 </ul>
             </div>
-            {{ form_row(form.pdfRenderingCss) }}
+            {{ form_row(form.template) }}
             {% if resource.id is not null %}
                 <div>
                     <label for="pdf_live_render_html_content">{{ 'setono_sylius_gift_card.form.gift_card_configuration.pdf_rendering_html'|trans }}</label>

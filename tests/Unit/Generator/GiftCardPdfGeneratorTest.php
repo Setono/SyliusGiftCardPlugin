@@ -34,7 +34,7 @@ final class GiftCardPdfGeneratorTest extends TestCase
         $filesystem = $this->prophesize(Filesystem::class);
 
         $renderingOptionsProvider->getRenderingOptions($giftCardChannelConfiguration)->willReturn([]);
-        $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
+        $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf_layout.html.twig', [
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
         ])->willReturn('super GiftCard template');
@@ -68,7 +68,7 @@ final class GiftCardPdfGeneratorTest extends TestCase
         $filesystem = $this->prophesize(Filesystem::class);
 
         $renderingOptionsProvider->getRenderingOptions($giftCardChannelConfiguration)->willReturn([]);
-        $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
+        $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf_layout.html.twig', [
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
         ])->willReturn('super GiftCard template');
@@ -102,7 +102,7 @@ final class GiftCardPdfGeneratorTest extends TestCase
         $filesystem = $this->prophesize(Filesystem::class);
 
         $renderingOptionsProvider->getRenderingOptions($giftCardChannelConfiguration)->willReturn([]);
-        $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
+        $twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf_layout.html.twig', [
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
         ])->willReturn('super GiftCard template');

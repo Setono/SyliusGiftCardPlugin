@@ -8,12 +8,9 @@
         <title>Gift card: {{ giftCard.code }}</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css">
-        <style>
-            {{ configuration.pdfRenderingCss|default('')|ssgc_replace_css_option(_context)|raw }}
-        </style>
+        {% block styles %}{% endblock %}
     </head>
     <body>
-        {{- giftCard.code -}}<br>
-        {{- giftCard.amount|sylius_format_money(giftCard.currencyCode, sylius_base_locale) -}}
+        {% block content %}{% endblock %}
     </body>
 </html>

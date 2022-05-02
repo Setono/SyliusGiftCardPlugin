@@ -42,7 +42,7 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
         GiftCardInterface $giftCard,
         GiftCardConfigurationInterface $giftCardChannelConfiguration
     ): PdfResponse {
-        $html = $this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
+        $html = $this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf_layout.html.twig', [
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
         ]);
@@ -56,7 +56,7 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
         GiftCardInterface $giftCard,
         GiftCardConfigurationInterface $giftCardChannelConfiguration
     ): string {
-        $html = $this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
+        $html = $this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf_layout.html.twig', [
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
         ]);
@@ -69,7 +69,7 @@ class GiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
         GiftCardInterface $giftCard,
         GiftCardConfigurationInterface $giftCardChannelConfiguration
     ): string {
-        $html = $this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig', [
+        $html = $this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf_layout.html.twig', [
             'giftCard' => $giftCard,
             'configuration' => $giftCardChannelConfiguration,
         ]);
