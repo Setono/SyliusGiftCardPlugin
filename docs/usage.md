@@ -1,4 +1,4 @@
-# Usage documentation
+# Usage
 
 ## Gift cards configurations
 

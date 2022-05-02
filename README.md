@@ -341,7 +341,7 @@ You can also override or decorate the service `setono_sylius_gift_card.resolver.
 
 # Usage
 
-In order to find out how to use the GiftCard plugin, please refer to the [usage documentation](docs/usage_documentation.md).
+In order to find out how to use the GiftCard plugin, please refer to the [usage](docs/usage.md).
 
 # Development
 
