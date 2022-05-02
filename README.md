@@ -339,6 +339,10 @@ The same applies for the `setono_sylius_gift_card_shop_partial_add_gift_card_to_
 
 You can also override or decorate the service `setono_sylius_gift_card.resolver.redirect_url` to define a more custom way of redirecting
 
+# Usage
+
+In order to find out how to use the GiftCard plugin, please refer to the [usage](docs/usage.md).
+
 # Development
 
 ## Testing
