@@ -27,6 +27,13 @@ setono_sylius_gift_card:
             default: Standardkonfiguration
             default_validity_period: Standard gyldighedsperiode
             enabled: Aktiveret
+            orientation: Orientation
+            page_size: Page size
+            pdf_live_rendering:
+                css_option:
+                    logo_url_hint: Displays the path of the logo URL
+            pdf_rendering_css: CSS used to render the PDF
+            pdf_rendering_html: HTML used to render the PDF
         product:
             gift_card: Gavekort
             gift_card_amount_configurable: Valgfrit beløb på gavekort

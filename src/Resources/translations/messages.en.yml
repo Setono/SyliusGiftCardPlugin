@@ -27,6 +27,8 @@ setono_sylius_gift_card:
             default: Default configuration
             default_validity_period: Default validity period
             enabled: Enabled
+            orientation: Orientation
+            page_size: Page size
             pdf_live_rendering:
                 css_option:
                     logo_url_hint: Displays the path of the logo URL
