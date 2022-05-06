@@ -43,7 +43,9 @@ final class GiftCardType extends AbstractResourceType
     {
         $builder
             ->addEventSubscriber(new AddCodeFormSubscriber())
-            ->add('customer', CustomerAutocompleteChoiceType::class)
+            ->add('customer', CustomerAutocompleteChoiceType::class, [
+                'label' => 'sylius.ui.customer',
+            ])
             ->add('amount', NumberType::class, [
                 'label' => 'sylius.ui.amount',
             ])
