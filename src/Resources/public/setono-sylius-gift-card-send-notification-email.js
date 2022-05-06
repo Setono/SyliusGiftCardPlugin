@@ -10,15 +10,9 @@
 
       $customerInput.on('change', () => {
         if ($customerInput.val() !== '') {
-          $sendCustomerNotificationEmail.css({
-            'visibility': 'visible',
-            'height': 'auto',
-          });
+          $sendCustomerNotificationEmail.show();
         } else {
-          $sendCustomerNotificationEmail.css({
-            'visibility': 'hidden',
-            'height': '0',
-          });
+          $sendCustomerNotificationEmail.hide();
         }
       });
 

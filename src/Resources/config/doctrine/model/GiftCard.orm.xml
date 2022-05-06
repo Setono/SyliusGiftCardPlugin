@@ -13,11 +13,6 @@
         <field name="customMessage" type="text" nullable="true"/>
         <field name="origin" nullable="true"/>
         <field name="expiresAt" type="datetime" nullable="true" />
-        <field name="sendNotificationEmail" type="boolean">
-            <options>
-                <option name="default">1</option>
-            </options>
-        </field>
 
         <field name="createdAt" column="created_at" type="datetime">
             <gedmo:timestampable on="create"/>
