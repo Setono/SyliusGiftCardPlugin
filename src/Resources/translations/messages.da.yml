@@ -19,6 +19,7 @@ setono_sylius_gift_card:
         gift_card:
             channel: Kanal
             custom_message: Personlig besked
+            custom_message_placeholder: This message is printed on the gift card PDF...
             expires_at: Udløber
         gift_card_configuration:
             background_image: Baggrundsbillede 
