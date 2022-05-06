@@ -25,6 +25,7 @@ final class GiftCardConfigurationFactoryTest extends TestCase
 
         $decoratedFactory = $this->prophesize(FactoryInterface::class);
         $imageFactory = $this->prophesize(FactoryInterface::class);
+
         $defaultOrientation = PdfRenderingOptionsProviderInterface::ORIENTATION_PORTRAIT;
         $defaultPageSize = PdfRenderingOptionsProviderInterface::PAGE_SIZE_A8;
 

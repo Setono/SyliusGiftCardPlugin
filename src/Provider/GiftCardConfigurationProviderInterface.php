@@ -9,9 +9,9 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Locale\Model\LocaleInterface;
 
-interface GiftCardChannelConfigurationProviderInterface
+interface GiftCardConfigurationProviderInterface
 {
-    public function getConfiguration(ChannelInterface $channel, LocaleInterface $locale): ?GiftCardConfigurationInterface;
+    public function getConfiguration(ChannelInterface $channel, LocaleInterface $locale): GiftCardConfigurationInterface;
 
-    public function getConfigurationForGiftCard(GiftCardInterface $giftCard): ?GiftCardConfigurationInterface;
+    public function getConfigurationForGiftCard(GiftCardInterface $giftCard): GiftCardConfigurationInterface;
 }

@@ -7,6 +7,7 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Unit\DependencyInjection;
 use Matthias\SymfonyConfigTest\PhpUnit\ConfigurationTestCaseTrait;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\Configuration;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardConfigurationRepository;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepository;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardChannelConfigurationType;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationImageType;
@@ -100,7 +101,7 @@ final class ConfigurationTest extends TestCase
                         'model' => GiftCardConfiguration::class,
                         'interface' => GiftCardConfigurationInterface::class,
                         'controller' => ResourceController::class,
-                        'repository' => EntityRepository::class,
+                        'repository' => GiftCardConfigurationRepository::class,
                         'form' => GiftCardConfigurationType::class,
                         'factory' => Factory::class,
                     ],

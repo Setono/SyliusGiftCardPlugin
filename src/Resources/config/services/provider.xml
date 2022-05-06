@@ -5,11 +5,12 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
         <service id="setono_sylius_gift_card.provider.gift_card_configuration"
-                 class="Setono\SyliusGiftCardPlugin\Provider\GiftCardChannelConfigurationProvider">
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_channel_configuration" />
+                 class="Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProvider">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration" />
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_configuration" />
             <argument type="service" id="sylius.context.locale" />
             <argument type="service" id="sylius.repository.locale" />
+            <argument type="service" id="doctrine" />
         </service>
 
         <service id="setono_sylius_gift_card.provider.order_eligible_total"

@@ -11,8 +11,7 @@ use Setono\SyliusGiftCardPlugin\Api\Controller\Action\DownloadGiftCardPdfAction;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
-use Setono\SyliusGiftCardPlugin\Provider\GiftCardChannelConfigurationProviderInterface;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProviderInterface;
 
 final class DownloadGiftCardPdfActionTest extends TestCase
 {
@@ -27,7 +26,7 @@ final class DownloadGiftCardPdfActionTest extends TestCase
         $configuration = new GiftCardConfiguration();
         $expectedPdfResponse = new PdfResponse('<PDF>Gift card content</PDF>', 'gc.pdf');
 
-        $configurationProvider = $this->prophesize(GiftCardChannelConfigurationProviderInterface::class);
+        $configurationProvider = $this->prophesize(GiftCardConfigurationProviderInterface::class);
         $giftCardPdfGenerator = $this->prophesize(GiftCardPdfGeneratorInterface::class);
 
         $configurationProvider->getConfigurationForGiftCard($giftCard)->willReturn($configuration);
@@ -43,26 +42,5 @@ final class DownloadGiftCardPdfActionTest extends TestCase
         $response = $downloadGiftCardPdfAction($giftCard);
 
         $this->assertEquals($expectedPdfResponse, $response);
-    }
-
-    /**
-     * @test
-     */
-    public function it_throws_error_if_configuration_not_found(): void
-    {
-        $giftCard = new GiftCard();
-
-        $configurationProvider = $this->prophesize(GiftCardChannelConfigurationProviderInterface::class);
-        $giftCardPdfGenerator = $this->prophesize(GiftCardPdfGeneratorInterface::class);
-
-        $configurationProvider->getConfigurationForGiftCard($giftCard)->willReturn(null);
-
-        $this->expectException(NotFoundHttpException::class);
-
-        $downloadGiftCardPdfAction = new DownloadGiftCardPdfAction(
-            $configurationProvider->reveal(),
-            $giftCardPdfGenerator->reveal()
-        );
-        $downloadGiftCardPdfAction($giftCard);
     }
 }
