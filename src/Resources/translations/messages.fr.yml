@@ -19,6 +19,7 @@ setono_sylius_gift_card:
         gift_card:
             channel: Canal
             custom_message: Message personnalisé
+            custom_message_placeholder: Ce message sera affiché sur le PDF du chèque-cadeau...
             expires_at: Expire le
         gift_card_configuration:
             background_image: Image de fond
