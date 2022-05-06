@@ -42,6 +42,10 @@ final class SendEmailWithGiftCardToCustomerSubscriber implements EventSubscriber
             return;
         }
 
+        if (!$giftCard->getSendNotificationEmail()) {
+            return;
+        }
+
         $this->giftCardEmailManager->sendEmailToCustomerWithGiftCard($customer, $giftCard);
     }
 }

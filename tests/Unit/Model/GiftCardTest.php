@@ -61,6 +61,9 @@ final class GiftCardTest extends TestCase
         $expiresAt = new \DateTime();
         $giftCard->setExpiresAt($expiresAt);
         $this->assertSame($expiresAt, $giftCard->getExpiresAt());
+
+        $giftCard->setSendNotificationEmail(false);
+        $this->assertFalse($giftCard->getSendNotificationEmail());
     }
 
     /**

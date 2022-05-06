@@ -49,6 +49,8 @@ class GiftCard implements GiftCardInterface
 
     protected ?DateTimeInterface $expiresAt = null;
 
+    protected bool $sendNotificationEmail = true;
+
     public function __construct()
     {
         $this->appliedOrders = new ArrayCollection();
@@ -295,5 +297,15 @@ class GiftCard implements GiftCardInterface
         }
 
         return $date > $giftCardValidUntil;
+    }
+
+    public function getSendNotificationEmail(): bool
+    {
+        return $this->sendNotificationEmail;
+    }
+
+    public function setSendNotificationEmail(bool $sendNotificationEmail = true): void
+    {
+        $this->sendNotificationEmail = $sendNotificationEmail;
     }
 }

@@ -16,6 +16,8 @@ setono_sylius_gift_card:
             integer: Beløb skal være heltal 
             min: Beløbet kan ikke være mindre en 1
             greater_than_or_equal: Beløbet skal være større eller lig med 1
+        send_notification_email:
+            boolean: Send notification email must be a boolean
     gift_card_configuration:
         background_image_required: Baggrundsbillede er påkrævet 
     gift_card_search_command:

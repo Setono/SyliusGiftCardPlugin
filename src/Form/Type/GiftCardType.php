@@ -41,55 +41,54 @@ final class GiftCardType extends AbstractResourceType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder
-            ->addEventSubscriber(new AddCodeFormSubscriber())
-            ->add('customer', CustomerAutocompleteChoiceType::class, [
-                'label' => 'sylius.ui.customer',
-            ])
-            ->add('amount', NumberType::class, [
-                'label' => 'sylius.ui.amount',
-            ])
-            ->add('enabled', CheckboxType::class, [
-                'label' => 'sylius.ui.enabled',
-                'required' => false,
-            ])
-            ->add('customMessage', TextareaType::class, [
-                'label' => 'setono_sylius_gift_card.form.gift_card.custom_message',
-                'required' => false,
-                'attr' => [
-                    'placeholder' => 'setono_sylius_gift_card.form.gift_card.custom_message_placeholder',
-                ],
-            ])
-            ->add('expiresAt', DateTimeType::class, [
-                'label' => 'setono_sylius_gift_card.form.gift_card.expires_at',
-                'widget' => 'single_text',
-                'html5' => true,
-            ])
-            ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
-                /** @var GiftCardInterface $giftCard */
-                $giftCard = $event->getData();
+        $builder->addEventSubscriber(new AddCodeFormSubscriber());
+        $builder->add('customer', CustomerAutocompleteChoiceType::class, [
+            'label' => 'sylius.ui.customer',
+        ]);
+        $builder->add('sendNotificationEmail', CheckboxType::class, [
+            'required' => false,
+            'label' => 'setono_sylius_gift_card.form.gift_card.send_notification_email',
+        ]);
+        $builder->add('amount', NumberType::class, [
+            'label' => 'sylius.ui.amount',
+        ]);
+        $builder->add('enabled', CheckboxType::class, [
+            'label' => 'sylius.ui.enabled',
+            'required' => false,
+        ]);
+        $builder->add('customMessage', TextareaType::class, [
+            'label' => 'setono_sylius_gift_card.form.gift_card.custom_message',
+            'required' => false,
+        ]);
+        $builder->add('expiresAt', DateTimeType::class, [
+            'label' => 'setono_sylius_gift_card.form.gift_card.expires_at',
+            'widget' => 'single_text',
+            'html5' => true,
+        ]);
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
+            /** @var GiftCardInterface $giftCard */
+            $giftCard = $event->getData();
 
-                if ($giftCard->getCode() === null) {
-                    $giftCard->setCode($this->giftCardCodeGenerator->generate());
-                }
+            if ($giftCard->getCode() === null) {
+                $giftCard->setCode($this->giftCardCodeGenerator->generate());
+            }
 
-                /** @var ChannelInterface $channel */
-                $channel = $giftCard->getChannel();
+            /** @var ChannelInterface $channel */
+            $channel = $giftCard->getChannel();
 
-                /** @var CurrencyInterface $currency */
-                $currency = $channel->getBaseCurrency();
+            /** @var CurrencyInterface $currency */
+            $currency = $channel->getBaseCurrency();
 
-                $form = $event->getForm();
-                $form
-                    ->add('currencyCode', ChoiceType::class, [
-                        'label' => 'sylius.ui.currency',
-                        'choices' => $this->currencyRepository->findAll(),
-                        'choice_label' => 'code',
-                        'choice_value' => 'code',
-                        'preferred_choices' => [$currency->getCode()],
-                    ]);
-            })
-        ;
+            $form = $event->getForm();
+            $form
+                ->add('currencyCode', ChoiceType::class, [
+                    'label' => 'sylius.ui.currency',
+                    'choices' => $this->currencyRepository->findAll(),
+                    'choice_label' => 'code',
+                    'choice_value' => 'code',
+                    'preferred_choices' => [$currency->getCode()],
+                ]);
+        });
 
         $builder->get('amount')->addModelTransformer(new CallbackTransformer(static function (?int $amount): ?float {
             if (null === $amount) {

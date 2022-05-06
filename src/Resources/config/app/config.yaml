@@ -33,3 +33,7 @@ sylius_ui:
         setono_sylius_gift_card.admin.gift_card_configuration.update.javascripts:
             blocks:
                 live_pdf_rendering_js: '@SetonoSyliusGiftCardPlugin/Admin/GiftCardConfiguration/Update/_javascripts.html.twig'
+        
+        setono_sylius_gift_card.admin.gift_card.create.javascripts:
+            blocks:
+                send_customer_email_js: '@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Create/_javascripts.html.twig'
