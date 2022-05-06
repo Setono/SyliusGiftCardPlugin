@@ -6,6 +6,12 @@
       const $customerInput = $(this);
       const $sendCustomerNotificationEmail = $($customerInput.data('target'));
 
+      if ($customerInput.val() !== '') {
+        $sendCustomerNotificationEmail.show();
+      } else {
+        $sendCustomerNotificationEmail.hide();
+      }
+
       $('label[for="setono_sylius_gift_card_gift_card_customer"]').prepend('<i class="delete icon js-ssgc-clear-input" style="float: right;cursor: pointer"></i>');
 
       $customerInput.on('change', () => {
