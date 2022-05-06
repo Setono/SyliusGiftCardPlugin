@@ -45,7 +45,7 @@ final class GiftCardType extends AbstractResourceType
         $builder->add('customer', CustomerAutocompleteChoiceType::class, [
             'label' => 'sylius.ui.customer',
         ]);
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void{
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
             /** @var GiftCardInterface $giftCard */
             $giftCard = $event->getData();
 
