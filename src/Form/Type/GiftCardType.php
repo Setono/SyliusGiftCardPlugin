@@ -45,10 +45,21 @@ final class GiftCardType extends AbstractResourceType
         $builder->add('customer', CustomerAutocompleteChoiceType::class, [
             'label' => 'sylius.ui.customer',
         ]);
-        $builder->add('sendNotificationEmail', CheckboxType::class, [
-            'required' => false,
-            'label' => 'setono_sylius_gift_card.form.gift_card.send_notification_email',
-        ]);
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void{
+            /** @var GiftCardInterface $giftCard */
+            $giftCard = $event->getData();
+
+            // We only add the notification input if the gift card is new
+            if (null !== $giftCard->getId()) {
+                return;
+            }
+
+            $form = $event->getForm();
+            $form->add('sendNotificationEmail', CheckboxType::class, [
+                'required' => false,
+                'label' => 'setono_sylius_gift_card.form.gift_card.send_notification_email',
+            ]);
+        });
         $builder->add('amount', NumberType::class, [
             'label' => 'sylius.ui.amount',
         ]);
