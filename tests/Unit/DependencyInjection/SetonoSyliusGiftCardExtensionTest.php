@@ -25,9 +25,9 @@ final class SetonoSyliusGiftCardExtensionTest extends AbstractExtensionTestCase
 
         $this->assertContainerBuilderHasParameter('setono_sylius_gift_card.driver', SyliusResourceBundle::DRIVER_DOCTRINE_ORM);
         $this->assertContainerBuilderHasParameter('setono_sylius_gift_card.code_length', 20);
-        $this->assertContainerBuilderHasParameter('setono_sylius_gift_card.pdf_rendering.default_orientation', 'Portrait');
+        $this->assertContainerBuilderHasParameter('setono_sylius_gift_card.pdf_rendering.default_orientation', 'Landscape');
         $this->assertContainerBuilderHasParameter('setono_sylius_gift_card.pdf_rendering.available_orientations', ['Portrait', 'Landscape']);
-        $this->assertContainerBuilderHasParameter('setono_sylius_gift_card.pdf_rendering.default_page_size', 'A4');
+        $this->assertContainerBuilderHasParameter('setono_sylius_gift_card.pdf_rendering.default_page_size', 'A6');
         $this->assertContainerBuilderHasParameter('setono_sylius_gift_card.pdf_rendering.available_page_sizes', [
             PdfRenderingOptionsProviderInterface::PAGE_SIZE_A0,
             PdfRenderingOptionsProviderInterface::PAGE_SIZE_A1,
