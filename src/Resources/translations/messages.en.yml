@@ -21,6 +21,7 @@ setono_sylius_gift_card:
             custom_message: Custom message
             custom_message_placeholder: This message is printed on the gift card PDF...
             expires_at: Expires at
+            send_notification_email: Send notification email
         gift_card_configuration:
             background_image: Background image
             channel_configurations: Channel configurations

@@ -37,5 +37,12 @@
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>
+        <property name="sendNotificationEmail">
+            <constraint name="Type">
+                <option name="type">bool</option>
+                <option name="message">setono_sylius_gift_card.gift_card.send_notification_email.boolean</option>
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
     </class>
 </constraint-mapping>

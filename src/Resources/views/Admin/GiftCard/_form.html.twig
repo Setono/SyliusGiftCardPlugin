@@ -6,8 +6,13 @@
             {{ form_row(form.code) }}
             {{ form_row(form.enabled) }}
             {{ form_row(form.expiresAt) }}
-            <div class="ui info message">{{ 'setono_sylius_gift_card.ui.customer_help_text'|trans }}</div>
-            {{ form_row(form.customer) }}
+            {{ form_row(form.customer, {'attr': {'data-target': '.js-ssgc-send-customer-email'}}) }}
+            {% if form.sendNotificationEmail is defined %}
+                <div class="js-ssgc-send-customer-email" style="display: none;">
+                    <div class="ui info message">{{ 'setono_sylius_gift_card.ui.customer_help_text'|trans }}</div>
+                    {{ form_row(form.sendNotificationEmail) }}
+                </div>
+            {% endif %}
         </div>
     </div>
 

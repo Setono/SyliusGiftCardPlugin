@@ -15,6 +15,8 @@ setono_sylius_gift_card:
             not_blank: Veuillez renseigner un montant
             integer: Le montant doit être un entier
             min: Le montant ne dois pas être en-dessous de 1
+        send_notification_email:
+            boolean: L'envoi de l'email de notification doit être un booléen
     gift_card_configuration:
         background_image_required: L'image de fond est requise
     gift_card_search_command:

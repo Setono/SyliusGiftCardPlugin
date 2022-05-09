@@ -21,6 +21,7 @@ setono_sylius_gift_card:
             custom_message: Message personnalisé
             custom_message_placeholder: Ce message sera affiché sur le PDF du chèque-cadeau...
             expires_at: Expire le
+            send_notification_email: Envoyer un email de notification
         gift_card_configuration:
             background_image: Image de fond
             channel_configurations: Configurations des canaux
@@ -49,7 +50,7 @@ setono_sylius_gift_card:
         covered_by_gift_cards: Montant pris en charge
         count: Nombre
         create_for_channel: Créer pour %channel%
-        customer_help_text: When you associate a customer with a gift card, Sylius will automatically notify this customer via email
+        customer_help_text: Quand vous attribuez un chèque-cadeau à un client, Sylius enverra un email à ce client.
         customer_email: Customer email
         download_pdf: PDF
         edit_gift_card: Edit gift card

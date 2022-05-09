@@ -21,6 +21,7 @@ setono_sylius_gift_card:
             custom_message: Personlig besked
             custom_message_placeholder: This message is printed on the gift card PDF...
             expires_at: Udløber
+            send_notification_email: Send email med gavekort til kunde
         gift_card_configuration:
             background_image: Baggrundsbillede 
             channel_configurations: Kanalkonfigurationer
