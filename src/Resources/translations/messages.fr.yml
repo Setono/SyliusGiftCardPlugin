@@ -50,7 +50,7 @@ setono_sylius_gift_card:
         covered_by_gift_cards: Montant pris en charge
         count: Nombre
         create_for_channel: Créer pour %channel%
-        customer_help_text: Quand vous attribuez un chèque-cadeau à un client, Sylius enverra un email à ce client.
+        customer_help_text: Quand vous attribuez un chèque-cadeau à un client, Sylius peut envoyer un email à ce client.
         customer_email: Customer email
         download_pdf: PDF
         edit_gift_card: Edit gift card
