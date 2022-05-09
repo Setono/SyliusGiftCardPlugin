@@ -45,7 +45,7 @@
 <div class="ui attached segment">
     <div class="ui two column stackable grid">
         <div class="column">
-            {{ form_row(form.template, {'attr': {'rows': 20}}) }}
+            {{ form_row(form.template, {'attr': {'rows': 40}}) }}
             {% if resource.id is not null %}
                 <button class="ui button primary labeled icon js-ssgc-apply-pdf-changes"
                         data-url="{{ path('setono_sylius_gift_card_admin_ajax_generate_pdf', {'id': resource.id}) }}">
