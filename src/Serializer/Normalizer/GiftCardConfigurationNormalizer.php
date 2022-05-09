@@ -26,10 +26,11 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
 
     /**
      * @param GiftCardConfigurationInterface|mixed $object
+     * @param string $format
      *
      * @return array|ArrayObject
      */
-    public function normalize($object, string $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = [])
     {
         Assert::isInstanceOf($object, GiftCardConfigurationInterface::class);
 
@@ -55,8 +56,9 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
 
     /**
      * @param mixed $data
+     * @param string $format
      */
-    public function supportsNormalization($data, string $format = null, array $context = []): bool
+    public function supportsNormalization($data, $format = null, array $context = []): bool
     {
         $groups = (array) ($context['groups'] ?? []);
 
