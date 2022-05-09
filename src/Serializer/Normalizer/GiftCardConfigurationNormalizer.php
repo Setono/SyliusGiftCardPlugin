@@ -8,6 +8,7 @@ use ArrayObject;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Setono\SyliusGiftCardPlugin\Exception\UnexpectedTypeException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Webmozart\Assert\Assert;
@@ -18,10 +19,16 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
 
     private CacheManager $cacheManager;
 
-    public function __construct(ObjectNormalizer $objectNormalizer, CacheManager $cacheManager)
-    {
+    private RequestStack $requestStack;
+
+    public function __construct(
+        ObjectNormalizer $objectNormalizer,
+        CacheManager $cacheManager,
+        RequestStack $requestStack
+    ) {
         $this->objectNormalizer = $objectNormalizer;
         $this->cacheManager = $cacheManager;
+        $this->requestStack = $requestStack;
     }
 
     /**
@@ -39,7 +46,12 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
             throw new UnexpectedTypeException($data, 'array', ArrayObject::class);
         }
 
-        $data['image'] = '/bundles/setonosyliusgiftcardplugin/setono-logo.png';
+        $data['image'] = '';
+
+        $request = $this->requestStack->getMasterRequest();
+        if (null !== $request) {
+            $data['image'] = $request->getSchemeAndHttpHost() . '/bundles/setonosyliusgiftcardplugin/setono-logo.png';
+        }
 
         $image = $object->getBackgroundImage();
         if (null === $image) {
@@ -64,6 +76,10 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
     {
         $groups = (array) ($context['groups'] ?? []);
 
-        return $data instanceof GiftCardConfigurationInterface && in_array('setono:sylius-gift-card:preview', $groups, true);
+        return $data instanceof GiftCardConfigurationInterface && in_array(
+            'setono:sylius-gift-card:preview',
+            $groups,
+            true
+        );
     }
 }

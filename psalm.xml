@@ -25,6 +25,13 @@
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
         <pluginClass class="Weirdan\DoctrinePsalmPlugin\Plugin"/>
     </plugins>
+    <issueHandlers>
+        <DeprecatedMethod>
+            <errorLevel type="suppress">
+                <referencedMethod name="Symfony\Component\HttpFoundation\RequestStack::getMasterRequest"/>
+            </errorLevel>
+        </DeprecatedMethod>
+    </issueHandlers>
     <forbiddenFunctions>
         <function name="dd"/>
         <function name="dump"/>
