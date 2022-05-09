@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
-use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
-use Setono\SyliusGiftCardPlugin\Provider\DefaultGiftCardTemplateContentProviderInterface;
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -14,14 +12,9 @@ use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
-use Webmozart\Assert\Assert;
 
 final class GiftCardConfigurationType extends AbstractResourceType
 {
-    private DefaultGiftCardTemplateContentProviderInterface $defaultGiftCardTemplateContentProvider;
-
     /** @var list<string> */
     private array $availableOrientations;
 
@@ -38,7 +31,6 @@ final class GiftCardConfigurationType extends AbstractResourceType
      * @param list<string> $validationGroups
      */
     public function __construct(
-        DefaultGiftCardTemplateContentProviderInterface $defaultGiftCardTemplateContentProvider,
         array $availableOrientations,
         array $availablePageSizes,
         array $preferredPageSizes,
@@ -47,7 +39,6 @@ final class GiftCardConfigurationType extends AbstractResourceType
     ) {
         parent::__construct($dataClass, $validationGroups);
 
-        $this->defaultGiftCardTemplateContentProvider = $defaultGiftCardTemplateContentProvider;
         $this->availableOrientations = $availableOrientations;
         $this->availablePageSizes = $availablePageSizes;
         $this->preferredPageSizes = $preferredPageSizes;
@@ -127,17 +118,6 @@ final class GiftCardConfigurationType extends AbstractResourceType
                 }
             )
         );
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
-            /** @var mixed|GiftCardConfigurationInterface $obj */
-            $obj = $event->getData();
-            Assert::isInstanceOf($obj, GiftCardConfigurationInterface::class);
-
-            if ($obj->getId() !== null) {
-                return;
-            }
-
-            $obj->setTemplate($this->defaultGiftCardTemplateContentProvider->getContent());
-        });
     }
 
     public function getBlockPrefix(): string
