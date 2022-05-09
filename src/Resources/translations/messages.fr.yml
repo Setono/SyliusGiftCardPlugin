@@ -31,11 +31,6 @@ setono_sylius_gift_card:
             enabled: Activé
             orientation: Orientation
             page_size: Taille de la page
-            pdf_live_rendering:
-                css_option:
-                    logo_url_hint: Affiche le chemin du logo
-            pdf_rendering_css: CSS utilisé pour la génération du PDF
-            pdf_rendering_html: HTML utilisé pour la génération du PDF
         product:
             gift_card: Chèque-cadeau
             gift_card_amount_configurable: Montant chèque-cadeau configurable

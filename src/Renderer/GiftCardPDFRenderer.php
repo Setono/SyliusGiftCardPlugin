@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Renderer;
 
 use Knp\Snappy\GeneratorInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
-use Setono\SyliusGiftCardPlugin\Provider\GiftCardChannelConfigurationProviderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -19,18 +18,19 @@ final class GiftCardPDFRenderer implements GiftCardPDFRendererInterface
 {
     private Environment $twig;
 
-    private GiftCardChannelConfigurationProviderInterface $configurationProvider;
+    private GiftCardConfigurationProviderInterface $configurationProvider;
 
     private ChannelContextInterface $channelContext;
 
     private LocaleContextInterface $localeContext;
 
     private GeneratorInterface $snappy;
+
     private PdfRenderingOptionsProviderInterface $renderingOptionsProvider;
 
     public function __construct(
         Environment $twig,
-        GiftCardChannelConfigurationProviderInterface $configurationProvider,
+        GiftCardConfigurationProviderInterface $configurationProvider,
         ChannelContextInterface $channelContext,
         LocaleContextInterface $localeContext,
         GeneratorInterface $snappy,

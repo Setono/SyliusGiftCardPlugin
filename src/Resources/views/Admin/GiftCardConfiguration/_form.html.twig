@@ -37,26 +37,14 @@
     </div>
 </div>
 
-<div class="ui segment">
-    {{ 'setono_sylius_gift_card.ui.gift_card_configuration.pdf_live_rendering.title'|trans }}
+<div class="ui hidden divider"></div>
 
+<h3 class="ui top attached header">{{ 'setono_sylius_gift_card.ui.gift_card_configuration.pdf_live_rendering.title'|trans }}</h3>
+<div class="ui attached segment">
     <div class="ui two column stackable grid">
         <div class="column">
-            <div class="ui info message">
-                <div class="header">{{ 'setono_sylius_gift_card.ui.gift_card_configuration.pdf_live_rendering.hint_title'|trans }}</div>
-                <ul class="list">
-                    {% for optionName, hint in ssgc_get_pdf_options_hint() %}
-                        <li><code>{{ optionName }}</code> - {{ hint|trans }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
             {{ form_row(form.template) }}
             {% if resource.id is not null %}
-                <div>
-                    <label for="pdf_live_render_html_content">{{ 'setono_sylius_gift_card.form.gift_card_configuration.pdf_rendering_html'|trans }}</label>
-                    <textarea id="pdf_live_render_html_content" disabled>{{ ssgc_get_pdf_template_content() }}</textarea>
-                </div>
-
                 <button class="ui button primary labeled icon js-ssgc-apply-pdf-changes"
                         data-url="{{ path('setono_sylius_gift_card_admin_ajax_generate_pdf', {'id': resource.id}) }}">
                     <i class="icon check"></i>

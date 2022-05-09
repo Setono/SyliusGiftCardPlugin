@@ -31,10 +31,6 @@ setono_sylius_gift_card:
             enabled: Enabled
             orientation: Orientation
             page_size: Page size
-            pdf_live_rendering:
-                css_option:
-                    logo_url_hint: Displays the path of the logo URL
-            pdf_rendering_html: HTML used to render the PDF
             template: Template
         product:
             gift_card: Gift card
