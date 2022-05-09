@@ -29,5 +29,8 @@
                  class="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProvider"/>
         <service id="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface"
                  alias="setono_sylius_gift_card.provider.pdf_rendering_option"/>
+
+        <service id="setono_sylius_gift_card.provider.default_gift_card_template_content"
+                 class="Setono\SyliusGiftCardPlugin\Provider\DefaultGiftCardTemplateContentProvider"/>
     </services>
 </container>

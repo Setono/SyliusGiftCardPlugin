@@ -1,9 +1,4 @@
-{% set path = '' %}
-{% if configuration.backgroundImage is not null and configuration.backgroundImage.path is not empty %}
-    {% set path = configuration.backgroundImage.path|imagine_filter('setono_sylius_gift_card_background') %}
-{% endif %}
-
-<html lang="{{ sylius_base_locale }}">
+<html lang="{{ localeCode }}">
     <head>
         <title>Gift card: {{ giftCard.code }}</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">

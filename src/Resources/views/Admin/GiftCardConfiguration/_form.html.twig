@@ -39,16 +39,18 @@
 
 <div class="ui hidden divider"></div>
 
-<h3 class="ui top attached header">{{ 'setono_sylius_gift_card.ui.gift_card_configuration.pdf_live_rendering.title'|trans }}</h3>
+<h3 class="ui top attached header">
+    {{ 'setono_sylius_gift_card.ui.gift_card_configuration.pdf_live_rendering.title'|trans }}
+</h3>
 <div class="ui attached segment">
     <div class="ui two column stackable grid">
         <div class="column">
-            {{ form_row(form.template) }}
+            {{ form_row(form.template, {'attr': {'rows': 20}}) }}
             {% if resource.id is not null %}
                 <button class="ui button primary labeled icon js-ssgc-apply-pdf-changes"
                         data-url="{{ path('setono_sylius_gift_card_admin_ajax_generate_pdf', {'id': resource.id}) }}">
                     <i class="icon check"></i>
-                    {{ 'setono_sylius_gift_card.ui.apply'|trans }}
+                    {{ 'setono_sylius_gift_card.ui.update_preview'|trans }}
                 </button>
             {% endif %}
         </div>

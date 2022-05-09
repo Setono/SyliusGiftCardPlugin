@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Twig\Extension;
 
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
-use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\GiftCardPDFRendererInterface;
 use Twig\Extension\RuntimeExtensionInterface;
 
 final class PdfRuntime implements RuntimeExtensionInterface
 {
-    private GiftCardPdfGeneratorInterface $giftCardPdfGenerator;
+    private GiftCardPDFRendererInterface $giftCardPDFRenderer;
 
     private GiftCardFactoryInterface $giftCardFactory;
 
     public function __construct(
-        GiftCardPdfGeneratorInterface $giftCardPdfGenerator,
+        GiftCardPDFRendererInterface $giftCardPDFRenderer,
         GiftCardFactoryInterface $giftCardFactory
     ) {
-        $this->giftCardPdfGenerator = $giftCardPdfGenerator;
+        $this->giftCardPDFRenderer = $giftCardPDFRenderer;
         $this->giftCardFactory = $giftCardFactory;
     }
 
@@ -27,8 +27,6 @@ final class PdfRuntime implements RuntimeExtensionInterface
     {
         $giftCard = $this->giftCardFactory->createExample();
 
-        $content = $this->giftCardPdfGenerator->generateAndGetContent($giftCard, $giftCardChannelConfiguration);
-
-        return \base64_encode($content);
+        return (string) $this->giftCardPDFRenderer->render($giftCard, $giftCardChannelConfiguration)->encode();
     }
 }

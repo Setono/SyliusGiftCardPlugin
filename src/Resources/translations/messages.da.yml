@@ -71,6 +71,7 @@ setono_sylius_gift_card:
         product_is_not_gift_card: Produkt er ikke et gavekort
         resend_email: Gensend email
         total: Total
+        update_preview: Opdater preview
         your_gift_card_will_only_be_charged_if_you_complete_your_order: Dit gavekort hæves først når din ordre er gennemført
     email:
         balance: Balance

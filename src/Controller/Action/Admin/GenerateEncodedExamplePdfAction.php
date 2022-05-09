@@ -6,8 +6,8 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action\Admin;
 
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
-use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\GiftCardPDFRendererInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardConfigurationRepositoryInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,19 +20,19 @@ final class GenerateEncodedExamplePdfAction
 
     private GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository;
 
-    private GiftCardPdfGeneratorInterface $giftCardPdfGenerator;
+    private GiftCardPDFRendererInterface $giftCardPDFRenderer;
 
     private FormFactoryInterface $formFactory;
 
     public function __construct(
         GiftCardFactoryInterface $giftCardFactory,
         GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository,
-        GiftCardPdfGeneratorInterface $giftCardPdfGenerator,
+        GiftCardPDFRendererInterface $giftCardPDFRenderer,
         FormFactoryInterface $formFactory
     ) {
         $this->giftCardFactory = $giftCardFactory;
         $this->giftCardConfigurationRepository = $giftCardConfigurationRepository;
-        $this->giftCardPdfGenerator = $giftCardPdfGenerator;
+        $this->giftCardPDFRenderer = $giftCardPDFRenderer;
         $this->formFactory = $formFactory;
     }
 
@@ -47,8 +47,8 @@ final class GenerateEncodedExamplePdfAction
         $form = $this->formFactory->create(GiftCardConfigurationType::class, $giftCardConfiguration);
         $form->handleRequest($request);
 
-        $pdfContent = $this->giftCardPdfGenerator->generateAndGetContent($giftCard, $giftCardConfiguration);
+        $response = $this->giftCardPDFRenderer->render($giftCard, $giftCardConfiguration);
 
-        return new Response(\base64_encode($pdfContent));
+        return new Response((string) $response->encode());
     }
 }
