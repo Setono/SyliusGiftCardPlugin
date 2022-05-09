@@ -41,11 +41,15 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
 
         $image = $object->getBackgroundImage();
         if (null === $image) {
+            $data['image'] = '';
+
             return $data;
         }
 
         $path = $image->getPath();
         if (null === $path) {
+            $data['image'] = '';
+
             return $data;
         }
 
