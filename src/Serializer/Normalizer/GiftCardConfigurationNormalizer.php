@@ -39,17 +39,15 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
             throw new UnexpectedTypeException($data, 'array', ArrayObject::class);
         }
 
+        $data['image'] = '/bundles/setonosyliusgiftcardplugin/setono-logo.png';
+
         $image = $object->getBackgroundImage();
         if (null === $image) {
-            $data['image'] = '';
-
             return $data;
         }
 
         $path = $image->getPath();
         if (null === $path) {
-            $data['image'] = '';
-
             return $data;
         }
 
