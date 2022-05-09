@@ -9,10 +9,11 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GenerateEncodedExamplePdfAction;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
-use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\GiftCardPDFRendererInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PDFResponse;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardConfigurationRepositoryInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +32,7 @@ final class GenerateEncodedExamplePdfActionTest extends TestCase
         $exampleGiftCardFactory = $this->prophesize(GiftCardFactoryInterface::class);
         $exampleGiftCardFactory->createExample()->willReturn($giftCard);
         $giftCardConfiguration = new GiftCardConfiguration();
-        $giftCardConfigurationRepository = $this->prophesize(RepositoryInterface::class);
+        $giftCardConfigurationRepository = $this->prophesize(GiftCardConfigurationRepositoryInterface::class);
         $giftCardConfigurationRepository->find($id)->willReturn($giftCardConfiguration);
 
         $request = new Request();
@@ -40,16 +41,18 @@ final class GenerateEncodedExamplePdfActionTest extends TestCase
         $formFactory->create(GiftCardConfigurationType::class, $giftCardConfiguration)->willReturn($form);
         $form->handleRequest($request)->shouldBeCalled();
 
-        $giftCardPdfGenerator = $this->prophesize(GiftCardPdfGeneratorInterface::class);
-        $giftCardPdfGenerator->generateAndGetContent($giftCard, $giftCardConfiguration)->shouldBeCalled();
+        $pdfContent = 'PDF content';
+
+        $giftCardPDFRenderer = $this->prophesize(GiftCardPDFRendererInterface::class);
+        $giftCardPDFRenderer->render($giftCard, $giftCardConfiguration)->willReturn(new PDFResponse($pdfContent));
 
         $action = new GenerateEncodedExamplePdfAction(
             $exampleGiftCardFactory->reveal(),
             $giftCardConfigurationRepository->reveal(),
-            $giftCardPdfGenerator->reveal(),
+            $giftCardPDFRenderer->reveal(),
             $formFactory->reveal()
         );
         $response = $action($request, $id);
-        $this->assertEquals(null, $response->getContent());
+        $this->assertEquals(\base64_encode($pdfContent), $response->getContent());
     }
 }

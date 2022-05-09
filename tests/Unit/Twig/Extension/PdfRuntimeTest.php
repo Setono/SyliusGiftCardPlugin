@@ -7,12 +7,11 @@ namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Twig\Extension;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
-use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
-use Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProviderInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\GiftCardPDFRendererInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PDFResponse;
 use Setono\SyliusGiftCardPlugin\Twig\Extension\PdfRuntime;
-use Twig\Environment;
 
 final class PdfRuntimeTest extends TestCase
 {
@@ -25,23 +24,19 @@ final class PdfRuntimeTest extends TestCase
     {
         $giftCard = new GiftCard();
         $giftCardConfiguration = new GiftCardConfiguration();
-        $pdfContent = 'Super pdf content';
+        $pdfResponse = new PDFResponse('Super pdf content');
 
-        $cssOptionProvider = $this->prophesize(PdfAvailableCssOptionProviderInterface::class);
-        $twig = $this->prophesize(Environment::class);
-        $giftCardPdfGenerator = $this->prophesize(GiftCardPdfGeneratorInterface::class);
-        $giftCardPdfGenerator->generateAndGetContent($giftCard, $giftCardConfiguration)->willReturn($pdfContent);
+        $giftCardPDFRenderer = $this->prophesize(GiftCardPDFRendererInterface::class);
+        $giftCardPDFRenderer->render($giftCard, $giftCardConfiguration)->willReturn($pdfResponse);
         $giftCardFactory = $this->prophesize(GiftCardFactoryInterface::class);
         $giftCardFactory->createExample()->willReturn($giftCard);
 
         $runtime = new PdfRuntime(
-            $cssOptionProvider->reveal(),
-            $twig->reveal(),
-            $giftCardPdfGenerator->reveal(),
+            $giftCardPDFRenderer->reveal(),
             $giftCardFactory->reveal()
         );
         $base64Content = $runtime->getBase64EncodedExamplePdfContent($giftCardConfiguration);
 
-        $this->assertEquals(\base64_encode($pdfContent), $base64Content);
+        $this->assertEquals((string) $pdfResponse->encode(), $base64Content);
     }
 }
