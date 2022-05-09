@@ -45,12 +45,12 @@ final class ConfigurationTest extends TestCase
         ], [
             'code_length' => 20,
             'pdf_rendering' => [
-                'default_orientation' => 'Portrait',
+                'default_orientation' => 'Landscape',
                 'available_orientations' => [
                     'Portrait',
                     'Landscape',
                 ],
-                'default_page_size' => 'A4',
+                'default_page_size' => 'A6',
                 'available_page_sizes' => [
                     'A0',
                     'A1',
