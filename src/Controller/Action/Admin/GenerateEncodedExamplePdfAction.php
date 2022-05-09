@@ -8,7 +8,7 @@ use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardConfigurationRepositoryInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ final class GenerateEncodedExamplePdfAction
 {
     private GiftCardFactoryInterface $giftCardFactory;
 
-    private RepositoryInterface $giftCardConfigurationRepository;
+    private GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository;
 
     private GiftCardPdfGeneratorInterface $giftCardPdfGenerator;
 
@@ -26,7 +26,7 @@ final class GenerateEncodedExamplePdfAction
 
     public function __construct(
         GiftCardFactoryInterface $giftCardFactory,
-        RepositoryInterface $giftCardConfigurationRepository,
+        GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository,
         GiftCardPdfGeneratorInterface $giftCardPdfGenerator,
         FormFactoryInterface $formFactory
     ) {
@@ -39,6 +39,7 @@ final class GenerateEncodedExamplePdfAction
     public function __invoke(Request $request, int $id): Response
     {
         $giftCard = $this->giftCardFactory->createExample();
+
         /** @var GiftCardConfigurationInterface|null $giftCardConfiguration */
         $giftCardConfiguration = $this->giftCardConfigurationRepository->find($id);
         Assert::isInstanceOf($giftCardConfiguration, GiftCardConfigurationInterface::class);

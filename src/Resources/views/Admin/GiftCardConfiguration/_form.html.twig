@@ -50,12 +50,6 @@
                     <i class="icon check"></i>
                     {{ 'setono_sylius_gift_card.ui.apply'|trans }}
                 </button>
-
-                <button class="ui button primary labeled icon js-ssgc-load-default-pdf-css"
-                        data-url="{{ path('setono_sylius_gift_card_admin_ajax_load_default_pdf_css', {'id': resource.id}) }}">
-                    <i class="icon check"></i>
-                    {{ 'setono_sylius_gift_card.ui.load_default_css'|trans }}
-                </button>
             {% endif %}
         </div>
         <div class="column js-ssgc-live-render-container" style="height: 900px;">
