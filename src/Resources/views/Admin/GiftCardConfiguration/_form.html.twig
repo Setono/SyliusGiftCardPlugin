@@ -1,5 +1,12 @@
 {% form_theme form '@SyliusAdmin/Form/imagesTheme.html.twig' %}
 
+<style>
+    /* This is a hack to fix this: https://github.com/Setono/SyliusGiftCardPlugin/issues/207 */
+    .ui.grid:empty {
+        display: none;
+    }
+</style>
+
 {{ form_errors(form) }}
 <div class="ui two column stackable grid">
     <div class="column">
