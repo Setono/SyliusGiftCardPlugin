@@ -16,7 +16,7 @@ body {
 }
 </style>
 <p class="code">{{ giftCard.code }}</p>
-<p class="amount">{{ giftCard.amountFormatted }}</p>
+<p class="amount">{{ giftCard.amount }}</p>
 TWIG;
     }
 }

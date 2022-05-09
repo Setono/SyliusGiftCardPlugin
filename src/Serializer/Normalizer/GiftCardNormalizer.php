@@ -39,7 +39,7 @@ final class GiftCardNormalizer implements ContextAwareNormalizerInterface
         }
 
         $localeCode = $context['localeCode'] ?? 'en_US';
-        $data['amountFormatted'] = $this->moneyFormatter->format($object->getAmount(), (string) $object->getCurrencyCode(), $localeCode);
+        $data['amount'] = $this->moneyFormatter->format($object->getAmount(), (string) $object->getCurrencyCode(), $localeCode);
 
         return $data;
     }
