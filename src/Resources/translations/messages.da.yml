@@ -50,7 +50,7 @@ setono_sylius_gift_card:
         covered_by_gift_cards: Dækket af gavekort
         count: Optælling
         create_for_channel: Opret %channel%
-        customer_help_text: Når du opretter et gavekort og tilknytter en kunde vil Sylius automatisk sende en email til kunden
+        customer_help_text: Når du opretter et gavekort og tilknytter en kunde kan Sylius automatisk sende en email til kunden
         customer_email: Customer email
         download_pdf: PDF
         edit_gift_card: Rediger gavekort
