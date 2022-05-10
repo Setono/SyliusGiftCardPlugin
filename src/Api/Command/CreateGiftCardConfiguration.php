@@ -8,9 +8,9 @@ class CreateGiftCardConfiguration
 {
     public string $code;
 
-    public bool $default;
+    public bool $default = false;
 
-    public bool $enabled;
+    public bool $enabled = true;
 
     public ?string $defaultValidityPeriod = null;
 
@@ -22,8 +22,8 @@ class CreateGiftCardConfiguration
 
     public function __construct(
         string $code,
-        bool $default,
-        bool $enabled,
+        bool $default = false,
+        bool $enabled = true,
         ?string $defaultValidityPeriod = null,
         ?string $pageSize = null,
         ?string $orientation = null,
