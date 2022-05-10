@@ -12,8 +12,6 @@ use Setono\SyliusGiftCardPlugin\Api\Command\CreateGiftCardConfiguration;
 use Setono\SyliusGiftCardPlugin\Api\CommandHandler\CreateGiftCardConfigurationHandler;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardConfigurationFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
-use Setono\SyliusGiftCardPlugin\Repository\GiftCardConfigurationRepositoryInterface;
 
 final class CreateGiftCardConfigurationHandlerTest extends TestCase
 {
