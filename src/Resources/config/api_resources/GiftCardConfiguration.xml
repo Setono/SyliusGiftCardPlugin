@@ -20,12 +20,12 @@
             <collectionOperation name="admin_post">
                 <attribute name="method">POST</attribute>
                 <attribute name="path" />
-                <attribute name="normalization_context">
-                    <attribute name="groups">admin:gift_card_configuration:read</attribute>
-                </attribute>
+                <attribute name="messenger">input</attribute>
+                <attribute name="input">Setono\SyliusGiftCardPlugin\Api\Command\CreateGiftCardConfiguration</attribute>
                 <attribute name="denormalization_context">
                     <attribute name="groups">admin:gift_card_configuration:create</attribute>
                 </attribute>
+                <attribute name="validation_groups">setono_sylius_gift_card_configuration</attribute>
             </collectionOperation>
         </collectionOperations>
 

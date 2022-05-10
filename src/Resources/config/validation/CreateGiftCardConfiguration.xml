@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<constraint-mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://symfony.com/schema/dic/constraint-mapping"
+                    xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/services/constraint-mapping-1.0.xsd">
+
+    <class name="Setono\SyliusGiftCardPlugin\Api\Command\CreateGiftCardConfiguration">
+        <property name="code">
+            <constraint name="NotBlank">
+                <option name="groups">setono_sylius_gift_card_configuration</option>
+            </constraint>
+            <constraint name="Length">
+                <option name="max">255</option>
+                <option name="groups">setono_sylius_gift_card_configuration</option>
+            </constraint>
+        </property>
+        <property name="defaultValidityPeriod">
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\DatePeriod">
+                <option name="groups">setono_sylius_gift_card_configuration</option>
+            </constraint>
+        </property>
+        <property name="orientation">
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidOrientation">
+                <option name="groups">setono_sylius_gift_card_configuration</option>
+            </constraint>
+        </property>
+        <property name="pageSize">
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidPageSize">
+                <option name="groups">setono_sylius_gift_card_configuration</option>
+            </constraint>
+        </property>
+    </class>
+</constraint-mapping>
