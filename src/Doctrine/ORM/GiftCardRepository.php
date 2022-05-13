@@ -69,4 +69,14 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
 
         return $qb;
     }
+
+    public function findCreatedBefore(\DateTimeInterface $date): array
+    {
+        $qb = $this->createQueryBuilder('gc');
+
+        $qb->andWhere('gc.createdAt < :date');
+        $qb->setParameter('date', $date->format('Y-m-d H:i:s'));
+
+        return $qb->getQuery()->getResult();
+    }
 }
