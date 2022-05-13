@@ -11,9 +11,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class DeleteOldGiftCardsCommand extends Command
+final class DisableOldGiftCardsCommand extends Command
 {
-    protected static $defaultName = 'setono:sylius-gift-card:delete-old-gift-cards';
+    protected static $defaultName = 'setono:sylius-gift-card:disable-old-gift-cards';
 
     private GiftCardRepositoryInterface $giftCardRepository;
 
@@ -32,9 +32,10 @@ final class DeleteOldGiftCardsCommand extends Command
 
     protected function configure(): void
     {
-        $this->setDescription('Deletes gift cards older than the provided date.');
-        $this->setHelp(<<<'EOF'
-The <info>%command.name%</info> command deletes gift cards older than the provided date.
+        $this->setDescription('Disable gift cards older than the provided date.');
+        $this->setHelp(
+            <<<'EOF'
+The <info>%command.name%</info> command disables gift cards older than the provided date.
 
 Date option accepts any date format accepted by PHP's <info>DateTime</info> class.
 Such as "2020-01-01" or "2020-01-01 12:00:00" or "-3 years".
@@ -47,14 +48,14 @@ EOF
             'date',
             null,
             InputOption::VALUE_OPTIONAL,
-            'The date to delete gift cards older than.',
+            'The date to disable gift cards older than.',
             null
         );
         $this->addOption(
             'period',
             null,
             InputOption::VALUE_OPTIONAL,
-            'The period to delete gift cards older than.',
+            'The period to disable gift cards older than.',
             null
         );
     }
@@ -89,14 +90,19 @@ EOF
             return 0;
         }
 
-        $giftCards = $this->giftCardRepository->findCreatedBefore($thresholdDate);
-        foreach ($giftCards as $giftCard) {
-            $this->giftCardManager->remove($giftCard);
-        }
+        $disabledGiftCardsAmount = 0;
+        do {
+            $giftCards = $this->giftCardRepository->findEnabledCreatedBefore($thresholdDate);
+            foreach ($giftCards as $giftCard) {
+                $giftCard->disable();
+            }
 
-        $this->giftCardManager->flush();
+            $this->giftCardManager->flush();
 
-        $output->writeln(\sprintf('Deleted %d gift cards.', \count($giftCards)));
+            $disabledGiftCardsAmount += count($giftCards);
+        } while (count($giftCards) > 0);
+
+        $output->writeln(\sprintf('Disabled %d gift cards.', $disabledGiftCardsAmount));
 
         return 1;
     }
