@@ -21,10 +21,9 @@ final class DisableOldGiftCardsCommand extends Command
 
     public function __construct(
         GiftCardRepositoryInterface $giftCardRepository,
-        ObjectManager $giftCardManager,
-        ?string $name = null
+        ObjectManager $giftCardManager
     ) {
-        parent::__construct($name);
+        parent::__construct();
 
         $this->giftCardRepository = $giftCardRepository;
         $this->giftCardManager = $giftCardManager;
