@@ -27,4 +27,9 @@ interface GiftCardRepositoryInterface extends RepositoryInterface
     public function findEnabled(): array;
 
     public function createAccountListQueryBuilder(CustomerInterface $customer): QueryBuilder;
+
+    /**
+     * @return GiftCardInterface[]
+     */
+    public function findEnabledCreatedBefore(\DateTimeInterface $date, ?int $limit = 100): array;
 }

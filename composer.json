@@ -17,6 +17,7 @@
         "knplabs/knp-snappy-bundle": "^1.7",
         "sylius/resource-bundle": "^1.6",
         "symfony/config": "^4.4 || ^5.0",
+        "symfony/console": "^4.4 || ^5.0",
         "symfony/dependency-injection": "^4.4 || ^5.0",
         "symfony/event-dispatcher": "^4.4 || ^5.0",
         "symfony/form": "^4.4 || ^5.0",
@@ -38,7 +39,6 @@
         "phpunit/phpunit": "^9.5",
         "psalm/plugin-phpunit": "^0.16.0",
         "psalm/plugin-symfony": "^2.1",
-        "roave/security-advisories": "dev-latest",
         "setono/code-quality-pack": "^2.1",
         "setono/sylius-behat-pack": "^0.1",
         "setono/sylius-catalog-promotion-plugin": "^0.2.0",
@@ -69,7 +69,8 @@
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": false,
             "ergebnis/composer-normalize": true,
-            "symfony/thanks": true
+            "symfony/thanks": true,
+            "composer/package-versions-deprecated": true
         },
         "sort-packages": true
     },
