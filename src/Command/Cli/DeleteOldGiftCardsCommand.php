@@ -33,6 +33,16 @@ final class DeleteOldGiftCardsCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Deletes gift cards older than the provided date.');
+        $this->setHelp(<<<'EOF'
+The <info>%command.name%</info> command deletes gift cards older than the provided date.
+
+Date option accepts any date format accepted by PHP's <info>DateTime</info> class.
+Such as "2020-01-01" or "2020-01-01 12:00:00" or "-3 years".
+
+Period option accepts any period format accepted by PHP's <info>DateInterval</info> class.
+Such as "P1Y" or "P1Y2M".
+EOF
+        );
         $this->addOption(
             'date',
             null,
@@ -67,7 +77,12 @@ final class DeleteOldGiftCardsCommand extends Command
         }
 
         try {
-            $thresholdDate = new \DateTimeImmutable($date ?? $period);
+            if (null !== $date) {
+                $thresholdDate = new \DateTimeImmutable($date);
+            } else {
+                $thresholdDate = new \DateTimeImmutable('now');
+                $thresholdDate = $thresholdDate->sub(new \DateInterval($period));
+            }
         } catch (\Exception $e) {
             $output->writeln('The provided date or period is not valid.');
 

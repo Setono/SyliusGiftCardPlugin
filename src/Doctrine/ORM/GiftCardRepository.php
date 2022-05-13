@@ -75,7 +75,7 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
         $qb = $this->createQueryBuilder('gc');
 
         $qb->andWhere('gc.createdAt < :date');
-        $qb->setParameter('date', $date->format('Y-m-d H:i:s'));
+        $qb->setParameter('date', $date);
 
         return $qb->getQuery()->getResult();
     }
