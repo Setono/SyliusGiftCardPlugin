@@ -10,7 +10,7 @@
             {{ 'setono_sylius_gift_card.ui.applied_gift_cards'|trans }}
         </strong>
 
-        {{ sonata_block_render_event('setono_sylius_gift_card.shop.cart.summary.applied_gift_cards', {'cart': cart}) }}
+        {{ sylius_template_event('setono_sylius_gift_card.shop.cart.summary.applied_gift_cards', {'cart': cart}) }}
 
         <table class="ui very basic table">
             <tbody>
