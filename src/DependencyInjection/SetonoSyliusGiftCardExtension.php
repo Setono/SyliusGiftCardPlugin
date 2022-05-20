@@ -48,6 +48,10 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
             'setono_sylius_gift_card.pdf_rendering.available_page_sizes',
             $config['pdf_rendering']['available_page_sizes']
         );
+        $container->setParameter(
+            'setono_sylius_gift_card.pdf_rendering.preferred_page_sizes',
+            $config['pdf_rendering']['preferred_page_sizes']
+        );
 
         // Load default CSS file
         $container->setParameter(

@@ -110,5 +110,11 @@ interface PdfRenderingOptionsProviderInterface
         self::PAGE_SIZE_TABLOID,
     ];
 
+    public const PREFERRED_PAGE_SIZES = [
+        self::PAGE_SIZE_A4,
+        self::PAGE_SIZE_A5,
+        self::PAGE_SIZE_A6,
+    ];
+
     public function getRenderingOptions(GiftCardConfigurationInterface $giftCardConfiguration): array;
 }
