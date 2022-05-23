@@ -21,6 +21,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
          *         available_orientations: list<string>,
          *         default_page_size: string,
          *         available_page_sizes: list<string>,
+         *         preferred_page_sizes: list<string>,
          *     },
          *     code_length: int,
          *     driver: string,
