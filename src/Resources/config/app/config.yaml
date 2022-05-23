@@ -37,3 +37,35 @@ sylius_ui:
         setono_sylius_gift_card.admin.gift_card.create.javascripts:
             blocks:
                 send_customer_email_js: '@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Create/_javascripts.html.twig'
+        
+        setono_sylius_gift_card.shop.account.gift_card.index.after_content_header:
+            blocks:
+                after_content_header_legacy:
+                    template: "@SyliusUi/Block/_legacySonataEvent.html.twig"
+                    priority: 50
+                    context:
+                        event: setono_sylius_gift_card.shop.account.gift_card.index.after_content_header
+        
+        setono_sylius_gift_card.shop.account.gift_card.index.after_grid:
+            blocks:
+                after_content_header_legacy:
+                    template: "@SyliusUi/Block/_legacySonataEvent.html.twig"
+                    priority: 50
+                    context:
+                        event: setono_sylius_gift_card.shop.account.gift_card.index.after_grid
+        
+        setono_sylius_gift_card.shop.account.gift_card.index.header:
+            blocks:
+                after_content_header_legacy:
+                    template: "@SyliusUi/Block/_legacySonataEvent.html.twig"
+                    priority: 50
+                    context:
+                        event: setono_sylius_gift_card.shop.account.gift_card.index.header
+        
+        setono_sylius_gift_card.shop.cart.summary.applied_gift_cards:
+            blocks:
+                after_content_header_legacy:
+                    template: "@SyliusUi/Block/_legacySonataEvent.html.twig"
+                    priority: 50
+                    context:
+                        event: setono_sylius_gift_card.shop.cart.summary.applied_gift_cards
