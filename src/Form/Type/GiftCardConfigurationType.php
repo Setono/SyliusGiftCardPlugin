@@ -21,6 +21,9 @@ final class GiftCardConfigurationType extends AbstractResourceType
     /** @var list<string> */
     private array $availablePageSizes;
 
+    /** @var list<string> */
+    private array $preferredPageSizes;
+
     /**
      * @param list<string> $availableOrientations
      * @param list<string> $availablePageSizes
@@ -29,11 +32,13 @@ final class GiftCardConfigurationType extends AbstractResourceType
     public function __construct(
         array $availableOrientations,
         array $availablePageSizes,
+        array $preferredPageSizes,
         string $dataClass,
         array $validationGroups = []
     ) {
         $this->availableOrientations = $availableOrientations;
         $this->availablePageSizes = $availablePageSizes;
+        $this->preferredPageSizes = $preferredPageSizes;
 
         parent::__construct($dataClass, $validationGroups);
     }
@@ -69,6 +74,7 @@ final class GiftCardConfigurationType extends AbstractResourceType
         ]);
         $builder->add('pageSize', ChoiceType::class, [
             'choices' => $this->availablePageSizes,
+            'preferred_choices' => $this->preferredPageSizes,
             'label' => 'setono_sylius_gift_card.form.gift_card_configuration.page_size',
             'choice_translation_domain' => false,
             'choice_label' => function (string $value) {

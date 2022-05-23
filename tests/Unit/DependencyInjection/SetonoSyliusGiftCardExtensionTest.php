@@ -60,5 +60,10 @@ final class SetonoSyliusGiftCardExtensionTest extends AbstractExtensionTestCase
             PdfRenderingOptionsProviderInterface::PAGE_SIZE_LETTER,
             PdfRenderingOptionsProviderInterface::PAGE_SIZE_TABLOID,
         ]);
+        $this->assertContainerBuilderHasParameter('setono_sylius_gift_card.pdf_rendering.preferred_page_sizes', [
+            PdfRenderingOptionsProviderInterface::PAGE_SIZE_A4,
+            PdfRenderingOptionsProviderInterface::PAGE_SIZE_A5,
+            PdfRenderingOptionsProviderInterface::PAGE_SIZE_A6,
+        ]);
     }
 }

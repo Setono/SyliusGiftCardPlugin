@@ -83,6 +83,11 @@ final class ConfigurationTest extends TestCase
                     'Letter',
                     'Tabloid',
                 ],
+                'preferred_page_sizes' => [
+                    'A4',
+                    'A5',
+                    'A6',
+                ],
             ],
             'driver' => SyliusResourceBundle::DRIVER_DOCTRINE_ORM,
             'resources' => [

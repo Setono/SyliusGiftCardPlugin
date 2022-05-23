@@ -82,6 +82,7 @@
 
             <argument>%setono_sylius_gift_card.pdf_rendering.available_orientations%</argument>
             <argument>%setono_sylius_gift_card.pdf_rendering.available_page_sizes%</argument>
+            <argument>%setono_sylius_gift_card.pdf_rendering.preferred_page_sizes%</argument>
             <argument>%setono_sylius_gift_card.model.gift_card_configuration.class%</argument>
             <argument>%setono_sylius_gift_card.form.type.gift_card_configuration.validation_groups%</argument>
             <tag name="form.type"/>
