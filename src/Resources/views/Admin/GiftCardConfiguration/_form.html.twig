@@ -19,7 +19,11 @@
                     {{ form_widget(form.defaultValidityPeriod.unit, {'attr': {'class': 'ui compact selection dropdown'}}) }}
                 </div>
             </div>
-            {{ form_row(form.backgroundImage) }}
+            <div class="field" id="ssgc_configuration_background_image">
+                {{ form_label(form.backgroundImage) }}
+                {{ form_widget(form.backgroundImage) }}
+                {{ form_errors(form.backgroundImage) }}
+            </div>
             {{ form_row(form.pageSize) }}
             {{ form_row(form.orientation) }}
         </div>
