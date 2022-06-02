@@ -40,3 +40,8 @@ The gift card will be marked as manually created in the admin panel, but can be 
 
 Customers can buy gift cards in the store if there is any product marked as gift card. As soon as the customer pays for it in the checkout process,
 it will create a gift card of the same value and send email to the customer containing the code.
+
+#### Buying a gift card via API
+
+It is also possible to buy a gift card via API. The endpoint is the same as for a regular product, and new fields have been added as seen in the screen
+![Adding Order Item](images/add-item-api-doc.png)
