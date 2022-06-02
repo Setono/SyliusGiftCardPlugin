@@ -44,4 +44,4 @@ it will create a gift card of the same value and send email to the customer cont
 #### Buying a gift card via API
 
 It is also possible to buy a gift card via API. The endpoint is the same as for a regular product, and new fields have been added as seen in the screen
-![Adding Order Item](images/add-item-api.png)
+![Adding Order Item](images/add-item-api-doc.png)
