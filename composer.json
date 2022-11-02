@@ -37,7 +37,7 @@
         "matthiasnoback/symfony-dependency-injection-test": "^4.1",
         "phpspec/phpspec": "^7.0",
         "phpunit/phpunit": "^9.5",
-        "psalm/plugin-phpunit": "^0.16.0",
+        "psalm/plugin-phpunit": "^0.16.0 || ^0.18.0",
         "psalm/plugin-symfony": "^2.1",
         "setono/code-quality-pack": "^2.1",
         "setono/sylius-behat-pack": "^0.1",
