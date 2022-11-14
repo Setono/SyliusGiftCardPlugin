@@ -2,12 +2,12 @@ name: "build"
 on:
     push:
         branches:
-            - "0.12.x"
+            - "0.*"
         paths-ignore:
-            - "*.md"
+            - "**/*.md"
     pull_request:
         paths-ignore:
-            - "*.md"
+            - "**/*.md"
     workflow_dispatch: ~
 
 env:
