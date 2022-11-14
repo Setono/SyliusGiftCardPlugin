@@ -11,6 +11,7 @@ use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderItemUnitInterface;
+use Webmozart\Assert\Assert;
 
 class GiftCardRepository extends EntityRepository implements GiftCardRepositoryInterface
 {
@@ -24,41 +25,45 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
 
     public function findOneEnabledByCodeAndChannel(string $code, ChannelInterface $channel): ?GiftCardInterface
     {
-        /** @var GiftCardInterface|null $giftCard */
         $giftCard = $this->findOneBy([
             'code' => $code,
             'channel' => $channel,
             'enabled' => true,
         ]);
+        Assert::nullOrIsInstanceOf($giftCard, GiftCardInterface::class);
 
         return $giftCard;
     }
 
     public function findOneByCode(string $code): ?GiftCardInterface
     {
-        /** @var GiftCardInterface|null $giftCard */
         $giftCard = $this->findOneBy([
             'code' => $code,
         ]);
+        Assert::nullOrIsInstanceOf($giftCard, GiftCardInterface::class);
 
         return $giftCard;
     }
 
     public function findOneByOrderItemUnit(OrderItemUnitInterface $orderItemUnit): ?GiftCardInterface
     {
-        /** @var GiftCardInterface|null $giftCard */
         $giftCard = $this->findOneBy([
             'orderItemUnit' => $orderItemUnit,
         ]);
+        Assert::nullOrIsInstanceOf($giftCard, GiftCardInterface::class);
 
         return $giftCard;
     }
 
     public function findEnabled(): array
     {
-        return $this->findBy([
+        $giftCards = $this->findBy([
             'enabled' => true,
         ]);
+
+        Assert::allIsInstanceOf($giftCards, GiftCardInterface::class);
+
+        return $giftCards;
     }
 
     public function createAccountListQueryBuilder(CustomerInterface $customer): QueryBuilder

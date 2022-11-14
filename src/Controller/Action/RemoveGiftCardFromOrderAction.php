@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
@@ -42,7 +43,10 @@ final class RemoveGiftCardFromOrderAction
         $order = $this->cartContext->getCart();
         Assert::notNull($order);
 
-        $this->giftCardApplicator->remove($order, $request->attributes->get('giftCard'));
+        /** @var string|GiftCardInterface $giftCard */
+        $giftCard = $request->attributes->get('giftCard');
+
+        $this->giftCardApplicator->remove($order, $giftCard);
 
         $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_removed');
 

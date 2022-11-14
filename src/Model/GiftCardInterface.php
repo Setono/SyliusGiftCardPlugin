@@ -80,6 +80,8 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
      * Orders where this gift card was applied
      *
      * @return Collection|OrderInterface[]
+     *
+     * @psalm-return Collection<array-key, OrderInterface>
      */
     public function getAppliedOrders(): Collection;
 

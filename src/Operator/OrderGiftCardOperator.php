@@ -129,7 +129,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
     }
 
     /**
-     * @return Collection|OrderItemInterface[]
+     * @return Collection<array-key, OrderItemInterface>
      */
     private static function getOrderItemsThatAreGiftCards(OrderInterface $order): Collection
     {

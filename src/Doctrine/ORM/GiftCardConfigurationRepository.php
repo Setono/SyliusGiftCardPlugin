@@ -34,8 +34,12 @@ class GiftCardConfigurationRepository extends EntityRepository implements GiftCa
 
     public function findDefault(): ?GiftCardConfigurationInterface
     {
-        return $this->findOneBy([
+        $obj = $this->findOneBy([
             'default' => true,
         ]);
+
+        Assert::nullOrIsInstanceOf($obj, GiftCardConfigurationInterface::class);
+
+        return $obj;
     }
 }

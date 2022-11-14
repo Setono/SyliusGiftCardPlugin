@@ -27,6 +27,9 @@ final class GiftCardType extends AbstractResourceType
 
     private GiftCardCodeGeneratorInterface $giftCardCodeGenerator;
 
+    /**
+     * @param list<string> $validationGroups
+     */
     public function __construct(
         string $dataClass,
         RepositoryInterface $currencyRepository,

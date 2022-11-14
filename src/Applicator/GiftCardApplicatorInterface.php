@@ -22,7 +22,7 @@ interface GiftCardApplicatorInterface
     public function apply(OrderInterface $order, $giftCard): void;
 
     /**
-     * @param string|GiftCardInterface|mixed $giftCard
+     * @param string|GiftCardInterface $giftCard
      */
     public function remove(OrderInterface $order, $giftCard): void;
 }

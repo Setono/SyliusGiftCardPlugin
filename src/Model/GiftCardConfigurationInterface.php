@@ -24,6 +24,8 @@ interface GiftCardConfigurationInterface extends
 
     /**
      * @return Collection|GiftCardChannelConfigurationInterface[]
+     *
+     * @psalm-return Collection<array-key, GiftCardChannelConfigurationInterface>
      */
     public function getChannelConfigurations(): Collection;
 

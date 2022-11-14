@@ -27,6 +27,7 @@ final class GiftCardConfigurationType extends AbstractResourceType
     /**
      * @param list<string> $availableOrientations
      * @param list<string> $availablePageSizes
+     * @param list<string> $preferredPageSizes
      * @param list<string> $validationGroups
      */
     public function __construct(

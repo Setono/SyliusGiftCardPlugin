@@ -47,13 +47,13 @@ final class UploadGiftCardConfigurationImageAction
         $image->setFile($file);
 
         /** @var string $imageType */
-        $imageType = $request->get('type');
+        $imageType = $request->request->get('type') ?? $request->query->get('type');
         Assert::notEmpty($imageType);
 
         $image->setType($imageType);
 
         /** @var string $ownerIri */
-        $ownerIri = $request->get('owner');
+        $ownerIri = $request->request->get('owner') ?? $request->query->get('type');
         Assert::notEmpty($ownerIri);
 
         /** @var ResourceInterface|GiftCardConfigurationInterface $owner */

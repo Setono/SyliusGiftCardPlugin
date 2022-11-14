@@ -26,6 +26,9 @@ final class GiftCardBalanceCollection implements Countable, Iterator
         $this->collection[$currencyCode]->add($giftCard->getAmount());
     }
 
+    /**
+     * @param iterable<GiftCardInterface> $giftCards
+     */
     public static function createFromGiftCards(iterable $giftCards): self
     {
         $collection = new self();

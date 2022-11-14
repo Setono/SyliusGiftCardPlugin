@@ -45,6 +45,10 @@ final class GiftCardToCodeDataTransformer implements DataTransformerInterface
             return null;
         }
 
+        if (!is_string($value)) {
+            throw new TransformationFailedException('Expected the value to be a string');
+        }
+
         $giftCard = $this->giftCardRepository->findOneEnabledByCodeAndChannel(
             $value,
             $this->channelContext->getChannel()

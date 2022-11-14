@@ -48,17 +48,20 @@ final class ResendGiftCardEmailAction
                 'parameters' => ['%id%' => $id],
             ]);
 
-            return new RedirectResponse($this->getRedirectRoute($request));
+            return new RedirectResponse($this->getRedirectUrl($request));
         }
 
-        if ($giftCard->getOrder() instanceof OrderInterface) {
-            $this->giftCardEmailManager->sendEmailWithGiftCardsFromOrder($giftCard->getOrder(), [$giftCard]);
+        $order = $giftCard->getOrder();
+        $customer = $giftCard->getCustomer();
+
+        if ($order instanceof OrderInterface) {
+            $this->giftCardEmailManager->sendEmailWithGiftCardsFromOrder($order, [$giftCard]);
             $this->flashBag->add('success', [
                 'message' => 'setono_sylius_gift_card.gift_card.resent',
                 'parameters' => ['%id%' => $id],
             ]);
-        } elseif ($giftCard->getCustomer() instanceof CustomerInterface) {
-            $this->giftCardEmailManager->sendEmailToCustomerWithGiftCard($giftCard->getCustomer(), $giftCard);
+        } elseif ($customer instanceof CustomerInterface) {
+            $this->giftCardEmailManager->sendEmailToCustomerWithGiftCard($customer, $giftCard);
             $this->flashBag->add('success', [
                 'message' => 'setono_sylius_gift_card.gift_card.resent',
                 'parameters' => ['%id%' => $id],
@@ -70,16 +73,17 @@ final class ResendGiftCardEmailAction
             ]);
         }
 
-        return new RedirectResponse($this->getRedirectRoute($request));
+        return new RedirectResponse($this->getRedirectUrl($request));
     }
 
-    private function getRedirectRoute(Request $request): string
+    private function getRedirectUrl(Request $request): string
     {
         if ($request->headers->has('referer')) {
+            /** @var mixed $filtered */
             $filtered = filter_var($request->headers->get('referer'), FILTER_SANITIZE_URL);
 
-            if (false === $filtered) {
-                return $this->router->generate('setono_sylius_gift_card_admin_gift_card_index');
+            if (is_string($filtered)) {
+                return $filtered;
             }
         }
 
