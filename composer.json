@@ -38,6 +38,7 @@
     },
     "require-dev": {
         "friendsofsymfony/oauth-server-bundle": ">2.0.0-alpha.0 ^2.0@dev",
+        "lexik/jwt-authentication-bundle": "^2.16",
         "matthiasnoback/symfony-config-test": "^4.3",
         "matthiasnoback/symfony-dependency-injection-test": "^4.3",
         "phpspec/phpspec": "^7.0",
@@ -54,8 +55,10 @@
         "symfony/dotenv": "^4.4 || ^5.4 || ^6.0",
         "symfony/framework-bundle": "^4.4 || ^5.4 || ^6.0",
         "symfony/intl": "^4.4 || ^5.4 || ^6.0",
-        "symfony/proxy-manager-bridge": "^4.4 || ^5.4 || ^6.0",
+        "symfony/property-info": "^4.4 || ^5.4 || ^6.0",
+        "symfony/serializer": "^4.4 || ^5.4 || ^6.0",
         "symfony/web-profiler-bundle": "^4.4 || ^5.4 || ^6.0",
+        "symfony/webpack-encore-bundle": "^1.15",
         "weirdan/doctrine-psalm-plugin": "^2.5"
     },
     "prefer-stable": true,
