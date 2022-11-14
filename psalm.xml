@@ -30,6 +30,7 @@
         <function name="dump"/>
     </forbiddenFunctions>
     <issueHandlers>
+        <DeprecatedMethod errorLevel="suppress"/>
         <PluginIssue name="QueryBuilderSetParameter" errorLevel="suppress"/>
     </issueHandlers>
 </psalm>
