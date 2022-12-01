@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Twig\Environment;
 use Webmozart\Assert\Assert;
 
-final class GiftCardPDFRenderer implements GiftCardPDFRendererInterface
+final class PDFRenderer implements PDFRendererInterface
 {
     private Environment $twig;
 

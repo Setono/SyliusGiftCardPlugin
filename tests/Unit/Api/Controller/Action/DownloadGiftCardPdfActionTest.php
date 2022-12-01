@@ -10,7 +10,7 @@ use Setono\SyliusGiftCardPlugin\Api\Controller\Action\DownloadGiftCardPdfAction;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProviderInterface;
-use Setono\SyliusGiftCardPlugin\Renderer\GiftCardPDFRendererInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PDFRendererInterface;
 use Setono\SyliusGiftCardPlugin\Renderer\PDFResponse;
 
 final class DownloadGiftCardPdfActionTest extends TestCase
@@ -27,7 +27,7 @@ final class DownloadGiftCardPdfActionTest extends TestCase
         $expectedPdfResponse = new PDFResponse('<PDF>Gift card content</PDF>');
 
         $configurationProvider = $this->prophesize(GiftCardConfigurationProviderInterface::class);
-        $giftCardPDFRenderer = $this->prophesize(GiftCardPDFRendererInterface::class);
+        $giftCardPDFRenderer = $this->prophesize(PDFRendererInterface::class);
 
         $configurationProvider->getConfigurationForGiftCard($giftCard)->willReturn($configuration);
         $giftCardPDFRenderer

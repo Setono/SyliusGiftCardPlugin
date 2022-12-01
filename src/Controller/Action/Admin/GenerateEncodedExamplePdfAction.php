@@ -7,7 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action\Admin;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
-use Setono\SyliusGiftCardPlugin\Renderer\GiftCardPDFRendererInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PDFRendererInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardConfigurationRepositoryInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,14 +20,14 @@ final class GenerateEncodedExamplePdfAction
 
     private GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository;
 
-    private GiftCardPDFRendererInterface $giftCardPDFRenderer;
+    private PDFRendererInterface $giftCardPDFRenderer;
 
     private FormFactoryInterface $formFactory;
 
     public function __construct(
         GiftCardFactoryInterface $giftCardFactory,
         GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository,
-        GiftCardPDFRendererInterface $giftCardPDFRenderer,
+        PDFRendererInterface $giftCardPDFRenderer,
         FormFactoryInterface $formFactory
     ) {
         $this->giftCardFactory = $giftCardFactory;

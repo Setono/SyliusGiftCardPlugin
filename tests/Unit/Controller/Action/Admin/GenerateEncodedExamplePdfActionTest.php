@@ -11,7 +11,7 @@ use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
-use Setono\SyliusGiftCardPlugin\Renderer\GiftCardPDFRendererInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PDFRendererInterface;
 use Setono\SyliusGiftCardPlugin\Renderer\PDFResponse;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardConfigurationRepositoryInterface;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -43,7 +43,7 @@ final class GenerateEncodedExamplePdfActionTest extends TestCase
 
         $pdfContent = 'PDF content';
 
-        $giftCardPDFRenderer = $this->prophesize(GiftCardPDFRendererInterface::class);
+        $giftCardPDFRenderer = $this->prophesize(PDFRendererInterface::class);
         $giftCardPDFRenderer->render($giftCard, $giftCardConfiguration)->willReturn(new PDFResponse($pdfContent));
 
         $action = new GenerateEncodedExamplePdfAction(

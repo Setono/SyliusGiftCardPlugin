@@ -8,7 +8,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Channel\Model\ChannelInterface;
 
-interface GiftCardPDFRendererInterface
+interface PDFRendererInterface
 {
     /**
      * @param GiftCardConfigurationInterface|null $giftCardConfiguration if none provided, the matching configuration for the respective gift card will be used

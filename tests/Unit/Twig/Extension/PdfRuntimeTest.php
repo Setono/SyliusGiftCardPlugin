@@ -9,7 +9,7 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
-use Setono\SyliusGiftCardPlugin\Renderer\GiftCardPDFRendererInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PDFRendererInterface;
 use Setono\SyliusGiftCardPlugin\Renderer\PDFResponse;
 use Setono\SyliusGiftCardPlugin\Twig\Extension\PdfRuntime;
 
@@ -26,7 +26,7 @@ final class PdfRuntimeTest extends TestCase
         $giftCardConfiguration = new GiftCardConfiguration();
         $pdfResponse = new PDFResponse('Super pdf content');
 
-        $giftCardPDFRenderer = $this->prophesize(GiftCardPDFRendererInterface::class);
+        $giftCardPDFRenderer = $this->prophesize(PDFRendererInterface::class);
         $giftCardPDFRenderer->render($giftCard, $giftCardConfiguration)->willReturn($pdfResponse);
         $giftCardFactory = $this->prophesize(GiftCardFactoryInterface::class);
         $giftCardFactory->createExample()->willReturn($giftCard);

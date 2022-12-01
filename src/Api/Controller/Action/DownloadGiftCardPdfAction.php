@@ -7,7 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Api\Controller\Action;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProviderInterface;
-use Setono\SyliusGiftCardPlugin\Renderer\GiftCardPDFRendererInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PDFRendererInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -15,11 +15,11 @@ final class DownloadGiftCardPdfAction
 {
     private GiftCardConfigurationProviderInterface $configurationProvider;
 
-    private GiftCardPDFRendererInterface $giftCardPDFRenderer;
+    private PDFRendererInterface $giftCardPDFRenderer;
 
     public function __construct(
         GiftCardConfigurationProviderInterface $configurationProvider,
-        GiftCardPDFRendererInterface $giftCardPDFRenderer
+        PDFRendererInterface $giftCardPDFRenderer
     ) {
         $this->configurationProvider = $configurationProvider;
         $this->giftCardPDFRenderer = $giftCardPDFRenderer;

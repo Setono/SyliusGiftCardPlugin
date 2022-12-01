@@ -8,7 +8,7 @@ use const FILTER_SANITIZE_URL;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProviderInterface;
-use Setono\SyliusGiftCardPlugin\Renderer\GiftCardPDFRendererInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PDFRendererInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Security\GiftCardVoter;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -26,7 +26,7 @@ final class DownloadGiftCardPdfAction
 
     private GiftCardConfigurationProviderInterface $configurationProvider;
 
-    private GiftCardPDFRendererInterface $giftCardPDFRenderer;
+    private PDFRendererInterface $giftCardPDFRenderer;
 
     private UrlGeneratorInterface $urlGenerator;
 
@@ -34,7 +34,7 @@ final class DownloadGiftCardPdfAction
         GiftCardRepositoryInterface $giftCardRepository,
         AuthorizationCheckerInterface $authChecker,
         GiftCardConfigurationProviderInterface $configurationProvider,
-        GiftCardPDFRendererInterface $giftCardPDFRenderer,
+        PDFRendererInterface $giftCardPDFRenderer,
         UrlGeneratorInterface $urlGenerator
     ) {
         $this->giftCardRepository = $giftCardRepository;
