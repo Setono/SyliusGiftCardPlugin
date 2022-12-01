@@ -42,7 +42,6 @@ final class GiftCardConfigurationType extends AbstractResourceType
         $this->availableOrientations = $availableOrientations;
         $this->availablePageSizes = $availablePageSizes;
         $this->preferredPageSizes = $preferredPageSizes;
-
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void

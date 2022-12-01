@@ -39,7 +39,7 @@ final class GiftCardNormalizer implements ContextAwareNormalizerInterface
             throw new UnexpectedTypeException($data, 'array', ArrayObject::class);
         }
 
-        $localeCode = $context['localeCode'] ?? 'en_US';
+        $localeCode = isset($context['localeCode']) && is_string($context['localeCode']) ? $context['localeCode'] : 'en_US';
         $data['amount'] = $this->moneyFormatter->format($object->getAmount(), (string) $object->getCurrencyCode(), $localeCode);
 
         return $data;
