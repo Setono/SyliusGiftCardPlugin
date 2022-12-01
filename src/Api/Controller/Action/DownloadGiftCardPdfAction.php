@@ -15,14 +15,14 @@ final class DownloadGiftCardPdfAction
 {
     private GiftCardConfigurationProviderInterface $configurationProvider;
 
-    private PDFRendererInterface $giftCardPDFRenderer;
+    private PDFRendererInterface $PDFRenderer;
 
     public function __construct(
         GiftCardConfigurationProviderInterface $configurationProvider,
         PDFRendererInterface $giftCardPDFRenderer
     ) {
         $this->configurationProvider = $configurationProvider;
-        $this->giftCardPDFRenderer = $giftCardPDFRenderer;
+        $this->PDFRenderer = $giftCardPDFRenderer;
     }
 
     public function __invoke(GiftCardInterface $data): Response
@@ -32,6 +32,6 @@ final class DownloadGiftCardPdfAction
             throw new NotFoundHttpException('No configuration found for this GiftCard');
         }
 
-        return $this->giftCardPDFRenderer->render($data, $configuration)->getHttpResponse();
+        return $this->PDFRenderer->render($data, $configuration)->getHttpResponse();
     }
 }

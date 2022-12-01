@@ -26,7 +26,7 @@ final class DownloadGiftCardPdfAction
 
     private GiftCardConfigurationProviderInterface $configurationProvider;
 
-    private PDFRendererInterface $giftCardPDFRenderer;
+    private PDFRendererInterface $PDFRenderer;
 
     private UrlGeneratorInterface $urlGenerator;
 
@@ -40,7 +40,7 @@ final class DownloadGiftCardPdfAction
         $this->giftCardRepository = $giftCardRepository;
         $this->authChecker = $authChecker;
         $this->configurationProvider = $configurationProvider;
-        $this->giftCardPDFRenderer = $giftCardPDFRenderer;
+        $this->PDFRenderer = $giftCardPDFRenderer;
         $this->urlGenerator = $urlGenerator;
     }
 
@@ -67,7 +67,7 @@ final class DownloadGiftCardPdfAction
             );
         }
 
-        return $this->giftCardPDFRenderer->render($giftCard, $configuration)
+        return $this->PDFRenderer->render($giftCard, $configuration)
             ->getHttpResponse(sprintf('gift_card_%s.pdf', (string) $giftCard->getCode()))
         ;
     }

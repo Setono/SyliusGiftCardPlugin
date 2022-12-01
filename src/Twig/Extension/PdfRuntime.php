@@ -11,7 +11,7 @@ use Twig\Extension\RuntimeExtensionInterface;
 
 final class PdfRuntime implements RuntimeExtensionInterface
 {
-    private PDFRendererInterface $giftCardPDFRenderer;
+    private PDFRendererInterface $PDFRenderer;
 
     private GiftCardFactoryInterface $giftCardFactory;
 
@@ -19,7 +19,7 @@ final class PdfRuntime implements RuntimeExtensionInterface
         PDFRendererInterface $giftCardPDFRenderer,
         GiftCardFactoryInterface $giftCardFactory
     ) {
-        $this->giftCardPDFRenderer = $giftCardPDFRenderer;
+        $this->PDFRenderer = $giftCardPDFRenderer;
         $this->giftCardFactory = $giftCardFactory;
     }
 
@@ -27,6 +27,6 @@ final class PdfRuntime implements RuntimeExtensionInterface
     {
         $giftCard = $this->giftCardFactory->createExample();
 
-        return (string) $this->giftCardPDFRenderer->render($giftCard, $giftCardChannelConfiguration)->encode();
+        return (string) $this->PDFRenderer->render($giftCard, $giftCardChannelConfiguration)->encode();
     }
 }

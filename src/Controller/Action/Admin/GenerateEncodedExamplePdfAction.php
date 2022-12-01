@@ -20,7 +20,7 @@ final class GenerateEncodedExamplePdfAction
 
     private GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository;
 
-    private PDFRendererInterface $giftCardPDFRenderer;
+    private PDFRendererInterface $PDFRenderer;
 
     private FormFactoryInterface $formFactory;
 
@@ -32,7 +32,7 @@ final class GenerateEncodedExamplePdfAction
     ) {
         $this->giftCardFactory = $giftCardFactory;
         $this->giftCardConfigurationRepository = $giftCardConfigurationRepository;
-        $this->giftCardPDFRenderer = $giftCardPDFRenderer;
+        $this->PDFRenderer = $giftCardPDFRenderer;
         $this->formFactory = $formFactory;
     }
 
@@ -47,7 +47,7 @@ final class GenerateEncodedExamplePdfAction
         $form = $this->formFactory->create(GiftCardConfigurationType::class, $giftCardConfiguration);
         $form->handleRequest($request);
 
-        $response = $this->giftCardPDFRenderer->render($giftCard, $giftCardConfiguration);
+        $response = $this->PDFRenderer->render($giftCard, $giftCardConfiguration);
 
         return new Response((string) $response->encode());
     }
