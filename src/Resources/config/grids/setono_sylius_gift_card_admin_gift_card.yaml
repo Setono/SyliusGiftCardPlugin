@@ -96,7 +96,7 @@ sylius_grid:
                 main:
                     configuration:
                         type: default
-                        label: setono_sylius_gift_card.ui.gift_card_configurations
+                        label: setono_sylius_gift_card.ui.configuration
                         icon: cog
                         options:
                             link:

@@ -12,7 +12,7 @@ final class DefaultGiftCardTemplateContentProvider implements DefaultGiftCardTem
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap" rel="stylesheet">
 <style>
 body {
-    background: transparent url("{{ giftCardConfiguration.image }}") no-repeat left bottom;
+    background: transparent url("{{ configuration.image }}") no-repeat left bottom;
     background-size: 100px;
     font-family: 'Open Sans', sans-serif;
 }

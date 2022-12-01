@@ -10,7 +10,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
-use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Twig\Environment;
@@ -57,11 +57,25 @@ final class GiftCardPDFRenderer implements GiftCardPDFRendererInterface
         string $localeCode = null
     ): PDFResponse {
         if (null === $channel) {
-            $channel = $this->channelContext->getChannel();
+            $order = $giftCard->getOrder();
+            if (null !== $order) {
+                $channel = $order->getChannel();
+            }
+
+            if (null === $channel) {
+                $channel = $this->channelContext->getChannel();
+            }
         }
 
         if (null === $localeCode) {
-            $localeCode = $this->localeContext->getLocaleCode();
+            $order = $giftCard->getOrder();
+            if (null !== $order) {
+                $localeCode = $order->getLocaleCode();
+            }
+
+            if (null === $localeCode) {
+                $localeCode = $this->localeContext->getLocaleCode();
+            }
         }
 
         if (null === $giftCardConfiguration) {
@@ -74,14 +88,14 @@ final class GiftCardPDFRenderer implements GiftCardPDFRendererInterface
         $template = '{% extends "@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf_layout.html.twig" %}{% block content %}' . $template . '{% endblock %}';
 
         $html = $this->twig->render($this->twig->createTemplate($template), [
-            'channel' => $this->normalizer->normalize($channel, null, ['groups' => 'setono:sylius-gift-card:preview']),
+            'channel' => $this->normalizer->normalize($channel, null, ['groups' => 'setono:sylius-gift-card:render']),
             'localeCode' => $localeCode,
             'giftCard' => $this->normalizer->normalize($giftCard, null, [
-                'groups' => 'setono:sylius-gift-card:preview',
+                'groups' => 'setono:sylius-gift-card:render',
                 'localeCode' => $localeCode,
             ]),
-            'giftCardConfiguration' => $this->normalizer->normalize($giftCardConfiguration, null, [
-                'groups' => 'setono:sylius-gift-card:preview',
+            'configuration' => $this->normalizer->normalize($giftCardConfiguration, null, [
+                'groups' => 'setono:sylius-gift-card:render',
                 'iri' => 'https://setono.com', // we add a fake IRI else we get the 'Unable to generate an IRI' exception when the gift card configuration hasn't been saved yet
             ]),
         ]);

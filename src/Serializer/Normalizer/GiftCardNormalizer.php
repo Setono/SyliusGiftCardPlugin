@@ -53,6 +53,6 @@ final class GiftCardNormalizer implements ContextAwareNormalizerInterface
     {
         $groups = (array) ($context['groups'] ?? []);
 
-        return $data instanceof GiftCardInterface && in_array('setono:sylius-gift-card:preview', $groups, true);
+        return $data instanceof GiftCardInterface && in_array('setono:sylius-gift-card:render', $groups, true);
     }
 }

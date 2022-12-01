@@ -15,8 +15,8 @@
         <service id="setono_sylius_gift_card.serializer.normalizer.gift_card_configuration"
                  class="Setono\SyliusGiftCardPlugin\Serializer\Normalizer\GiftCardConfigurationNormalizer">
             <argument type="service" id="serializer.normalizer.object"/>
-            <argument type="service" id="liip_imagine.cache.manager"/>
             <argument type="service" id="request_stack"/>
+            <argument>media/image</argument>
 
             <tag name="serializer.normalizer"/>
         </service>

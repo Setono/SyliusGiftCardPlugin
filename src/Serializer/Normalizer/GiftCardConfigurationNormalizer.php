@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Serializer\Normalizer;
 
 use ArrayObject;
-use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Setono\MainRequestTrait\MainRequestTrait;
 use Setono\SyliusGiftCardPlugin\Exception\UnexpectedTypeException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
@@ -20,18 +19,18 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
 
     private ObjectNormalizer $objectNormalizer;
 
-    private CacheManager $cacheManager;
-
     private RequestStack $requestStack;
+
+    private string $publicMediaDirectory;
 
     public function __construct(
         ObjectNormalizer $objectNormalizer,
-        CacheManager $cacheManager,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        string $publicMediaDirectory
     ) {
         $this->objectNormalizer = $objectNormalizer;
-        $this->cacheManager = $cacheManager;
         $this->requestStack = $requestStack;
+        $this->publicMediaDirectory = trim($publicMediaDirectory, '/');
     }
 
     /**
@@ -62,11 +61,9 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
         }
 
         $path = $image->getPath();
-        if (null === $path) {
-            return $data;
+        if (null !== $path && null !== $request) {
+            $data['image'] = sprintf('%s/%s/%s', $request->getSchemeAndHttpHost(), $this->publicMediaDirectory, $path);
         }
-
-        $data['image'] = $this->cacheManager->getBrowserPath($path, 'setono_sylius_gift_card_background');
 
         return $data;
     }
@@ -80,7 +77,7 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
         $groups = (array) ($context['groups'] ?? []);
 
         return $data instanceof GiftCardConfigurationInterface && in_array(
-            'setono:sylius-gift-card:preview',
+            'setono:sylius-gift-card:render',
             $groups,
             true
         );
