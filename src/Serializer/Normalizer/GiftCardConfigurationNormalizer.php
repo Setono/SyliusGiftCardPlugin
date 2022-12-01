@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Serializer\Normalizer;
 
 use ArrayObject;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Setono\MainRequestTrait\MainRequestTrait;
 use Setono\SyliusGiftCardPlugin\Exception\UnexpectedTypeException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -15,6 +16,8 @@ use Webmozart\Assert\Assert;
 
 final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInterface
 {
+    use MainRequestTrait;
+
     private ObjectNormalizer $objectNormalizer;
 
     private CacheManager $cacheManager;
@@ -48,7 +51,7 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
 
         $data['image'] = '';
 
-        $request = $this->requestStack->getMasterRequest();
+        $request = $this->getMainRequestFromRequestStack($this->requestStack);
         if (null !== $request) {
             $data['image'] = $request->getSchemeAndHttpHost() . '/bundles/setonosyliusgiftcardplugin/setono-logo.png';
         }

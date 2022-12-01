@@ -19,6 +19,7 @@
         "knplabs/knp-snappy-bundle": "^1.9",
         "liip/imagine-bundle": "^2.7",
         "setono/doctrine-object-manager-trait": "^1.1",
+        "setono/symfony-main-request-trait": "^1.0",
         "sylius/resource-bundle": "^1.8",
         "symfony/config": "^4.4 || ^5.4 || ^6.0",
         "symfony/dependency-injection": "^4.4 || ^5.4 || ^6.0",
