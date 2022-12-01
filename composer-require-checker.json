@@ -22,7 +22,6 @@
     "Sylius\\Bundle\\ApiBundle\\DataTransformer\\CommandDataTransformerInterface",
     "Sylius\\Bundle\\ChannelBundle\\Form\\Type\\ChannelChoiceType",
     "Sylius\\Bundle\\CoreBundle\\Application\\SyliusPluginTrait",
-    "Sylius\\Bundle\\CoreBundle\\Application\\SyliusPluginTrait",
     "Sylius\\Bundle\\CoreBundle\\Fixture\\AbstractResourceFixture",
     "Sylius\\Bundle\\CoreBundle\\Fixture\\Factory\\AbstractExampleFactory",
     "Sylius\\Bundle\\CoreBundle\\Fixture\\Factory\\ExampleFactoryInterface",
@@ -78,6 +77,8 @@
     "Sylius\\Component\\Product\\Resolver\\ProductVariantResolverInterface",
     "Sylius\\Component\\Promotion\\Checker\\Rule\\RuleCheckerInterface",
     "Sylius\\Component\\Promotion\\Model\\PromotionSubjectInterface",
+    "Sylius\\Component\\User\\Model\\UserInterface",
+    "Setono\\SyliusCatalogPromotionPlugin\\Rule\\Rule",
     "Sylius\\Component\\User\\Model\\UserInterface"
   ]
 }
