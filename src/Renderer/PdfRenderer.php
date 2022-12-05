@@ -102,6 +102,6 @@ final class PdfRenderer implements PdfRendererInterface
 
         $renderingOptions = $this->renderingOptionsProvider->getRenderingOptions($giftCardConfiguration);
 
-        return new PdfResponse($this->snappy->getOutputFromHtml($html, $renderingOptions));
+        return PdfResponse::fromGiftCard($this->snappy->getOutputFromHtml($html, $renderingOptions), $giftCard);
     }
 }

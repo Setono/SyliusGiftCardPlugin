@@ -27,6 +27,6 @@ final class PdfRuntime implements RuntimeExtensionInterface
     {
         $giftCard = $this->giftCardFactory->createExample();
 
-        return (string) $this->PDFRenderer->render($giftCard, $giftCardChannelConfiguration)->encode();
+        return $this->PDFRenderer->render($giftCard, $giftCardChannelConfiguration)->getEncodedContent();
     }
 }

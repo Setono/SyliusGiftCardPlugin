@@ -37,6 +37,6 @@ final class PdfRuntimeTest extends TestCase
         );
         $base64Content = $runtime->getBase64EncodedExamplePdfContent($giftCardConfiguration);
 
-        $this->assertEquals((string) $pdfResponse->encode(), $base64Content);
+        $this->assertEquals($pdfResponse->getEncodedContent(), $base64Content);
     }
 }

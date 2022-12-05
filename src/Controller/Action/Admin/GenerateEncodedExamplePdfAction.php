@@ -47,6 +47,6 @@ final class GenerateEncodedExamplePdfAction
         $form = $this->formFactory->create(GiftCardConfigurationType::class, $giftCardConfiguration);
         $form->handleRequest($request);
 
-        return $this->pdfRenderer->render($giftCard, $giftCardConfiguration)->encode();
+        return new Response($this->pdfRenderer->render($giftCard, $giftCardConfiguration)->getEncodedContent());
     }
 }

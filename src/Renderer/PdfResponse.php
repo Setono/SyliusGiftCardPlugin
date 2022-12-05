@@ -13,13 +13,9 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class PdfResponse extends Response
 {
-    private string $originalContent;
-
     public function __construct(string $content, string $filename = 'gift_card.pdf')
     {
         parent::__construct($content);
-
-        $this->originalContent = $content;
 
         $disposition = HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $filename);
 
@@ -35,17 +31,11 @@ final class PdfResponse extends Response
         return new self($content, sprintf('gift_card_%s.pdf', (string) $giftCard->getCode()));
     }
 
-    public function encode(): self
+    /**
+     * Returns the PDF content as a base64 encoded string
+     */
+    public function getEncodedContent(): string
     {
-        $this->content = base64_encode($this->originalContent);
-
-        return $this;
-    }
-
-    public function doNotEncode(): self
-    {
-        $this->content = $this->originalContent;
-
-        return $this;
+        return base64_encode($this->content);
     }
 }
