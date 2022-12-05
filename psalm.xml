@@ -31,5 +31,6 @@
     </forbiddenFunctions>
     <issueHandlers>
         <PluginIssue name="QueryBuilderSetParameter" errorLevel="suppress"/>
+        <RedundantConditionGivenDocblockType errorLevel="suppress"/>
     </issueHandlers>
 </psalm>

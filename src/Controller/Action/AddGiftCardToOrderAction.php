@@ -13,7 +13,7 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Twig\Environment;
 use Webmozart\Assert\Assert;
@@ -24,8 +24,6 @@ final class AddGiftCardToOrderAction
 
     private CartContextInterface $cartContext;
 
-    private FlashBagInterface $flashBag;
-
     private GiftCardApplicatorInterface $giftCardApplicator;
 
     private RedirectUrlResolverInterface $redirectRouteResolver;
@@ -35,14 +33,12 @@ final class AddGiftCardToOrderAction
     public function __construct(
         FormFactoryInterface $formFactory,
         CartContextInterface $cartContext,
-        FlashBagInterface $flashBag,
         GiftCardApplicatorInterface $giftCardApplicator,
         RedirectUrlResolverInterface $redirectRouteResolver,
         Environment $twig
     ) {
         $this->formFactory = $formFactory;
         $this->cartContext = $cartContext;
-        $this->flashBag = $flashBag;
         $this->giftCardApplicator = $giftCardApplicator;
         $this->redirectRouteResolver = $redirectRouteResolver;
         $this->twig = $twig;
@@ -66,7 +62,10 @@ final class AddGiftCardToOrderAction
             Assert::notNull($giftCard);
             $this->giftCardApplicator->apply($order, $giftCard);
 
-            $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_added');
+            $session = $request->getSession();
+            if ($session instanceof Session) {
+                $session->getFlashBag()->add('success', 'setono_sylius_gift_card.gift_card_added');
+            }
 
             return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));
         }

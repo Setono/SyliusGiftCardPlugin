@@ -11,7 +11,6 @@
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction">
             <argument type="service" id="form.factory"/>
             <argument type="service" id="sylius.context.cart"/>
-            <argument type="service" id="session.flash_bag"/>
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
             <argument type="service" id="twig"/>
@@ -20,7 +19,6 @@
         <service id="setono_sylius_gift_card.controller.action.remove_gift_card_from_order"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\RemoveGiftCardFromOrderAction">
             <argument type="service" id="sylius.context.cart"/>
-            <argument type="service" id="session.flash_bag"/>
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
         </service>
@@ -50,7 +48,6 @@
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\ResendGiftCardEmailAction">
             <argument type="service" id="setono_sylius_gift_card.email_manager.gift_card_order"/>
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-            <argument type="service" id="session.flash_bag"/>
             <argument type="service" id="router"/>
         </service>
 

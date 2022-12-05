@@ -12,14 +12,12 @@ use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Webmozart\Assert\Assert;
 
 final class RemoveGiftCardFromOrderAction
 {
     private CartContextInterface $cartContext;
-
-    private FlashBagInterface $flashBag;
 
     private GiftCardApplicatorInterface $giftCardApplicator;
 
@@ -27,12 +25,10 @@ final class RemoveGiftCardFromOrderAction
 
     public function __construct(
         CartContextInterface $cartContext,
-        FlashBagInterface $flashBag,
         GiftCardApplicatorInterface $giftCardApplicator,
         RedirectUrlResolverInterface $redirectRouteResolver
     ) {
         $this->cartContext = $cartContext;
-        $this->flashBag = $flashBag;
         $this->giftCardApplicator = $giftCardApplicator;
         $this->redirectRouteResolver = $redirectRouteResolver;
     }
@@ -48,7 +44,10 @@ final class RemoveGiftCardFromOrderAction
 
         $this->giftCardApplicator->remove($order, $giftCard);
 
-        $this->flashBag->add('success', 'setono_sylius_gift_card.gift_card_removed');
+        $session = $request->getSession();
+        if ($session instanceof Session) {
+            $session->getFlashBag()->add('success', 'setono_sylius_gift_card.gift_card_removed');
+        }
 
         return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));
     }

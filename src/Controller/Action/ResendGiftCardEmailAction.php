@@ -14,7 +14,7 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class ResendGiftCardEmailAction
@@ -23,19 +23,15 @@ final class ResendGiftCardEmailAction
 
     private GiftCardRepositoryInterface $giftCardRepository;
 
-    private FlashBagInterface $flashBag;
-
     private UrlGeneratorInterface $router;
 
     public function __construct(
         GiftCardEmailManagerInterface $giftCardEmailManager,
         GiftCardRepositoryInterface $giftCardRepository,
-        FlashBagInterface $flashBag,
         UrlGeneratorInterface $router
     ) {
         $this->giftCardEmailManager = $giftCardEmailManager;
         $this->giftCardRepository = $giftCardRepository;
-        $this->flashBag = $flashBag;
         $this->router = $router;
     }
 
@@ -43,7 +39,7 @@ final class ResendGiftCardEmailAction
     {
         $giftCard = $this->giftCardRepository->find($id);
         if (!$giftCard instanceof GiftCardInterface) {
-            $this->flashBag->add('error', [
+            $this->addFlash($request, 'error', [
                 'message' => 'setono_sylius_gift_card.gift_card.not_found',
                 'parameters' => ['%id%' => $id],
             ]);
@@ -56,18 +52,18 @@ final class ResendGiftCardEmailAction
 
         if ($order instanceof OrderInterface) {
             $this->giftCardEmailManager->sendEmailWithGiftCardsFromOrder($order, [$giftCard]);
-            $this->flashBag->add('success', [
+            $this->addFlash($request, 'success', [
                 'message' => 'setono_sylius_gift_card.gift_card.resent',
                 'parameters' => ['%id%' => $id],
             ]);
         } elseif ($customer instanceof CustomerInterface) {
             $this->giftCardEmailManager->sendEmailToCustomerWithGiftCard($customer, $giftCard);
-            $this->flashBag->add('success', [
+            $this->addFlash($request, 'success', [
                 'message' => 'setono_sylius_gift_card.gift_card.resent',
                 'parameters' => ['%id%' => $id],
             ]);
         } else {
-            $this->flashBag->add('error', [
+            $this->addFlash($request, 'error', [
                 'message' => 'setono_sylius_gift_card.gift_card.impossible_to_resend_email',
                 'parameters' => ['%id%' => $id],
             ]);
@@ -88,5 +84,16 @@ final class ResendGiftCardEmailAction
         }
 
         return $this->router->generate('setono_sylius_gift_card_admin_gift_card_index');
+    }
+
+    /**
+     * @param mixed $message
+     */
+    private function addFlash(Request $request, string $type, $message): void
+    {
+        $session = $request->getSession();
+        if ($session instanceof Session) {
+            $session->getFlashBag()->add($type, $message);
+        }
     }
 }
