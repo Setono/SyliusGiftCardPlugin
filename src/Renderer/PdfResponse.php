@@ -15,15 +15,10 @@ final class PdfResponse extends Response
 {
     public function __construct(string $content, string $filename = 'gift_card.pdf')
     {
-        parent::__construct($content);
-
-        $disposition = HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $filename);
-
-        /** @psalm-suppress UninitializedProperty,PossiblyNullReference */
-        $this->headers->set('Content-Type', 'application/pdf');
-
-        /** @psalm-suppress PossiblyNullReference */
-        $this->headers->set('Content-Disposition', $disposition);
+        parent::__construct($content, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $filename),
+        ]);
     }
 
     public static function fromGiftCard(string $content, GiftCardInterface $giftCard): self
