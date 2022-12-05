@@ -25,7 +25,7 @@
         <service id="setono_sylius_gift_card_plugin.api.download_gift_card_pdf"
                  class="Setono\SyliusGiftCardPlugin\Api\Controller\Action\DownloadGiftCardPdfAction">
             <argument type="service" id="setono_sylius_gift_card.provider.gift_card_configuration" />
-            <argument type="service" id="setono_sylius_gift_card.generator.gift_card_pdf" />
+            <argument type="service" id="setono_sylius_gift_card.renderer.pdf" />
 
             <tag name="controller.service_arguments" />
         </service>

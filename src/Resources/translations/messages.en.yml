@@ -31,11 +31,7 @@ setono_sylius_gift_card:
             enabled: Enabled
             orientation: Orientation
             page_size: Page size
-            pdf_live_rendering:
-                css_option:
-                    logo_url_hint: Displays the path of the logo URL
-            pdf_rendering_css: CSS used to render the PDF
-            pdf_rendering_html: HTML used to render the PDF
+            template: Template
         product:
             gift_card: Gift card
             gift_card_amount_configurable: Gift card amount configurable
@@ -44,10 +40,11 @@ setono_sylius_gift_card:
         add_gift_card_to_order: Add gift card
         amount: Amount
         applied_gift_cards: Applied gift cards
-        apply: Apply CSS
         average_amount: Average amount
+        balance: Balance
         bought_at_order: Bought at order
         channel_configurations: Channel configurations
+        configuration: Configuration
         covered_by_gift_cards: Covered by gift cards
         count: Count
         create_for_channel: Create for %channel%
@@ -68,7 +65,6 @@ setono_sylius_gift_card:
         gift_cards: Gift cards
         gift_card_search: Gift card search
         gift_cards_adjustment_total: Gift cards total
-        gift_cards_balance: Gift cards balance
         has_no_gift_card: Has no gift card
         initial_amount: Initial amount
         list_orders: List orders
@@ -82,6 +78,7 @@ setono_sylius_gift_card:
         product_is_not_gift_card: Product is not gift card
         resend_email: Resend email
         total: Total
+        update_preview: Update preview
         your_gift_card_will_only_be_charged_if_you_complete_your_order: Your gift card will only be charged if you complete your order
     email:
         balance: Balance

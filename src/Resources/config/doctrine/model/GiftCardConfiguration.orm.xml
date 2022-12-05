@@ -16,7 +16,7 @@
         <field name="defaultValidityPeriod" nullable="true"/>
         <field name="pageSize" nullable="true"/>
         <field name="orientation" nullable="true"/>
-        <field name="pdfRenderingCss" type="text" nullable="true"/>
+        <field name="template" type="text"/>
 
         <field name="createdAt" column="created_at" type="datetime">
             <gedmo:timestampable on="create"/>

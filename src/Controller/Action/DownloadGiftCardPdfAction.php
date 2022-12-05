@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use const FILTER_SANITIZE_URL;
-use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProviderInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PdfRendererInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Security\GiftCardVoter;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
@@ -24,27 +24,23 @@ final class DownloadGiftCardPdfAction
 
     private AuthorizationCheckerInterface $authChecker;
 
-    private FlashBagInterface $flashBag;
-
     private GiftCardConfigurationProviderInterface $configurationProvider;
 
-    private GiftCardPdfGeneratorInterface $giftCardPdfGenerator;
+    private PdfRendererInterface $PDFRenderer;
 
     private UrlGeneratorInterface $urlGenerator;
 
     public function __construct(
         GiftCardRepositoryInterface $giftCardRepository,
         AuthorizationCheckerInterface $authChecker,
-        FlashBagInterface $flashBag,
         GiftCardConfigurationProviderInterface $configurationProvider,
-        GiftCardPdfGeneratorInterface $giftCardPdfGenerator,
+        PdfRendererInterface $giftCardPDFRenderer,
         UrlGeneratorInterface $urlGenerator
     ) {
         $this->giftCardRepository = $giftCardRepository;
         $this->authChecker = $authChecker;
-        $this->flashBag = $flashBag;
         $this->configurationProvider = $configurationProvider;
-        $this->giftCardPdfGenerator = $giftCardPdfGenerator;
+        $this->PDFRenderer = $giftCardPDFRenderer;
         $this->urlGenerator = $urlGenerator;
     }
 
@@ -55,27 +51,34 @@ final class DownloadGiftCardPdfAction
         $giftCard = $this->giftCardRepository->find($id);
 
         if (!$giftCard instanceof GiftCardInterface) {
-            return $this->sendErrorResponse($redirectUrl, 'Gift card not found');
+            return $this->sendErrorResponse($request, $redirectUrl, 'Gift card not found');
         }
 
         if (!$this->authChecker->isGranted(GiftCardVoter::READ, $giftCard)) {
-            return $this->sendErrorResponse($redirectUrl, 'setono_sylius_gift_card.gift_card.read_error');
+            return $this->sendErrorResponse($request, $redirectUrl, 'setono_sylius_gift_card.gift_card.read_error');
         }
 
         $configuration = $this->configurationProvider->getConfigurationForGiftCard($giftCard);
         if (!$configuration instanceof GiftCardConfigurationInterface) {
             return $this->sendErrorResponse(
+                $request,
                 $redirectUrl,
                 'Configuration not found for this gift card. Create one by going to the gift card configuration.'
             );
         }
 
-        return $this->giftCardPdfGenerator->generatePdfResponse($giftCard, $configuration);
+        return $this->PDFRenderer->render($giftCard, $configuration);
     }
 
-    private function sendErrorResponse(string $redirectUrl, string $message): RedirectResponse
+    private function sendErrorResponse(Request $request, string $redirectUrl, string $message): RedirectResponse
     {
-        $this->flashBag->add('error', $message);
+        $session = $request->getSession();
+
+        /** @psalm-suppress RedundantConditionGivenDocblockType */
+        if ($session instanceof Session) {
+            $flashBag = $session->getFlashBag();
+            $flashBag->add('error', $message);
+        }
 
         return new RedirectResponse($redirectUrl);
     }

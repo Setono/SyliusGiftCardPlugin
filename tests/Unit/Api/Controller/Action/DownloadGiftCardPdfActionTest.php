@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Setono\SyliusGiftCardPlugin\Unit\Api\Controller\Action;
 
-use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Api\Controller\Action\DownloadGiftCardPdfAction;
-use Setono\SyliusGiftCardPlugin\Generator\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProviderInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PdfRendererInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PdfResponse;
 
 final class DownloadGiftCardPdfActionTest extends TestCase
 {
@@ -24,19 +24,19 @@ final class DownloadGiftCardPdfActionTest extends TestCase
     {
         $giftCard = new GiftCard();
         $configuration = new GiftCardConfiguration();
-        $expectedPdfResponse = new PdfResponse('<PDF>Gift card content</PDF>', 'gc.pdf');
+        $expectedPdfResponse = new PdfResponse('<PDF>Gift card content</PDF>');
 
         $configurationProvider = $this->prophesize(GiftCardConfigurationProviderInterface::class);
-        $giftCardPdfGenerator = $this->prophesize(GiftCardPdfGeneratorInterface::class);
+        $giftCardPDFRenderer = $this->prophesize(PdfRendererInterface::class);
 
         $configurationProvider->getConfigurationForGiftCard($giftCard)->willReturn($configuration);
-        $giftCardPdfGenerator
-            ->generatePdfResponse($giftCard, $configuration)
+        $giftCardPDFRenderer
+            ->render($giftCard, $configuration)
             ->willReturn($expectedPdfResponse);
 
         $downloadGiftCardPdfAction = new DownloadGiftCardPdfAction(
             $configurationProvider->reveal(),
-            $giftCardPdfGenerator->reveal()
+            $giftCardPDFRenderer->reveal()
         );
 
         $response = $downloadGiftCardPdfAction($giftCard);

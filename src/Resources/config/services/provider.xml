@@ -6,11 +6,11 @@
     <services>
         <service id="setono_sylius_gift_card.provider.gift_card_configuration"
                  class="Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProvider">
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration" />
-            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_configuration" />
-            <argument type="service" id="sylius.context.locale" />
-            <argument type="service" id="sylius.repository.locale" />
-            <argument type="service" id="doctrine" />
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration"/>
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_configuration"/>
+            <argument type="service" id="sylius.context.locale"/>
+            <argument type="service" id="sylius.repository.locale"/>
+            <argument type="service" id="doctrine"/>
         </service>
 
         <service id="setono_sylius_gift_card.provider.order_eligible_total"
@@ -21,26 +21,16 @@
         </service>
 
         <service id="setono_sylius_gift_card.provider.date_period_unit"
-                 class="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProvider" />
+                 class="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProvider"/>
         <service id="Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProviderInterface"
                  alias="setono_sylius_gift_card.provider.date_period_unit"/>
 
         <service id="setono_sylius_gift_card.provider.pdf_rendering_option"
-                 class="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProvider" />
+                 class="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProvider"/>
         <service id="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface"
-                 alias="Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionProvider"/>
+                 alias="setono_sylius_gift_card.provider.pdf_rendering_option"/>
 
-        <service id="setono_sylius_gift_card.provider.pdf_available_css_option"
-                 class="Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProvider" />
-        <service id="Setono\SyliusGiftCardPlugin\Provider\PdfAvailableCssOptionProviderInterface"
-                 alias="setono_sylius_gift_card.provider.pdf_available_css_option"/>
-
-        <service id="setono_sylius_gift_card.provider.default_pdf_css"
-                 class="Setono\SyliusGiftCardPlugin\Provider\DefaultPdfCssProvider">
-            <argument>%setono_sylius_gift_card.default_css_file%</argument>
-            <argument type="service" id="twig"/>
-        </service>
-        <service id="Setono\SyliusGiftCardPlugin\Provider\DefaultPdfCssProviderInterface"
-                 alias="setono_sylius_gift_card.provider.default_pdf_css"/>
+        <service id="setono_sylius_gift_card.provider.default_gift_card_template_content"
+                 class="Setono\SyliusGiftCardPlugin\Provider\DefaultGiftCardTemplateContentProvider"/>
     </services>
 </container>

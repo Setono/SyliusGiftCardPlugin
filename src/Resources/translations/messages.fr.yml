@@ -31,11 +31,6 @@ setono_sylius_gift_card:
             enabled: Activé
             orientation: Orientation
             page_size: Taille de la page
-            pdf_live_rendering:
-                css_option:
-                    logo_url_hint: Affiche le chemin du logo
-            pdf_rendering_css: CSS utilisé pour la génération du PDF
-            pdf_rendering_html: HTML utilisé pour la génération du PDF
         product:
             gift_card: Chèque-cadeau
             gift_card_amount_configurable: Montant chèque-cadeau configurable
@@ -45,8 +40,10 @@ setono_sylius_gift_card:
         amount: Montant
         applied_gift_cards: Chèques-cadeaux utilisés
         average_amount: Montant moyen
+        balance: Solde
         bought_at_order: Commande d'origine
         channel_configurations: Configurations des canaux
+        configuration: Configuration
         covered_by_gift_cards: Montant pris en charge
         count: Nombre
         create_for_channel: Créer pour %channel%
@@ -58,7 +55,6 @@ setono_sylius_gift_card:
         edit_gift_card_configuration: Modifier la configuration
         gift_card: Chèque-cadeau
         gift_card_configurations: Config. chèques-cadeaux
-        gift_cards_balance: Solde
         gift_card_channel_does_not_match_channel: Ce chèque-cadeau a été acheté sur un autre canal, veuillez l'utiliser sur %channel%
         gift_card_code_is_invalid: Numéro de chèque-cadeau invalide
         gift_cards: Chèques-cadeaux
@@ -76,6 +72,7 @@ setono_sylius_gift_card:
         product_is_not_gift_card: Le produit n'est pas un chèque cadeau
         resend_email: Renvoyer l'email
         total: Total
+        update_preview: Update preview
         your_gift_card_will_only_be_charged_if_you_complete_your_order: Votre chèque-cadeau ne sera débité que si vous complétez votre commande
     email:
         balance: Solde

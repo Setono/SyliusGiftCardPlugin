@@ -45,6 +45,7 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
         }
 
         $this->wrapTemporaryLocale((string) $defaultLocale->getCode(), function () use ($email, $customer, $giftCard, $channel, $defaultLocale): void {
+            /** @psalm-suppress DeprecatedMethod */
             $this->sender->send(
                 Emails::GIFT_CARD_CUSTOMER,
                 [$email],
@@ -82,6 +83,7 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
         }
 
         $this->wrapTemporaryLocale((string) $defaultLocale->getCode(), function () use ($email, $giftCards, $order, $channel): void {
+            /** @psalm-suppress DeprecatedMethod */
             $this->sender->send(
                 Emails::GIFT_CARD_ORDER,
                 [$email],

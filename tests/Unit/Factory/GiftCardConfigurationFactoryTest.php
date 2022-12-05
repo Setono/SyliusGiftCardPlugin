@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardConfigurationFactory;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
+use Setono\SyliusGiftCardPlugin\Provider\DefaultGiftCardTemplateContentProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 
@@ -23,6 +24,8 @@ final class GiftCardConfigurationFactoryTest extends TestCase
         $giftCardConfiguration = new GiftCardConfiguration();
 
         $decoratedFactory = $this->prophesize(FactoryInterface::class);
+        $defaultGiftCardTemplateContentProvider = $this->prophesize(DefaultGiftCardTemplateContentProviderInterface::class);
+        $defaultGiftCardTemplateContentProvider->getContent()->willReturn('twig');
         $defaultOrientation = PdfRenderingOptionsProviderInterface::ORIENTATION_PORTRAIT;
         $defaultPageSize = PdfRenderingOptionsProviderInterface::PAGE_SIZE_A8;
 
@@ -30,6 +33,7 @@ final class GiftCardConfigurationFactoryTest extends TestCase
 
         $factory = new GiftCardConfigurationFactory(
             $decoratedFactory->reveal(),
+            $defaultGiftCardTemplateContentProvider->reveal(),
             $defaultOrientation,
             $defaultPageSize
         );

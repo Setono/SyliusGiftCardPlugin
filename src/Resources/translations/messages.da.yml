@@ -31,11 +31,6 @@ setono_sylius_gift_card:
             enabled: Aktiveret
             orientation: Orientation
             page_size: Page size
-            pdf_live_rendering:
-                css_option:
-                    logo_url_hint: Displays the path of the logo URL
-            pdf_rendering_css: CSS used to render the PDF
-            pdf_rendering_html: HTML used to render the PDF
         product:
             gift_card: Gavekort
             gift_card_amount_configurable: Valgfrit beløb på gavekort
@@ -44,9 +39,11 @@ setono_sylius_gift_card:
         add_gift_card_to_order: Tilføj gavekort
         amount: Mængde
         applied_gift_cards: Anvendte gavekort
-        average_amount: Gennemsnitligt beløb 
+        average_amount: Gennemsnitligt beløb
+        balance: Saldo
         bought_at_order: Købt ved ordre
         channel_configurations: Kanalkonfigurationer
+        configuration: Konfiguration
         covered_by_gift_cards: Dækket af gavekort
         count: Optælling
         create_for_channel: Opret %channel%
@@ -58,7 +55,6 @@ setono_sylius_gift_card:
         edit_gift_card_configuration: Rediger konfiguration af gavekort
         gift_card: Gavekort
         gift_card_configurations: Gavekortskonfigurationer
-        gift_cards_balance: Gavekortssaldo
         gift_card_channel_does_not_match_channel: Gavekortet er købt på en anden kanal, brug venligst gavekortet på %channel%
         gift_card_code_is_invalid: Gavekortskoden er ugyldig
         gift_cards: Gavekort
@@ -76,6 +72,7 @@ setono_sylius_gift_card:
         product_is_not_gift_card: Produkt er ikke et gavekort
         resend_email: Gensend email
         total: Total
+        update_preview: Opdater preview
         your_gift_card_will_only_be_charged_if_you_complete_your_order: Dit gavekort hæves først når din ordre er gennemført
     email:
         balance: Balance

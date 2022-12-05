@@ -14,6 +14,7 @@
             <group>admin:gift_card:read</group>
             <group>admin:gift_card:update</group>
             <group>shop:gift_card:read</group>
+            <group>setono:sylius-gift-card:render</group>
         </attribute>
 
         <attribute name="enabled">
@@ -28,11 +29,13 @@
             <group>admin:gift_card:read</group>
             <group>admin:gift_card:update</group>
             <group>shop:gift_card:read</group>
+            <group>setono:sylius-gift-card:render</group>
         </attribute>
 
         <attribute name="initialAmount">
             <group>admin:gift_card:read</group>
             <group>shop:gift_card:read</group>
+            <group>setono:sylius-gift-card:render</group>
         </attribute>
 
         <attribute name="currencyCode">
@@ -40,6 +43,15 @@
             <group>admin:gift_card:read</group>
             <group>admin:gift_card:update</group>
             <group>shop:gift_card:read</group>
+            <group>setono:sylius-gift-card:render</group>
+        </attribute>
+
+        <attribute name="customMessage">
+            <group>admin:gift_card:create</group>
+            <group>admin:gift_card:read</group>
+            <group>admin:gift_card:update</group>
+            <group>shop:gift_card:read</group>
+            <group>setono:sylius-gift-card:render</group>
         </attribute>
 
         <attribute name="origin">
@@ -50,20 +62,28 @@
             <group>admin:gift_card:read</group>
             <group>admin:gift_card:create</group>
             <group>admin:gift_card:update</group>
+            <group>setono:sylius-gift-card:render</group>
         </attribute>
 
         <attribute name="customer">
             <group>admin:gift_card:read</group>
             <group>admin:gift_card:create</group>
             <group>admin:gift_card:update</group>
+            <group>setono:sylius-gift-card:render</group>
         </attribute>
 
         <attribute name="appliedOrders">
             <group>shop:gift_card:read</group>
         </attribute>
 
+        <attribute name="expiresAt">
+            <group>admin:gift_card:read</group>
+            <group>setono:sylius-gift-card:render</group>
+        </attribute>
+
         <attribute name="createdAt">
             <group>admin:gift_card:read</group>
+            <group>setono:sylius-gift-card:render</group>
         </attribute>
 
         <attribute name="updatedAt">
