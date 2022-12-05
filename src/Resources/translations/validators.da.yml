@@ -19,7 +19,8 @@ setono_sylius_gift_card:
         send_notification_email:
             boolean: Send notification email must be a boolean
     gift_card_configuration:
-        background_image_required: Baggrundsbillede er påkrævet 
+        background_image_required: Baggrundsbillede er påkrævet
+        default_configuration_must_exist: Start med at markere en anden konfiguration som standard, før du fjerner markeringen her
     gift_card_search_command:
         gift_card:
             does_not_exist: Gavekort med denne kode eksisterer ikke
