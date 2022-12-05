@@ -7,9 +7,12 @@ namespace Setono\SyliusGiftCardPlugin\EventSubscriber;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardConfigurationRepositoryInterface;
 use Sylius\Bundle\ResourceBundle\Event\ResourceControllerEvent;
-use Sylius\Component\Resource\Exception\UnexpectedTypeException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Webmozart\Assert\Assert;
 
+/**
+ * This subscriber makes sure that there is only one default gift card configuration at all times
+ */
 final class DefaultGiftCardConfigurationSubscriber implements EventSubscriberInterface
 {
     private GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository;
@@ -22,23 +25,28 @@ final class DefaultGiftCardConfigurationSubscriber implements EventSubscriberInt
     public static function getSubscribedEvents(): array
     {
         return [
-            'setono_sylius_gift_card.gift_card_configuration.pre_update' => 'preUpdate',
+            'setono_sylius_gift_card.gift_card_configuration.pre_create' => 'handle',
+            'setono_sylius_gift_card.gift_card_configuration.pre_update' => 'handle',
         ];
     }
 
-    public function preUpdate(ResourceControllerEvent $event): void
+    public function handle(ResourceControllerEvent $event): void
     {
+        /** @var GiftCardConfigurationInterface|mixed $giftCardConfiguration */
         $giftCardConfiguration = $event->getSubject();
-        if (!$giftCardConfiguration instanceof GiftCardConfigurationInterface) {
-            throw new UnexpectedTypeException($giftCardConfiguration, GiftCardConfigurationInterface::class);
+        Assert::isInstanceOf($giftCardConfiguration, GiftCardConfigurationInterface::class);
+
+        if (!$giftCardConfiguration->isDefault()) {
+            return;
         }
 
-        if ($giftCardConfiguration->isDefault()) {
-            /** @var GiftCardConfigurationInterface|null $currentDefaultGiftCardConfiguration */
-            $currentDefaultGiftCardConfiguration = $this->giftCardConfigurationRepository->findOneBy(['default' => true]);
-            if ($currentDefaultGiftCardConfiguration instanceof GiftCardConfigurationInterface && $currentDefaultGiftCardConfiguration->getId() !== $giftCardConfiguration->getId()) {
-                $currentDefaultGiftCardConfiguration->setDefault(false);
+        /** @var GiftCardConfigurationInterface $existingGiftCardConfiguration */
+        foreach ($this->giftCardConfigurationRepository->findAll() as $existingGiftCardConfiguration) {
+            if ($giftCardConfiguration->getId() === $existingGiftCardConfiguration) {
+                continue;
             }
+
+            $existingGiftCardConfiguration->setDefault(false);
         }
     }
 }
