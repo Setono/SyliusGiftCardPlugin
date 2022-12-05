@@ -6,17 +6,17 @@ namespace Setono\SyliusGiftCardPlugin\Twig\Extension;
 
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
-use Setono\SyliusGiftCardPlugin\Renderer\PDFRendererInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PdfRendererInterface;
 use Twig\Extension\RuntimeExtensionInterface;
 
 final class PdfRuntime implements RuntimeExtensionInterface
 {
-    private PDFRendererInterface $PDFRenderer;
+    private PdfRendererInterface $PDFRenderer;
 
     private GiftCardFactoryInterface $giftCardFactory;
 
     public function __construct(
-        PDFRendererInterface $giftCardPDFRenderer,
+        PdfRendererInterface $giftCardPDFRenderer,
         GiftCardFactoryInterface $giftCardFactory
     ) {
         $this->PDFRenderer = $giftCardPDFRenderer;

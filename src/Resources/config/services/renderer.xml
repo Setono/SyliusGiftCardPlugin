@@ -5,7 +5,7 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
         <service id="setono_sylius_gift_card.renderer.pdf"
-                 class="Setono\SyliusGiftCardPlugin\Renderer\PDFRenderer">
+                 class="Setono\SyliusGiftCardPlugin\Renderer\PdfRenderer">
             <argument type="service" id="twig"/>
             <argument type="service" id="setono_sylius_gift_card.provider.gift_card_configuration"/>
             <argument type="service" id="sylius.context.channel"/>

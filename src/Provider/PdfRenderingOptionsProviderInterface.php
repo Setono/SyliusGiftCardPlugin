@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Provider;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 
+// todo move this interface to Renderer namespace
 interface PdfRenderingOptionsProviderInterface
 {
     public const ORIENTATION_PORTRAIT = 'Portrait';

@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Twig\Environment;
 use Webmozart\Assert\Assert;
 
-final class PDFRenderer implements PDFRendererInterface
+final class PdfRenderer implements PdfRendererInterface
 {
     private Environment $twig;
 
@@ -55,7 +55,7 @@ final class PDFRenderer implements PDFRendererInterface
         GiftCardConfigurationInterface $giftCardConfiguration = null,
         ChannelInterface $channel = null,
         string $localeCode = null
-    ): PDFResponse {
+    ): PdfResponse {
         if (null === $channel) {
             $order = $giftCard->getOrder();
             if (null !== $order) {
@@ -102,6 +102,6 @@ final class PDFRenderer implements PDFRendererInterface
 
         $renderingOptions = $this->renderingOptionsProvider->getRenderingOptions($giftCardConfiguration);
 
-        return new PDFResponse($this->snappy->getOutputFromHtml($html, $renderingOptions));
+        return new PdfResponse($this->snappy->getOutputFromHtml($html, $renderingOptions));
     }
 }

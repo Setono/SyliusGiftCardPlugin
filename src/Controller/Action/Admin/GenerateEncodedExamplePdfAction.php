@@ -7,7 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action\Admin;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
-use Setono\SyliusGiftCardPlugin\Renderer\PDFRendererInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PdfRendererInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardConfigurationRepositoryInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,19 +20,19 @@ final class GenerateEncodedExamplePdfAction
 
     private GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository;
 
-    private PDFRendererInterface $PDFRenderer;
+    private PdfRendererInterface $pdfRenderer;
 
     private FormFactoryInterface $formFactory;
 
     public function __construct(
         GiftCardFactoryInterface $giftCardFactory,
         GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository,
-        PDFRendererInterface $giftCardPDFRenderer,
+        PdfRendererInterface $giftCardPDFRenderer,
         FormFactoryInterface $formFactory
     ) {
         $this->giftCardFactory = $giftCardFactory;
         $this->giftCardConfigurationRepository = $giftCardConfigurationRepository;
-        $this->PDFRenderer = $giftCardPDFRenderer;
+        $this->pdfRenderer = $giftCardPDFRenderer;
         $this->formFactory = $formFactory;
     }
 
@@ -47,8 +47,6 @@ final class GenerateEncodedExamplePdfAction
         $form = $this->formFactory->create(GiftCardConfigurationType::class, $giftCardConfiguration);
         $form->handleRequest($request);
 
-        $response = $this->PDFRenderer->render($giftCard, $giftCardConfiguration);
-
-        return new Response((string) $response->encode());
+        return $this->pdfRenderer->render($giftCard, $giftCardConfiguration)->encode();
     }
 }
