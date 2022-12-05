@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\EventListener;
+namespace Setono\SyliusGiftCardPlugin\EventSubscriber;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardConfigurationRepositoryInterface;
 use Sylius\Bundle\ResourceBundle\Event\ResourceControllerEvent;
 use Sylius\Component\Resource\Exception\UnexpectedTypeException;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 final class DefaultGiftCardConfigurationSubscriber implements EventSubscriberInterface
 {
-    private RepositoryInterface $giftCardConfigurationRepository;
+    private GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository;
 
-    public function __construct(RepositoryInterface $giftCardConfigurationRepository)
+    public function __construct(GiftCardConfigurationRepositoryInterface $giftCardConfigurationRepository)
     {
         $this->giftCardConfigurationRepository = $giftCardConfigurationRepository;
     }
@@ -34,10 +34,10 @@ final class DefaultGiftCardConfigurationSubscriber implements EventSubscriberInt
         }
 
         if ($giftCardConfiguration->isDefault()) {
-            /** @var GiftCardConfigurationInterface|null $currentDefault */
-            $currentDefault = $this->giftCardConfigurationRepository->findOneBy(['default' => true]);
-            if ($currentDefault instanceof GiftCardConfigurationInterface && $currentDefault !== $giftCardConfiguration) {
-                $currentDefault->setDefault(false);
+            /** @var GiftCardConfigurationInterface|null $currentDefaultGiftCardConfiguration */
+            $currentDefaultGiftCardConfiguration = $this->giftCardConfigurationRepository->findOneBy(['default' => true]);
+            if ($currentDefaultGiftCardConfiguration instanceof GiftCardConfigurationInterface && $currentDefaultGiftCardConfiguration->getId() !== $giftCardConfiguration->getId()) {
+                $currentDefaultGiftCardConfiguration->setDefault(false);
             }
         }
     }

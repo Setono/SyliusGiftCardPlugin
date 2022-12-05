@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tests\Setono\SyliusGiftCardPlugin\Unit\EventListener;
+namespace Tests\Setono\SyliusGiftCardPlugin\Unit\EventSubscriber;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManagerInterface;
-use Setono\SyliusGiftCardPlugin\EventListener\SendEmailWithGiftCardToCustomerSubscriber;
+use Setono\SyliusGiftCardPlugin\EventSubscriber\SendEmailWithGiftCardToCustomerSubscriber;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Bundle\ResourceBundle\Event\ResourceControllerEvent;
 use Sylius\Component\Core\Model\CustomerInterface;
@@ -28,7 +28,7 @@ final class SendEmailWithGiftCardToCustomerSubscriberTest extends TestCase
         $event->getSubject()->willReturn(new \stdClass());
 
         $this->expectException(UnexpectedTypeException::class);
-        $subscriber = new SendEmailWithGiftCardToCustomerSubscriber($giftCardEmailManager->reveal());
+        $subscriber = new \Setono\SyliusGiftCardPlugin\EventSubscriber\SendEmailWithGiftCardToCustomerSubscriber($giftCardEmailManager->reveal());
         $subscriber->postCreate($event->reveal());
     }
 
@@ -61,7 +61,7 @@ final class SendEmailWithGiftCardToCustomerSubscriberTest extends TestCase
         $event = $this->prophesize(ResourceControllerEvent::class);
         $event->getSubject()->willReturn($giftCard);
 
-        $subscriber = new SendEmailWithGiftCardToCustomerSubscriber($giftCardEmailManager->reveal());
+        $subscriber = new \Setono\SyliusGiftCardPlugin\EventSubscriber\SendEmailWithGiftCardToCustomerSubscriber($giftCardEmailManager->reveal());
         $subscriber->postCreate($event->reveal());
 
         $giftCardEmailManager->sendEmailToCustomerWithGiftCard(Argument::any(), Argument::any())->shouldNotHaveBeenCalled();

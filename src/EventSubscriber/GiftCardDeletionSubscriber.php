@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\EventListener;
+namespace Setono\SyliusGiftCardPlugin\EventSubscriber;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Bundle\ResourceBundle\Event\ResourceControllerEvent;
