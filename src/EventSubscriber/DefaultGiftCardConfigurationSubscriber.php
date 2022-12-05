@@ -42,7 +42,7 @@ final class DefaultGiftCardConfigurationSubscriber implements EventSubscriberInt
 
         /** @var GiftCardConfigurationInterface $existingGiftCardConfiguration */
         foreach ($this->giftCardConfigurationRepository->findAll() as $existingGiftCardConfiguration) {
-            if ($giftCardConfiguration->getId() === $existingGiftCardConfiguration) {
+            if ($giftCardConfiguration->getId() === $existingGiftCardConfiguration->getId()) {
                 continue;
             }
 
