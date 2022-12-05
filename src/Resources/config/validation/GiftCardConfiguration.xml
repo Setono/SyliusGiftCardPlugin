@@ -14,6 +14,9 @@
                 <value>setono_sylius_gift_card</value>
             </option>
         </constraint>
+        <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\DefaultGiftCardConfigurationMustExist">
+            <option name="groups">setono_sylius_gift_card</option>
+        </constraint>
 
         <property name="code">
             <constraint name="NotBlank">

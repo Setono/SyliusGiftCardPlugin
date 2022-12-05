@@ -19,6 +19,7 @@ setono_sylius_gift_card:
             boolean: L'envoi de l'email de notification doit être un booléen
     gift_card_configuration:
         background_image_required: L'image de fond est requise
+        default_configuration_must_exist: Vous devez d'abord marquer une autre configuration par défaut avant de décocher cette
     gift_card_search_command:
         gift_card:
             does_not_exist: Ce code de chèque-cadeau n'existe pas
