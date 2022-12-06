@@ -38,7 +38,7 @@
                 <attribute name="normalization_context">
                     <attribute name="groups">admin:gift_card_balance:read</attribute>
                 </attribute>
-                <attribute name="output">Setono\SyliusGiftCardPlugin\Model\GiftCardBalance</attribute>
+                <attribute name="output">Setono\SyliusGiftCardPlugin\Model\GiftCardBalanceCollection</attribute>
             </collectionOperation>
 
             <collectionOperation name="shop_get">
