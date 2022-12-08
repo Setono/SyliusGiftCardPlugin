@@ -13,7 +13,7 @@ interface GiftCardEmailManagerInterface
     public function sendEmailToCustomerWithGiftCard(CustomerInterface $customer, GiftCardInterface $giftCard): void;
 
     /**
-     * @param GiftCardInterface[] $giftCards
+     * @param list<GiftCardInterface> $giftCards
      */
     public function sendEmailWithGiftCardsFromOrder(OrderInterface $order, array $giftCards): void;
 }

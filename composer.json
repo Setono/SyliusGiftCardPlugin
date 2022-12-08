@@ -34,6 +34,7 @@
         "symfony/translation-contracts": "^2.4",
         "symfony/validator": "^4.4 || ^5.4 || ^6.0",
         "twig/twig": "^2.15",
+        "webimpress/safe-writer": "^2.2",
         "webmozart/assert": "^1.11"
     },
     "require-dev": {

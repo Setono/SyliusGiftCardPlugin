@@ -6,12 +6,14 @@ namespace Setono\SyliusGiftCardPlugin\EmailManager;
 
 use Setono\SyliusGiftCardPlugin\Mailer\Emails;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Renderer\PdfRendererInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\CustomerChannelResolverInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\LocaleResolverInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
+use Webimpress\SafeWriter\FileWriter;
 
 final class GiftCardEmailManager implements GiftCardEmailManagerInterface
 {
@@ -23,16 +25,24 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
 
     private LocaleResolverInterface $localeResolver;
 
+    private PdfRendererInterface $pdfRenderer;
+
+    private string $cacheDir;
+
     public function __construct(
         SenderInterface $sender,
         LocaleAwareInterface $translator,
         CustomerChannelResolverInterface $customerChannelResolver,
-        LocaleResolverInterface $customerLocaleResolver
+        LocaleResolverInterface $customerLocaleResolver,
+        PdfRendererInterface $pdfRenderer,
+        string $cacheDir
     ) {
         $this->sender = $sender;
         $this->translator = $translator;
         $this->customerChannelResolver = $customerChannelResolver;
         $this->localeResolver = $customerLocaleResolver;
+        $this->pdfRenderer = $pdfRenderer;
+        $this->cacheDir = $cacheDir;
     }
 
     public function sendEmailToCustomerWithGiftCard(CustomerInterface $customer, GiftCardInterface $giftCard): void
@@ -56,7 +66,8 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
                     'channel' => $channel,
                     // We still need to inject locale to templates because layout is using it
                     'localeCode' => $localeCode,
-                ]
+                ],
+                $this->generateAttachments($giftCard)
             );
         });
     }
@@ -91,7 +102,8 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
                     'channel' => $channel,
                     // We still need to inject locale to templates because layout is using it
                     'localeCode' => $localeCode,
-                ]
+                ],
+                $this->generateAttachments($giftCards)
             );
         });
     }
@@ -108,5 +120,29 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
         $callback();
 
         $this->translator->setLocale($oldLocale);
+    }
+
+    /**
+     * @param GiftCardInterface|list<GiftCardInterface> $giftCards
+     *
+     * @return list<string>
+     */
+    private function generateAttachments($giftCards): array
+    {
+        if (!is_array($giftCards)) {
+            $giftCards = [$giftCards];
+        }
+
+        $attachments = [];
+
+        foreach ($giftCards as $giftCard) {
+            $pdf = $this->pdfRenderer->render($giftCard);
+            $filename = sprintf('%s/gift-card-%s.pdf', $this->cacheDir, (string) $giftCard->getCode());
+            FileWriter::writeFile($filename, (string) $pdf->getContent());
+
+            $attachments[] = $filename;
+        }
+
+        return $attachments;
     }
 }
