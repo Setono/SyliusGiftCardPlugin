@@ -14,6 +14,7 @@
             <argument type="service" id="sylius.email_sender"/>
             <argument type="service" id="translator"/>
             <argument type="service" id="setono_sylius_gift_card.resolver.customer_channel"/>
+            <argument type="service" id="setono_sylius_gift_card.resolver.locale"/>
         </service>
     </services>
 </container>

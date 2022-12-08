@@ -10,6 +10,7 @@ use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManagerInterface;
 use Setono\SyliusGiftCardPlugin\Mailer\Emails;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\CustomerChannelResolverInterface;
+use Setono\SyliusGiftCardPlugin\Resolver\LocaleResolverInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -22,11 +23,12 @@ final class GiftCardEmailManagerSpec extends ObjectBehavior
     public function let(
         SenderInterface $sender,
         LocaleAwareInterface $translator,
-        CustomerChannelResolverInterface $customerChannelResolver
+        CustomerChannelResolverInterface $customerChannelResolver,
+        LocaleResolverInterface $localeResolver
     ): void {
         $translator->getLocale()->willReturn('en_US');
 
-        $this->beConstructedWith($sender, $translator, $customerChannelResolver);
+        $this->beConstructedWith($sender, $translator, $customerChannelResolver, $localeResolver);
     }
 
     public function it_is_initializable(): void
@@ -46,7 +48,8 @@ final class GiftCardEmailManagerSpec extends ObjectBehavior
         SenderInterface $sender,
         ChannelInterface $channel,
         LocaleInterface $locale,
-        LocaleAwareInterface $translator
+        LocaleAwareInterface $translator,
+        LocaleResolverInterface $localeResolver
     ): void {
         $customer->getEmail()->willReturn('example@shop.com');
         $order->getCustomer()->willReturn($customer);
@@ -54,6 +57,7 @@ final class GiftCardEmailManagerSpec extends ObjectBehavior
         $order->getLocaleCode()->willReturn('en_US');
         $channel->getDefaultLocale()->willReturn($locale);
         $locale->getCode()->willReturn('en_US');
+        $localeResolver->resolveFromOrder($order)->willReturn('en_US');
 
         $translator->setLocale('en_US')->shouldBeCalled();
 

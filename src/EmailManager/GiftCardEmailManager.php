@@ -7,6 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\EmailManager;
 use Setono\SyliusGiftCardPlugin\Mailer\Emails;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\CustomerChannelResolverInterface;
+use Setono\SyliusGiftCardPlugin\Resolver\LocaleResolverInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
@@ -20,14 +21,18 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
 
     private CustomerChannelResolverInterface $customerChannelResolver;
 
+    private LocaleResolverInterface $localeResolver;
+
     public function __construct(
         SenderInterface $sender,
         LocaleAwareInterface $translator,
-        CustomerChannelResolverInterface $customerChannelResolver
+        CustomerChannelResolverInterface $customerChannelResolver,
+        LocaleResolverInterface $customerLocaleResolver
     ) {
         $this->sender = $sender;
         $this->translator = $translator;
         $this->customerChannelResolver = $customerChannelResolver;
+        $this->localeResolver = $customerLocaleResolver;
     }
 
     public function sendEmailToCustomerWithGiftCard(CustomerInterface $customer, GiftCardInterface $giftCard): void
@@ -37,14 +42,10 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
             return;
         }
 
+        $localeCode = $this->localeResolver->resolveFromCustomer($customer);
         $channel = $this->customerChannelResolver->resolve($customer);
 
-        $defaultLocale = $channel->getDefaultLocale();
-        if (null === $defaultLocale) {
-            return;
-        }
-
-        $this->wrapTemporaryLocale((string) $defaultLocale->getCode(), function () use ($email, $customer, $giftCard, $channel, $defaultLocale): void {
+        $this->wrapTemporaryLocale($localeCode, function () use ($email, $customer, $giftCard, $channel, $localeCode): void {
             /** @psalm-suppress DeprecatedMethod */
             $this->sender->send(
                 Emails::GIFT_CARD_CUSTOMER,
@@ -54,7 +55,7 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
                     'giftCard' => $giftCard,
                     'channel' => $channel,
                     // We still need to inject locale to templates because layout is using it
-                    'localeCode' => $defaultLocale->getCode(),
+                    'localeCode' => $localeCode,
                 ]
             );
         });
@@ -77,12 +78,9 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
             return;
         }
 
-        $defaultLocale = $channel->getDefaultLocale();
-        if (null === $defaultLocale) {
-            return;
-        }
+        $localeCode = $this->localeResolver->resolveFromOrder($order);
 
-        $this->wrapTemporaryLocale((string) $defaultLocale->getCode(), function () use ($email, $giftCards, $order, $channel): void {
+        $this->wrapTemporaryLocale($localeCode, function () use ($email, $giftCards, $order, $channel, $localeCode): void {
             /** @psalm-suppress DeprecatedMethod */
             $this->sender->send(
                 Emails::GIFT_CARD_ORDER,
@@ -92,7 +90,7 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
                     'order' => $order,
                     'channel' => $channel,
                     // We still need to inject locale to templates because layout is using it
-                    'localeCode' => $order->getLocaleCode(),
+                    'localeCode' => $localeCode,
                 ]
             );
         });
