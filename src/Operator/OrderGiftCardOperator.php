@@ -106,7 +106,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
     /**
      * Returns all the gift cards that were bought on the given order
      *
-     * @return GiftCardInterface[]
+     * @return list<GiftCardInterface>
      */
     private function getGiftCards(OrderInterface $order): array
     {
