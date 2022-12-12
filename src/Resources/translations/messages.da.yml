@@ -69,6 +69,7 @@ setono_sylius_gift_card:
         new_gift_card_configuration: Ny gavekortskonfiguration
         manually_created: Oprettet manuelt
         no_gift_card: Ingen gavekort tilføjet
+        no_customer: Ingen kunde
         product_is_not_gift_card: Produkt er ikke et gavekort
         resend_email: Gensend email
         total: Total

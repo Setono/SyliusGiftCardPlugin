@@ -1,0 +1,6 @@
+{# @var data \Sylius\Component\Core\Model\CustomerInterface|null #}
+{% if data is null %}
+    {{ 'setono_sylius_gift_card.ui.no_customer'|trans }}
+{% else %}
+    <a href="mailto:{{ data.emailCanonical }}">{{ data.emailCanonical }}</a> <a href="{{ path('sylius_admin_customer_show', { 'id': data.id }) }}" target="_blank"><i class="external alternate icon"></i></a>
+{% endif %}

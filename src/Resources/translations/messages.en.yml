@@ -71,9 +71,10 @@ setono_sylius_gift_card:
         load_default_css: Load default CSS
         manage_gift_cards: Manage gift cards
         manage_gift_card_configurations: Manage gift card configurations
+        manually_created: Manually created
         new_gift_card: New gift card
         new_gift_card_configuration: New gift card configuration
-        manually_created: Manually created
+        no_customer: No customer
         no_gift_card: No gift card applied
         product_is_not_gift_card: Product is not gift card
         resend_email: Resend email

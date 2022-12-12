@@ -69,6 +69,7 @@ setono_sylius_gift_card:
         new_gift_card_configuration: Nouvelle configuration de chèque-cadeau
         manually_created: Créé manuellement
         no_gift_card: Pas de chèque-cadeau utilisé
+        no_customer: Pas de client
         product_is_not_gift_card: Le produit n'est pas un chèque cadeau
         resend_email: Renvoyer l'email
         total: Total
