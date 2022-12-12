@@ -123,6 +123,8 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         $giftCard = $this->createNew();
         $giftCard->setAmount(1500);
         $giftCard->setCurrencyCode($this->currencyContext->getCurrencyCode());
+        $giftCard->setExpiresAt(new DateTimeImmutable('+3 years'));
+        $giftCard->setCustomMessage('Hi there, beautiful! Thought I wanted to make your day even better with this gift card');
 
         return $giftCard;
     }
