@@ -85,8 +85,6 @@ final class PdfRenderer implements PdfRendererInterface
         $template = $giftCardConfiguration->getTemplate();
         Assert::notNull($template);
 
-        $template = '{% extends "@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf_layout.html.twig" %}{% block content %}' . $template . '{% endblock %}';
-
         $html = $this->twig->render($this->twig->createTemplate($template), [
             'channel' => $this->normalizer->normalize($channel, null, ['groups' => 'setono:sylius-gift-card:render']),
             'localeCode' => $localeCode,
