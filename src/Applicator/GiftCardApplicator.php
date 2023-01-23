@@ -40,6 +40,14 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
             $giftCard = $this->getGiftCard($giftCard);
         }
 
+        if (!$giftCard->isEnabled()) {
+            throw new RuntimeException('The gift card is not enabled');
+        }
+
+        if ($giftCard->isExpired()) {
+            throw new RuntimeException('The gift card is expired');
+        }
+
         $orderChannel = $order->getChannel();
         if (null === $orderChannel) {
             throw new RuntimeException('The channel on the order cannot be null');
