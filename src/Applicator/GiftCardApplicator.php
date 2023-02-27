@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Applicator;
 
-use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
 use Setono\SyliusGiftCardPlugin\Exception\ChannelMismatchException;
 use Setono\SyliusGiftCardPlugin\Exception\GiftCardNotFoundException;
@@ -19,16 +18,12 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
 
     private OrderProcessorInterface $orderProcessor;
 
-    private ObjectManager $orderManager;
-
     public function __construct(
         GiftCardRepositoryInterface $giftCardRepository,
-        OrderProcessorInterface $orderProcessor,
-        ObjectManager $orderManager
+        OrderProcessorInterface $orderProcessor
     ) {
         $this->giftCardRepository = $giftCardRepository;
         $this->orderProcessor = $orderProcessor;
-        $this->orderManager = $orderManager;
     }
 
     /**
@@ -65,8 +60,6 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
         $order->addGiftCard($giftCard);
 
         $this->orderProcessor->process($order);
-
-        $this->orderManager->flush();
     }
 
     /**
@@ -81,8 +74,6 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
         $order->removeGiftCard($giftCard);
 
         $this->orderProcessor->process($order);
-
-        $this->orderManager->flush();
     }
 
     private function getGiftCard(string $giftCardCode): GiftCardInterface

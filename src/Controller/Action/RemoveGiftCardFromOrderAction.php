@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
+use Doctrine\Persistence\ManagerRegistry;
+use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
@@ -17,6 +19,8 @@ use Webmozart\Assert\Assert;
 
 final class RemoveGiftCardFromOrderAction
 {
+    use ORMManagerTrait;
+
     private CartContextInterface $cartContext;
 
     private GiftCardApplicatorInterface $giftCardApplicator;
@@ -26,11 +30,13 @@ final class RemoveGiftCardFromOrderAction
     public function __construct(
         CartContextInterface $cartContext,
         GiftCardApplicatorInterface $giftCardApplicator,
-        RedirectUrlResolverInterface $redirectRouteResolver
+        RedirectUrlResolverInterface $redirectRouteResolver,
+        ManagerRegistry $managerRegistry
     ) {
         $this->cartContext = $cartContext;
         $this->giftCardApplicator = $giftCardApplicator;
         $this->redirectRouteResolver = $redirectRouteResolver;
+        $this->managerRegistry = $managerRegistry;
     }
 
     public function __invoke(Request $request): Response
@@ -43,6 +49,8 @@ final class RemoveGiftCardFromOrderAction
         $giftCard = $request->attributes->get('giftCard');
 
         $this->giftCardApplicator->remove($order, $giftCard);
+
+        $this->getManager($order)->flush();
 
         $session = $request->getSession();
         if ($session instanceof Session) {

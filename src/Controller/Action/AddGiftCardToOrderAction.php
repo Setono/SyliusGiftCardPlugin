@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
+use Doctrine\Persistence\ManagerRegistry;
+use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
@@ -20,6 +22,8 @@ use Webmozart\Assert\Assert;
 
 final class AddGiftCardToOrderAction
 {
+    use ORMManagerTrait;
+
     private FormFactoryInterface $formFactory;
 
     private CartContextInterface $cartContext;
@@ -35,13 +39,15 @@ final class AddGiftCardToOrderAction
         CartContextInterface $cartContext,
         GiftCardApplicatorInterface $giftCardApplicator,
         RedirectUrlResolverInterface $redirectRouteResolver,
-        Environment $twig
+        Environment $twig,
+        ManagerRegistry $managerRegistry
     ) {
         $this->formFactory = $formFactory;
         $this->cartContext = $cartContext;
         $this->giftCardApplicator = $giftCardApplicator;
         $this->redirectRouteResolver = $redirectRouteResolver;
         $this->twig = $twig;
+        $this->managerRegistry = $managerRegistry;
     }
 
     public function __invoke(Request $request): Response
@@ -61,6 +67,8 @@ final class AddGiftCardToOrderAction
             $giftCard = $addGiftCardToOrderCommand->getGiftCard();
             Assert::notNull($giftCard);
             $this->giftCardApplicator->apply($order, $giftCard);
+
+            $this->getManager($order)->flush();
 
             $session = $request->getSession();
             if ($session instanceof Session) {
