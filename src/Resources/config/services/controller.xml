@@ -14,6 +14,7 @@
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
             <argument type="service" id="twig"/>
+            <argument type="service" id="doctrine"/>
         </service>
 
         <service id="setono_sylius_gift_card.controller.action.remove_gift_card_from_order"
@@ -21,6 +22,7 @@
             <argument type="service" id="sylius.context.cart"/>
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
+            <argument type="service" id="doctrine"/>
         </service>
 
         <service id="setono_sylius_gift_card.controller.action.gift_card_balance"
