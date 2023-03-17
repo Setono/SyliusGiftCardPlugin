@@ -167,9 +167,9 @@ use Sylius\Component\Core\Model\OrderItem as BaseOrderItem;
 
 /**
  * @ORM\Entity
- * @ORM\Table(name="sylius_order_item_unit")
+ * @ORM\Table(name="sylius_order_item")
  */
-class OrderItemUnit extends BaseOrderItem
+class OrderItem extends BaseOrderItem
 {
     use SetonoSyliusGiftCardOrderItemTrait;
 }
