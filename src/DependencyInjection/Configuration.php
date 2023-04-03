@@ -43,7 +43,7 @@ final class Configuration implements ConfigurationInterface
                     ->info('The length of the generated gift card code')
                     ->min(1)
                     ->max(255)
-                    ->example(16)
+                    ->example('16')
         ;
 
         $this->addResourcesSection($rootNode);
