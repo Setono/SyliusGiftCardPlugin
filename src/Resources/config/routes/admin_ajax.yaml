@@ -2,7 +2,7 @@ setono_sylius_gift_card_admin_ajax_customer_by_email_phrase:
     path: /customer/search
     methods: [GET]
     defaults:
-        _controller: sylius.controller.customer:indexAction
+        _controller: sylius.controller.customer::indexAction
         _format: json
         _sylius:
             serialization_groups: [Default]
@@ -16,7 +16,7 @@ setono_sylius_gift_card_admin_ajax_customer_by_email:
     path: /customer/email
     methods: [GET]
     defaults:
-        _controller: sylius.controller.customer:indexAction
+        _controller: sylius.controller.customer::indexAction
         _format: json
         _sylius:
             serialization_groups: [Default]
