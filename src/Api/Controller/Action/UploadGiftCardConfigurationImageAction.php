@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Api\Controller\Action;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImageInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Sylius\Component\Core\Uploader\ImageUploaderInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
-use Sylius\Component\Resource\Model\ResourceInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,13 +23,17 @@ final class UploadGiftCardConfigurationImageAction
 
     private ImageUploaderInterface $imageUploader;
 
-    private IriConverterInterface $iriConverter;
+    /** @var LegacyIriConverterInterface|IriConverterInterface */
+    private $iriConverter;
 
+    /**
+     * @param LegacyIriConverterInterface|IriConverterInterface $iriConverter
+     */
     public function __construct(
         FactoryInterface $giftCardConfigurationImageFactory,
         RepositoryInterface $giftCardConfigurationImageRepository,
         ImageUploaderInterface $imageUploader,
-        IriConverterInterface $iriConverter
+        $iriConverter
     ) {
         $this->giftCardConfigurationImageFactory = $giftCardConfigurationImageFactory;
         $this->giftCardConfigurationImageRepository = $giftCardConfigurationImageRepository;
@@ -52,13 +56,10 @@ final class UploadGiftCardConfigurationImageAction
 
         $image->setType($imageType);
 
-        /** @var string $ownerIri */
         $ownerIri = $request->request->get('owner') ?? $request->query->get('type');
-        Assert::notEmpty($ownerIri);
+        Assert::stringNotEmpty($ownerIri);
 
-        /** @var ResourceInterface|GiftCardConfigurationInterface $owner */
-        $owner = $this->iriConverter->getItemFromIri($ownerIri);
-        Assert::isInstanceOf($owner, GiftCardConfigurationInterface::class);
+        $owner = $this->getOwner($ownerIri);
 
         $oldImages = $owner->getImagesByType($imageType);
         foreach ($oldImages as $oldImage) {
@@ -70,5 +71,18 @@ final class UploadGiftCardConfigurationImageAction
         $this->imageUploader->upload($image);
 
         return $image;
+    }
+
+    private function getOwner(string $ownerIri): GiftCardConfigurationInterface
+    {
+        if ($this->iriConverter instanceof LegacyIriConverterInterface) {
+            $owner = $this->iriConverter->getItemFromIri($ownerIri);
+        } else {
+            $owner = $this->iriConverter->getResourceFromIri($ownerIri);
+        }
+
+        Assert::isInstanceOf($owner, GiftCardConfigurationInterface::class);
+
+        return $owner;
     }
 }

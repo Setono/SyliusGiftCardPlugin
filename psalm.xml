@@ -3,7 +3,12 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+    findUnusedPsalmSuppress="false"
+    findUnusedBaselineEntry="true"
+    findUnusedVariablesAndParams="false"
+    findUnusedCode="false"
     errorLevel="1"
+    errorBaseline="psalm-baseline.xml"
 >
     <projectFiles>
         <directory name="src"/>
@@ -16,10 +21,6 @@
     </projectFiles>
     <plugins>
         <pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin">
-            <!-- Symfony 4 container XML -->
-            <containerXml>tests/Application/var/cache/test/ApplicationTests_Setono_SyliusGiftCardPlugin_Application_KernelTestDebugContainer.xml</containerXml>
-
-            <!-- Symfony 5 container XML -->
             <containerXml>tests/Application/var/cache/test/Tests_Setono_SyliusGiftCardPlugin_Application_KernelTestDebugContainer.xml</containerXml>
         </pluginClass>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
@@ -28,9 +29,16 @@
     <forbiddenFunctions>
         <function name="dd"/>
         <function name="dump"/>
+        <function name="var_dump"/>
+        <function name="print_r"/>
     </forbiddenFunctions>
     <issueHandlers>
         <PluginIssue name="QueryBuilderSetParameter" errorLevel="suppress"/>
         <RedundantConditionGivenDocblockType errorLevel="suppress"/>
+        <MissingTemplateParam>
+            <errorLevel type="suppress">
+                <directory name="src/Form"/>
+            </errorLevel>
+        </MissingTemplateParam>
     </issueHandlers>
 </psalm>
