@@ -69,7 +69,7 @@ setono_sylius_gift_card_admin_gift_card_create_for_channel:
     path: /gift-cards/create
     methods: [GET]
     defaults:
-        _controller: sylius.controller.channel:indexAction
+        _controller: sylius.controller.channel::indexAction
         _sylius:
             repository:
                 method: findAll
@@ -80,7 +80,7 @@ setono_sylius_gift_card_admin_gift_card_create:
     path: /gift-cards/create/{channelCode}
     methods: [GET, POST]
     defaults:
-        _controller: setono_sylius_gift_card.controller.gift_card:createAction
+        _controller: setono_sylius_gift_card.controller.gift_card::createAction
         _sylius:
             factory:
                 method: createForChannelFromAdmin
@@ -103,7 +103,7 @@ setono_sylius_gift_card_admin_gift_card_orders_index:
     path: /gift-cards/{id}/orders
     methods: [GET, POST]
     defaults:
-        _controller: sylius.controller.order:indexAction
+        _controller: sylius.controller.order::indexAction
         _sylius:
             vars:
                 route:
