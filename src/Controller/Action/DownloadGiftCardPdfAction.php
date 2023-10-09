@@ -74,7 +74,6 @@ final class DownloadGiftCardPdfAction
     {
         $session = $request->getSession();
 
-        /** @psalm-suppress RedundantConditionGivenDocblockType */
         if ($session instanceof Session) {
             $flashBag = $session->getFlashBag();
             $flashBag->add('error', $message);

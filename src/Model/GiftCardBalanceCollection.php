@@ -9,6 +9,9 @@ use Iterator;
 use OutOfBoundsException;
 use Webmozart\Assert\Assert;
 
+/**
+ * @implements Iterator<array-key, GiftCardBalance>
+ */
 final class GiftCardBalanceCollection implements Countable, Iterator
 {
     /** @var GiftCardBalance[] */

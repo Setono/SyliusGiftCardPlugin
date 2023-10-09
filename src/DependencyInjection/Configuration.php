@@ -12,12 +12,8 @@ use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardChannelConfiguration;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardChannelConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImage;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImageInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
 use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
@@ -37,7 +33,7 @@ final class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->getRootNode();
 
         /**
-         * @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod
+         * @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod,UndefinedInterfaceMethod
          */
         $rootNode
             ->addDefaultsIfNotSet()
@@ -95,7 +91,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addGiftCardSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod */
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod */
         $nodeBuilder
             ->arrayNode('gift_card')
                 ->addDefaultsIfNotSet()
@@ -105,7 +101,6 @@ final class Configuration implements ConfigurationInterface
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->scalarNode('model')->defaultValue(GiftCard::class)->cannotBeEmpty()->end()
-                            ->scalarNode('interface')->defaultValue(GiftCardInterface::class)->cannotBeEmpty()->end()
                             ->scalarNode('controller')->defaultValue(ResourceController::class)->cannotBeEmpty()->end()
                             ->scalarNode('repository')->defaultValue(GiftCardRepository::class)->cannotBeEmpty()->end()
                             ->scalarNode('form')->defaultValue(GiftCardType::class)->end()
@@ -115,7 +110,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addGiftCardConfigurationSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod */
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod */
         $nodeBuilder
             ->arrayNode('gift_card_configuration')
                 ->addDefaultsIfNotSet()
@@ -125,7 +120,6 @@ final class Configuration implements ConfigurationInterface
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->scalarNode('model')->defaultValue(GiftCardConfiguration::class)->cannotBeEmpty()->end()
-                            ->scalarNode('interface')->defaultValue(GiftCardConfigurationInterface::class)->cannotBeEmpty()->end()
                             ->scalarNode('controller')->defaultValue(ResourceController::class)->cannotBeEmpty()->end()
                             ->scalarNode('repository')->defaultValue(GiftCardConfigurationRepository::class)->cannotBeEmpty()->end()
                             ->scalarNode('form')->defaultValue(GiftCardConfigurationType::class)->end()
@@ -135,7 +129,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addGiftCardConfigurationImageSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod */
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod */
         $nodeBuilder
             ->arrayNode('gift_card_configuration_image')
                 ->addDefaultsIfNotSet()
@@ -145,7 +139,6 @@ final class Configuration implements ConfigurationInterface
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->scalarNode('model')->defaultValue(GiftCardConfigurationImage::class)->cannotBeEmpty()->end()
-                            ->scalarNode('interface')->defaultValue(GiftCardConfigurationImageInterface::class)->cannotBeEmpty()->end()
                             ->scalarNode('controller')->defaultValue(ResourceController::class)->cannotBeEmpty()->end()
                             ->scalarNode('repository')->defaultValue(EntityRepository::class)->cannotBeEmpty()->end()
                             ->scalarNode('form')->defaultValue(GiftCardConfigurationImageType::class)->end()
@@ -155,7 +148,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addChannelConfigurationSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod */
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod */
         $nodeBuilder
             ->arrayNode('gift_card_channel_configuration')
                 ->addDefaultsIfNotSet()
@@ -165,7 +158,6 @@ final class Configuration implements ConfigurationInterface
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->scalarNode('model')->defaultValue(GiftCardChannelConfiguration::class)->cannotBeEmpty()->end()
-                            ->scalarNode('interface')->defaultValue(GiftCardChannelConfigurationInterface::class)->cannotBeEmpty()->end()
                             ->scalarNode('controller')->defaultValue(ResourceController::class)->cannotBeEmpty()->end()
                             ->scalarNode('repository')->defaultValue(EntityRepository::class)->cannotBeEmpty()->end()
                             ->scalarNode('form')->defaultValue(GiftCardChannelConfigurationType::class)->end()

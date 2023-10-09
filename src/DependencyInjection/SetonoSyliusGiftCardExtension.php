@@ -9,6 +9,7 @@ use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceE
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Webmozart\Assert\Assert;
 
 final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
 {
@@ -65,12 +66,9 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension
         $loader->load('services.xml');
 
         if ($container->hasParameter('kernel.bundles')) {
-            /**
-             * @var array $bundles
-             *
-             * @psalm-suppress UndefinedDocblockClass
-             */
             $bundles = $container->getParameter('kernel.bundles');
+            Assert::isArray($bundles);
+
             if (array_key_exists('SetonoSyliusCatalogPromotionPlugin', $bundles)) {
                 $loader->load('services/conditional/catalog_promotion_rule.xml');
             }
