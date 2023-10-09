@@ -90,13 +90,16 @@ jobs:
                     php-version: "${{ matrix.php-version }}"
                     tools: "composer-require-checker, composer-unused, flex"
 
+            -   name: "Remove require-dev section in composer.json"
+                run: "composer config --unset require-dev"
+            
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v2"
                 env:
                     SYMFONY_REQUIRE: "${{ matrix.symfony }}"
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
-
+            
             -   name: "Run maglnet/composer-require-checker"
                 run: "composer-require-checker check --config-file=$(pwd)/composer-require-checker.json"
 
