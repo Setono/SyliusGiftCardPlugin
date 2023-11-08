@@ -27,7 +27,7 @@
         "sylius/grid-bundle": "^1.0",
         "sylius/locale": "^1.0",
         "sylius/locale-bundle": "^1.0",
-        "sylius/mailer-bundle": "^1.6",
+        "sylius/mailer-bundle": "^1.6 || ^2.0",
         "sylius/money-bundle": "^1.0",
         "sylius/order": "^1.0",
         "sylius/order-bundle": "^1.0",
