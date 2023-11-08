@@ -8,9 +8,8 @@ use Doctrine\Persistence\ObjectManager;
 use Setono\SyliusGiftCardPlugin\Api\Command\CreateGiftCardConfiguration;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardConfigurationFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
-final class CreateGiftCardConfigurationHandler implements MessageHandlerInterface
+final class CreateGiftCardConfigurationHandler
 {
     private GiftCardConfigurationFactoryInterface $giftCardConfigurationFactory;
 

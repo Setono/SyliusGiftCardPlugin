@@ -48,9 +48,11 @@ final class GiftCardsByLoggedInUserExtension implements ContextAwareQueryCollect
         /** @var CustomerInterface $customer */
         $customer = $user->getCustomer();
 
-        $rootAlias = $queryBuilder->getRootAliases()[0];
+        /** @var list<string> $rootAliases */
+        $rootAliases = $queryBuilder->getRootAliases();
+
         $queryBuilder
-            ->andWhere(sprintf('%s.customer = :customer', $rootAlias))
+            ->andWhere(sprintf('%s.customer = :customer', $rootAliases[0]))
             ->setParameter('customer', $customer->getId(), Types::INTEGER)
         ;
     }

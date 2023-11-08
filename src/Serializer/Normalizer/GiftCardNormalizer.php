@@ -27,16 +27,18 @@ final class GiftCardNormalizer implements ContextAwareNormalizerInterface
     /**
      * @param GiftCardInterface|mixed $object
      * @param string $format
-     *
-     * @return array|ArrayObject
      */
-    public function normalize($object, $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = []): array
     {
         Assert::isInstanceOf($object, GiftCardInterface::class);
 
         $data = $this->objectNormalizer->normalize($object, $format, $context);
         if (!is_array($data) && !$data instanceof ArrayObject) {
             throw new UnexpectedTypeException($data, 'array', ArrayObject::class);
+        }
+
+        if ($data instanceof ArrayObject) {
+            $data = $data->getArrayCopy();
         }
 
         $localeCode = isset($context['localeCode']) && is_string($context['localeCode']) ? $context['localeCode'] : 'en_US';

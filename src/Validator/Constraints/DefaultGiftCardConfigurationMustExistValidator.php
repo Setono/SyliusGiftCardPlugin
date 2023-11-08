@@ -19,6 +19,9 @@ final class DefaultGiftCardConfigurationMustExistValidator extends ConstraintVal
         $this->giftCardConfigurationRepository = $giftCardConfigurationRepository;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function validate($value, Constraint $constraint): void
     {
         if (!$constraint instanceof DefaultGiftCardConfigurationMustExist) {

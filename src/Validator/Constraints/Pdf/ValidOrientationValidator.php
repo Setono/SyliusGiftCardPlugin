@@ -17,6 +17,9 @@ final class ValidOrientationValidator extends ConstraintValidator
         $this->availableOrientations = $availableOrientations;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function validate($value, Constraint $constraint): void
     {
         if (!$constraint instanceof ValidOrientation) {

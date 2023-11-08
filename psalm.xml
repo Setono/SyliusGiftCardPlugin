@@ -4,7 +4,7 @@
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
     findUnusedPsalmSuppress="false"
-    findUnusedBaselineEntry="true"
+    findUnusedBaselineEntry="false"
     findUnusedVariablesAndParams="false"
     findUnusedCode="false"
     errorLevel="1"
@@ -20,11 +20,9 @@
         </ignoreFiles>
     </projectFiles>
     <plugins>
-        <pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin">
-            <containerXml>tests/Application/var/cache/test/Tests_Setono_SyliusGiftCardPlugin_Application_KernelTestDebugContainer.xml</containerXml>
-        </pluginClass>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
         <pluginClass class="Weirdan\DoctrinePsalmPlugin\Plugin"/>
+        <pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin"/>
     </plugins>
     <forbiddenFunctions>
         <function name="dd"/>
@@ -33,12 +31,25 @@
         <function name="print_r"/>
     </forbiddenFunctions>
     <issueHandlers>
+        <DeprecatedInterface>
+            <errorLevel type="suppress">
+                <referencedClass name="Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface"/>
+            </errorLevel>
+        </DeprecatedInterface>
         <PluginIssue name="QueryBuilderSetParameter" errorLevel="suppress"/>
-        <RedundantConditionGivenDocblockType errorLevel="suppress"/>
         <MissingTemplateParam>
             <errorLevel type="suppress">
+                <directory name="src/Factory"/>
                 <directory name="src/Form"/>
+                <directory name="src/Repository"/>
+                <directory name="src/Security"/>
             </errorLevel>
         </MissingTemplateParam>
+        <RedundantConditionGivenDocblockType errorLevel="suppress"/>
+        <UndefinedDocblockClass>
+            <errorLevel type="suppress">
+                <referencedClass name="ApiPlatform\Api\IriConverterInterface"/>
+            </errorLevel>
+        </UndefinedDocblockClass>
     </issueHandlers>
 </psalm>

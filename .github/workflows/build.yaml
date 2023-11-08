@@ -2,7 +2,7 @@ name: "build"
 on:
     push:
         branches:
-            - "0.*"
+            - "0.*.x"
         paths-ignore:
             - "**/*.md"
     pull_request:
@@ -71,6 +71,7 @@ jobs:
                     - "7.4"
                     - "8.0"
                     - "8.1"
+                    - "8.2"
 
                 dependencies:
                     - "lowest"
@@ -78,6 +79,28 @@ jobs:
 
                 symfony:
                     - "^5.4"
+                    - "~6.0.0"
+                    - "~6.1.0"
+                    - "~6.2.0"
+                    - "~6.3.0"
+                
+                exclude:
+                    -   php-version: "7.4"
+                        symfony: "~6.0.0"
+                    -   php-version: "7.4"
+                        symfony: "~6.1.0"
+                    -   php-version: "7.4"
+                        symfony: "~6.2.0"
+                    -   php-version: "7.4"
+                        symfony: "~6.3.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.0.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.1.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.2.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.3.0"
 
         steps:
             -   name: "Checkout"
@@ -113,17 +136,42 @@ jobs:
         runs-on: "ubuntu-latest"
 
         strategy:
+            fail-fast: false
             matrix:
                 php-version:
                     - "7.4"
                     - "8.0"
                     - "8.1"
+                    - "8.2"
 
                 dependencies:
+                    - "lowest"
                     - "highest"
 
                 symfony:
                     - "^5.4"
+                    - "~6.0.0"
+                    - "~6.1.0"
+                    - "~6.2.0"
+                    - "~6.3.0"
+                
+                exclude:
+                    -   php-version: "7.4"
+                        symfony: "~6.0.0"
+                    -   php-version: "7.4"
+                        symfony: "~6.1.0"
+                    -   php-version: "7.4"
+                        symfony: "~6.2.0"
+                    -   php-version: "7.4"
+                        symfony: "~6.3.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.0.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.1.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.2.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.3.0"
 
         steps:
             -   name: "Checkout"
@@ -137,6 +185,9 @@ jobs:
                     php-version: "${{ matrix.php-version }}"
                     tools: "flex"
 
+            -   name: "Remove sylius/sylius from composer.json"
+                run: "composer remove --dev --no-update --no-plugins --no-scripts sylius/sylius"
+            
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v2"
                 env:
@@ -144,11 +195,8 @@ jobs:
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
 
-            -   name: "Cache warmup"
-                run: "(cd tests/Application && bin/console cache:warmup)"
-
             -   name: "Static analysis"
-                run: "composer analyse"
+                run: "vendor/bin/psalm --php-version=${{ matrix.php-version }}"
 
     unit-tests:
         name: "Unit tests (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }} | Symfony: ${{ matrix.symfony }})"
@@ -156,17 +204,41 @@ jobs:
         runs-on: "ubuntu-latest"
 
         strategy:
+            fail-fast: false
             matrix:
                 php-version:
                     - "7.4"
                     - "8.0"
                     - "8.1"
+                    - "8.2"
 
                 dependencies:
                     - "highest"
 
                 symfony:
                     - "^5.4"
+                    - "~6.0.0"
+                    - "~6.1.0"
+                    - "~6.2.0"
+                    - "~6.3.0"
+                
+                exclude:
+                    -   php-version: "7.4"
+                        symfony: "~6.0.0"
+                    -   php-version: "7.4"
+                        symfony: "~6.1.0"
+                    -   php-version: "7.4"
+                        symfony: "~6.2.0"
+                    -   php-version: "7.4"
+                        symfony: "~6.3.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.0.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.1.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.2.0"
+                    -   php-version: "8.0"
+                        symfony: "~6.3.0"
 
         steps:
             -   name: "Checkout"
@@ -180,6 +252,9 @@ jobs:
                     php-version: "${{ matrix.php-version }}"
                     tools: "flex"
 
+            -   name: "Remove sylius/sylius from composer.json"
+                run: "composer remove --dev --no-update --no-plugins --no-scripts sylius/sylius"
+            
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v2"
                 env:
@@ -201,6 +276,7 @@ jobs:
                     - "7.4"
                     - "8.0"
                     - "8.1"
+                    - "8.2"
 
                 dependencies:
                     - "highest"
@@ -226,7 +302,7 @@ jobs:
             -   name: "Setup node"
                 uses: "actions/setup-node@v3"
                 with:
-                    node-version: "14"
+                    node-version: "16"
 
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v2"
@@ -315,7 +391,7 @@ jobs:
         strategy:
             matrix:
                 php-version:
-                    - "8.1"
+                    - "8.2"
 
                 dependencies:
                     - "highest"

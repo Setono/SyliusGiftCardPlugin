@@ -20,7 +20,7 @@ class GiftCardVoterTest extends TestCase
         $giftCard = new GiftCard();
         $voter = new GiftCardVoter();
         $user = new AdminUser();
-        $token = new UsernamePasswordToken($user, 'credentials', 'memory');
+        $token = new UsernamePasswordToken($user, 'memory');
 
         $this->assertSame(
             Voter::ACCESS_GRANTED,
@@ -38,7 +38,7 @@ class GiftCardVoterTest extends TestCase
 
         $giftCard->setCustomer($customer);
 
-        $token = new UsernamePasswordToken($user, 'credentials', 'memory');
+        $token = new UsernamePasswordToken($user, 'memory');
 
         $this->assertSame(
             Voter::ACCESS_GRANTED,
@@ -54,7 +54,7 @@ class GiftCardVoterTest extends TestCase
         $customer = new Customer();
         $user->setCustomer($customer);
 
-        $token = new UsernamePasswordToken($user, 'credentials', 'memory');
+        $token = new UsernamePasswordToken($user, 'memory');
 
         $this->assertSame(
             Voter::ACCESS_GRANTED,
@@ -73,7 +73,7 @@ class GiftCardVoterTest extends TestCase
         $customer2 = new Customer();
         $giftCard->setCustomer($customer2);
 
-        $token = new UsernamePasswordToken($user, 'credentials', 'memory');
+        $token = new UsernamePasswordToken($user, 'memory');
 
         $this->assertSame(
             Voter::ACCESS_DENIED,
