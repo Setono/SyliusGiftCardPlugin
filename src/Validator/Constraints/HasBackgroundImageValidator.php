@@ -11,6 +11,9 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 final class HasBackgroundImageValidator extends ConstraintValidator
 {
+    /**
+     * @param mixed $value
+     */
     public function validate($value, Constraint $constraint): void
     {
         if (!$constraint instanceof HasBackgroundImage) {

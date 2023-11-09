@@ -91,7 +91,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addGiftCardSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod */
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod,PossiblyUndefinedMethod */
         $nodeBuilder
             ->arrayNode('gift_card')
                 ->addDefaultsIfNotSet()
@@ -110,7 +110,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addGiftCardConfigurationSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod */
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod,PossiblyUndefinedMethod */
         $nodeBuilder
             ->arrayNode('gift_card_configuration')
                 ->addDefaultsIfNotSet()
@@ -129,7 +129,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addGiftCardConfigurationImageSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod */
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod,PossiblyUndefinedMethod */
         $nodeBuilder
             ->arrayNode('gift_card_configuration_image')
                 ->addDefaultsIfNotSet()
@@ -148,7 +148,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addChannelConfigurationSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod */
+        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod,PossiblyUndefinedMethod */
         $nodeBuilder
             ->arrayNode('gift_card_channel_configuration')
                 ->addDefaultsIfNotSet()

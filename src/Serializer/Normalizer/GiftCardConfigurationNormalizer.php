@@ -33,16 +33,18 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
     /**
      * @param GiftCardConfigurationInterface|mixed $object
      * @param string $format
-     *
-     * @return array|ArrayObject
      */
-    public function normalize($object, $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = []): array
     {
         Assert::isInstanceOf($object, GiftCardConfigurationInterface::class);
 
         $data = $this->objectNormalizer->normalize($object, $format, $context);
         if (!is_array($data) && !$data instanceof ArrayObject) {
             throw new UnexpectedTypeException($data, 'array', ArrayObject::class);
+        }
+
+        if ($data instanceof ArrayObject) {
+            $data = $data->getArrayCopy();
         }
 
         $data['image'] = '';

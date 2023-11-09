@@ -17,6 +17,9 @@ final class ValidPageSizeValidator extends ConstraintValidator
         $this->availablePageSizes = $availableOrientations;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function validate($value, Constraint $constraint): void
     {
         if (!$constraint instanceof ValidPageSize) {

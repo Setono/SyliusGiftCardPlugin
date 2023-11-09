@@ -17,7 +17,7 @@
         "knplabs/knp-snappy": "^1.4",
         "knplabs/knp-snappy-bundle": "^1.9",
         "setono/doctrine-object-manager-trait": "^1.1",
-        "sylius/api-bundle": "^1.0",
+        "sylius/api-bundle": "^1.10",
         "sylius/channel": "^1.0",
         "sylius/channel-bundle": "^1.0",
         "sylius/core": "^1.0",
@@ -29,7 +29,7 @@
         "sylius/locale-bundle": "^1.0",
         "sylius/mailer-bundle": "^1.6 || ^2.0",
         "sylius/money-bundle": "^1.0",
-        "sylius/order": "^1.0",
+        "sylius/order": "^1.10",
         "sylius/order-bundle": "^1.0",
         "sylius/product": "^1.0",
         "sylius/product-bundle": "^1.0",
@@ -57,19 +57,18 @@
         "webmozart/assert": "^1.11"
     },
     "require-dev": {
-        "friendsofsymfony/oauth-server-bundle": ">2.0.0-alpha.0 ^2.0@dev",
-        "lexik/jwt-authentication-bundle": "^2.16",
+        "lexik/jwt-authentication-bundle": "^2.19",
         "matthiasnoback/symfony-config-test": "^4.3",
         "matthiasnoback/symfony-dependency-injection-test": "^4.3",
         "php-http/message-factory": "^1.1",
-        "phpspec/phpspec": "^7.2",
-        "phpspec/prophecy-phpunit": "^2.0",
-        "phpunit/phpunit": "^9.6",
+        "phpspec/phpspec": "^7.4",
+        "phpspec/prophecy-phpunit": "^2.0.2",
+        "phpunit/phpunit": "^9.6.13",
         "psalm/plugin-phpunit": "^0.18",
         "psalm/plugin-symfony": "^5.0",
-        "setono/code-quality-pack": "^2.4",
+        "setono/code-quality-pack": "^2.6",
         "setono/sylius-behat-pack": "^0.2.2",
-        "setono/sylius-catalog-promotion-plugin": "^0.4",
+        "setono/sylius-catalog-promotion-plugin": "^0.4.8 || ^0.5",
         "sylius/sylius": "~1.10.14",
         "symfony/debug-bundle": "^5.4 || ^6.0",
         "symfony/dotenv": "^5.4 || ^6.0",
@@ -77,8 +76,8 @@
         "symfony/intl": "^5.4 || ^6.0",
         "symfony/property-info": "^5.4 || ^6.0",
         "symfony/web-profiler-bundle": "^5.4 || ^6.0",
-        "symfony/webpack-encore-bundle": "^1.16",
-        "weirdan/doctrine-psalm-plugin": "^2.5"
+        "symfony/webpack-encore-bundle": "^1.17",
+        "weirdan/doctrine-psalm-plugin": "^2.9"
     },
     "prefer-stable": true,
     "autoload": {
@@ -104,20 +103,12 @@
         },
         "sort-packages": true
     },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0-dev"
-        }
-    },
     "scripts": {
         "all": [
             "@checks",
             "@tests"
         ],
-        "analyse": [
-            "@ensure-test-container-exists",
-            "psalm"
-        ],
+        "analyse": "psalm",
         "assets": [
             "@ensure-assets-installed",
             "@ensure-assets-compiled"
@@ -140,7 +131,6 @@
         "ensure-env-dev-copied": "(cd tests/Application && ([[ -f .env.local ]] || cp .env .env.local))",
         "ensure-env-test-copied": "(cd tests/Application && ([[ -f .env.test.local ]] || cp .env.test .env.test.local))",
         "ensure-schema-updated": "composer ensure-env-copied && (cd tests/Application && bin/console doctrine:schema:update --force -e ${SYMFONY_ENV:-'dev'})",
-        "ensure-test-container-exists": "[[ -f tests/Application/var/cache/test/Tests_Setono_SyliusGiftCardPlugin_Application_KernelTestDebugContainer.xml ]] || tests/Application/bin/console cache:warmup --env=test",
         "ensure-vendors-installed": "[[ -f vendor/autoload.php ]] || php -d memory_limit=-1 /usr/local/bin/composer install",
         "fix-style": "ecs check --fix",
         "fixtures": [

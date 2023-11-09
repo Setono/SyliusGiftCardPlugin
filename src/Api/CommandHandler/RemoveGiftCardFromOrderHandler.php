@@ -10,10 +10,9 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Repository\OrderRepositoryInterface;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Webmozart\Assert\Assert;
 
-final class RemoveGiftCardFromOrderHandler implements MessageHandlerInterface
+final class RemoveGiftCardFromOrderHandler
 {
     private GiftCardRepositoryInterface $giftCardRepository;
 

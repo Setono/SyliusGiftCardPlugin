@@ -39,7 +39,7 @@ final class GenerateEncodedExamplePdfActionTest extends TestCase
         $form = $this->prophesize(FormInterface::class);
         $formFactory = $this->prophesize(FormFactoryInterface::class);
         $formFactory->create(GiftCardConfigurationType::class, $giftCardConfiguration)->willReturn($form);
-        $form->handleRequest($request)->shouldBeCalled();
+        $form->handleRequest($request)->shouldBeCalled()->willReturn($form);
 
         $pdfContent = 'PDF content';
 

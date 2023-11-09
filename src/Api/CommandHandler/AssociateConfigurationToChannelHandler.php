@@ -11,10 +11,9 @@ use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Locale\Model\LocaleInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Webmozart\Assert\Assert;
 
-final class AssociateConfigurationToChannelHandler implements MessageHandlerInterface
+final class AssociateConfigurationToChannelHandler
 {
     private RepositoryInterface $giftCardConfigurationRepository;
 

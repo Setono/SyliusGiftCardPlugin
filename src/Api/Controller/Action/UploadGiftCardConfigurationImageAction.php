@@ -78,6 +78,11 @@ final class UploadGiftCardConfigurationImageAction
         if ($this->iriConverter instanceof LegacyIriConverterInterface) {
             $owner = $this->iriConverter->getItemFromIri($ownerIri);
         } else {
+            /**
+             * @psalm-suppress UndefinedDocblockClass
+             *
+             * @var mixed $owner
+             */
             $owner = $this->iriConverter->getResourceFromIri($ownerIri);
         }
 
