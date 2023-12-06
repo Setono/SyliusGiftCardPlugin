@@ -53,8 +53,13 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
             return;
         }
 
+        $variant = $data->getCartItem()->getVariant();
+        if (null === $variant) {
+            return;
+        }
+
         /** @var ProductInterface|null $product */
-        $product = $data->getCartItem()->getProduct();
+        $product = $variant->getProduct();
         if (null === $product) {
             return;
         }
