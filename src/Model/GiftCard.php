@@ -235,9 +235,17 @@ class GiftCard implements GiftCardInterface
             return null;
         }
 
+        /** @var mixed $orderId */
+        $orderId = $order->getId();
+        $orderNumber = $order->getNumber();
+
+        if (null === $orderId || null === $orderNumber) {
+            return null;
+        }
+
         return [
-            'id' => $order->getId(),
-            'number' => $order->getNumber(),
+            'id' => $orderId,
+            'number' => $orderNumber,
         ];
     }
 
