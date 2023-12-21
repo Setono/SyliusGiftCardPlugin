@@ -2,8 +2,11 @@
 
 {% if data is not null %}
     {% set order = data.orderItem.order %}
-
-    <a href="{{ path('sylius_admin_order_show', {'id' : order.id }) }}">#{{ order.number }}</a>
+    {% if order.number is null %}
+        {{ 'setono_sylius_gift_card.ui.in_cart'|trans }}
+    {% else %}
+        <a href="{{ path('sylius_admin_order_show', {'id' : order.id }) }}">#{{ order.number }}</a>
+    {% endif %}
 {% else %}
     {{ 'setono_sylius_gift_card.ui.manually_created'|trans }}
 {% endif %}
