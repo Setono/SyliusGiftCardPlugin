@@ -2,6 +2,6 @@ setono_sylius_gift_card_admin_api_gift_card:
     resource: |
         alias: setono_sylius_gift_card.gift_card
         section: admin_api
-        form: Setono\SyliusStockMovementPlugin\Form\Type\GiftCardType
+        form: Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType
         serialization_version: $version
     type: sylius.resource_api
