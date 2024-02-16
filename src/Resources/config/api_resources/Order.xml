@@ -100,7 +100,7 @@
                 <attribute name="method">PATCH</attribute>
                 <attribute name="path">/shop/orders/{tokenValue}/address</attribute>
                 <attribute name="messenger">input</attribute>
-                <attribute name="input">Sylius\Bundle\ApiBundle\Command\Checkout\AddressOrder</attribute>
+                <attribute name="input">Sylius\Bundle\ApiBundle\Command\Checkout\UpdateCart</attribute>
                 <attribute name="denormalization_context">
                     <attribute name="groups">shop:cart:address</attribute>
                 </attribute>
@@ -330,7 +330,7 @@
                 <attribute name="method">PATCH</attribute>
                 <attribute name="path">/shop/orders/{tokenValue}/apply-coupon</attribute>
                 <attribute name="messenger">input</attribute>
-                <attribute name="input">Sylius\Bundle\ApiBundle\Command\Cart\ApplyCouponToCart</attribute>
+                <attribute name="input">Sylius\Bundle\ApiBundle\Command\Checkout\UpdateCart</attribute>
                 <attribute name="denormalization_context">
                     <attribute name="groups">shop:cart:apply_coupon</attribute>
                 </attribute>
