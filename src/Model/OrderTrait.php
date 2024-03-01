@@ -24,6 +24,10 @@ trait OrderTrait
      *     inverseJoinColumns={@ORM\JoinColumn(name="gift_card_id", referencedColumnName="id", onDelete="CASCADE")}
      * )
      */
+    #[ORM\JoinTable(name: 'setono_sylius_gift_card__order_gift_cards')]
+    #[ORM\JoinColumn(name: 'order_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[ORM\InverseJoinColumn(name: 'gift_card_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[ORM\ManyToMany(targetEntity: \Setono\SyliusGiftCardPlugin\Model\GiftCardInterface::class, inversedBy: 'appliedOrders')]
     protected Collection $giftCards;
 
     public function __construct()

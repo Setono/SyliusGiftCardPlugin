@@ -9,9 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
 trait ProductTrait
 {
     /** @ORM\Column(type="boolean", options={"default": false}) */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
     protected bool $giftCard = false;
 
     /** @ORM\Column(type="boolean", options={"default": false}) */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
     protected bool $giftCardAmountConfigurable = false;
 
     public function isGiftCard(): bool
