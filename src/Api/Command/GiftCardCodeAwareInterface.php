@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Api\Command;
 
-use Sylius\Bundle\ApiBundle\Command\CommandAwareDataTransformerInterface;
-
-interface GiftCardCodeAwareInterface extends CommandAwareDataTransformerInterface
+interface GiftCardCodeAwareInterface
 {
     public function getGiftCardCode(): ?string;
 

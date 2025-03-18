@@ -8,9 +8,9 @@ use Sylius\Bundle\ApiBundle\Command\Cart\AddItemToCart as BaseAddItemToCart;
 
 class AddItemToCart extends BaseAddItemToCart
 {
-    public function __construct(string $productVariantCode, int $quantity, protected ?int $amount = null, protected ?string $customMessage = null)
+    public function __construct(string $orderTokenValue, string $productVariantCode, int $quantity, protected ?int $amount = null, protected ?string $customMessage = null)
     {
-        parent::__construct($productVariantCode, $quantity);
+        parent::__construct($orderTokenValue, $productVariantCode, $quantity);
     }
 
     public function getAmount(): ?int

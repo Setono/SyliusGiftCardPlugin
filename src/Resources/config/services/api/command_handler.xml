@@ -14,7 +14,7 @@
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card_channel_configuration" />
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
-            <tag name="messenger.message_handler" bus="sylius_default.bus" />
+            <tag name="messenger.message_handler" bus="sylius.event_bus" />
         </service>
 
         <service id="setono_sylius_gift_card.api.command_handler.add_gift_card_to_order"
@@ -24,7 +24,7 @@
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card" />
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
-            <tag name="messenger.message_handler" bus="sylius_default.bus" />
+            <tag name="messenger.message_handler" bus="sylius.event_bus" />
         </service>
 
         <service id="setono_sylius_gift_card.api.command_handler.remove_gift_card_from_order"
@@ -34,7 +34,7 @@
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card" />
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
-            <tag name="messenger.message_handler" bus="sylius_default.bus" />
+            <tag name="messenger.message_handler" bus="sylius.event_bus" />
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Api\CommandHandler\AddItemToCartHandler" decorates="Sylius\Bundle\ApiBundle\CommandHandler\Cart\AddItemToCartHandler">
@@ -46,7 +46,7 @@
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card" />
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card" />
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
-            <tag name="messenger.message_handler" bus="sylius_default.bus" />
+            <tag name="messenger.message_handler" bus="sylius.event_bus" />
         </service>
 
         <service id="setono_sylius_gift_card.api.command_handler.create_gift_card_configuration"
@@ -55,7 +55,7 @@
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card_configuration" />
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
-            <tag name="messenger.message_handler" bus="sylius_default.bus" />
+            <tag name="messenger.message_handler" bus="sylius.event_bus" />
         </service>
     </services>
 </container>
