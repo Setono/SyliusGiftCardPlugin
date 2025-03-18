@@ -10,11 +10,11 @@ use Setono\SyliusGiftCardPlugin\Exception\UnexpectedTypeException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Webmozart\Assert\Assert;
 
-final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInterface
+final class GiftCardConfigurationNormalizer implements NormalizerInterface
 {
     private readonly string $publicMediaDirectory;
 
@@ -76,5 +76,12 @@ final class GiftCardConfigurationNormalizer implements ContextAwareNormalizerInt
             $groups,
             true,
         );
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return [
+            GiftCardConfigurationInterface::class => true,
+        ];
     }
 }

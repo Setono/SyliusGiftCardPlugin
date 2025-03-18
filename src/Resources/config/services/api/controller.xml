@@ -9,7 +9,7 @@
                  class="Setono\SyliusGiftCardPlugin\Api\Controller\Action\UploadGiftCardConfigurationImageAction">
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card_configuration_image" />
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration_image" />
-            <argument type="service" id="sylius.image_uploader" />
+            <argument type="service" id="sylius.uploader.image" />
             <argument type="service" id="api_platform.iri_converter" />
 
             <tag name="controller.service_arguments" />

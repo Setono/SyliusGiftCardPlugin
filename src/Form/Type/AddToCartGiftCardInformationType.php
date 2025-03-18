@@ -21,8 +21,13 @@ use Webmozart\Assert\Assert;
 
 final class AddToCartGiftCardInformationType extends AbstractType
 {
-    public function __construct(private readonly string $dataClass, private readonly array $validationGroups, private readonly CurrencyContextInterface $currencyContext, private readonly ProductVariantResolverInterface $productVariantResolver, private readonly ChannelContextInterface $channelContext)
-    {
+    public function __construct(
+        private readonly string $dataClass,
+        private readonly array $validationGroups,
+        private readonly CurrencyContextInterface $currencyContext,
+        private readonly ProductVariantResolverInterface $productVariantResolver,
+        private readonly ChannelContextInterface $channelContext
+    ) {
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void

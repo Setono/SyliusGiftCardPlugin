@@ -20,8 +20,12 @@ final class UploadGiftCardConfigurationImageAction
     /**
      * @param LegacyIriConverterInterface|IriConverterInterface $iriConverter
      */
-    public function __construct(private readonly FactoryInterface $giftCardConfigurationImageFactory, private readonly RepositoryInterface $giftCardConfigurationImageRepository, private readonly ImageUploaderInterface $imageUploader, private $iriConverter)
-    {
+    public function __construct(
+        private readonly FactoryInterface $giftCardConfigurationImageFactory,
+        private readonly RepositoryInterface $giftCardConfigurationImageRepository,
+        private readonly ImageUploaderInterface $imageUploader,
+        private $iriConverter
+    ) {
     }
 
     public function __invoke(Request $request): GiftCardConfigurationImageInterface

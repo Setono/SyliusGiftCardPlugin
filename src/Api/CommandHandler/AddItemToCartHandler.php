@@ -22,8 +22,15 @@ use Webmozart\Assert\Assert;
 
 final class AddItemToCartHandler
 {
-    public function __construct(private readonly OrderRepositoryInterface $orderRepository, private readonly ProductVariantRepositoryInterface $productVariantRepository, private readonly OrderModifierInterface $orderModifier, private readonly CartItemFactoryInterface $cartItemFactory, private readonly OrderItemQuantityModifierInterface $orderItemQuantityModifier, private readonly GiftCardFactoryInterface $giftCardFactory, private readonly EntityManagerInterface $giftCardManager)
-    {
+    public function __construct(
+        private readonly OrderRepositoryInterface $orderRepository,
+        private readonly ProductVariantRepositoryInterface $productVariantRepository,
+        private readonly OrderModifierInterface $orderModifier,
+        private readonly CartItemFactoryInterface $cartItemFactory,
+        private readonly OrderItemQuantityModifierInterface $orderItemQuantityModifier,
+        private readonly GiftCardFactoryInterface $giftCardFactory,
+        private readonly EntityManagerInterface $giftCardManager
+    ) {
     }
 
     public function __invoke(SyliusAddItemToCart $addItemToCart): OrderInterface

@@ -88,7 +88,7 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
         if ($product->isGiftCardAmountConfigurable()) {
             $cartItem->setUnitPrice($giftCardInformation->getAmount());
             $cartItem->setImmutable(true);
-        } else {
+        } elseif (!$cartItem->isImmutable()) {
             $channel = $data->getCart()->getChannel();
             Assert::notNull($channel);
             $variant = $data->getCartItem()->getVariant();

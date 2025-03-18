@@ -8,14 +8,16 @@ use ArrayObject;
 use Setono\SyliusGiftCardPlugin\Exception\UnexpectedTypeException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
-use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Webmozart\Assert\Assert;
 
-final class GiftCardNormalizer implements ContextAwareNormalizerInterface
+final class GiftCardNormalizer implements NormalizerInterface
 {
-    public function __construct(private readonly ObjectNormalizer $objectNormalizer, private readonly MoneyFormatterInterface $moneyFormatter)
-    {
+    public function __construct(
+        private readonly ObjectNormalizer $objectNormalizer,
+        private readonly MoneyFormatterInterface $moneyFormatter
+    ) {
     }
 
     /**
@@ -50,5 +52,12 @@ final class GiftCardNormalizer implements ContextAwareNormalizerInterface
         $groups = (array) ($context['groups'] ?? []);
 
         return $data instanceof GiftCardInterface && in_array('setono:sylius-gift-card:render', $groups, true);
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return [
+            GiftCardInterface::class => true,
+        ];
     }
 }

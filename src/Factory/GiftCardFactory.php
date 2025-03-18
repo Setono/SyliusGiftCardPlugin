@@ -6,11 +6,11 @@ namespace Setono\SyliusGiftCardPlugin\Factory;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use Psr\Clock\ClockInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProviderInterface;
-use Sylius\Bundle\ShippingBundle\Provider\DateTimeProvider;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -24,8 +24,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         private readonly FactoryInterface $decoratedFactory,
         private readonly GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         private readonly GiftCardConfigurationProviderInterface $giftCardConfigurationProvider,
-        /** @psalm-suppress DeprecatedInterface */
-        private readonly DateTimeProvider $dateTimeProvider,
+        private readonly ClockInterface $clock,
         private readonly CurrencyContextInterface $currencyContext,
     ) {
     }
@@ -47,10 +46,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         $channelConfiguration = $this->giftCardConfigurationProvider->getConfigurationForGiftCard($giftCard);
         $validityPeriod = $channelConfiguration->getDefaultValidityPeriod();
         if (null !== $validityPeriod) {
-            $today = $this->dateTimeProvider->today();
-            // Since the interface is types to DateTimeInterface, the modify method does not exist
-            // whereas it does in DateTime and DateTimeImmutable
-            Assert::isInstanceOf($today, DateTimeImmutable::class);
+            $today = $this->clock->now();
             /** @var DateTimeInterface $today */
             $today = $today->modify('+' . $validityPeriod);
             $giftCard->setExpiresAt($today);

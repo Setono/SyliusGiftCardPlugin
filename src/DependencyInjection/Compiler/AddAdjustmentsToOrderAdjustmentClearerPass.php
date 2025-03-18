@@ -11,19 +11,16 @@ use Webmozart\Assert\Assert;
 
 final class AddAdjustmentsToOrderAdjustmentClearerPass implements CompilerPassInterface
 {
+    private const ADJUSTMENT_CLEARING_TYPES = 'sylius.order_processing.adjustment_clearing_types';
+
     public function process(ContainerBuilder $container): void
     {
-        if (!$container->has('sylius.order_processing.order_adjustments_clearer')) {
+        if (!$container->hasParameter(self::ADJUSTMENT_CLEARING_TYPES)) {
             return;
         }
-
-        $clearerDefinition = $container->getDefinition('sylius.order_processing.order_adjustments_clearer');
-
-        $adjustmentsToRemove = $clearerDefinition->getArgument(0);
-        Assert::isArray($adjustmentsToRemove);
-
-        $adjustmentsToRemove[] = AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT;
-
-        $clearerDefinition->setArgument(0, $adjustmentsToRemove);
+        $types = $container->getParameter(self::ADJUSTMENT_CLEARING_TYPES);
+        Assert::isArray($types);
+        $types[] = AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT;
+        $container->setParameter(self::ADJUSTMENT_CLEARING_TYPES, $types);
     }
 }
