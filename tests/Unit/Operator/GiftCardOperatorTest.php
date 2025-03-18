@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Operator;
 
+use PHPUnit\Framework\Attributes\Test;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -22,9 +23,7 @@ final class GiftCardOperatorTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_associate_gift_card_to_customer(): void
     {
         $order = new Order();
@@ -59,9 +58,7 @@ final class GiftCardOperatorTest extends TestCase
         $this->assertEquals($customer, $giftCard->getCustomer());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_returns_if_there_is_no_gift_card_item(): void
     {
         $order = $this->prophesize(Order::class);
@@ -79,9 +76,7 @@ final class GiftCardOperatorTest extends TestCase
         $order->getCustomer()->shouldNotBeCalled();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_enables_gift_card(): void
     {
         $order = new Order();
@@ -117,9 +112,7 @@ final class GiftCardOperatorTest extends TestCase
         $this->assertTrue($giftCard->isEnabled());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_disables_gift_card(): void
     {
         $order = new Order();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Resolver;
 
+use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use RuntimeException;
 use Setono\SyliusGiftCardPlugin\Repository\OrderRepositoryInterface;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
@@ -19,9 +20,9 @@ final class CustomerChannelResolver implements CustomerChannelResolverInterface
     public function resolve(CustomerInterface $customer): ChannelInterface
     {
         $latestOrder = $this->orderRepository->findLatestByCustomer($customer);
-        if (null !== $latestOrder) {
+        if ($latestOrder instanceof OrderInterface) {
             $channel = $latestOrder->getChannel();
-            if (null !== $channel) {
+            if ($channel instanceof \Sylius\Component\Channel\Model\ChannelInterface) {
                 return $channel;
             }
         }

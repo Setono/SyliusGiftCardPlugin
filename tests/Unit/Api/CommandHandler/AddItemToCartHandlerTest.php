@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\CommandHandler;
 
+use PHPUnit\Framework\Attributes\Test;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -29,9 +30,7 @@ final class AddItemToCartHandlerTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_is_initializable(): void
     {
         $orderRepository = $this->prophesize(OrderRepositoryInterface::class);
@@ -55,9 +54,7 @@ final class AddItemToCartHandlerTest extends TestCase
         $this->assertInstanceOf(AddItemToCartHandler::class, $handler);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_adds_configurable_gift_card_to_cart(): void
     {
         $orderTokenValue = 'orderTokenValue';
@@ -115,9 +112,7 @@ final class AddItemToCartHandlerTest extends TestCase
         $handler($message);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_adds_simple_item_to_cart(): void
     {
         $orderTokenValue = 'orderTokenValue';
@@ -165,9 +160,7 @@ final class AddItemToCartHandlerTest extends TestCase
         $handler($message);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_adds_simple_gift_card_to_cart(): void
     {
         $orderTokenValue = 'orderTokenValue';

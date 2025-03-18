@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\EventSubscriber;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\DefaultGiftCardConfigurationSubscriber;
@@ -16,9 +17,7 @@ final class DefaultGiftCardConfigurationSubscriberTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_sets_all_existing_to_not_default_when_creating_new(): void
     {
         $existing1 = $this->getExistingGiftCardConfiguration(1);
@@ -39,9 +38,7 @@ final class DefaultGiftCardConfigurationSubscriberTest extends TestCase
         self::assertTrue($giftCardConfiguration->isDefault());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_sets_all_existing_to_not_default_when_updating_existing(): void
     {
         $existing1 = $this->getExistingGiftCardConfiguration(1);

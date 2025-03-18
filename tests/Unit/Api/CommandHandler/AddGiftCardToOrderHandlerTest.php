@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\CommandHandler;
 
+use PHPUnit\Framework\Attributes\Test;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -19,9 +20,7 @@ final class AddGiftCardToOrderHandlerTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_adds_gift_card_to_order(): void
     {
         $giftCard = new GiftCard();
@@ -46,9 +45,7 @@ final class AddGiftCardToOrderHandlerTest extends TestCase
         $addGiftCardToOrderHandler($command);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_error_if_gift_card_code_is_null(): void
     {
         $command = new AddGiftCardToOrder('order_token_value');
@@ -67,9 +64,7 @@ final class AddGiftCardToOrderHandlerTest extends TestCase
         $addGiftCardToOrderHandler($command);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_error_if_gift_card_not_found(): void
     {
         $command = new AddGiftCardToOrder('order_token_value');
@@ -89,9 +84,7 @@ final class AddGiftCardToOrderHandlerTest extends TestCase
         $addGiftCardToOrderHandler($command);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_exception_if_order_not_found(): void
     {
         $giftCard = new GiftCard();

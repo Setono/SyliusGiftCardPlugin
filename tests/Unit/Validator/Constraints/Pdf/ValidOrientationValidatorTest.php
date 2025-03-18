@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Validator\Constraints\Pdf;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
@@ -18,9 +19,7 @@ class ValidOrientationValidatorTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_exception_if_constraint_has_wrong_type(): void
     {
         $validator = new ValidOrientationValidator([PdfRenderingOptionsProviderInterface::ORIENTATION_PORTRAIT]);
@@ -30,9 +29,7 @@ class ValidOrientationValidatorTest extends TestCase
         $validator->validate('Any orientation', $constraint);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_does_nothing_if_value_is_null(): void
     {
         $validator = new ValidOrientationValidator([PdfRenderingOptionsProviderInterface::ORIENTATION_PORTRAIT]);
@@ -45,9 +42,7 @@ class ValidOrientationValidatorTest extends TestCase
         $validator->validate(null, $constraint);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_adds_violation_if_orientation_is_invalid(): void
     {
         $validator = new ValidOrientationValidator([PdfRenderingOptionsProviderInterface::ORIENTATION_PORTRAIT]);

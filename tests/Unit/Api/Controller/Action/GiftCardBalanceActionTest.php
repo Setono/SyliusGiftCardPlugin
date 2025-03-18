@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\Controller\Action;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Api\Controller\Action\GiftCardBalanceAction;
@@ -15,9 +16,7 @@ final class GiftCardBalanceActionTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_returns_the_balance(): void
     {
         $giftCard1 = new GiftCard();

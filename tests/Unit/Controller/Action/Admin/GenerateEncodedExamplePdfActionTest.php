@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Controller\Action\Admin;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GenerateEncodedExamplePdfAction;
@@ -22,9 +23,7 @@ final class GenerateEncodedExamplePdfActionTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_generates_encoded_pdf(): void
     {
         $id = 8;

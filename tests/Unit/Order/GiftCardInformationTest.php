@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Order;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 
 final class GiftCardInformationTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_properties(): void
     {
         $giftCardInformation = new GiftCardInformation(80, 'message');
@@ -20,9 +19,7 @@ final class GiftCardInformationTest extends TestCase
         $this->assertEquals($giftCardInformation->getCustomMessage(), 'message');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_settable_amount(): void
     {
         $giftCardInformation = new GiftCardInformation(80, 'message');
@@ -30,9 +27,7 @@ final class GiftCardInformationTest extends TestCase
         $this->assertEquals($giftCardInformation->getAmount(), 200);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_settable_message(): void
     {
         $giftCardInformation = new GiftCardInformation(80, 'message');

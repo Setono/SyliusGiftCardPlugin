@@ -18,13 +18,10 @@ trait OrderTrait
     /**
      * @var Collection|GiftCardInterface[]
      *
-     * @ORM\ManyToMany(targetEntity="Setono\SyliusGiftCardPlugin\Model\GiftCardInterface", inversedBy="appliedOrders")
      *
-     * @ORM\JoinTable(name="setono_sylius_gift_card__order_gift_cards",
-     *     joinColumns={@ORM\JoinColumn(name="order_id", referencedColumnName="id", onDelete="CASCADE")},
-     *     inverseJoinColumns={@ORM\JoinColumn(name="gift_card_id", referencedColumnName="id", onDelete="CASCADE")}
-     * )
      */
+    #[ORM\ManyToMany(targetEntity: GiftCardInterface::class, inversedBy: 'appliedOrders')]
+    #[ORM\JoinTable(name: 'setono_sylius_gift_card__order_gift_cards', joinColumns: [new ORM\JoinColumn(name: 'order_id', referencedColumnName: 'id', onDelete: 'CASCADE')], inverseJoinColumns: [new ORM\JoinColumn(name: 'gift_card_id', referencedColumnName: 'id', onDelete: 'CASCADE')])]
     protected Collection $giftCards;
 
     public function __construct()

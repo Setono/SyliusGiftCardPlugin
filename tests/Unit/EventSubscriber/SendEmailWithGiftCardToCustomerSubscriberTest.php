@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\EventSubscriber;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -19,9 +20,7 @@ final class SendEmailWithGiftCardToCustomerSubscriberTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_an_error_if_the_subject_is_not_gift_card(): void
     {
         $giftCardEmailManager = $this->prophesize(GiftCardEmailManagerInterface::class);
@@ -33,9 +32,7 @@ final class SendEmailWithGiftCardToCustomerSubscriberTest extends TestCase
         $subscriber->postCreate($event->reveal());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_does_not_send_email_if_no_customer(): void
     {
         $giftCardEmailManager = $this->prophesize(GiftCardEmailManagerInterface::class);
@@ -49,9 +46,7 @@ final class SendEmailWithGiftCardToCustomerSubscriberTest extends TestCase
         $giftCardEmailManager->sendEmailToCustomerWithGiftCard(Argument::any(), Argument::any())->shouldNotHaveBeenCalled();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_does_not_send_email_if_it_was_not_asked(): void
     {
         $giftCardEmailManager = $this->prophesize(GiftCardEmailManagerInterface::class);
@@ -68,9 +63,7 @@ final class SendEmailWithGiftCardToCustomerSubscriberTest extends TestCase
         $giftCardEmailManager->sendEmailToCustomerWithGiftCard(Argument::any(), Argument::any())->shouldNotHaveBeenCalled();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_sends_email_if_it_was_asked(): void
     {
         $giftCardEmailManager = $this->prophesize(GiftCardEmailManagerInterface::class);

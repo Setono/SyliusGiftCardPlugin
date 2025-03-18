@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Order\Factory;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Order\AddToCartCommand;
 use Setono\SyliusGiftCardPlugin\Order\Factory\AddToCartCommandFactory;
@@ -14,9 +15,7 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 
 final class AddToCardCommandFactoryTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function it_creates_new_with_cart_and_item(): void
     {
         $cart = new Order();

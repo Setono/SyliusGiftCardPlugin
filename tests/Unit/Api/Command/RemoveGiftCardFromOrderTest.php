@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\Command;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Api\Command\GiftCardCodeAwareInterface;
 use Setono\SyliusGiftCardPlugin\Api\Command\RemoveGiftCardFromOrder;
 
 class RemoveGiftCardFromOrderTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function it_is_initializable(): void
     {
         $command = new RemoveGiftCardFromOrder('order_code');
@@ -20,9 +19,7 @@ class RemoveGiftCardFromOrderTest extends TestCase
         $this->assertInstanceOf(GiftCardCodeAwareInterface::class, $command);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_nullable_gift_card_code(): void
     {
         $command = new RemoveGiftCardFromOrder('order_token_vaue');

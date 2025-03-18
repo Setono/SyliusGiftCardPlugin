@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Model;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
 
 final class GiftCardConfigurationTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_properties(): void
     {
         $giftCardConfiguration = new GiftCardConfiguration();

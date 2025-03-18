@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Validator\Constraints;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
@@ -19,9 +20,7 @@ final class HasBackgroundImageValidatorTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_exception_if_constraint_has_wrong_type(): void
     {
         $validator = new HasBackgroundImageValidator();
@@ -31,9 +30,7 @@ final class HasBackgroundImageValidatorTest extends TestCase
         $validator->validate(new GiftCardConfiguration(), $constraint);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_adds_violation_if_no_image_has_been_set(): void
     {
         $validator = new HasBackgroundImageValidator();

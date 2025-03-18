@@ -34,7 +34,7 @@ final class DefaultGiftCardConfigurationMustExistValidator extends ConstraintVal
         }
 
         $defaultGiftCardConfiguration = $this->giftCardConfigurationRepository->findDefault();
-        if (null === $defaultGiftCardConfiguration || $defaultGiftCardConfiguration->getId() === $value->getId()) {
+        if (!$defaultGiftCardConfiguration instanceof GiftCardConfigurationInterface || $defaultGiftCardConfiguration->getId() === $value->getId()) {
             $this->context->buildViolation($constraint->message)
                 ->atPath('default')
                 ->addViolation()

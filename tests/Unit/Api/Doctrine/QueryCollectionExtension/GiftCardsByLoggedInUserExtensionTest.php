@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\Doctrine\QueryCollectionExtension;
 
+use PHPUnit\Framework\Attributes\Test;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\QueryBuilder;
@@ -21,9 +22,7 @@ final class GiftCardsByLoggedInUserExtensionTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_applies_filter_to_gift_cards_collection(): void
     {
         $shopUser = new ShopUser();
@@ -57,9 +56,7 @@ final class GiftCardsByLoggedInUserExtensionTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_does_not_apply_filter_for_other_collections(): void
     {
         $shopUser = new ShopUser();
@@ -85,9 +82,7 @@ final class GiftCardsByLoggedInUserExtensionTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_does_not_apply_filter_if_user_is_admin(): void
     {
         $user = new AdminUser();
@@ -115,9 +110,7 @@ final class GiftCardsByLoggedInUserExtensionTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_exception_if_user_is_logged_out(): void
     {
         $userContext = $this->prophesize(UserContextInterface::class);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Renderer;
 
+use Sylius\Component\Core\Model\OrderInterface;
 use Knp\Snappy\GeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
@@ -28,20 +29,20 @@ final class PdfRenderer implements PdfRendererInterface
         ChannelInterface $channel = null,
         string $localeCode = null,
     ): PdfResponse {
-        if (null === $channel) {
+        if (!$channel instanceof ChannelInterface) {
             $order = $giftCard->getOrder();
-            if (null !== $order) {
+            if ($order instanceof OrderInterface) {
                 $channel = $order->getChannel();
             }
 
-            if (null === $channel) {
+            if (!$channel instanceof ChannelInterface) {
                 $channel = $this->channelContext->getChannel();
             }
         }
 
         if (null === $localeCode) {
             $order = $giftCard->getOrder();
-            if (null !== $order) {
+            if ($order instanceof OrderInterface) {
                 $localeCode = $order->getLocaleCode();
             }
 
@@ -50,7 +51,7 @@ final class PdfRenderer implements PdfRendererInterface
             }
         }
 
-        if (null === $giftCardConfiguration) {
+        if (!$giftCardConfiguration instanceof GiftCardConfigurationInterface) {
             $giftCardConfiguration = $this->configurationProvider->getConfigurationForGiftCard($giftCard);
         }
 

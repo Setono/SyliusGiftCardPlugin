@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\CommandHandler;
 
+use PHPUnit\Framework\Attributes\Test;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
@@ -17,9 +18,7 @@ final class CreateGiftCardConfigurationHandlerTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_is_initializable(): void
     {
         $handler = new CreateGiftCardConfigurationHandler(
@@ -30,9 +29,7 @@ final class CreateGiftCardConfigurationHandlerTest extends TestCase
         $this->assertInstanceOf(CreateGiftCardConfigurationHandler::class, $handler);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_creates_gift_card_configuration(): void
     {
         $giftCardConfigurationFactory = $this->prophesize(GiftCardConfigurationFactoryInterface::class);
@@ -53,9 +50,7 @@ final class CreateGiftCardConfigurationHandlerTest extends TestCase
         $handler->__invoke($command);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_does_not_set_values_if_null(): void
     {
         $giftCardConfigurationFactory = $this->prophesize(GiftCardConfigurationFactoryInterface::class);

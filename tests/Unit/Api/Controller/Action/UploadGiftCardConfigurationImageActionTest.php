@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\Controller\Action;
 
+use PHPUnit\Framework\Attributes\Test;
 use ApiPlatform\Core\Api\IriConverterInterface;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -21,9 +22,7 @@ final class UploadGiftCardConfigurationImageActionTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_uploads_gift_card_configuration_image(): void
     {
         $file = new UploadedFile(__DIR__ . '/file.jpg', 'file.jpg');
@@ -62,9 +61,7 @@ final class UploadGiftCardConfigurationImageActionTest extends TestCase
         self::assertSame($file, $returnedImage->getFile());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_error_if_image_empty(): void
     {
         $image = new GiftCardConfigurationImage();
@@ -93,9 +90,7 @@ final class UploadGiftCardConfigurationImageActionTest extends TestCase
         $uploadGiftCardConfigurationImageAction($request);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_error_if_owner_iri_empty(): void
     {
         $file = new UploadedFile(__DIR__ . '/file.jpg', 'file.jpg');
@@ -127,9 +122,7 @@ final class UploadGiftCardConfigurationImageActionTest extends TestCase
         $uploadGiftCardConfigurationImageAction($request);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_error_if_owner_not_found(): void
     {
         $file = new UploadedFile(__DIR__ . '/file.jpg', 'file.jpg');
@@ -165,9 +158,7 @@ final class UploadGiftCardConfigurationImageActionTest extends TestCase
         $uploadGiftCardConfigurationImageAction($request);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_deletes_old_image_of_same_type(): void
     {
         $file = new UploadedFile(__DIR__ . '/file.jpg', 'file.jpg');

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Form\Extension;
 
+use PHPUnit\Framework\Attributes\Test;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -26,9 +27,7 @@ final class AddToCartTypeExtensionTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_populates_cart_item_for_configurable_gift_card(): void
     {
         $cart = $this->prophesize(Order::class);
@@ -66,9 +65,7 @@ final class AddToCartTypeExtensionTest extends TestCase
         $extension->populateCartItem($formEvent->reveal());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_populates_cart_item_for_not_configurable_gift_card(): void
     {
         $cart = $this->prophesize(Order::class);

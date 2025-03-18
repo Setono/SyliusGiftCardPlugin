@@ -36,12 +36,12 @@ final class GiftCardConfigurationProvider implements GiftCardConfigurationProvid
     public function getConfiguration(BaseChannelInterface $channel, LocaleInterface $locale): GiftCardConfigurationInterface
     {
         $configuration = $this->giftCardConfigurationRepository->findOneByChannelAndLocale($channel, $locale);
-        if (null !== $configuration) {
+        if ($configuration instanceof GiftCardConfigurationInterface) {
             return $configuration;
         }
 
         $configuration = $this->giftCardConfigurationRepository->findDefault();
-        if (null !== $configuration) {
+        if ($configuration instanceof GiftCardConfigurationInterface) {
             return $configuration;
         }
 

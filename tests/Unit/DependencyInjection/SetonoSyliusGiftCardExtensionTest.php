@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\DependencyInjection;
 
+use PHPUnit\Framework\Attributes\Test;
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractExtensionTestCase;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\SetonoSyliusGiftCardExtension;
 use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
@@ -16,9 +17,7 @@ final class SetonoSyliusGiftCardExtensionTest extends AbstractExtensionTestCase
         return [new SetonoSyliusGiftCardExtension()];
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function after_loading_the_correct_parameter_has_been_set(): void
     {
         $this->load();

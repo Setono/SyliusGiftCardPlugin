@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Validator\Constraints;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Provider\DatePeriodUnitProvider;
@@ -18,9 +19,7 @@ final class DatePeriodValidatorTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_exception_if_constraint_has_wrong_type(): void
     {
         $validator = new DatePeriodValidator(new DatePeriodUnitProvider());
@@ -30,9 +29,7 @@ final class DatePeriodValidatorTest extends TestCase
         $validator->validate('super', $constraint);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_adds_violation_if_duration_is_negative(): void
     {
         $validator = new DatePeriodValidator(new DatePeriodUnitProvider());
@@ -48,9 +45,7 @@ final class DatePeriodValidatorTest extends TestCase
         $validator->validate('-8 month', $constraint);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_adds_violation_if_unit_is_invalid(): void
     {
         $validator = new DatePeriodValidator(new DatePeriodUnitProvider());

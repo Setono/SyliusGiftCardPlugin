@@ -2,66 +2,124 @@
 
 declare(strict_types=1);
 
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Bundle\MonologBundle\MonologBundle;
+use Symfony\Bundle\SecurityBundle\SecurityBundle;
+use Symfony\Bundle\TwigBundle\TwigBundle;
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Sylius\Bundle\OrderBundle\SyliusOrderBundle;
+use Sylius\Bundle\MoneyBundle\SyliusMoneyBundle;
+use Sylius\Bundle\CurrencyBundle\SyliusCurrencyBundle;
+use Sylius\Bundle\LocaleBundle\SyliusLocaleBundle;
+use Sylius\Bundle\ProductBundle\SyliusProductBundle;
+use Sylius\Bundle\ChannelBundle\SyliusChannelBundle;
+use Sylius\Bundle\AttributeBundle\SyliusAttributeBundle;
+use Sylius\Bundle\TaxationBundle\SyliusTaxationBundle;
+use Sylius\Bundle\ShippingBundle\SyliusShippingBundle;
+use Sylius\Bundle\PaymentBundle\SyliusPaymentBundle;
+use Sylius\Bundle\MailerBundle\SyliusMailerBundle;
+use Sylius\Bundle\PromotionBundle\SyliusPromotionBundle;
+use Sylius\Bundle\AddressingBundle\SyliusAddressingBundle;
+use Sylius\Bundle\InventoryBundle\SyliusInventoryBundle;
+use Sylius\Bundle\TaxonomyBundle\SyliusTaxonomyBundle;
+use Sylius\Bundle\UserBundle\SyliusUserBundle;
+use Sylius\Bundle\CustomerBundle\SyliusCustomerBundle;
+use Sylius\Bundle\UiBundle\SyliusUiBundle;
+use Sylius\Bundle\ReviewBundle\SyliusReviewBundle;
+use Sylius\Bundle\CoreBundle\SyliusCoreBundle;
+use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
+use Lexik\Bundle\JWTAuthenticationBundle\LexikJWTAuthenticationBundle;
+use ApiPlatform\Core\Bridge\Symfony\Bundle\ApiPlatformBundle;
+use Sylius\Bundle\ApiBundle\SyliusApiBundle;
+use winzou\Bundle\StateMachineBundle\winzouStateMachineBundle;
+use Sonata\BlockBundle\SonataBlockBundle;
+use Bazinga\Bundle\HateoasBundle\BazingaHateoasBundle;
+use JMS\SerializerBundle\JMSSerializerBundle;
+use FOS\RestBundle\FOSRestBundle;
+use Knp\Bundle\GaufretteBundle\KnpGaufretteBundle;
+use Knp\Bundle\MenuBundle\KnpMenuBundle;
+use League\FlysystemBundle\FlysystemBundle;
+use Liip\ImagineBundle\LiipImagineBundle;
+use Payum\Bundle\PayumBundle\PayumBundle;
+use Stof\DoctrineExtensionsBundle\StofDoctrineExtensionsBundle;
+use Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle;
+use Sylius\Bundle\FixturesBundle\SyliusFixturesBundle;
+use Sylius\Bundle\PayumBundle\SyliusPayumBundle;
+use Sylius\Bundle\ThemeBundle\SyliusThemeBundle;
+use Sylius\Bundle\AdminBundle\SyliusAdminBundle;
+use Sylius\Bundle\ShopBundle\SyliusShopBundle;
+use Symfony\Bundle\DebugBundle\DebugBundle;
+use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
+use FriendsOfBehat\SymfonyExtension\Bundle\FriendsOfBehatSymfonyExtensionBundle;
+use Knp\Bundle\SnappyBundle\KnpSnappyBundle;
+use SyliusLabs\DoctrineMigrationsExtraBundle\SyliusLabsDoctrineMigrationsExtraBundle;
+use BabDev\PagerfantaBundle\BabDevPagerfantaBundle;
+use SyliusLabs\Polyfill\Symfony\Security\Bundle\SyliusLabsPolyfillSymfonySecurityBundle;
+use Symfony\WebpackEncoreBundle\WebpackEncoreBundle;
+use Sylius\Calendar\SyliusCalendarBundle;
+use Setono\SyliusGiftCardPlugin\SetonoSyliusGiftCardPlugin;
+use Sylius\Bundle\GridBundle\SyliusGridBundle;
+
 return [
-    Symfony\Bundle\FrameworkBundle\FrameworkBundle::class => ['all' => true],
-    Symfony\Bundle\MonologBundle\MonologBundle::class => ['all' => true],
-    Symfony\Bundle\SecurityBundle\SecurityBundle::class => ['all' => true],
-    Symfony\Bundle\TwigBundle\TwigBundle::class => ['all' => true],
-    Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],
-    Sylius\Bundle\OrderBundle\SyliusOrderBundle::class => ['all' => true],
-    Sylius\Bundle\MoneyBundle\SyliusMoneyBundle::class => ['all' => true],
-    Sylius\Bundle\CurrencyBundle\SyliusCurrencyBundle::class => ['all' => true],
-    Sylius\Bundle\LocaleBundle\SyliusLocaleBundle::class => ['all' => true],
-    Sylius\Bundle\ProductBundle\SyliusProductBundle::class => ['all' => true],
-    Sylius\Bundle\ChannelBundle\SyliusChannelBundle::class => ['all' => true],
-    Sylius\Bundle\AttributeBundle\SyliusAttributeBundle::class => ['all' => true],
-    Sylius\Bundle\TaxationBundle\SyliusTaxationBundle::class => ['all' => true],
-    Sylius\Bundle\ShippingBundle\SyliusShippingBundle::class => ['all' => true],
-    Sylius\Bundle\PaymentBundle\SyliusPaymentBundle::class => ['all' => true],
-    Sylius\Bundle\MailerBundle\SyliusMailerBundle::class => ['all' => true],
-    Sylius\Bundle\PromotionBundle\SyliusPromotionBundle::class => ['all' => true],
-    Sylius\Bundle\AddressingBundle\SyliusAddressingBundle::class => ['all' => true],
-    Sylius\Bundle\InventoryBundle\SyliusInventoryBundle::class => ['all' => true],
-    Sylius\Bundle\TaxonomyBundle\SyliusTaxonomyBundle::class => ['all' => true],
-    Sylius\Bundle\UserBundle\SyliusUserBundle::class => ['all' => true],
-    Sylius\Bundle\CustomerBundle\SyliusCustomerBundle::class => ['all' => true],
-    Sylius\Bundle\UiBundle\SyliusUiBundle::class => ['all' => true],
-    Sylius\Bundle\ReviewBundle\SyliusReviewBundle::class => ['all' => true],
-    Sylius\Bundle\CoreBundle\SyliusCoreBundle::class => ['all' => true],
-    Sylius\Bundle\ResourceBundle\SyliusResourceBundle::class => ['all' => true],
+    FrameworkBundle::class => ['all' => true],
+    MonologBundle::class => ['all' => true],
+    SecurityBundle::class => ['all' => true],
+    TwigBundle::class => ['all' => true],
+    DoctrineBundle::class => ['all' => true],
+    SyliusOrderBundle::class => ['all' => true],
+    SyliusMoneyBundle::class => ['all' => true],
+    SyliusCurrencyBundle::class => ['all' => true],
+    SyliusLocaleBundle::class => ['all' => true],
+    SyliusProductBundle::class => ['all' => true],
+    SyliusChannelBundle::class => ['all' => true],
+    SyliusAttributeBundle::class => ['all' => true],
+    SyliusTaxationBundle::class => ['all' => true],
+    SyliusShippingBundle::class => ['all' => true],
+    SyliusPaymentBundle::class => ['all' => true],
+    SyliusMailerBundle::class => ['all' => true],
+    SyliusPromotionBundle::class => ['all' => true],
+    SyliusAddressingBundle::class => ['all' => true],
+    SyliusInventoryBundle::class => ['all' => true],
+    SyliusTaxonomyBundle::class => ['all' => true],
+    SyliusUserBundle::class => ['all' => true],
+    SyliusCustomerBundle::class => ['all' => true],
+    SyliusUiBundle::class => ['all' => true],
+    SyliusReviewBundle::class => ['all' => true],
+    SyliusCoreBundle::class => ['all' => true],
+    SyliusResourceBundle::class => ['all' => true],
 
     // Begin: In test app, those 3 needs to be loaded before our plugin or the Api Resource override won't work
-    Lexik\Bundle\JWTAuthenticationBundle\LexikJWTAuthenticationBundle::class => ['all' => true],
-    ApiPlatform\Core\Bridge\Symfony\Bundle\ApiPlatformBundle::class => ['all' => true],
-    Sylius\Bundle\ApiBundle\SyliusApiBundle::class => ['all' => true],
+    LexikJWTAuthenticationBundle::class => ['all' => true],
+    ApiPlatformBundle::class => ['all' => true],
+    SyliusApiBundle::class => ['all' => true],
     // End: In test app, those 3 needs to be loaded before our plugin or the Api Resource override won't work
 
-    winzou\Bundle\StateMachineBundle\winzouStateMachineBundle::class => ['all' => true],
-    Sonata\BlockBundle\SonataBlockBundle::class => ['all' => true],
-    Bazinga\Bundle\HateoasBundle\BazingaHateoasBundle::class => ['all' => true],
-    JMS\SerializerBundle\JMSSerializerBundle::class => ['all' => true],
-    FOS\RestBundle\FOSRestBundle::class => ['all' => true],
-    Knp\Bundle\GaufretteBundle\KnpGaufretteBundle::class => ['all' => true],
-    Knp\Bundle\MenuBundle\KnpMenuBundle::class => ['all' => true],
-    League\FlysystemBundle\FlysystemBundle::class => ['all' => true],
-    Liip\ImagineBundle\LiipImagineBundle::class => ['all' => true],
-    Payum\Bundle\PayumBundle\PayumBundle::class => ['all' => true],
-    Stof\DoctrineExtensionsBundle\StofDoctrineExtensionsBundle::class => ['all' => true],
-    Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle::class => ['all' => true],
-    Sylius\Bundle\FixturesBundle\SyliusFixturesBundle::class => ['all' => true],
-    Sylius\Bundle\PayumBundle\SyliusPayumBundle::class => ['all' => true],
-    Sylius\Bundle\ThemeBundle\SyliusThemeBundle::class => ['all' => true],
-    Sylius\Bundle\AdminBundle\SyliusAdminBundle::class => ['all' => true],
-    Sylius\Bundle\ShopBundle\SyliusShopBundle::class => ['all' => true],
-    Symfony\Bundle\DebugBundle\DebugBundle::class => ['dev' => true, 'test' => true],
-    Symfony\Bundle\WebProfilerBundle\WebProfilerBundle::class => ['dev' => true, 'test' => true],
-    FriendsOfBehat\SymfonyExtension\Bundle\FriendsOfBehatSymfonyExtensionBundle::class => ['test' => true],
-    Knp\Bundle\SnappyBundle\KnpSnappyBundle::class => ['all' => true],
-    SyliusLabs\DoctrineMigrationsExtraBundle\SyliusLabsDoctrineMigrationsExtraBundle::class => ['all' => true],
-    BabDev\PagerfantaBundle\BabDevPagerfantaBundle::class => ['all' => true],
-    SyliusLabs\Polyfill\Symfony\Security\Bundle\SyliusLabsPolyfillSymfonySecurityBundle::class => ['all' => true],
-    Symfony\WebpackEncoreBundle\WebpackEncoreBundle::class => ['all' => true],
-    Sylius\Calendar\SyliusCalendarBundle::class => ['all' => true],
-    Setono\SyliusGiftCardPlugin\SetonoSyliusGiftCardPlugin::class => ['all' => true],
-    Sylius\Bundle\GridBundle\SyliusGridBundle::class => ['all' => true],
+    winzouStateMachineBundle::class => ['all' => true],
+    SonataBlockBundle::class => ['all' => true],
+    BazingaHateoasBundle::class => ['all' => true],
+    JMSSerializerBundle::class => ['all' => true],
+    FOSRestBundle::class => ['all' => true],
+    KnpGaufretteBundle::class => ['all' => true],
+    KnpMenuBundle::class => ['all' => true],
+    FlysystemBundle::class => ['all' => true],
+    LiipImagineBundle::class => ['all' => true],
+    PayumBundle::class => ['all' => true],
+    StofDoctrineExtensionsBundle::class => ['all' => true],
+    DoctrineMigrationsBundle::class => ['all' => true],
+    SyliusFixturesBundle::class => ['all' => true],
+    SyliusPayumBundle::class => ['all' => true],
+    SyliusThemeBundle::class => ['all' => true],
+    SyliusAdminBundle::class => ['all' => true],
+    SyliusShopBundle::class => ['all' => true],
+    DebugBundle::class => ['dev' => true, 'test' => true],
+    WebProfilerBundle::class => ['dev' => true, 'test' => true],
+    FriendsOfBehatSymfonyExtensionBundle::class => ['test' => true],
+    KnpSnappyBundle::class => ['all' => true],
+    SyliusLabsDoctrineMigrationsExtraBundle::class => ['all' => true],
+    BabDevPagerfantaBundle::class => ['all' => true],
+    SyliusLabsPolyfillSymfonySecurityBundle::class => ['all' => true],
+    WebpackEncoreBundle::class => ['all' => true],
+    SyliusCalendarBundle::class => ['all' => true],
+    SetonoSyliusGiftCardPlugin::class => ['all' => true],
+    SyliusGridBundle::class => ['all' => true],
 ];

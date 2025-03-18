@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Validator\Constraints;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
@@ -18,9 +19,7 @@ final class GiftCardIsNotExpiredValidatorTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_exception_if_constraint_has_wrong_type(): void
     {
         $validator = new GiftCardIsNotExpiredValidator();
@@ -43,9 +42,7 @@ final class GiftCardIsNotExpiredValidatorTest extends TestCase
         $validator->validate($value, $constraint);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_adds_violation_if_gift_card_is_expired(): void
     {
         $giftCard = $this->prophesize(GiftCardInterface::class);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\DataPersister;
 
+use PHPUnit\Framework\Attributes\Test;
 use ApiPlatform\Core\DataPersister\ContextAwareDataPersisterInterface;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -15,9 +16,7 @@ final class GiftCardDataPersisterTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_supports_gift_cards(): void
     {
         $decoratedDataPersister = $this->prophesize(ContextAwareDataPersisterInterface::class);
@@ -26,9 +25,7 @@ final class GiftCardDataPersisterTest extends TestCase
         $this->assertTrue($dataPersister->supports(new GiftCard()));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_removes_data(): void
     {
         $decoratedDataPersister = $this->prophesize(ContextAwareDataPersisterInterface::class);
@@ -40,9 +37,7 @@ final class GiftCardDataPersisterTest extends TestCase
         $dataPersister->remove($data, $context);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_persists_data(): void
     {
         $decoratedDataPersister = $this->prophesize(ContextAwareDataPersisterInterface::class);

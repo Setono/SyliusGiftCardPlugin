@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\OrderProcessor;
 
+use PHPUnit\Framework\Attributes\Test;
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
@@ -21,9 +22,7 @@ final class OrderGiftCardProcessorTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_is_initializable(): void
     {
         $translator = $this->prophesize(TranslatorInterface::class);
@@ -35,9 +34,7 @@ final class OrderGiftCardProcessorTest extends TestCase
         $this->assertInstanceOf(OrderProcessorInterface::class, $processor);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_processes(): void
     {
         $translator = $this->prophesize(TranslatorInterface::class);

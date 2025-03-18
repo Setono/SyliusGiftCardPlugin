@@ -77,7 +77,7 @@ class GiftCard implements GiftCardInterface
 
     public function isDeletable(): bool
     {
-        return null === $this->orderItemUnit;
+        return !$this->orderItemUnit instanceof OrderItemUnitInterface;
     }
 
     public function getOrderItemUnit(): ?OrderItemUnitInterface
@@ -100,7 +100,7 @@ class GiftCard implements GiftCardInterface
     {
         $orderItemUnit = $this->getOrderItemUnit();
 
-        if (null === $orderItemUnit) {
+        if (!$orderItemUnit instanceof OrderItemUnitInterface) {
             return null;
         }
 
@@ -217,7 +217,7 @@ class GiftCard implements GiftCardInterface
     public function getCustomerIdentification(): ?array
     {
         $customer = $this->getCustomer();
-        if (null === $customer) {
+        if (!$customer instanceof CustomerInterface) {
             return null;
         }
 
@@ -230,7 +230,7 @@ class GiftCard implements GiftCardInterface
     public function getOrderIdentification(): ?array
     {
         $order = $this->getOrder();
-        if (null === $order) {
+        if (!$order instanceof OrderInterface) {
             return null;
         }
 
@@ -290,12 +290,12 @@ class GiftCard implements GiftCardInterface
 
     public function isExpired(DateTimeInterface $date = null): bool
     {
-        if (null === $date) {
+        if (!$date instanceof DateTimeInterface) {
             $date = new DateTime();
         }
 
         $giftCardValidUntil = $this->getExpiresAt();
-        if (null === $giftCardValidUntil) {
+        if (!$giftCardValidUntil instanceof DateTimeInterface) {
             return false;
         }
 

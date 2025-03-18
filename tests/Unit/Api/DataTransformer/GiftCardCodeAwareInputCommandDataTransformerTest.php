@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\DataTransformer;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Api\Command\AddGiftCardToOrder;
 use Setono\SyliusGiftCardPlugin\Api\Command\GiftCardCodeAwareInterface;
@@ -12,9 +13,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 
 final class GiftCardCodeAwareInputCommandDataTransformerTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function it_supports_gift_card_code_aware_interface(): void
     {
         $dataTransformer = new GiftCardCodeAwareInputCommandDataTransformer();
@@ -23,9 +22,7 @@ final class GiftCardCodeAwareInputCommandDataTransformerTest extends TestCase
         self::assertTrue($dataTransformer->supportsTransformation(new AddGiftCardToOrder('token_value')));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_adds_gift_card_code_to_object(): void
     {
         $dataTransformer = new GiftCardCodeAwareInputCommandDataTransformer();

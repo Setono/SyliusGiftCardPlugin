@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Factory;
 
+use PHPUnit\Framework\Attributes\Test;
 use DateTime;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -28,9 +29,7 @@ final class GiftCardFactoryTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_creates_a_new_gift_card_with_code(): void
     {
         $giftCard = new GiftCard();
@@ -56,9 +55,7 @@ final class GiftCardFactoryTest extends TestCase
         $this->assertSame('super-code', $createdGiftCard->getCode());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_creates_a_new_gift_card_for_channel(): void
     {
         $giftCard = new GiftCard();
@@ -86,9 +83,7 @@ final class GiftCardFactoryTest extends TestCase
         $this->assertSame($channel, $createdGiftCard->getChannel());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_creates_a_new_gift_card_for_channel_with_expiration_date(): void
     {
         $giftCard = new GiftCard();
@@ -123,9 +118,7 @@ final class GiftCardFactoryTest extends TestCase
         $this->assertEquals($expectedValidUntilDate, $giftCard->getExpiresAt());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_creates_a_new_gift_card_for_channel_from_admin(): void
     {
         $giftCard = new GiftCard();
@@ -154,9 +147,7 @@ final class GiftCardFactoryTest extends TestCase
         $this->assertSame(GiftCardInterface::ORIGIN_ADMIN, $createdGiftCard->getOrigin());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_creates_a_new_gift_card_for_order_item_unit_and_cart(): void
     {
         $giftCard = new GiftCard();
@@ -196,9 +187,7 @@ final class GiftCardFactoryTest extends TestCase
         $this->assertSame(GiftCardInterface::ORIGIN_ORDER, $createdGiftCard->getOrigin());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_creates_a_new_gift_card_for_order_item_unit(): void
     {
         $giftCard = new GiftCard();
@@ -244,9 +233,7 @@ final class GiftCardFactoryTest extends TestCase
         $this->assertSame(GiftCardInterface::ORIGIN_ORDER, $createdGiftCard->getOrigin());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_creates_example_gift_card(): void
     {
         $decoratedFactory = $this->prophesize(FactoryInterface::class);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Model;
 
+use PHPUnit\Framework\Attributes\Test;
 use DateTime;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -18,9 +19,7 @@ final class GiftCardTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_properties(): void
     {
         $orderItemUnit = $this->prophesize(OrderItemUnitInterface::class);
@@ -67,9 +66,7 @@ final class GiftCardTest extends TestCase
         $this->assertFalse($giftCard->getSendNotificationEmail());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_can_be_converted_to_string(): void
     {
         $giftCard = new GiftCard();
@@ -77,18 +74,14 @@ final class GiftCardTest extends TestCase
         $this->assertSame('test-code', $giftCard->__toString());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_can_be_deletable(): void
     {
         $giftCard = new GiftCard();
         $this->assertSame(true, $giftCard->isDeletable());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_is_not_deletable_if_it_has_order_item_unit(): void
     {
         $orderItemUnit = $this->prophesize(OrderItemUnitInterface::class);
@@ -97,9 +90,7 @@ final class GiftCardTest extends TestCase
         $this->assertSame(false, $giftCard->isDeletable());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_order_from_order_item_unit(): void
     {
         $giftCard = new GiftCard();
@@ -119,9 +110,7 @@ final class GiftCardTest extends TestCase
         $this->assertSame($order, $giftCard->getOrder());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_applied_orders(): void
     {
         $giftCard = new GiftCard();
@@ -143,18 +132,14 @@ final class GiftCardTest extends TestCase
         $this->assertFalse($giftCard->hasAppliedOrder($order1));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_null_origin_by_default(): void
     {
         $giftCard = new GiftCard();
         $this->assertSame(null, $giftCard->getOrigin());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_can_expire(): void
     {
         $today = new DateTime('2022-01-01 00:00:00');
@@ -164,9 +149,7 @@ final class GiftCardTest extends TestCase
         $this->assertTrue($giftCard->isExpired($today));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_is_not_expired_if_expires_at_is_null(): void
     {
         $giftCard = new GiftCard();
@@ -174,9 +157,7 @@ final class GiftCardTest extends TestCase
         $this->assertFalse($giftCard->isExpired());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_is_not_expired_if_expiresAt_is_in_future(): void
     {
         $today = new DateTime('2022-01-01 00:00:00');

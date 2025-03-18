@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Provider;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
 use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProvider;
@@ -11,9 +12,7 @@ use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
 
 final class PdfRenderingOptionProviderTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function it_provides_rendering_options(): void
     {
         $provider = new PdfRenderingOptionsProvider();
@@ -23,9 +22,7 @@ final class PdfRenderingOptionProviderTest extends TestCase
         $this->assertIsArray($renderingOptions);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_provides_page_size_if_not_null(): void
     {
         $provider = new PdfRenderingOptionsProvider();
@@ -37,9 +34,7 @@ final class PdfRenderingOptionProviderTest extends TestCase
         $this->assertEquals(PdfRenderingOptionsProviderInterface::PAGE_SIZE_A8, $renderingOptions['page-size']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_provides_orientation_if_not_null(): void
     {
         $provider = new PdfRenderingOptionsProvider();

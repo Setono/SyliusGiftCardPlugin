@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\EmailManager;
 
+use Sylius\Component\Channel\Model\ChannelInterface;
 use Setono\SyliusGiftCardPlugin\Mailer\Emails;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Renderer\PdfRendererInterface;
@@ -51,7 +52,7 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
     public function sendEmailWithGiftCardsFromOrder(OrderInterface $order, array $giftCards): void
     {
         $customer = $order->getCustomer();
-        if (null === $customer) {
+        if (!$customer instanceof \Sylius\Component\Customer\Model\CustomerInterface) {
             return;
         }
 
@@ -61,7 +62,7 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
         }
 
         $channel = $order->getChannel();
-        if (null === $channel) {
+        if (!$channel instanceof ChannelInterface) {
             return;
         }
 

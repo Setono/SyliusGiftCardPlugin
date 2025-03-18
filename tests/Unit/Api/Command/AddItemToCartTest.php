@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\Command;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Api\Command\AddItemToCart;
 
 class AddItemToCartTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function it_is_initializable(): void
     {
         $command = new AddItemToCart('variant', 1, 15, 'Custom message');
@@ -19,9 +18,7 @@ class AddItemToCartTest extends TestCase
         $this->assertInstanceOf(AddItemToCart::class, $command);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_its_parents_properties(): void
     {
         $command = new AddItemToCart('variant', 1);
@@ -30,9 +27,7 @@ class AddItemToCartTest extends TestCase
         $this->assertEquals(1, $command->quantity);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_nullable_amount(): void
     {
         $command = new AddItemToCart('variant', 1);
@@ -41,9 +36,7 @@ class AddItemToCartTest extends TestCase
         $this->assertEquals(150, $command->getAmount());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_nullable_custom_message(): void
     {
         $command = new AddItemToCart('variant', 1);

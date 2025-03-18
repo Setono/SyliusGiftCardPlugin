@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\CommandHandler;
 
+use PHPUnit\Framework\Attributes\Test;
 use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -22,9 +23,7 @@ class AssociateConfigurationToChannelHandlerTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_associates_configuration_to_channel(): void
     {
         $configuration = new GiftCardConfiguration();
@@ -78,9 +77,7 @@ class AssociateConfigurationToChannelHandlerTest extends TestCase
         self::assertEquals($locale, $returnedChannelConfiguration->getLocale());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_does_nothing_if_association_already_exists(): void
     {
         $configuration = new GiftCardConfiguration();
@@ -129,9 +126,7 @@ class AssociateConfigurationToChannelHandlerTest extends TestCase
         self::assertEquals(0, $returnedConfiguration->getChannelConfigurations()->count());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_exception_if_configuration_code_empty(): void
     {
         $giftCardConfigurationRepository = $this->prophesize(RepositoryInterface::class);
@@ -154,9 +149,7 @@ class AssociateConfigurationToChannelHandlerTest extends TestCase
         $handler($command);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_exception_if_configuration_not_found(): void
     {
         $giftCardConfigurationRepository = $this->prophesize(RepositoryInterface::class);
@@ -180,9 +173,7 @@ class AssociateConfigurationToChannelHandlerTest extends TestCase
         $handler($command);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_eception_if_channel_not_found(): void
     {
         $configuration = new GiftCardConfiguration();
@@ -212,9 +203,7 @@ class AssociateConfigurationToChannelHandlerTest extends TestCase
         $handler($command);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function if_throws_exception_if_locale_not_found(): void
     {
         $configuration = new GiftCardConfiguration();

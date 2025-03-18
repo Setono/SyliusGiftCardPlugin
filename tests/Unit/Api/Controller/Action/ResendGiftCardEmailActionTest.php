@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\Controller\Action;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Api\Controller\Action\ResendGiftCardEmailAction;
@@ -20,9 +21,7 @@ final class ResendGiftCardEmailActionTest extends TestCase
 {
     use ProphecyTrait;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_resends_email_for_order(): void
     {
         $giftCard = new GiftCard();
@@ -44,9 +43,7 @@ final class ResendGiftCardEmailActionTest extends TestCase
         self::assertEquals($expectedResponse, $response);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_resends_email_for_customer(): void
     {
         $giftCard = new GiftCard();
@@ -65,9 +62,7 @@ final class ResendGiftCardEmailActionTest extends TestCase
         self::assertEquals($expectedResponse, $response);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_throws_error_if_gift_card_has_no_order_nor_customer(): void
     {
         $giftCard = new GiftCard();

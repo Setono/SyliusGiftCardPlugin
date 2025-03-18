@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Form\Type;
 
+use PHPUnit\Framework\Attributes\Test;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Form\Type\DatePeriodType;
@@ -24,9 +25,7 @@ final class DatePeriodTypeTest extends TypeTestCase
         parent::setUp();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_submits_valid_data(): void
     {
         $formData = [

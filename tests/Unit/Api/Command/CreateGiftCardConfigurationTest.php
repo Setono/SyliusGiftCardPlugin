@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Api\Command;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Api\Command\CreateGiftCardConfiguration;
 
 class CreateGiftCardConfigurationTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function it_is_initializable(): void
     {
         $command = new CreateGiftCardConfiguration('code', false, false);
@@ -19,36 +18,28 @@ class CreateGiftCardConfigurationTest extends TestCase
         $this->assertInstanceOf(CreateGiftCardConfiguration::class, $command);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_nullable_default_validity_period(): void
     {
         $command = new CreateGiftCardConfiguration('code', false, false);
         $this->assertNull($command->defaultValidityPeriod);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_nullable_page_size(): void
     {
         $command = new CreateGiftCardConfiguration('code', false, false);
         $this->assertNull($command->pageSize);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_nullable_orientation(): void
     {
         $command = new CreateGiftCardConfiguration('code', false, false);
         $this->assertNull($command->orientation);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_nullable_template(): void
     {
         $command = new CreateGiftCardConfiguration('code', false, false);

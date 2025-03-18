@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Generator;
 
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use function preg_replace;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Webmozart\Assert\Assert;
@@ -40,6 +41,6 @@ final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
 
     private function exists(string $code): bool
     {
-        return null !== $this->giftCardRepository->findOneByCode($code);
+        return $this->giftCardRepository->findOneByCode($code) instanceof GiftCardInterface;
     }
 }

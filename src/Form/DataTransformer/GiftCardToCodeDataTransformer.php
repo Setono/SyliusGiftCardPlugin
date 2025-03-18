@@ -46,7 +46,7 @@ final class GiftCardToCodeDataTransformer implements DataTransformerInterface
             $this->channelContext->getChannel(),
         );
 
-        if (null !== $giftCard) {
+        if ($giftCard instanceof GiftCardInterface) {
             return $giftCard;
         }
 
