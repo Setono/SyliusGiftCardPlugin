@@ -1,8 +1,12 @@
-{% import '@SyliusUi/Macro/buttons.html.twig' as buttons %}
+{% import '@SyliusAdmin/shared/helper/button.html.twig' as button %}
 
 {% set path = options.link.url|default(path(options.link.route, options.link.parameters)) %}
 {% set visible = options.visible is defined ? options.visible : true %}
 
 {% if visible %}
-    {{ buttons.default(path, action.label, null, 'list', 'primary') }}
+    {{ button.primary({
+        text: action.label|trans,
+        icon: 'mdi:list-box',
+        url: path
+    }) }}
 {% endif %}

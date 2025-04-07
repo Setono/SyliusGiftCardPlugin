@@ -1,9 +1,8 @@
-{% import '@SyliusUi/Macro/buttons.html.twig' as buttons %}
+{% import '@SyliusAdmin/shared/helper/button.html.twig' as button %}
 
-{{ buttons.default(
-    path('setono_sylius_gift_card_admin_gift_card_balance'),
-    'setono_sylius_gift_card.ui.balance'|trans,
-    null,
-    'balance scale',
-    'grey')
-}}
+{{ button.default({
+    text: 'setono_sylius_gift_card.ui.balance'|trans,
+    icon: 'mdi:scale-balance',
+    class: 'btn-secondary',
+    url: path('setono_sylius_gift_card_admin_gift_card_balance')
+}) }}

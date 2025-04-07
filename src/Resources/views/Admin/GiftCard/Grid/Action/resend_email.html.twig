@@ -1,10 +1,14 @@
-{% import '@SyliusUi/Macro/buttons.html.twig' as buttons %}
-
+{% import '@SyliusAdmin/shared/helper/button.html.twig' as button %}
 
 {% set visible = options.visible is defined ? options.visible : true %}
 
 {% if visible %}
     {% set path = options.link.url|default(path(options.link.route, options.link.parameters)) %}
 
-    {{ buttons.default(path, action.label, null, 'mail', 'purple') }}
+    {{ button.default({
+        text: action.label|trans,
+        icon: 'mdi:mail',
+        class: 'btn-info',
+        url: path
+    }) }}
 {% endif %}
