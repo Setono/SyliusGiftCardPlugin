@@ -4,36 +4,41 @@
 
 {% import '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' as breadcrumb %}
 {% import "@SyliusAdmin/shared/helper/money.html.twig" as money %}
+{% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
 
 {% block title %}{{ 'setono_sylius_gift_card.ui.balance'|trans }} {{ parent() }}{% endblock %}
 
 {% block body %}
     {% hook 'add_admin.custom' %}
 <div class="page-wrapper">
-    <div class="ui stackable two column grid">
-        <div class="ten wide column">
-            <h1 class="ui header">
-                <i class="circular cart icon"></i>
-                <div class="content">
-                    {{ 'setono_sylius_gift_card.ui.balance'|trans }}
+
+    <div class="page-header" data-sticky-header>
+        <div class="container-xl">
+
+            {% set breadcrumbs = [
+                { name: 'sylius.ui.administration'|trans, url: path('sylius_admin_dashboard') },
+                { name: 'setono_sylius_gift_card.ui.gift_cards'|trans, url: path('setono_sylius_gift_card_admin_gift_card_index') },
+                { name: 'setono_sylius_gift_card.ui.balance'|trans }
+            ]
+            %}
+
+            {{ breadcrumb.breadcrumbs(breadcrumbs) }}
+
+            <div class="row mt-3 row-gap-2">
+                <div class="col-12 col-md-6">
+                    <div class="d-md-flex gap-2 align-items-center">
+                        {{ header.h1('setono_sylius_gift_card.ui.balance'|trans, '', '') }}
+                    </div>
                 </div>
-            </h1>
+            </div>
+
         </div>
     </div>
 
-    {% set breadcrumbs = [
-        { name: 'sylius.ui.administration'|trans, url: path('sylius_admin_dashboard') },
-        { name: 'setono_sylius_gift_card.ui.gift_cards'|trans, url: path('setono_sylius_gift_card_admin_gift_card_index') },
-        { name: 'setono_sylius_gift_card.ui.balance'|trans }
-    ]
-    %}
-
-    {{ breadcrumb.breadcrumbs(breadcrumbs) }}
-
-    <div class="ui stackable grid">
-        <div class="sixteen wide column">
-            <div class="ui segment">
-                <table class="ui celled table">
+    <div class="page-body">
+        <div class="container-xl">
+            <div class="card mb-3">
+                <table class="table table-striped">
                     <thead>
                         <tr>
                             <th class="center aligned">{{ 'setono_sylius_gift_card.ui.total'|trans }}</th>
