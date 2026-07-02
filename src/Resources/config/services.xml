@@ -12,6 +12,7 @@
         <import resource="services/form.xml"/>
         <import resource="services/generator.xml"/>
         <import resource="services/menu.xml"/>
+        <import resource="services/operator.xml"/>
         <import resource="services/order.xml"/>
         <import resource="services/promotion_rule.xml"/>
         <import resource="services/provider.xml"/>

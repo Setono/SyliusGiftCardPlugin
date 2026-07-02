@@ -1,0 +1,24 @@
+winzou_state_machine:
+    sylius_order_checkout:
+        callbacks:
+            after:
+                setono_sylius_gift_card__reconcile_gift_cards:
+                    on: ["complete"]
+                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "reconcile"]
+                    args: ["object"]
+
+    sylius_order_payment:
+        callbacks:
+            after:
+                setono_sylius_gift_card__enable_gift_cards:
+                    on: ["pay"]
+                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "enable"]
+                    args: ["object"]
+
+    sylius_order:
+        callbacks:
+            after:
+                setono_sylius_gift_card__disable_gift_cards:
+                    on: ["cancel"]
+                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "disable"]
+                    args: ["object"]

@@ -189,7 +189,13 @@ Container boots, `lint:container` OK.
 - Quality gates green; fixtures load clean end-to-end.
 - **Deferred**: styled virtual/physical delivery radio-cards (still uses stock variant selector — phase 11 polish); browser verification of the live add-to-cart + preview to the consolidated Playwright pass.
 
-### Phases 5–12 — NOT STARTED
+### Phase 5: Lifecycle operator + state machine — COMPLETE ✅ (scaffold/cart-line deferred)
+- `OrderGiftCardOperator`: `reconcile` (checkout complete — creates cards for quantity-bumped units copying design/message from a sibling card, snapshots final amount from `unit->getTotal()`, associates customer, refreshes expiry), `enable` (pay), `disable` (cancel). Public service (called from winzou).
+- Winzou callbacks via `prepend/winzou_state_machine.yaml`: `sylius_order_checkout.complete`→reconcile, `sylius_order_payment.pay`→enable, `sylius_order.cancel`→disable. **Verified registered** via debug:config.
+- yarn install + build completed (shop assets ready for browser verification).
+- **Deferred**: `send` (email on pay) → phase 10 (needs email manager); admin "Create gift card product" scaffold → phase 11 (admin UI); cart-line partial + shop PDF preview route → phase 8/10 (needs redemption UI + PDF generator).
+
+### Phases 6–12 — NOT STARTED
 
 ## Findings
 
