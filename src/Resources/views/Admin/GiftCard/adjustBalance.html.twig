@@ -1,0 +1,18 @@
+{% extends '@SyliusAdmin/layout.html.twig' %}
+
+{% block content %}
+    <div class="ui segment">
+        <h1 class="ui header">
+            {{ 'setono_sylius_gift_card.ui.adjust_balance'|trans }}
+            <div class="sub header">{{ giftCard.code }} — {{ giftCard.amount|sylius_format_money(giftCard.currencyCode) }}</div>
+        </h1>
+
+        {{ form_start(form) }}
+            {{ form_errors(form) }}
+            {{ form_row(form.amount) }}
+            {{ form_row(form.reason) }}
+            <button type="submit" class="ui primary button">{{ 'sylius.ui.save_changes'|trans }}</button>
+            <a href="{{ path('setono_sylius_gift_card_admin_gift_card_update', {'id': giftCard.id}) }}" class="ui button">{{ 'sylius.ui.cancel'|trans }}</a>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

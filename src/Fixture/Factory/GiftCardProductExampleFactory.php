@@ -78,7 +78,7 @@ class GiftCardProductExampleFactory extends AbstractExampleFactory implements Ex
             $product->setCurrentLocale($localeCode);
             $product->setFallbackLocale($localeCode);
             $product->setName($name);
-            $product->setSlug($this->slugGenerator->generate($name));
+            $product->setSlug($this->slugGenerator->generate($code));
         }
 
         /** @var list<ChannelInterface> $channels */

@@ -1,0 +1,341 @@
+- generic [ref=f12e1]:
+  - generic [ref=f12e2]:
+    - generic [ref=f12e4]:
+      - link "Sylius" [ref=f12e5] [cursor=pointer]:
+        - /url: /admin/
+        - img "Sylius" [ref=f12e7]
+      - generic [ref=f12e9]:
+        - textbox "Search" [ref=f12e10]
+        - generic: 
+      - generic [ref=f12e11]:
+        - generic [ref=f12e12]:
+          - generic [ref=f12e13]: Catalog
+          - generic [ref=f12e14]:
+            - link " Taxons" [ref=f12e15] [cursor=pointer]:
+              - /url: /admin/taxons/new
+              - generic [ref=f12e16]: 
+              - text: Taxons
+            - link " Products" [ref=f12e17] [cursor=pointer]:
+              - /url: /admin/products/
+              - generic [ref=f12e18]: 
+              - text: Products
+            - link " Inventory" [ref=f12e19] [cursor=pointer]:
+              - /url: /admin/inventory/
+              - generic [ref=f12e20]: 
+              - text: Inventory
+            - link " Attributes" [ref=f12e21] [cursor=pointer]:
+              - /url: /admin/product-attributes/
+              - generic [ref=f12e22]: 
+              - text: Attributes
+            - link " Options" [ref=f12e23] [cursor=pointer]:
+              - /url: /admin/product-options/
+              - generic [ref=f12e24]: 
+              - text: Options
+            - link " Association types" [ref=f12e25] [cursor=pointer]:
+              - /url: /admin/product-association-types/
+              - generic [ref=f12e26]: 
+              - text: Association types
+            - link " Gift cards" [ref=f12e27] [cursor=pointer]:
+              - /url: /admin/gift-cards/
+              - generic [ref=f12e28]: 
+              - text: Gift cards
+            - link "Gift card designs" [ref=f12e29] [cursor=pointer]:
+              - /url: /admin/gift-card-designs/
+              - text: Gift card designs
+            - link " Outstanding gift card balance" [ref=f12e31] [cursor=pointer]:
+              - /url: /admin/gift-cards/balance
+              - generic [ref=f12e32]: 
+              - text: Outstanding gift card balance
+        - generic [ref=f12e33]:
+          - generic [ref=f12e34]: Sales
+          - generic [ref=f12e35]:
+            - link " Orders" [ref=f12e36] [cursor=pointer]:
+              - /url: /admin/orders/
+              - generic [ref=f12e37]: 
+              - text: Orders
+            - link " Payments" [ref=f12e38] [cursor=pointer]:
+              - /url: /admin/payments/
+              - generic [ref=f12e39]: 
+              - text: Payments
+            - link " Shipments" [ref=f12e40] [cursor=pointer]:
+              - /url: /admin/shipments/
+              - generic [ref=f12e41]: 
+              - text: Shipments
+        - generic [ref=f12e42]:
+          - generic [ref=f12e43]: Customer
+          - generic [ref=f12e44]:
+            - link " Customers" [ref=f12e45] [cursor=pointer]:
+              - /url: /admin/customers/
+              - generic [ref=f12e46]: 
+              - text: Customers
+            - link " Groups" [ref=f12e47] [cursor=pointer]:
+              - /url: /admin/customer-groups/
+              - generic [ref=f12e48]: 
+              - text: Groups
+        - generic [ref=f12e49]:
+          - generic [ref=f12e50]: Marketing
+          - generic [ref=f12e51]:
+            - link " Cart promotions" [ref=f12e52] [cursor=pointer]:
+              - /url: /admin/promotions/
+              - generic [ref=f12e53]: 
+              - text: Cart promotions
+            - link " Catalog promotions" [ref=f12e54] [cursor=pointer]:
+              - /url: /admin/catalog-promotions/
+              - generic [ref=f12e55]: 
+              - text: Catalog promotions
+            - link " Product reviews" [ref=f12e56] [cursor=pointer]:
+              - /url: /admin/product-reviews/
+              - generic [ref=f12e57]: 
+              - text: Product reviews
+        - generic [ref=f12e58]:
+          - generic [ref=f12e59]: Configuration
+          - generic [ref=f12e60]:
+            - link " Channels" [ref=f12e61] [cursor=pointer]:
+              - /url: /admin/channels/
+              - generic [ref=f12e62]: 
+              - text: Channels
+            - link " Countries" [ref=f12e63] [cursor=pointer]:
+              - /url: /admin/countries/
+              - generic [ref=f12e64]: 
+              - text: Countries
+            - link " Zones" [ref=f12e65] [cursor=pointer]:
+              - /url: /admin/zones/
+              - generic [ref=f12e66]: 
+              - text: Zones
+            - link " Currencies" [ref=f12e67] [cursor=pointer]:
+              - /url: /admin/currencies/
+              - generic [ref=f12e68]: 
+              - text: Currencies
+            - link " Exchange rates" [ref=f12e69] [cursor=pointer]:
+              - /url: /admin/exchange-rates/
+              - generic [ref=f12e70]: 
+              - text: Exchange rates
+            - link " Locales" [ref=f12e71] [cursor=pointer]:
+              - /url: /admin/locales/
+              - generic [ref=f12e72]: 
+              - text: Locales
+            - link " Payment methods" [ref=f12e73] [cursor=pointer]:
+              - /url: /admin/payment-methods/
+              - generic [ref=f12e74]: 
+              - text: Payment methods
+            - link " Shipping methods" [ref=f12e75] [cursor=pointer]:
+              - /url: /admin/shipping-methods/
+              - generic [ref=f12e76]: 
+              - text: Shipping methods
+            - link " Shipping categories" [ref=f12e77] [cursor=pointer]:
+              - /url: /admin/shipping-categories/
+              - generic [ref=f12e78]: 
+              - text: Shipping categories
+            - link " Tax categories" [ref=f12e79] [cursor=pointer]:
+              - /url: /admin/tax-categories/
+              - generic [ref=f12e80]: 
+              - text: Tax categories
+            - link " Tax rates" [ref=f12e81] [cursor=pointer]:
+              - /url: /admin/tax-rates/
+              - generic [ref=f12e82]: 
+              - text: Tax rates
+            - link " Administrators" [ref=f12e83] [cursor=pointer]:
+              - /url: /admin/users/
+              - generic [ref=f12e84]: 
+              - text: Administrators
+        - generic [ref=f12e85]:
+          - generic [ref=f12e86]: Official support
+          - generic [ref=f12e87]:
+            - link " Sylius Plus" [ref=f12e88] [cursor=pointer]:
+              - /url: https://sylius.com/plus/
+              - generic [ref=f12e89]: 
+              - text: Sylius Plus
+            - link " Browse plugins" [ref=f12e90] [cursor=pointer]:
+              - /url: https://store.sylius.com/
+              - generic [ref=f12e91]: 
+              - text: Browse plugins
+            - link " Professional services" [ref=f12e92] [cursor=pointer]:
+              - /url: https://sylius.com/services/
+              - generic [ref=f12e93]: 
+              - text: Professional services
+            - link " Find a partner" [ref=f12e94] [cursor=pointer]:
+              - /url: https://sylius.com/find-a-partner/
+              - generic [ref=f12e95]: 
+              - text: Find a partner
+            - link " Sylius certification" [ref=f12e96] [cursor=pointer]:
+              - /url: https://sylius.com/certification/
+              - generic [ref=f12e97]: 
+              - text: Sylius certification
+        - generic [ref=f12e98]:
+          - generic [ref=f12e99]: Administration
+          - link " Roles Sylius Plus" [ref=f12e101] [cursor=pointer]:
+            - /url: https://sylius.com/plus/?utm_source=product&utm_medium=placeholder&utm_campaign=rbac-placeholder
+            - generic [ref=f12e102]: 
+            - text: Roles
+            - img "Sylius Plus" [ref=f12e103]
+      - generic [ref=f12e105]: 
+    - generic [ref=f12e106]:
+      - generic [ref=f12e108]:
+        - generic "Toggle sidebar" [ref=f12e109]:
+          - generic [ref=f12e110]: 
+        - link "View your store" [ref=f12e111] [cursor=pointer]:
+          - /url: http://localhost/en_US/
+        - generic [ref=f12e114]:
+          - textbox "Search products..." [ref=f12e115]
+          - generic [ref=f12e116] [cursor=pointer]: 
+        - generic [ref=f12e119] [cursor=pointer]:
+          - generic [ref=f12e120]: 
+          - generic [ref=f12e122]:
+            - generic [ref=f12e123]:
+              - text: There is a new version of Sylius available
+              - generic [ref=f12e124]: 
+            - text: Contact your technician to upgrade
+        - generic [ref=f12e125] [cursor=pointer]:
+          - generic [ref=f12e126]: 
+          - generic [ref=f12e127]: Get support
+          - generic [ref=f12e128]:
+            - link " Documentation" [ref=f12e129]:
+              - /url: https://docs.sylius.com
+              - generic [ref=f12e130]: 
+              - text: Documentation
+            - link " Join Slack" [ref=f12e131]:
+              - /url: https://sylius.com/slack
+              - generic [ref=f12e132]: 
+              - text: Join Slack
+            - link " Issue tracker" [ref=f12e133]:
+              - /url: https://github.com/Sylius/Sylius/issues
+              - generic [ref=f12e134]: 
+              - text: Issue tracker
+            - link " YouTube" [ref=f12e135]:
+              - /url: https://www.youtube.com/channel/UCtZI2yUM2bZwbVlGpQJ9VCQ
+              - generic [ref=f12e136]: 
+              - text: YouTube
+        - generic [ref=f12e137] [cursor=pointer]:
+          - img [ref=f12e138]
+          - generic [ref=f12e139]: John
+          - generic [ref=f12e140]: 
+          - generic [ref=f12e142]:
+            - link " My account" [ref=f12e143]:
+              - /url: /admin/users/3/edit
+              - generic [ref=f12e144]: 
+              - text: My account
+            - link " Logout" [ref=f12e145]:
+              - /url: /admin/logout
+              - generic [ref=f12e146]: 
+              - text: Logout
+      - generic [ref=f12e148]:
+        - heading "Adjust balance J2T6GD3CUWZRDMDS — $300.00" [level=1] [ref=f12e149]:
+          - text: Adjust balance
+          - generic [ref=f12e150]: J2T6GD3CUWZRDMDS — $300.00
+        - generic [ref=f12e151]:
+          - generic [ref=f12e152]:
+            - text: Amount$
+            - textbox "Amount" [ref=f12e153]: "50"
+            - generic [ref=f12e154]: A positive amount increases the balance, a negative amount decreases it.
+          - generic [ref=f12e155]:
+            - text: Reason
+            - textbox "Reason" [active] [ref=f12e156]: Goodwill top-up for late delivery
+          - button "Save changes" [ref=f12e157] [cursor=pointer]
+          - link "Cancel" [ref=f12e158] [cursor=pointer]:
+            - /url: /admin/gift-cards/21/edit
+      - generic [ref=f12e159]:
+        - text: Powered by
+        - link "Sylius v1.14.19" [ref=f12e160] [cursor=pointer]:
+          - /url: https://sylius.com
+        - text: . See an issue?
+        - link "Report it!" [ref=f12e161] [cursor=pointer]:
+          - /url: https://github.com/Sylius/Sylius/issues
+  - text:   
+  - region "Symfony Web Debug Toolbar" [ref=f12e162]:
+    - generic [ref=f12e165]:
+      - link "200 @ setono_sylius_gift_card_admin_gift_card_adjust_balance" [ref=f12e167] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=request
+        - generic [ref=f12e168]:
+          - generic [ref=f12e169]: "200"
+          - generic [ref=f12e170]: "@"
+          - generic [ref=f12e171]: setono_sylius_gift_card_admin_gift_card_adjust_balance
+      - link [ref=f12e173] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=api_platform.data_collector.request
+        - img [ref=f12e175]
+      - link "226 ms" [ref=f12e200] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=time
+        - generic [ref=f12e201]:
+          - generic [ref=f12e202]: "226"
+          - generic [ref=f12e203]: ms
+      - link "33.3 MiB" [ref=f12e205] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=time
+        - generic [ref=f12e206]:
+          - generic [ref=f12e207]: "33.3"
+          - generic [ref=f12e208]: MiB
+      - generic [ref=f12e210] [cursor=pointer]:
+        - img [ref=f12e211]
+        - generic [ref=f12e215]: "2"
+      - link "Cache 1" [ref=f12e217] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=form
+        - generic [ref=f12e218]:
+          - img "Cache" [ref=f12e219]
+          - generic [ref=f12e225]: "1"
+      - link "Logger 654" [ref=f12e227] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=logger
+        - generic [ref=f12e228]:
+          - img "Logger" [ref=f12e229]
+          - generic [ref=f12e233]: "654"
+      - link "Cache 163 in 5.54 ms" [ref=f12e235] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=cache
+        - generic [ref=f12e236]:
+          - img "Cache" [ref=f12e237]
+          - generic [ref=f12e242]: "163"
+          - generic [ref=f12e243]: in 5.54 ms
+      - link "69" [ref=f12e245] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=translation
+        - generic [ref=f12e246]:
+          - img [ref=f12e247]
+          - generic [ref=f12e252]: "69"
+      - link "Security sylius" [ref=f12e254] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=security
+        - generic [ref=f12e255]:
+          - img "Security" [ref=f12e256]
+          - generic [ref=f12e260]: sylius
+      - link "Twig 69 ms" [ref=f12e262] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=twig
+        - generic [ref=f12e263]:
+          - img "Twig" [ref=f12e264]
+          - generic [ref=f12e268]: "69"
+          - generic [ref=f12e269]: ms
+      - link "14 in 15.62 ms" [ref=f12e271] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=db
+        - generic [ref=f12e272]:
+          - img [ref=f12e273]
+          - generic [ref=f12e278]: "14"
+          - generic [ref=f12e279]: in 15.62 ms
+      - generic [ref=f12e281]:
+        - img [ref=f12e282]
+        - generic [ref=f12e284]: Fashion Web Store
+      - link "6" [ref=f12e286] [cursor=pointer]:
+        - /url: /_profiler/840ffd?panel=sylius_ui.template_block
+        - generic [ref=f12e287]:
+          - img [ref=f12e288]
+          - generic [ref=f12e290]: "6"
+      - link "0" [ref=f12e292] [cursor=pointer]:
+        - /url: /_profiler/840ffd?panel=block
+        - generic [ref=f12e293]:
+          - img [ref=f12e294]
+          - generic [ref=f12e296]: "0"
+      - 'link "S: 0 D: 0" [ref=f12e298] [cursor=pointer]':
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=jms_serializer
+        - generic [ref=f12e299]:
+          - img [ref=f12e300]
+          - generic [ref=f12e302]: "S:"
+          - generic [ref=f12e303]: "0"
+          - generic [ref=f12e304]: "D:"
+          - generic [ref=f12e305]: "0"
+      - link "6.4.42" [ref=f12e307] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=config
+        - generic [ref=f12e308]:
+          - img [ref=f12e310]
+          - generic [ref=f12e312]: 6.4.42
+      - generic [ref=f12e314]:
+        - img "Sylius" [ref=f12e315]
+        - generic [ref=f12e316]: 1.14.19
+      - link "1" [ref=f12e318] [cursor=pointer]:
+        - /url: http://127.0.0.1:8899/_profiler/840ffd?panel=sylius_cart
+        - generic [ref=f12e319]:
+          - img [ref=f12e320]
+          - generic [ref=f12e322]: "1"
+      - button "Close Toolbar" [expanded] [ref=f12e323] [cursor=pointer]:
+        - img [ref=f12e324]

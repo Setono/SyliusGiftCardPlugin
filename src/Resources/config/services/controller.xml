@@ -44,5 +44,22 @@
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="twig"/>
         </service>
+
+        <service id="setono_sylius_gift_card.controller.action.admin.adjust_balance"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\AdjustGiftCardBalanceAction">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+            <argument type="service" id="setono_sylius_gift_card.operator.gift_card_balance"/>
+            <argument type="service" id="form.factory"/>
+            <argument type="service" id="twig"/>
+            <argument type="service" id="router"/>
+            <argument type="service" id="doctrine"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.controller.action.admin.create_gift_card_product"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction">
+            <argument type="service" id="setono_sylius_gift_card.fixture.example_factory.gift_card_product"/>
+            <argument type="service" id="sylius.manager.product"/>
+            <argument type="service" id="router"/>
+        </service>
     </services>
 </container>

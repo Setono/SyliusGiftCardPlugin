@@ -25,6 +25,15 @@ setono_sylius_gift_card_admin_gift_card_balance:
             section: admin
             permission: true
 
+setono_sylius_gift_card_admin_create_gift_card_product:
+    path: /gift-cards/create-product
+    methods: [GET, POST]
+    defaults:
+        _controller: setono_sylius_gift_card.controller.action.admin.create_gift_card_product
+        _sylius:
+            section: admin
+            permission: true
+
 setono_sylius_gift_card_admin_gift_card_pdf:
     path: /gift-cards/{id}/pdf
     methods: [GET]
@@ -32,6 +41,17 @@ setono_sylius_gift_card_admin_gift_card_pdf:
         id: \d+
     defaults:
         _controller: setono_sylius_gift_card.controller.action.download_pdf
+        _sylius:
+            section: admin
+            permission: true
+
+setono_sylius_gift_card_admin_gift_card_adjust_balance:
+    path: /gift-cards/{id}/adjust-balance
+    methods: [GET, POST]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: setono_sylius_gift_card.controller.action.admin.adjust_balance
         _sylius:
             section: admin
             permission: true

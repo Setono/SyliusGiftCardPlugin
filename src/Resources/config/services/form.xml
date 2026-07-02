@@ -73,6 +73,11 @@
             <tag name="form.type"/>
         </service>
 
+        <service id="setono_sylius_gift_card.form.type.adjust_balance"
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\AdjustGiftCardBalanceType">
+            <tag name="form.type"/>
+        </service>
+
         <service id="Setono\SyliusGiftCardPlugin\Form\Type\Rule\HasNoGiftCardConfigurationType">
             <tag name="form.type" alias="setono_sylius_gift_card_plugin_promotion_rule_has_no_gift_card_configuration"/>
         </service>
