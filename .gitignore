@@ -10,3 +10,4 @@
 /behat.yml
 /phpspec.yml
 /.phpunit.result.cache
+.php-version
