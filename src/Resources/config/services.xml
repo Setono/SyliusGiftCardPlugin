@@ -13,6 +13,7 @@
         <import resource="services/menu.xml"/>
         <import resource="services/order.xml"/>
         <import resource="services/promotion_rule.xml"/>
+        <import resource="services/provider.xml"/>
         <import resource="services/resolver.xml"/>
     </imports>
 </container>

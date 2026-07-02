@@ -1,87 +1,41 @@
 setono_sylius_gift_card:
     form:
-        add_to_cart:
-            gift_card_information:
-                amount: Amount
-                custom_message: Custom message
-                custom_message_placeholder: If you want to add a short message to the gift card, you can write it here...
-        channel_configuration:
-            channel: Channel
-            locale: Locale
-        date_period:
-            unit: Unit
-            unit_day: Days
-            unit_hour: Hours
-            unit_month: Months
-            unit_week: Weeks
-            unit_year: Years
-            value: Value
+        product:
+            gift_card: Gift card
         gift_card:
             channel: Channel
             custom_message: Custom message
-            custom_message_placeholder: This message is printed on the gift card PDF...
+            custom_message_placeholder: This message is printed on the gift card...
             expires_at: Expires at
             send_notification_email: Send notification email
-        gift_card_configuration:
-            background_image: Background image
-            channel_configurations: Channel configurations
-            code: Code
-            default: Default configuration
-            default_validity_period: Default validity period
-            enabled: Enabled
-            orientation: Orientation
-            page_size: Page size
-            template: Template
-        product:
-            gift_card: Gift card
-            gift_card_amount_configurable: Gift card amount configurable
+        gift_card_design:
+            position: Position
+            images: Images
+            image_type: Image type
+            front_image: Front image
+            back_image: Back image
     ui:
-        active: Active
-        add_gift_card_to_order: Add gift card
         amount: Amount
         applied_gift_cards: Applied gift cards
-        average_amount: Average amount
-        balance: Balance
-        bought_at_order: Bought at order
-        channel_configurations: Channel configurations
-        configuration: Configuration
-        covered_by_gift_cards: Covered by gift cards
-        count: Count
-        create_for_channel: Create for %channel%
-        customer_help_text: When you associate a customer with a gift card, Sylius can automatically notify this customer via email
-        customer_email: Customer email
-        download_pdf: PDF
-        edit_gift_card: Edit gift card
+        back: Back
+        design: Design
+        design_images: Design images
+        design_images_help: Upload a front image (shown in the picker, preview and on the gift card) and, optionally, a back image.
         enter_gift_card_code: Enter gift card code
-        edit_gift_card_configuration: Edit gift card configuration
+        front: Front
         gift_card: Gift card
         gift_card_channel_does_not_match_channel: The gift card was bought on another channel, please use the gift card on %channel%
         gift_card_code_is_invalid: Gift card code is invalid
-        gift_card_configuration:
-            pdf_live_rendering:
-                hint_title: Available variables
-                title: PDF Live rendering
-        gift_card_configurations: Gift card configurations
         gift_cards: Gift cards
-        gift_card_search: Gift card search
-        gift_cards_adjustment_total: Gift cards total
+        gift_card_designs: Gift card designs
         has_no_gift_card: Has no gift card
-        initial_amount: Initial amount
-        in_cart: In cart
-        list_orders: List orders
-        load_default_css: Load default CSS
+        image: Image
         manage_gift_cards: Manage gift cards
-        manage_gift_card_configurations: Manage gift card configurations
-        manually_created: Manually created
-        new_gift_card: New gift card
-        new_gift_card_configuration: New gift card configuration
-        no_customer: No customer
-        no_gift_card: No gift card applied
-        product_is_not_gift_card: Product is not gift card
-        resend_email: Resend email
-        total: Total
-        update_preview: Update preview
-        your_gift_card_will_only_be_charged_if_you_complete_your_order: Your gift card will only be charged if you complete your order
+        manage_gift_card_designs: Manage gift card designs
+        physical: 'Physical — shipped to you'
+        position: Position
+        remaining_to_pay: Remaining to pay
+        virtual: 'Virtual — delivered instantly by email'
     email:
         balance: Balance
         new_gift_card: New gift card
@@ -89,7 +43,6 @@ setono_sylius_gift_card:
         your_gift_card: Your gift card
         your_gift_cards_you_bought_in_the_order: Your gift cards you bought in the order
 
-# Missing from Sylius for some reason
 sylius:
     form:
         locale:

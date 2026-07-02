@@ -1,0 +1,6 @@
+{% set image = data.frontImage %}
+{% if image is not null and image.path is not null %}
+    <img src="{{ image.path | imagine_filter('setono_sylius_gift_card_design_thumbnail') }}" alt="{{ data.name }}" style="max-width: 120px; max-height: 76px;"/>
+{% else %}
+    <span class="ui gray text">{{ 'sylius.ui.no_image'|trans }}</span>
+{% endif %}

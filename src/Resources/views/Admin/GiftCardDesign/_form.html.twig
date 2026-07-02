@@ -1,0 +1,21 @@
+{{ form_errors(form) }}
+
+<div class="ui segment">
+    <h4 class="ui dividing header">{{ 'sylius.ui.details'|trans }}</h4>
+
+    <div class="two fields">
+        {{ form_row(form.code) }}
+        {{ form_row(form.position) }}
+    </div>
+
+    {{ form_row(form.translations) }}
+    {{ form_row(form.channels) }}
+    {{ form_row(form.enabled) }}
+</div>
+
+<div class="ui segment">
+    <h4 class="ui dividing header">{{ 'setono_sylius_gift_card.ui.design_images'|trans }}</h4>
+    <p class="ui text">{{ 'setono_sylius_gift_card.ui.design_images_help'|trans }}</p>
+
+    {{ form_row(form.images) }}
+</div>

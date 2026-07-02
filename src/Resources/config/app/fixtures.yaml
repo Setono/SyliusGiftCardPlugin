@@ -2,6 +2,15 @@ sylius_fixtures:
     suites:
         default:
             fixtures:
+                setono_gift_card_design:
+                    options:
+                        custom:
+                            classic:
+                                code: classic
+                                name: Classic
+                                enabled: true
+                                position: 0
+
                 setono_gift_card:
                     options:
                         random: 20

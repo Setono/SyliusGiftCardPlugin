@@ -166,7 +166,18 @@ Container boots, `lint:container` OK.
 - Design forms created (GiftCardDesignType/TranslationType/ImageType) + ImagesUploadListener wired (phase 3 fleshes out UI).
 - **Quality gates all green**: PHPStan max (0 errors), ECS (0), Rector (0). phpstan.neon: `allowNullablePropertyForRequiredField: true` + ignore for interface-vs-concrete association mismatches (both inherent to Sylius resource model).
 
-### Phases 3–12 — NOT STARTED
+### Phase 3: Design resource end-to-end — COMPLETE ✅
+- `GiftCardDesignProvider` with lazy "Classic" seeding (creates a default design + front image from the bundled `default_background.png` when a channel has no enabled designs; ORMException-guarded for concurrency).
+- Admin grid via prepend (`prepend/sylius_grid.yaml`) with thumbnail field template; admin form template + menu entry (Gift card designs, palette icon).
+- Design fixture + example factory (front/back images uploaded via ImageUploader); `classic` design seeded in the default suite.
+- Translations rewritten clean for 1.x (dropped all configuration-feature keys).
+- Image type form field made a visible front/back selector.
+- **Verified end-to-end against MariaDB**: `sylius:fixtures:load default` runs clean, Classic design persists with its front image (path set), 20 gift cards created. Quality gates green.
+- **Gotcha fixed**: ImageUploader requires `Symfony\Component\HttpFoundation\File\File`, not plain `SplFileInfo` (both the provider and fixture factory).
+- Deferred to phase 10: example-PDF preview button on the design form (needs the dompdf generator). Deferred to phase 11: admin image-collection add/remove JS.
+- **Playwright browser verification deferred to a consolidated pass** (phase 8+): serving the app (yarn build + server + admin login) is expensive and the UI is still being built. Admin design CRUD is code-complete and container/grid-verified.
+
+### Phases 4–12 — NOT STARTED
 
 ## Findings
 

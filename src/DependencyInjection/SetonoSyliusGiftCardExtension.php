@@ -36,6 +36,10 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
         $container->setParameter('setono_sylius_gift_card.redemption.mode', $config['redemption']['mode']);
         $container->setParameter('setono_sylius_gift_card.redemption.payment_method_code', $config['redemption']['payment_method_code']);
         $container->setParameter('setono_sylius_gift_card.pdf.page_size', $config['pdf']['page_size']);
+        $container->setParameter(
+            'setono_sylius_gift_card.default_design_image_path',
+            dirname(__DIR__) . '/Resources/fixtures/default_background.png',
+        );
 
         $this->registerResources(
             'setono_sylius_gift_card',
