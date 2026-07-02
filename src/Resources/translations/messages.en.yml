@@ -90,6 +90,14 @@ setono_sylius_gift_card:
         valid_until: 'Valid until'
         how_to_use: How to use your gift card
         how_to_use_text: Enter the code below at checkout to redeem your gift card.
+        gift_card: Gift Card
+        tagline: The gift of choice
+        value: Value
+        number: 'No.'
+        how_to_redeem: How to redeem
+        how_to_redeem_text: 'Enter the code below at checkout on our website, or present this card in store to apply the balance to your purchase.'
+        redemption_code: Redemption code
+        terms: 'Terms & conditions apply. This card is not redeemable for cash and cannot be replaced if lost or stolen.'
     email:
         balance: Balance
         new_gift_card: New gift card

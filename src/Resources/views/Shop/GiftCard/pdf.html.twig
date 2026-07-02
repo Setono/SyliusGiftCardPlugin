@@ -1,53 +1,125 @@
 {% set formatted_amount = giftCard.amount|sylius_format_money(giftCard.currencyCode) %}
 {% set formatted_code = giftCard.code|slice(0, 4) ~ '-' ~ giftCard.code|slice(4, 4) ~ '-' ~ giftCard.code|slice(8, 4) ~ '-' ~ giftCard.code|slice(12) %}
+{% set brand_name = giftCard.channel ? giftCard.channel.name : ('setono_sylius_gift_card.pdf.gift_card'|trans) %}
+{% set brand_initial = brand_name|slice(0, 1)|upper %}
+{% set brand_url = giftCard.channel ? giftCard.channel.hostname : null %}
+{% set barcode = [2,1,1,3,1,2,1,1,2,3,1,1,2,1,3,1,1,2,1,1,3,2,1,1,2,1,1,3,1,2,1,1,2,3,1,1,2,1,3,1] %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
     <style>
         @page { margin: 0; }
-        html, body { margin: 0; padding: 0; height: 100%; font-family: 'DejaVu Sans', sans-serif; color: #1b1b1b; }
+        html, body { margin: 0; padding: 0; height: 100%; font-family: 'DejaVu Sans', sans-serif; }
         .card { position: relative; width: 100%; height: 100%; overflow: hidden; }
-        .card--front { background: linear-gradient(135deg, #2c3e50, #4ca1af); color: #ffffff; }
         .bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 24px; box-sizing: border-box; }
-        .amount { font-size: 40px; font-weight: bold; }
-        .label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.85; }
-        .message { position: absolute; bottom: 70px; left: 24px; right: 24px; font-style: italic; font-size: 16px; }
-        .code { position: absolute; bottom: 24px; left: 24px; font-size: 18px; letter-spacing: 3px; font-weight: bold; }
-        .expires { position: absolute; bottom: 24px; right: 24px; font-size: 11px; opacity: 0.85; }
-        .card--back { background: #f4f6f8; padding: 24px; box-sizing: border-box; }
-        .card--back h2 { margin: 0 0 12px; font-size: 16px; }
-        .card--back p { font-size: 12px; line-height: 1.5; }
-        .card--back .big-code { font-size: 22px; letter-spacing: 4px; font-weight: bold; margin: 16px 0; }
+
+        /* ---------- FRONT ---------- */
+        .card--front { background: #1c1b18; color: #f2f0ea; }
+        .frame { position: absolute; top: 18px; left: 18px; right: 18px; bottom: 18px; border: 1px solid #3a3833; border-radius: 12px; }
+        .brand { position: absolute; top: 40px; left: 42px; }
+        .brand-mark { display: inline-block; width: 15px; height: 15px; line-height: 15px; text-align: center; border: 1px solid #cfcbc0; border-radius: 4px; font-size: 9px; font-weight: bold; vertical-align: middle; }
+        .brand-name { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b7b3a8; vertical-align: middle; padding-left: 6px; }
+        .tag { position: absolute; top: 44px; right: 42px; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #8f8b81; }
+        .hero { position: absolute; left: 42px; right: 42px; bottom: 116px; }
+        .eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #8f8b81; margin-bottom: 10px; }
+        .title { font-size: 52px; font-weight: bold; line-height: 1; }
+        .message { font-size: 12px; font-style: italic; color: #b7b3a8; margin-top: 12px; }
+        .meta { position: absolute; bottom: 42px; }
+        .meta .k { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #8f8b81; margin-bottom: 6px; }
+        .meta--value { left: 42px; }
+        .meta--value .v { font-size: 22px; font-weight: bold; }
+        .meta--no { right: 42px; text-align: right; }
+        .meta--no .v { font-size: 12px; letter-spacing: 1px; }
+
+        .img-scrim { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 24px; background: #000000; opacity: 0.55; }
+        .img-scrim .a { font-size: 26px; font-weight: bold; color: #ffffff; }
+        .img-scrim .c { font-size: 13px; letter-spacing: 2px; color: #ffffff; margin-top: 4px; }
+
+        /* ---------- BACK ---------- */
+        .card--back { background: #f2f0ea; color: #1c1b18; }
+        .stripe { position: absolute; top: 54px; left: 0; right: 0; height: 44px; background: #1c1b18; }
+        .k { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #8b8577; margin-bottom: 10px; }
+        .redeem { position: absolute; top: 150px; left: 42px; width: 250px; }
+        .redeem p { margin: 0; font-size: 12px; line-height: 1.6; }
+        .codebox { position: absolute; top: 150px; right: 42px; width: 190px; }
+        .code-frame { border: 1px dashed #b9b3a5; border-radius: 6px; padding: 14px 6px; text-align: center; font-size: 15px; font-weight: bold; letter-spacing: 2px; }
+        .barcode { margin-top: 18px; white-space: nowrap; }
+        .barcode span { display: inline-block; height: 42px; background: #1c1b18; margin-right: 2px; vertical-align: top; }
+        .barcode-code { font-size: 10px; letter-spacing: 2px; margin-top: 5px; color: #4a463d; }
+        .divider { position: absolute; left: 42px; right: 42px; bottom: 66px; border-top: 1px solid #ddd8cc; }
+        .terms { position: absolute; left: 42px; right: 220px; bottom: 34px; font-size: 8.5px; line-height: 1.5; color: #8b8577; }
+        .foot-brand { position: absolute; right: 42px; bottom: 34px; font-size: 9px; color: #4a463d; }
+        .foot-brand .brand-mark { border-color: #1c1b18; color: #1c1b18; }
     </style>
 </head>
 <body>
     <div class="card card--front">
         {% if frontImagePath is not null %}
             <img class="bg" src="{{ frontImagePath }}" alt=""/>
+            <div class="img-scrim">
+                <div class="a">{{ formatted_amount }}</div>
+                <div class="c">{{ formatted_code }}</div>
+            </div>
+        {% else %}
+            <div class="frame"></div>
+
+            <div class="brand">
+                <span class="brand-mark">{{ brand_initial }}</span>
+                <span class="brand-name">{{ brand_name }}</span>
+            </div>
+            <div class="tag">{{ 'setono_sylius_gift_card.pdf.gift_card'|trans|upper }}</div>
+
+            <div class="hero">
+                <div class="eyebrow">{{ 'setono_sylius_gift_card.pdf.tagline'|trans|upper }}</div>
+                <div class="title">{{ 'setono_sylius_gift_card.pdf.gift_card'|trans }}</div>
+                {% if giftCard.customMessage is not empty %}
+                    <div class="message">{{ giftCard.customMessage }}</div>
+                {% endif %}
+            </div>
+
+            <div class="meta meta--value">
+                <div class="k">{{ 'setono_sylius_gift_card.pdf.value'|trans|upper }}</div>
+                <div class="v">{{ formatted_amount }}</div>
+            </div>
+            <div class="meta meta--no">
+                <div class="k">{{ 'setono_sylius_gift_card.pdf.number'|trans|upper }}</div>
+                <div class="v">{{ formatted_code }}</div>
+            </div>
         {% endif %}
-        <div class="overlay">
-            <div class="label">{{ 'setono_sylius_gift_card.email.your_gift_card'|trans }}</div>
-            <div class="amount">{{ formatted_amount }}</div>
-            {% if giftCard.customMessage is not empty %}
-                <div class="message">{{ giftCard.customMessage }}</div>
-            {% endif %}
-            <div class="code">{{ formatted_code }}</div>
-            {% if giftCard.expiresAt is not null %}
-                <div class="expires">{{ 'setono_sylius_gift_card.pdf.valid_until'|trans }} {{ giftCard.expiresAt|date('Y-m-d') }}</div>
-            {% endif %}
-        </div>
     </div>
 
     <div class="card card--back">
         {% if backImagePath is not null %}
             <img class="bg" src="{{ backImagePath }}" alt=""/>
         {% else %}
-            <h2>{{ 'setono_sylius_gift_card.pdf.how_to_use'|trans }}</h2>
-            <p>{{ 'setono_sylius_gift_card.pdf.how_to_use_text'|trans }}</p>
-            <div class="big-code">{{ formatted_code }}</div>
-            <p>{{ 'setono_sylius_gift_card.email.balance'|trans }}: {{ formatted_amount }}</p>
+            <div class="stripe"></div>
+
+            <div class="redeem">
+                <div class="k">{{ 'setono_sylius_gift_card.pdf.how_to_redeem'|trans|upper }}</div>
+                <p>{{ 'setono_sylius_gift_card.pdf.how_to_redeem_text'|trans }}</p>
+            </div>
+
+            <div class="codebox">
+                <div class="k">{{ 'setono_sylius_gift_card.pdf.redemption_code'|trans|upper }}</div>
+                <div class="code-frame">{{ formatted_code }}</div>
+                <div class="barcode">
+                    {% for width in barcode %}<span style="width: {{ width }}px;"></span>{% endfor %}
+                </div>
+                <div class="barcode-code">{{ formatted_code }}</div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="terms">
+                {{ 'setono_sylius_gift_card.pdf.terms'|trans }}
+                {% if giftCard.expiresAt is not null %}
+                    {{ 'setono_sylius_gift_card.pdf.valid_until'|trans }} {{ giftCard.expiresAt|date('Y-m-d') }}.
+                {% endif %}
+            </div>
+            <div class="foot-brand">
+                <span class="brand-mark">{{ brand_initial }}</span>
+                {{ brand_url ?: brand_name }}
+            </div>
         {% endif %}
     </div>
 </body>
