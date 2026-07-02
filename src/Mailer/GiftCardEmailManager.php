@@ -48,8 +48,11 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
             return;
         }
 
+        $channel = $giftCard->getChannel();
+
         $this->send(Emails::GIFT_CARD, $email, [$giftCard], [
-            'channel' => $giftCard->getChannel(),
+            'channel' => $channel,
+            'localeCode' => $channel?->getDefaultLocale()?->getCode(),
         ]);
     }
 
@@ -59,11 +62,16 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
      */
     private function send(string $code, string $email, array $giftCards, array $data): void
     {
+        // Attachments are written to a unique per-send directory so each can carry a clean, customer-facing filename
+        // (gift-card-<code>.pdf) without risk of collision, and the whole directory is removed afterwards
+        $directory = $this->createTemporaryDirectory();
         $attachments = [];
 
         try {
             foreach ($giftCards as $giftCard) {
-                $attachments[] = $this->createAttachment($giftCard);
+                $path = sprintf('%s/gift-card-%s.pdf', $directory, (string) $giftCard->getCode());
+                file_put_contents($path, $this->pdfGenerator->generate($giftCard));
+                $attachments[] = $path;
             }
 
             $this->sender->send(
@@ -78,18 +86,19 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
                     unlink($attachment);
                 }
             }
+
+            if (is_dir($directory)) {
+                rmdir($directory);
+            }
         }
     }
 
-    private function createAttachment(GiftCardInterface $giftCard): string
+    private function createTemporaryDirectory(): string
     {
-        $path = (string) tempnam(sys_get_temp_dir(), 'ssgc_pdf_');
-        file_put_contents($path, $this->pdfGenerator->generate($giftCard));
+        $directory = (string) tempnam(sys_get_temp_dir(), 'ssgc_');
+        unlink($directory);
+        mkdir($directory, 0o700, true);
 
-        // Give the temporary file a .pdf extension so the mail client shows a sensible name
-        $pdfPath = $path . '.pdf';
-        rename($path, $pdfPath);
-
-        return $pdfPath;
+        return $directory;
     }
 }

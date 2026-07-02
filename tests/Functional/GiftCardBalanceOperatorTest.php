@@ -4,31 +4,20 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
-use Sylius\Component\Channel\Factory\ChannelFactoryInterface;
-use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
-use Sylius\Component\Core\Model\ChannelInterface;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-final class GiftCardBalanceOperatorTest extends KernelTestCase
+final class GiftCardBalanceOperatorTest extends GiftCardFunctionalTestCase
 {
-    private EntityManagerInterface $manager;
-
     private GiftCardBalanceOperatorInterface $balanceOperator;
 
     private GiftCardRepositoryInterface $giftCardRepository;
 
     protected function setUp(): void
     {
-        self::bootKernel();
+        parent::setUp();
         $container = self::getContainer();
-
-        /** @var EntityManagerInterface $manager */
-        $manager = $container->get('doctrine.orm.entity_manager');
-        $this->manager = $manager;
 
         /** @var GiftCardBalanceOperatorInterface $balanceOperator */
         $balanceOperator = $container->get(GiftCardBalanceOperatorInterface::class);
@@ -37,8 +26,6 @@ final class GiftCardBalanceOperatorTest extends KernelTestCase
         /** @var GiftCardRepositoryInterface $giftCardRepository */
         $giftCardRepository = $container->get('setono_sylius_gift_card.repository.gift_card');
         $this->giftCardRepository = $giftCardRepository;
-
-        $this->createSchema();
     }
 
     /** @test */
@@ -106,49 +93,5 @@ final class GiftCardBalanceOperatorTest extends KernelTestCase
         $this->manager->flush();
 
         return $giftCard;
-    }
-
-    private function getChannel(): ChannelInterface
-    {
-        $container = self::getContainer();
-
-        /** @var ChannelRepositoryInterface<ChannelInterface> $channelRepository */
-        $channelRepository = $container->get('sylius.repository.channel');
-
-        $channel = $channelRepository->findOneBy(['code' => 'TEST_CHANNEL']);
-        if ($channel instanceof ChannelInterface) {
-            return $channel;
-        }
-
-        $currency = new \Sylius\Component\Currency\Model\Currency();
-        $currency->setCode('USD');
-        $this->manager->persist($currency);
-
-        $locale = new \Sylius\Component\Locale\Model\Locale();
-        $locale->setCode('en_US');
-        $this->manager->persist($locale);
-
-        /** @var ChannelFactoryInterface<ChannelInterface> $channelFactory */
-        $channelFactory = $container->get('sylius.factory.channel');
-        /** @var ChannelInterface $channel */
-        $channel = $channelFactory->createNamed('Test channel');
-        $channel->setCode('TEST_CHANNEL');
-        $channel->setBaseCurrency($currency);
-        $channel->setDefaultLocale($locale);
-        $channel->addCurrency($currency);
-        $channel->addLocale($locale);
-
-        $this->manager->persist($channel);
-        $this->manager->flush();
-
-        return $channel;
-    }
-
-    private function createSchema(): void
-    {
-        $metadata = $this->manager->getMetadataFactory()->getAllMetadata();
-        $schemaTool = new \Doctrine\ORM\Tools\SchemaTool($this->manager);
-        $schemaTool->dropSchema($metadata);
-        $schemaTool->createSchema($metadata);
     }
 }
