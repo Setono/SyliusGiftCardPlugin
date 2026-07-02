@@ -34,5 +34,12 @@ final class AdminMenuListener
             ->setLabel('setono_sylius_gift_card.ui.gift_card_designs')
             ->setLabelAttribute('icon', 'palette')
         ;
+        $item
+            ->addChild('gift_card_balance', [
+                'route' => 'setono_sylius_gift_card_admin_gift_card_balance',
+            ])
+            ->setLabel('setono_sylius_gift_card.ui.outstanding_balance')
+            ->setLabelAttribute('icon', 'balance scale')
+        ;
     }
 }

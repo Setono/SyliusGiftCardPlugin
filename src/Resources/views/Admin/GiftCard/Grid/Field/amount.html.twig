@@ -1,3 +1,4 @@
-{% import "@SyliusAdmin/Common/Macro/money.html.twig" as money %}
-
-{{ money.format(data.amount, data.currencyCode) }}
+{{ data.amount|sylius_format_money(data.currencyCode) }}
+{% if data.amount != data.initialAmount %}
+    <div class="ui small text">{{ 'setono_sylius_gift_card.ui.initial_amount'|trans }}: {{ data.initialAmount|sylius_format_money(data.currencyCode) }}</div>
+{% endif %}

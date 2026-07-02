@@ -2,16 +2,16 @@
 <div class="ui two column stackable grid">
     <div class="column">
         <div class="ui segment">
-            {{ form_errors(form) }}
             {{ form_row(form.code) }}
+            {% if form.channel is defined %}
+                {{ form_row(form.channel) }}
+            {% endif %}
             {{ form_row(form.enabled) }}
             {{ form_row(form.expiresAt) }}
-            {{ form_row(form.customer, {'attr': {'data-target': '.js-ssgc-send-customer-email'}}) }}
+            {{ form_row(form.customer) }}
             {% if form.sendNotificationEmail is defined %}
-                <div class="js-ssgc-send-customer-email" style="display: none;">
-                    <div class="ui info message">{{ 'setono_sylius_gift_card.ui.customer_help_text'|trans }}</div>
-                    {{ form_row(form.sendNotificationEmail) }}
-                </div>
+                <div class="ui info message">{{ 'setono_sylius_gift_card.ui.customer_help_text'|trans }}</div>
+                {{ form_row(form.sendNotificationEmail) }}
             {% endif %}
         </div>
     </div>

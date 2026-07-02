@@ -3,7 +3,7 @@ setono_sylius_gift_card_admin_gift_card:
         alias: setono_sylius_gift_card.gift_card
         section: admin
         permission: true
-        only: [index, update, delete, bulkDelete]
+        only: [index, create, update, delete, bulkDelete]
         templates: '@SyliusAdmin\\Crud'
         redirect: index
         grid: setono_sylius_gift_card_admin_gift_card
@@ -15,6 +15,15 @@ setono_sylius_gift_card_admin_gift_card:
             index:
                 icon: 'gift'
     type: sylius.resource
+
+setono_sylius_gift_card_admin_gift_card_balance:
+    path: /gift-cards/balance
+    methods: [GET]
+    defaults:
+        _controller: setono_sylius_gift_card.controller.action.admin.balance
+        _sylius:
+            section: admin
+            permission: true
 
 setono_sylius_gift_card_admin_gift_card_pdf:
     path: /gift-cards/{id}/pdf

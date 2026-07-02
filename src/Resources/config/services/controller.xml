@@ -38,5 +38,11 @@
             <argument type="service" id="setono_sylius_gift_card.pdf.generator"/>
             <argument type="service" id="sylius.context.channel"/>
         </service>
+
+        <service id="setono_sylius_gift_card.controller.action.admin.balance"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GiftCardBalanceAction">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+            <argument type="service" id="twig"/>
+        </service>
     </services>
 </container>

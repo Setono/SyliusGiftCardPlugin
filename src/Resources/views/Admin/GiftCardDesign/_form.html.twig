@@ -18,4 +18,12 @@
     <p class="ui text">{{ 'setono_sylius_gift_card.ui.design_images_help'|trans }}</p>
 
     {{ form_row(form.images) }}
+
+    {% if resource is defined and resource.id is not null %}
+        <a href="{{ path('setono_sylius_gift_card_admin_gift_card_design_preview_pdf', {'id': resource.id}) }}"
+           target="_blank" class="ui labeled icon button">
+            <i class="file pdf icon"></i>
+            {{ 'setono_sylius_gift_card.ui.preview_pdf'|trans }}
+        </a>
+    {% endif %}
 </div>

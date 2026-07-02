@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
 use Sylius\Bundle\ResourceBundle\Form\EventSubscriber\AddCodeFormSubscriber;
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -46,16 +47,16 @@ final class GiftCardType extends AbstractResourceType
             /** @var GiftCardInterface $giftCard */
             $giftCard = $event->getData();
 
-            // We only add the notification input if the gift card is new
-            if (null !== $giftCard->getId()) {
-                return;
+            // The channel can only be chosen while the gift card is new; afterwards it is fixed
+            if (null === $giftCard->getId()) {
+                $event->getForm()->add('channel', ChannelChoiceType::class, [
+                    'label' => 'sylius.ui.channel',
+                ]);
+                $event->getForm()->add('sendNotificationEmail', CheckboxType::class, [
+                    'required' => false,
+                    'label' => 'setono_sylius_gift_card.form.gift_card.send_notification_email',
+                ]);
             }
-
-            $form = $event->getForm();
-            $form->add('sendNotificationEmail', CheckboxType::class, [
-                'required' => false,
-                'label' => 'setono_sylius_gift_card.form.gift_card.send_notification_email',
-            ]);
         });
         $builder->add('amount', NumberType::class, [
             'label' => 'sylius.ui.amount',
@@ -84,21 +85,17 @@ final class GiftCardType extends AbstractResourceType
                 $giftCard->setCode($this->giftCardCodeGenerator->generate());
             }
 
-            /** @var ChannelInterface $channel */
             $channel = $giftCard->getChannel();
+            $preferredCurrency = $channel instanceof ChannelInterface ? $channel->getBaseCurrency() : null;
+            $preferredChoices = $preferredCurrency instanceof CurrencyInterface ? [$preferredCurrency->getCode()] : [];
 
-            /** @var CurrencyInterface $currency */
-            $currency = $channel->getBaseCurrency();
-
-            $form = $event->getForm();
-            $form
-                ->add('currencyCode', ChoiceType::class, [
-                    'label' => 'sylius.ui.currency',
-                    'choices' => $this->currencyRepository->findAll(),
-                    'choice_label' => 'code',
-                    'choice_value' => 'code',
-                    'preferred_choices' => [$currency->getCode()],
-                ]);
+            $event->getForm()->add('currencyCode', ChoiceType::class, [
+                'label' => 'sylius.ui.currency',
+                'choices' => $this->currencyRepository->findAll(),
+                'choice_label' => 'code',
+                'choice_value' => 'code',
+                'preferred_choices' => $preferredChoices,
+            ]);
         });
 
         $builder->get('amount')->addModelTransformer(new CallbackTransformer(static function (?int $amount): ?float {

@@ -1,0 +1,33 @@
+{% extends '@SyliusAdmin/layout.html.twig' %}
+
+{% block content %}
+    <div class="ui segment">
+        <h1 class="ui header">{{ 'setono_sylius_gift_card.ui.outstanding_balance'|trans }}</h1>
+        <p>{{ 'setono_sylius_gift_card.ui.outstanding_balance_help'|trans }}</p>
+
+        <table class="ui celled table">
+            <thead>
+                <tr>
+                    <th>{{ 'sylius.ui.currency'|trans }}</th>
+                    <th class="right aligned">{{ 'setono_sylius_gift_card.ui.count'|trans }}</th>
+                    <th class="right aligned">{{ 'setono_sylius_gift_card.ui.total'|trans }}</th>
+                    <th class="right aligned">{{ 'setono_sylius_gift_card.ui.average'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for balance in balances %}
+                    <tr>
+                        <td>{{ balance.currencyCode }}</td>
+                        <td class="right aligned">{{ balance.count }}</td>
+                        <td class="right aligned">{{ balance.amount|sylius_format_money(balance.currencyCode) }}</td>
+                        <td class="right aligned">{{ (balance.count > 0 ? (balance.amount // balance.count) : 0)|sylius_format_money(balance.currencyCode) }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="center aligned">{{ 'sylius.ui.no_results'|trans }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
