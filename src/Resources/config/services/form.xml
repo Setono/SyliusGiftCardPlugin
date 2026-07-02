@@ -36,6 +36,21 @@
             <tag name="form.type_extension" extended-type="Sylius\Bundle\ProductBundle\Form\Type\ProductType"/>
         </service>
 
+        <service id="setono_sylius_gift_card.form.type.extension.add_to_cart"
+                 class="Setono\SyliusGiftCardPlugin\Form\Extension\AddToCartTypeExtension">
+            <argument type="service" id="setono_sylius_gift_card.cart.gift_card_handler"/>
+            <tag name="form.type_extension" extended-type="Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.form.type.gift_card_information"
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardInformationType">
+            <argument>%setono_sylius_gift_card.order.model.gift_card_information.class%</argument>
+            <argument>%setono_sylius_gift_card.model.gift_card_design.class%</argument>
+            <argument type="service" id="sylius.context.channel"/>
+            <argument type="service" id="setono_sylius_gift_card.provider.gift_card_design"/>
+            <tag name="form.type"/>
+        </service>
+
         <service id="setono_sylius_gift_card.form.type.add_gift_card_to_order"
                  class="Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType">
             <argument type="service" id="setono_sylius_gift_card.form.data_transformer.gift_card_to_code"/>

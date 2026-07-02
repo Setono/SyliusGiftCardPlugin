@@ -1,0 +1,63 @@
+#setono-gift-card-information [data-js-gift-card-design-picker] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+#setono-gift-card-information .setono-gift-card-design-choice {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+#setono-gift-card-information .setono-gift-card-design-choice input {
+    margin-bottom: 4px;
+}
+
+#setono-gift-card-information .setono-gift-card-design-choice img {
+    max-width: 120px;
+    height: auto;
+    border-radius: 4px;
+}
+
+#setono-gift-card-information .setono-gift-card-preview {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+}
+
+#setono-gift-card-information .setono-gift-card-preview img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+#setono-gift-card-information .setono-gift-card-preview-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1rem;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+}
+
+#setono-gift-card-information .setono-gift-card-preview-amount {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+#setono-gift-card-information .setono-gift-card-preview-message {
+    font-style: italic;
+    align-self: flex-start;
+    max-width: 80%;
+    word-break: break-word;
+}

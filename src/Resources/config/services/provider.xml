@@ -16,5 +16,13 @@
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface"
                  alias="setono_sylius_gift_card.provider.gift_card_design"/>
+
+        <service id="setono_sylius_gift_card.provider.gift_card_amount_limits"
+                 class="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider">
+            <argument>%setono_sylius_gift_card.purchase.minimum_amount%</argument>
+            <argument>%setono_sylius_gift_card.purchase.maximum_amount%</argument>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface"
+                 alias="setono_sylius_gift_card.provider.gift_card_amount_limits"/>
     </services>
 </container>

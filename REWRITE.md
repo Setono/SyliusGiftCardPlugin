@@ -177,7 +177,19 @@ Container boots, `lint:container` OK.
 - Deferred to phase 10: example-PDF preview button on the design form (needs the dompdf generator). Deferred to phase 11: admin image-collection add/remove JS.
 - **Playwright browser verification deferred to a consolidated pass** (phase 8+): serving the app (yarn build + server + admin login) is expensive and the UI is still being built. Admin design CRUD is code-complete and container/grid-verified.
 
-### Phases 4–12 — NOT STARTED
+### Phase 4: Purchase flow — COMPLETE ✅ (browser verification pending consolidated pass)
+- `GiftCardInformation` DTO gained `design`; `GiftCardInformationType` form (amount MoneyType + ValidGiftCardAmount, custom message w/ max length, design EntityType radio picker from the provider — first design preselected). Designs apply to BOTH delivery types (unified per user decision).
+- `AddToCartTypeExtension` rebuilt: PRE_SET_DATA adds the subform for gift card products; POST_SUBMIT (priority -10) delegates to `CartGiftCardHandler`.
+- `CartGiftCardHandler`: sets unitPrice + setImmutable(true); creates one **pending disabled GiftCard per OrderItemUnit** (amount/currency/deliveryType-from-variant/design/message). **Confirmed units exist at POST_SUBMIT** — Sylius `OrderItemQuantityDataMapper::mapFormsToData` creates them during form data-mapping, before the parent AddToCartType POST_SUBMIT.
+- `ValidGiftCardAmount` constraint + validator (channel-aware via `GiftCardAmountLimitsProvider`, min/max from bundle config, money-formatted messages).
+- `PendingGiftCardCleanupListener` (Doctrine onFlush): removes pending cards whose OrderItemUnit is deleted (cart edits, expired-cart pruning); never touches enabled/transacted cards.
+- Product-page section injected via `prepend/sylius_ui.yaml` (`sylius.shop.product.show.add_to_cart_form`): amount, design thumbnail-radio picker, message, and a live HTML/CSS preview (vanilla JS `product-gift-card.js` + CSS) that occupies its own column and swaps the design image / overlays amount+message.
+- `gift_card_product` fixture + example factory: creates a gift-card-flagged product with a `gift_card_delivery` option and TWO variants — **verified in DB: `gift_card-virtual` shipping_required=0, `gift_card-physical` shipping_required=1**, product `giftCard=1`.
+- Asset publish dir is `bundles/setonosyliusgiftcardplugin/` (verified via assets:install).
+- Quality gates green; fixtures load clean end-to-end.
+- **Deferred**: styled virtual/physical delivery radio-cards (still uses stock variant selector — phase 11 polish); browser verification of the live add-to-cart + preview to the consolidated Playwright pass.
+
+### Phases 5–12 — NOT STARTED
 
 ## Findings
 

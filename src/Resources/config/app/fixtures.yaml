@@ -11,6 +11,14 @@ sylius_fixtures:
                                 enabled: true
                                 position: 0
 
+                setono_gift_card_product:
+                    options:
+                        custom:
+                            gift_card:
+                                code: gift_card
+                                name: Gift card
+                                price: 5000
+
                 setono_gift_card:
                     options:
                         random: 20

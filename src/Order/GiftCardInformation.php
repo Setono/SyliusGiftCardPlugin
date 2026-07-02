@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Order;
 
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
+
 class GiftCardInformation implements GiftCardInformationInterface
 {
+    protected ?GiftCardDesignInterface $design = null;
+
     public function __construct(protected int $amount, protected ?string $customMessage = null)
     {
     }
@@ -28,5 +32,15 @@ class GiftCardInformation implements GiftCardInformationInterface
     public function setCustomMessage(?string $customMessage): void
     {
         $this->customMessage = $customMessage;
+    }
+
+    public function getDesign(): ?GiftCardDesignInterface
+    {
+        return $this->design;
+    }
+
+    public function setDesign(?GiftCardDesignInterface $design): void
+    {
+        $this->design = $design;
     }
 }

@@ -17,5 +17,10 @@
             <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_design.pre_create" method="uploadImages"/>
             <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_design.pre_update" method="uploadImages"/>
         </service>
+
+        <service id="setono_sylius_gift_card.listener.pending_gift_card_cleanup"
+                 class="Setono\SyliusGiftCardPlugin\EventListener\PendingGiftCardCleanupListener">
+            <tag name="doctrine.event_listener" event="onFlush"/>
+        </service>
     </services>
 </container>
