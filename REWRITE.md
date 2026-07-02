@@ -258,6 +258,21 @@ Container boots, `lint:container` OK.
 
 ## REWRITE COMPLETE ✅ — all 12 phases done. See git log `1.x rewrite phase N` commits.
 
+### Full Playwright verification pass — COMPLETE ✅ (after the test-app admin JS/CSS fix)
+Once the frontend build was fixed (Node 20 + `@sylius-ui/frontend` Dart Sass + jQuery `resolutions`), every flow was driven end-to-end in the browser. **Note**: Playwright's *synthetic* click does not trigger native form submits in this environment (confirmed to affect core Sylius forms identically — a driver quirk, not a bug; native `.click()`/`requestSubmit()` work), so multi-step forms were submitted via native click.
+
+Verified flows: adjustment-mode redemption checkout (order placed, `order_gift_card` adjustment, balance debit, `redeem` ledger row, payment step skipped at full coverage); gift card purchase (add-to-cart, live preview, no-shipping for virtual, reconciliation snapshot + customer, card enabled + email sent on payment); physical variant shows the shipping step; cancel restores balance (+`restore` ledger row); design create/edit; payment mode partial coverage (gift_card payment + gateway payment sized to remainder, `partially_paid`) and full coverage (single gift_card payment, `paid`, payment step skipped, gift-card method hidden, lazy method creation).
+
+**Six real bugs found & fixed during this pass** (each committed with a regression test where unit-testable):
+1. `EligibleTotalCalculator` — per-card coverage collapsed to $0 once an applied card fully covered the order in adjustment mode (used post-adjustment total). Add back `order_gift_card` adjustments.
+2. Stale `tests/Application` `Cart/summary.html.twig` override referenced a non-existent 0.12.x JS → 404 + `jQuery.addGiftCardToOrder is not a function`. Deleted.
+3. `OrderItemTrait::equals()` returned false for a gift card item vs **itself** → `resolveAddedOrderItem()->first()` returned false → **500 on every gift card add-to-cart**. Added identity short-circuit.
+4. Gift card design **name required in all 8 locales** (NotBlank was a form constraint on every rendered locale) → moved to entity validation so only the default locale is required.
+5. Gift card design **grid `image` field 500** (`Can't read property "image"`) → twig field needed `path: .`.
+6. **Payment mode order placement 500** (`gateway_name cannot be null`) — `createWithGateway()` leaves `gatewayName` null → set it on the lazily-created gift card payment method.
+
+Plus polish: missing admin heading/label translations (`edit_gift_card`, `new_gift_card_design`, `no_image`, …) and removal of stale 0.12.x validator keys.
+
 ## Findings
 
 - `composer.lock` is gitignored in this repo — no lock file management needed.
