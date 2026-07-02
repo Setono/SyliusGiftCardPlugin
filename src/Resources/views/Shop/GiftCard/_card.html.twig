@@ -5,24 +5,17 @@
      formatted_code            : formatted code (may be null on the product page)
      message                   : customer message (may be empty)
      front_image_url           : image src (absolute path for the PDF, web url for the preview) or null
-     preview                   : true on the product page (adds live-update hooks and forces the image layout) #}
+     preview                   : true on the product page. Renders both layouts so the design picker can toggle
+                                 between the merchant image and the framed default live; the .ssgc-card--has-image
+                                 class (added by JS) decides which one is visible. #}
 {% set preview = preview|default(false) %}
 {% set image_url = front_image_url|default(null) %}
-{% set is_image = preview or image_url is not null %}
+{% set is_image = image_url is not null %}
 
-<div class="ssgc-card ssgc-card--front{{ is_image ? ' ssgc-card--image' : '' }}"{% if preview %} data-js-gc-card{% endif %}>
-    {% if is_image %}
-        <img class="ssgc-card__bg" src="{{ image_url }}" alt=""{% if preview %} data-js-gc-image{% endif %}/>
-        <div class="ssgc-card__scrim">
-            <div class="ssgc-card__scrim-amount"{% if preview %} data-js-gc-amount{% endif %}>{{ formatted_amount }}</div>
-            <div class="ssgc-card__scrim-message"{% if preview %} data-js-gc-message{% endif %}>{{ message }}</div>
-            {% if formatted_code is not empty %}
-                <div class="ssgc-card__scrim-code">{{ formatted_code }}</div>
-            {% endif %}
-        </div>
-    {% else %}
+<div class="ssgc-card ssgc-card--front{{ (not preview and is_image) ? ' ssgc-card--has-image' : '' }}"{% if preview %} data-js-gc-card{% endif %}>
+    {% if preview or not is_image %}
+        {# Framed default, used when a design has no image #}
         <div class="ssgc-card__frame"></div>
-
         <div class="ssgc-card__brand">
             <span class="ssgc-card__mark">{{ brand_initial }}</span>
             <span class="ssgc-card__brandname">{{ brand_name }}</span>
@@ -32,16 +25,28 @@
         <div class="ssgc-card__hero">
             <div class="ssgc-card__eyebrow">{{ 'setono_sylius_gift_card.pdf.tagline'|trans|upper }}</div>
             <div class="ssgc-card__title">{{ 'setono_sylius_gift_card.pdf.gift_card'|trans }}</div>
-            <div class="ssgc-card__message">{{ message }}</div>
+            <div class="ssgc-card__message"{% if preview %} data-js-gc-message{% endif %}>{{ message }}</div>
         </div>
 
         <div class="ssgc-card__meta ssgc-card__meta--value">
             <div class="ssgc-card__k">{{ 'setono_sylius_gift_card.pdf.value'|trans|upper }}</div>
-            <div class="ssgc-card__v">{{ formatted_amount }}</div>
+            <div class="ssgc-card__v"{% if preview %} data-js-gc-amount{% endif %}>{{ formatted_amount }}</div>
         </div>
         <div class="ssgc-card__meta ssgc-card__meta--no">
             <div class="ssgc-card__k">{{ 'setono_sylius_gift_card.pdf.number'|trans|upper }}</div>
             <div class="ssgc-card__v">{{ formatted_code }}</div>
+        </div>
+    {% endif %}
+
+    {% if preview or is_image %}
+        {# Merchant image variant #}
+        <img class="ssgc-card__bg" src="{{ image_url }}" alt=""{% if preview %} data-js-gc-image{% endif %}/>
+        <div class="ssgc-card__scrim">
+            <div class="ssgc-card__scrim-amount"{% if preview %} data-js-gc-amount{% endif %}>{{ formatted_amount }}</div>
+            <div class="ssgc-card__scrim-message"{% if preview %} data-js-gc-message{% endif %}>{{ message }}</div>
+            {% if formatted_code is not empty %}
+                <div class="ssgc-card__scrim-code">{{ formatted_code }}</div>
+            {% endif %}
         </div>
     {% endif %}
 </div>

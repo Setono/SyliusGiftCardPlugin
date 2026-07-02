@@ -9,8 +9,8 @@
 
         var card = container.querySelector('[data-js-gc-card]');
         var previewImage = container.querySelector('[data-js-gc-image]');
-        var previewAmount = container.querySelector('[data-js-gc-amount]');
-        var previewMessage = container.querySelector('[data-js-gc-message]');
+        var amountTargets = container.querySelectorAll('[data-js-gc-amount]');
+        var messageTargets = container.querySelectorAll('[data-js-gc-message]');
         var frame = container.querySelector('.ssgc-preview__frame');
 
         var messagePlaceholder = container.getAttribute('data-preview-message-placeholder') || '';
@@ -33,49 +33,49 @@
             if (isNaN(value)) {
                 return '';
             }
-            if (formatter) {
-                return formatter.format(value);
-            }
-            return value.toFixed(2);
+            return formatter ? formatter.format(value) : value.toFixed(2);
+        }
+
+        function setAll(nodes, text) {
+            Array.prototype.forEach.call(nodes, function (node) {
+                node.textContent = text;
+            });
         }
 
         function updateAmount() {
-            if (previewAmount && amountInput) {
-                previewAmount.textContent = formatAmount(amountInput.value);
+            if (amountInput) {
+                setAll(amountTargets, formatAmount(amountInput.value));
             }
         }
 
         function updateMessage() {
-            if (!previewMessage) {
-                return;
-            }
             var value = messageInput ? messageInput.value.trim() : '';
-            previewMessage.textContent = value !== '' ? value : messagePlaceholder;
+            setAll(messageTargets, value !== '' ? value : messagePlaceholder);
         }
 
         function updateDesign() {
-            if (!previewImage) {
+            if (!card) {
                 return;
             }
             var selected = container.querySelector('[data-js-gift-card-design-picker] input[type="radio"]:checked');
             var input = selected || (designInputs.length ? designInputs[0] : null);
-            if (!input) {
-                return;
-            }
-            var label = input.closest('label');
+            var label = input ? input.closest('label') : null;
             var img = label ? label.querySelector('img[data-design-image]') : null;
-            if (img) {
+
+            if (img && previewImage) {
                 previewImage.src = img.getAttribute('data-design-image');
                 previewImage.alt = img.alt;
+                card.className += card.className.indexOf('ssgc-card--has-image') === -1 ? ' ssgc-card--has-image' : '';
+            } else {
+                // Design without an image: fall back to the framed default card
+                card.className = card.className.replace(/\s*ssgc-card--has-image/g, '');
             }
         }
 
         function scaleCard() {
-            if (!card || !frame) {
-                return;
+            if (card && frame) {
+                card.style.transform = 'scale(' + (frame.clientWidth / 560) + ')';
             }
-            var scale = frame.clientWidth / 560;
-            card.style.transform = 'scale(' + scale + ')';
         }
 
         if (amountInput) {
