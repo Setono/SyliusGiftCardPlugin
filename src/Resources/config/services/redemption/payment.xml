@@ -2,6 +2,80 @@
 <container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
-    <!-- Services exclusive to the "payment" redemption mode. Populated in the redemption phases of the 1.x rewrite -->
-    <services/>
+    <services>
+        <service id="setono_sylius_gift_card.payment.gift_card_payment_checker"
+                 class="Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentChecker">
+            <argument>%setono_sylius_gift_card.redemption.payment_method_code%</argument>
+        </service>
+
+        <service id="setono_sylius_gift_card.provider.gift_card_payment_method"
+                 class="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProvider">
+            <argument type="service" id="sylius.repository.payment_method"/>
+            <argument type="service" id="sylius.factory.payment_method"/>
+            <argument type="service" id="sylius.manager.payment_method"/>
+            <argument>%setono_sylius_gift_card.redemption.payment_method_code%</argument>
+            <argument type="service" id="logger" on-invalid="null"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.redemption_method.payment"
+                 class="Setono\SyliusGiftCardPlugin\Redemption\PaymentRedemptionMethod">
+            <argument type="service" id="sylius.order_processing.order_processor.composite"/>
+            <argument type="service" id="setono_sylius_gift_card.calculator.gift_card_coverage"/>
+            <argument type="service" id="setono_sylius_gift_card.operator.gift_card_balance"/>
+            <argument type="service" id="setono_sylius_gift_card.provider.gift_card_payment_method"/>
+            <argument type="service" id="setono_sylius_gift_card.payment.gift_card_payment_checker"/>
+            <argument type="service" id="sylius.factory.payment"/>
+            <argument type="service" id="sylius_abstraction.state_machine"/>
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+        </service>
+
+        <!-- public because commit()/rollback() are called from the winzou state machine -->
+        <service id="setono_sylius_gift_card.redemption_method"
+                 alias="setono_sylius_gift_card.redemption_method.payment" public="true"/>
+        <service id="Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface"
+                 alias="setono_sylius_gift_card.redemption_method"/>
+
+        <!-- Size the gateway payment to (total - gift card coverage) for both the checkout and after-checkout processors -->
+        <service id="setono_sylius_gift_card.order_processor.gift_card_aware_payment.checkout"
+                 class="Setono\SyliusGiftCardPlugin\OrderProcessor\GiftCardAwareOrderPaymentProcessor"
+                 decorates="sylius.order_processing.order_payment_processor.checkout">
+            <argument type="service" id="setono_sylius_gift_card.order_processor.gift_card_aware_payment.checkout.inner"/>
+            <argument type="service" id="setono_sylius_gift_card.calculator.gift_card_coverage"/>
+            <argument type="service" id="setono_sylius_gift_card.payment.gift_card_payment_checker"/>
+            <argument>cart</argument>
+        </service>
+
+        <service id="setono_sylius_gift_card.order_processor.gift_card_aware_payment.after_checkout"
+                 class="Setono\SyliusGiftCardPlugin\OrderProcessor\GiftCardAwareOrderPaymentProcessor"
+                 decorates="sylius.order_processing.order_payment_processor.after_checkout">
+            <argument type="service" id="setono_sylius_gift_card.order_processor.gift_card_aware_payment.after_checkout.inner"/>
+            <argument type="service" id="setono_sylius_gift_card.calculator.gift_card_coverage"/>
+            <argument type="service" id="setono_sylius_gift_card.payment.gift_card_payment_checker"/>
+            <argument>new</argument>
+        </service>
+
+        <!-- Skip the checkout payment step when gift cards cover the whole order -->
+        <service id="setono_sylius_gift_card.checker.payment_method_selection_requirement"
+                 class="Setono\SyliusGiftCardPlugin\Checker\GiftCardAwarePaymentMethodSelectionRequirementChecker"
+                 decorates="sylius.checker.order_payment_method_selection_requirement">
+            <argument type="service" id="setono_sylius_gift_card.checker.payment_method_selection_requirement.inner"/>
+            <argument type="service" id="setono_sylius_gift_card.calculator.gift_card_coverage"/>
+        </service>
+
+        <!-- Hide the gift card payment method from checkout choices and default resolution -->
+        <service id="setono_sylius_gift_card.resolver.payment_methods"
+                 class="Setono\SyliusGiftCardPlugin\Resolver\GiftCardAwarePaymentMethodsResolver"
+                 decorates="sylius.payment_methods_resolver">
+            <argument type="service" id="setono_sylius_gift_card.resolver.payment_methods.inner"/>
+            <argument>%setono_sylius_gift_card.redemption.payment_method_code%</argument>
+        </service>
+
+        <service id="setono_sylius_gift_card.resolver.default_payment_method"
+                 class="Setono\SyliusGiftCardPlugin\Resolver\GiftCardAwareDefaultPaymentMethodResolver"
+                 decorates="sylius.payment_method_resolver.default">
+            <argument type="service" id="setono_sylius_gift_card.resolver.default_payment_method.inner"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
+            <argument>%setono_sylius_gift_card.redemption.payment_method_code%</argument>
+        </service>
+    </services>
 </container>

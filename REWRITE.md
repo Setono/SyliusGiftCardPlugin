@@ -232,7 +232,15 @@ Container boots, `lint:container` OK.
 - Local dev server needs a router script (`public/router.php`, gitignored) so `php -S` routes `/media/cache/...` to Symfony (liip on-demand thumbnails) instead of 404ing.
 - **🎯 Verified styled**: product page renders with full Sylius theme; **the gift card live preview works** — design image as card background with amount + message overlaid, updating as the customer types.
 
-### Phases 9, 11, 12 — NOT STARTED
+### Phase 9: Payment mode — COMPLETE ✅ (wiring verified; behavior → phase 12)
+- `GiftCardPaymentChecker` (identifies gift-card payments by method code); `GiftCardPaymentMethodProvider` (**lazily creates** the gift-card PaymentMethod with the stock `offline` gateway + channel + name if missing — developer needs no setup).
+- `PaymentRedemptionMethod` (commit: one completed gift-card `Payment` per covered card via the payment state machine + balance redeem with idempotency keys + details carrying card id/code; rollback: refund completed gift-card payments + balance restore). Uses the same `commit`/`rollback` winzou callbacks as adjustment mode (alias resolves per mode).
+- `GiftCardAwareOrderPaymentProcessor` decorates BOTH `order_payment_processor.checkout` (target `cart`) and `.after_checkout` (target `new`): sizes the gateway payment to `total − coverage`, removes it at ≤ 0.
+- `GiftCardAwarePaymentMethodSelectionRequirementChecker` (skip payment step at 100% coverage). `GiftCardAwarePaymentMethodsResolver` (hide gift-card method from checkout choices) + `GiftCardAwareDefaultPaymentMethodResolver` (never auto-select it for the gateway payment).
+- **Verified**: container boots + lints in payment mode; `redemption_method` alias → `PaymentRedemptionMethod`; gateway processors decorated. PHPStan/ECS/Rector green.
+- **Full payment-mode checkout behavior** (gift-card payment creation, `partially_paid`/`paid` states, gateway sizing, refund) verified via functional tests + Playwright in phase 12.
+
+### Phases 11, 12 — NOT STARTED
 
 ## Findings
 
