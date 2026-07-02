@@ -11,20 +11,11 @@ use Sylius\Component\Order\Model\OrderItemInterface;
 
 final class AddToCartCommandFactory implements AddToCartCommandFactoryInterface
 {
-    /** @var class-string<AddToCartCommandInterface> */
-    private string $className;
-
-    private GiftCardInformationFactoryInterface $giftCardInformationFactory;
-
     /**
      * @param class-string<AddToCartCommandInterface> $className
      */
-    public function __construct(
-        string $className,
-        GiftCardInformationFactoryInterface $giftCardInformationFactory,
-    ) {
-        $this->className = $className;
-        $this->giftCardInformationFactory = $giftCardInformationFactory;
+    public function __construct(private readonly string $className, private readonly GiftCardInformationFactoryInterface $giftCardInformationFactory)
+    {
     }
 
     public function createWithCartAndCartItem(OrderInterface $cart, OrderItemInterface $cartItem): AddToCartCommandInterface

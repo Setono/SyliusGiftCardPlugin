@@ -4,55 +4,50 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`setono/sylius-gift-card-plugin` — a Sylius plugin adding gift card functionality (buy gift cards, spend them on orders, check balances, admin management, API Platform support). PHP >= 8.1, Symfony 5.4 || 6.4, Sylius ~1.12. Development branches follow the `0.*.x` naming scheme (current: `0.12.x`).
+`setono/sylius-gift-card-plugin` — a Sylius plugin adding gift card functionality. Version 1.x (branch `1.x`) is a full rewrite targeting Sylius 1.13/1.14, PHP >= 8.1, Symfony ^6.4. See `REWRITE.md` for the complete architecture plan, decisions, and progress log of the rewrite.
+
+Key feature set: customers buy gift cards choosing the amount themselves (virtual = email delivery, physical = shipped + design chosen by the customer); redeeming a gift card produces either an order adjustment or a real Payment entity depending on the `setono_sylius_gift_card.redemption.mode` config (`adjustment` | `payment`). No API layer.
 
 ## Commands
 
 ```bash
-composer analyse           # Psalm static analysis (psalm.xml, baseline in psalm-baseline.xml)
-composer check-style       # ECS check (sylius-labs coding standard, config in ecs.php)
+composer analyse           # PHPStan at max level (phpstan.neon)
+composer check-style       # ECS check (ecs.php)
 composer fix-style         # ECS auto-fix
-composer phpunit           # PHPUnit test suite (tests/Unit)
+composer phpunit           # full PHPUnit suite
+vendor/bin/phpunit --testsuite unit        # unit tests only (no database needed)
+vendor/bin/phpunit --testsuite functional  # functional tests (require MySQL, see below)
 vendor/bin/phpunit tests/Unit/Path/To/SomeTest.php   # single test file
-vendor/bin/phpunit --filter testMethodName            # single test method
-vendor/bin/phpspec run     # phpspec specs (spec/ directory)
-vendor/bin/behat           # Behat acceptance tests (requires running test app, see below)
+vendor/bin/phpunit --filter testMethodName           # single test method
+vendor/bin/rector --dry-run                # rector check (CI runs this)
 ```
 
-Note: the README mentions `composer tests`, `composer try` and `composer all` — those scripts do not exist in composer.json; use the commands above.
+## Test application
 
-### Test application
+`tests/Application/` contains a full Sylius app used as the kernel for PHPUnit (bootstrap `tests/Application/config/bootstrap.php`) and for manual/browser verification. Run its console with `(cd tests/Application && bin/console ...)`. It needs a MySQL database (`DATABASE_URL` in `tests/Application/.env`) and built assets (`yarn install && yarn build` inside tests/Application). Serve it with `(cd tests/Application && symfony server:start --port=8080 --dir=public)`. Admin credentials after fixtures: username `sylius`, password `sylius`.
 
-`tests/Application/` contains a full Sylius app used as the kernel for PHPUnit (bootstrap `tests/Application/config/bootstrap.php`) and Behat. Run its console with `(cd tests/Application && bin/console ...)`. Behat (behat.yml.dist) expects the app served at `http://localhost:8080`, a MySQL database, built assets (`yarn install && yarn build` inside tests/Application), and headless Chrome for `@javascript` scenarios — see the `integration-tests` job in `.github/workflows/build.yaml` for the full setup sequence.
+## Testing conventions
 
-CI additionally runs `composer validate --strict`, `composer normalize --dry-run`, `composer-require-checker`, `composer-unused`, yaml/twig/container lints, and Doctrine schema validation.
+- Unit tests live in `tests/Unit`, functional tests (KernelTestCase/WebTestCase booting the test app) in `tests/Functional`.
+- Use a BDD-style naming convention for test methods (`it_does_something`) with the `@test` annotation or `test` prefix.
+- Use Prophecy for mocking (phpspec/prophecy-phpunit), not PHPUnit mock objects.
+- Form type tests extend `Symfony\Component\Form\Test\TypeTestCase`.
+
+## UI verification with Playwright MCP
+
+All UI changes MUST be verified with the Playwright MCP tools (configured in `.mcp.json`): run the test application, then use browser navigation and screenshots to confirm the change renders and behaves correctly — product page gift card form (amount, message, design picker, live preview), cart, checkout in both redemption modes, and the admin panel (gift cards, designs, balance dashboard).
 
 ## Architecture
 
-Namespace `Setono\SyliusGiftCardPlugin\` maps to `src/`; tests are `Setono\SyliusGiftCardPlugin\Tests\` in `tests/`. Bundle class is `src/SetonoSyliusGiftCardPlugin.php`; services are XML files under `src/Resources/config/services/` (one per area: applicator, factory, order_processor, ...) imported by `services.xml`. Resource/grid/route/serializer/API configs also live under `src/Resources/config/`. The bundle must be registered before SyliusGridBundle in host apps (parameter resolution order).
+Namespace `Setono\SyliusGiftCardPlugin\` maps to `src/`; tests are `Setono\SyliusGiftCardPlugin\Tests\` in `tests/`. Bundle class `src/SetonoSyliusGiftCardPlugin.php`; services are XML files under `src/Resources/config/services/` imported by `services.xml`. The DI extension prepends configuration for other bundles (winzou state machine, sylius_ui, sylius_grid, liip_imagine, sylius_mailer) from YAML files in `src/Resources/config/prepend/` — host apps do not import plugin config manually. Register the bundle before SyliusGridBundle.
 
-### Domain model
+Only doctrine/orm is supported. Resources: `gift_card`, `gift_card_design` (translatable, images with front|back types), `gift_card_transaction` (append-only balance ledger, written only by the balance operator).
 
-`GiftCard` holds a code, `amount`/`initialAmount` (integers, minor units per Sylius money convention), currency, channel, optional customer/expiry, and an enabled toggle. When bought in the shop it is linked 1:1 to an `OrderItemUnit`. `GiftCardConfiguration` (+ `GiftCardChannelConfiguration` join entity) defines per-channel/locale settings: PDF template, default validity period, images.
+### Domain rules
 
-Host applications integrate by applying the plugin's traits/interfaces to their entities — `ProductTrait` (adds `isGiftCard` and `giftCardAmountConfigurable` flags), `OrderTrait` (applied gift cards collection), `OrderItemTrait`, `OrderItemUnitTrait` (gift card relation), and repository traits in `src/Doctrine/ORM/`. The README documents the exact setup; `tests/Application/` shows a working example.
-
-### Two distinct gift card flows
-
-**Buying a gift card** (product flagged as gift card): the gift card entity is created at add-to-cart time via `GiftCardFactory::createFromOrderItemUnitAndCart()` — called from `Form/Extension/AddToCartTypeExtension` (shop form flow, POST_SUBMIT listener) and `Api/CommandHandler/AddItemToCartHandler` (API flow). The card starts disabled; winzou state machine callbacks (`src/Resources/config/state_machine/`) drive its lifecycle through `Operator/OrderGiftCardOperator`: checkout complete → `associateToCustomer`, payment paid → `enable` + `send` (email with PDF), order cancel → `disable`. "Configurable" gift card products let the customer choose the amount.
-
-**Spending a gift card**: `Applicator/GiftCardApplicator` validates (enabled, not expired, channel matches) and attaches the card to the order, then reprocesses it. `OrderProcessor/OrderGiftCardProcessor` (a Sylius order processor) converts each applied card into a negative order adjustment (`AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT`, origin code = gift card code) capped at the eligible order total. Actual balance mutation happens via state machine callbacks on `Modifier/OrderGiftCardAmountModifier`: decrement on order create, increment back on cancel. Both flows can coexist on one order.
-
-### API
-
-API Platform resources are declared in `src/Resources/config/api_resources/` with messenger commands/handlers in `src/Api/Command` and `src/Api/CommandHandler`. The plugin replaces the input of Sylius' shop `add item to cart` operation with its own `AddItemToCart` command (carrying gift card info); host apps must copy/adjust `Order.xml` as described in the README.
-
-### PDF rendering
-
-Gift cards render to PDF via knp-snappy/wkhtmltopdf (`Renderer/PdfRenderer`), with template content and rendering options coming from the gift card's configuration (`Provider/`). Admin supports live preview of example PDFs.
-
-### Test layout
-
-- `tests/Unit/` — PHPUnit (includes DI/config tests using matthiasnoback's symfony-config-test / dependency-injection-test)
-- `spec/` — phpspec, mirrors `src/` structure
-- `features/` + `tests/Behat/` — Behat contexts/pages built on the Sylius Behat pack
+- `GiftCard.amount`/`initialAmount` are integers in minor units (Sylius money convention). `initialAmount` is set explicitly — no implicit seeding.
+- A disabled, "pending" GiftCard is created at add-to-cart (one per OrderItemUnit) carrying amount/message/design/deliveryType; a reconciliation pass at checkout complete creates cards for quantity-bumped units, removes stale ones, and re-snapshots final amounts from unit totals. Cards are enabled on payment and emailed (all delivery types); disabled on order cancel.
+- `deliveryType` (virtual|physical) is derived from `variant->isShippingRequired()` — never from product structure assumptions.
+- Balance mutations go through the balance operator exclusively, which writes `GiftCardTransaction` ledger rows (idempotency via nullable-unique `idempotencyKey`). Nothing below controllers flushes.
+- Redemption is strategy-based: `adjustment` mode creates negative `order_gift_card` adjustments; `payment` mode creates one Payment per card (offline gateway payment method, lazily created). Balance is committed at order placement, restored on cancel/refund.
+- Gift cards cannot pay for gift-card line items (EligibleTotalCalculator default).

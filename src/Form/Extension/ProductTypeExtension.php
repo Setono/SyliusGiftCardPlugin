@@ -17,10 +17,6 @@ final class ProductTypeExtension extends AbstractTypeExtension
             'required' => false,
             'label' => 'setono_sylius_gift_card.form.product.gift_card',
         ]);
-        $builder->add('giftCardAmountConfigurable', CheckboxType::class, [
-            'required' => false,
-            'label' => 'setono_sylius_gift_card.form.product.gift_card_amount_configurable',
-        ]);
     }
 
     public static function getExtendedTypes(): iterable

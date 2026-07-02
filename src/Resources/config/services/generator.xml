@@ -8,15 +8,12 @@
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument>%setono_sylius_gift_card.code_length%</argument>
         </service>
+        <service id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface"
+                 alias="setono_sylius_gift_card.generator.gift_card_code"/>
 
-        <service id="setono_sylius_gift_card.email_manager.gift_card_order"
-                 class="Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManager">
-            <argument type="service" id="sylius.email_sender"/>
-            <argument type="service" id="translator"/>
-            <argument type="service" id="setono_sylius_gift_card.resolver.customer_channel"/>
-            <argument type="service" id="setono_sylius_gift_card.resolver.locale"/>
-            <argument type="service" id="setono_sylius_gift_card.renderer.pdf"/>
-            <argument>%kernel.cache_dir%</argument>
-        </service>
+        <service id="setono_sylius_gift_card.normalizer.gift_card_code"
+                 class="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer"/>
+        <service id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"
+                 alias="setono_sylius_gift_card.normalizer.gift_card_code"/>
     </services>
 </container>

@@ -10,8 +10,11 @@
         </include>
     </coverage>
     <testsuites>
-        <testsuite name="SetonoSyliusGiftCardPlugin Test Suite">
+        <testsuite name="unit">
             <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="functional">
+            <directory>tests/Functional</directory>
         </testsuite>
     </testsuites>
     <php>

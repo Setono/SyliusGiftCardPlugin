@@ -9,28 +9,13 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
-        <service id="setono_sylius_gift_card.event_subscriber.default_gift_card_configuration"
-                 class="Setono\SyliusGiftCardPlugin\EventSubscriber\DefaultGiftCardConfigurationSubscriber">
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration"/>
-
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="setono_sylius_gift_card.event_subscriber.send_email_with_gift_card_to_customer"
-                 class="Setono\SyliusGiftCardPlugin\EventSubscriber\SendEmailWithGiftCardToCustomerSubscriber">
-            <argument type="service" id="setono_sylius_gift_card.email_manager.gift_card_order"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="setono_sylius_gift_card.listener.gift_card_configuration_images_upload"
+        <service id="setono_sylius_gift_card.listener.gift_card_design_images_upload"
                  class="Sylius\Bundle\CoreBundle\EventListener\ImagesUploadListener"
                  parent="sylius.listener.images_upload">
             <argument type="service" id="sylius.image_uploader"/>
 
-            <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_configuration.pre_create"
-                 method="uploadImages"/>
-            <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_configuration.pre_update"
-                 method="uploadImages"/>
+            <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_design.pre_create" method="uploadImages"/>
+            <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_design.pre_update" method="uploadImages"/>
         </service>
     </services>
 </container>

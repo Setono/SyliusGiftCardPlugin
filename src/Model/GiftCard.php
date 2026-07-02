@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Model;
 
-use DateTime;
-use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use RuntimeException;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -22,42 +19,55 @@ class GiftCard implements GiftCardInterface
 
     protected ?int $id = null;
 
-    protected ?OrderItemUnitInterface $orderItemUnit = null;
-
-    protected ?CustomerInterface $customer = null;
-
-    /**
-     * @var Collection|OrderInterface[]
-     * @psalm-var Collection<array-key, OrderInterface>
-     */
-    protected Collection $appliedOrders;
-
     protected ?string $code = null;
 
-    protected ?int $initialAmount = null;
-
     protected int $amount = 0;
+
+    protected int $initialAmount = 0;
 
     protected ?string $currencyCode = null;
 
     protected ?ChannelInterface $channel = null;
 
+    protected GiftCardDeliveryType $deliveryType = GiftCardDeliveryType::Virtual;
+
+    protected ?GiftCardDesignInterface $design = null;
+
+    protected ?OrderItemUnitInterface $orderItemUnit = null;
+
+    protected ?CustomerInterface $customer = null;
+
     protected ?string $customMessage = null;
 
-    protected ?string $origin = null;
+    protected ?\DateTimeInterface $expiresAt = null;
 
-    protected ?DateTimeInterface $expiresAt = null;
+    protected int $version = 1;
 
+    /** @var Collection<array-key, OrderInterface> */
+    protected Collection $appliedOrders;
+
+    /** @var Collection<array-key, GiftCardTransactionInterface> */
+    protected Collection $transactions;
+
+    /**
+     * Not persisted. Used by the admin create form to decide whether to notify the customer by email
+     */
     protected bool $sendNotificationEmail = true;
 
     public function __construct()
     {
         $this->appliedOrders = new ArrayCollection();
+        $this->transactions = new ArrayCollection();
     }
 
     public function __toString(): string
     {
         return (string) $this->code;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function getCode(): ?string
@@ -70,14 +80,23 @@ class GiftCard implements GiftCardInterface
         $this->code = $code;
     }
 
-    public function getId(): ?int
+    public function isUsable(): bool
     {
-        return $this->id;
+        return $this->enabled && !$this->isExpired() && $this->amount > 0;
+    }
+
+    public function isPending(): bool
+    {
+        return !$this->enabled && $this->transactions->isEmpty() && null !== $this->orderItemUnit;
     }
 
     public function isDeletable(): bool
     {
-        return null === $this->orderItemUnit;
+        if ($this->isPending()) {
+            return true;
+        }
+
+        return null === $this->orderItemUnit && $this->amount === $this->initialAmount;
     }
 
     public function getOrderItemUnit(): ?OrderItemUnitInterface
@@ -85,7 +104,7 @@ class GiftCard implements GiftCardInterface
         return $this->orderItemUnit;
     }
 
-    public function setOrderItemUnit(OrderItemUnitInterface $orderItemUnit): void
+    public function setOrderItemUnit(?OrderItemUnitInterface $orderItemUnit): void
     {
         if ($this->orderItemUnit === $orderItemUnit) {
             return;
@@ -93,7 +112,7 @@ class GiftCard implements GiftCardInterface
 
         $this->orderItemUnit = $orderItemUnit;
 
-        $orderItemUnit->setGiftCard($this);
+        $orderItemUnit?->setGiftCard($this);
     }
 
     public function getOrder(): ?OrderInterface
@@ -105,9 +124,6 @@ class GiftCard implements GiftCardInterface
 
         /** @var OrderInterface|null $order */
         $order = $orderItemUnit->getOrderItem()->getOrder();
-        if (null === $order) {
-            return null;
-        }
 
         return $order;
     }
@@ -122,20 +138,6 @@ class GiftCard implements GiftCardInterface
         $this->customer = $customer;
     }
 
-    public function getInitialAmount(): ?int
-    {
-        return $this->initialAmount;
-    }
-
-    public function setInitialAmount(int $initialAmount): void
-    {
-        if (null !== $this->initialAmount) {
-            throw new RuntimeException('You cannot change the initial amount of a gift card');
-        }
-
-        $this->initialAmount = $initialAmount;
-    }
-
     public function getAmount(): int
     {
         return $this->amount;
@@ -143,51 +145,17 @@ class GiftCard implements GiftCardInterface
 
     public function setAmount(int $amount): void
     {
-        if (null === $this->initialAmount) {
-            $this->setInitialAmount($amount);
-        }
-
         $this->amount = $amount;
     }
 
-    public function getAppliedOrders(): Collection
+    public function getInitialAmount(): int
     {
-        return $this->appliedOrders;
+        return $this->initialAmount;
     }
 
-    public function hasAppliedOrders(): bool
+    public function setInitialAmount(int $initialAmount): void
     {
-        return !$this->getAppliedOrders()->isEmpty();
-    }
-
-    public function hasAppliedCompletedOrders(): bool
-    {
-        foreach ($this->appliedOrders as $appliedOrder) {
-            if ($appliedOrder->isCheckoutCompleted()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public function addAppliedOrder(OrderInterface $order): void
-    {
-        if (!$this->hasAppliedOrder($order)) {
-            $this->appliedOrders->add($order);
-        }
-    }
-
-    public function removeAppliedOrder(OrderInterface $order): void
-    {
-        if ($this->hasAppliedOrder($order)) {
-            $this->appliedOrders->removeElement($order);
-        }
-    }
-
-    public function hasAppliedOrder(OrderInterface $order): bool
-    {
-        return $this->appliedOrders->contains($order);
+        $this->initialAmount = $initialAmount;
     }
 
     public function getCurrencyCode(): ?string
@@ -210,56 +178,66 @@ class GiftCard implements GiftCardInterface
         $this->channel = $channel;
     }
 
-    /**
-     * API specific methods. See src/Resources/config/serializer/Model.GiftCard.yml
-     */
-    public function getCustomerIdentification(): ?array
+    public function getDeliveryType(): GiftCardDeliveryType
     {
-        $customer = $this->getCustomer();
-        if (null === $customer) {
-            return null;
-        }
-
-        return [
-            'id' => $customer->getId(),
-            'email' => $customer->getEmail(),
-        ];
+        return $this->deliveryType;
     }
 
-    public function getOrderIdentification(): ?array
+    public function setDeliveryType(GiftCardDeliveryType $deliveryType): void
     {
-        $order = $this->getOrder();
-        if (null === $order) {
-            return null;
-        }
-
-        /** @var mixed $orderId */
-        $orderId = $order->getId();
-        $orderNumber = $order->getNumber();
-
-        if (null === $orderId || null === $orderNumber) {
-            return null;
-        }
-
-        return [
-            'id' => $orderId,
-            'number' => $orderNumber,
-        ];
+        $this->deliveryType = $deliveryType;
     }
 
-    public function getChannelCode(): ?string
+    public function getDesign(): ?GiftCardDesignInterface
     {
-        $channel = $this->getChannel();
-        if (null === $channel) {
-            return null;
-        }
-
-        return $channel->getCode();
+        return $this->design;
     }
 
-    public function hasOrderOrCustomer(): bool
+    public function setDesign(?GiftCardDesignInterface $design): void
     {
-        return null !== $this->getCustomer() || null !== $this->getOrder();
+        $this->design = $design;
+    }
+
+    public function getAppliedOrders(): Collection
+    {
+        return $this->appliedOrders;
+    }
+
+    public function hasAppliedOrders(): bool
+    {
+        return !$this->appliedOrders->isEmpty();
+    }
+
+    public function addAppliedOrder(OrderInterface $order): void
+    {
+        if (!$this->hasAppliedOrder($order)) {
+            $this->appliedOrders->add($order);
+        }
+    }
+
+    public function removeAppliedOrder(OrderInterface $order): void
+    {
+        if ($this->hasAppliedOrder($order)) {
+            $this->appliedOrders->removeElement($order);
+        }
+    }
+
+    public function hasAppliedOrder(OrderInterface $order): bool
+    {
+        return $this->appliedOrders->contains($order);
+    }
+
+    public function getTransactions(): Collection
+    {
+        return $this->transactions;
+    }
+
+    public function addTransaction(GiftCardTransactionInterface $transaction): void
+    {
+        if (!$this->transactions->contains($transaction)) {
+            $this->transactions->add($transaction);
+            $transaction->setGiftCard($this);
+        }
     }
 
     public function getCustomMessage(): ?string
@@ -272,38 +250,36 @@ class GiftCard implements GiftCardInterface
         $this->customMessage = $customMessage;
     }
 
-    public function setOrigin(?string $origin): void
-    {
-        $this->origin = $origin;
-    }
-
-    public function getOrigin(): ?string
-    {
-        return $this->origin;
-    }
-
-    public function getExpiresAt(): ?DateTimeInterface
+    public function getExpiresAt(): ?\DateTimeInterface
     {
         return $this->expiresAt;
     }
 
-    public function setExpiresAt(?DateTimeInterface $expiresAt): void
+    public function setExpiresAt(?\DateTimeInterface $expiresAt): void
     {
         $this->expiresAt = $expiresAt;
     }
 
-    public function isExpired(DateTimeInterface $date = null): bool
+    public function isExpired(?\DateTimeInterface $date = null): bool
     {
-        if (null === $date) {
-            $date = new DateTime();
-        }
-
-        $giftCardValidUntil = $this->getExpiresAt();
-        if (null === $giftCardValidUntil) {
+        $expiresAt = $this->expiresAt;
+        if (null === $expiresAt) {
             return false;
         }
 
-        return $date > $giftCardValidUntil;
+        $date ??= new \DateTimeImmutable();
+
+        return $date > $expiresAt;
+    }
+
+    public function getVersion(): int
+    {
+        return $this->version;
+    }
+
+    public function setVersion(int $version): void
+    {
+        $this->version = $version;
     }
 
     public function getSendNotificationEmail(): bool

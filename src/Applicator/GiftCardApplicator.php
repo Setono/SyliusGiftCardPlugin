@@ -14,16 +14,8 @@ use Sylius\Component\Order\Processor\OrderProcessorInterface;
 
 final class GiftCardApplicator implements GiftCardApplicatorInterface
 {
-    private GiftCardRepositoryInterface $giftCardRepository;
-
-    private OrderProcessorInterface $orderProcessor;
-
-    public function __construct(
-        GiftCardRepositoryInterface $giftCardRepository,
-        OrderProcessorInterface $orderProcessor,
-    ) {
-        $this->giftCardRepository = $giftCardRepository;
-        $this->orderProcessor = $orderProcessor;
+    public function __construct(private readonly GiftCardRepositoryInterface $giftCardRepository, private readonly OrderProcessorInterface $orderProcessor)
+    {
     }
 
     /**

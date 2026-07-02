@@ -11,11 +11,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class RedirectUrlResolver implements RedirectUrlResolverInterface
 {
-    private UrlGeneratorInterface $router;
-
-    public function __construct(UrlGeneratorInterface $router)
+    public function __construct(private readonly UrlGeneratorInterface $router)
     {
-        $this->router = $router;
     }
 
     public function getUrlToRedirectTo(Request $request, string $defaultRoute): string

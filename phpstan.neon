@@ -1,0 +1,33 @@
+parameters:
+    level: max
+
+    paths:
+        - src
+        - tests
+
+    excludePaths:
+        - tests/Application/*
+
+    bootstrapFiles:
+        - vendor/autoload.php
+
+    symfony:
+        consoleApplicationLoader: tests/PHPStan/console_application.php
+
+    doctrine:
+        repositoryClass: Doctrine\ORM\EntityRepository
+        objectManagerLoader: tests/PHPStan/object_manager.php
+        # Sylius resources are constructed empty and hydrated afterwards, so nullable PHP properties
+        # backing non-nullable columns are idiomatic, not bugs
+        allowNullablePropertyForRequiredField: true
+
+    reportUnmatchedIgnoredErrors: false
+    treatPhpDocTypesAsCertain: false
+
+    ignoreErrors:
+        # Plugin resources map associations to Sylius interfaces which the host application resolves to
+        # concrete classes via Doctrine's ResolveTargetEntityListener. phpstan-doctrine sees the resolved
+        # concrete class and reports a mismatch against the interface-typed property, which is expected.
+        -
+            message: '#type mapping mismatch: property can contain .* but database expects#'
+            path: src/Model/*

@@ -2,6 +2,7 @@ name: "build"
 on:
     push:
         branches:
+            - "1.x"
             - "0.*.x"
         paths-ignore:
             - "**/*.md"
@@ -17,7 +18,7 @@ env:
 
 jobs:
     coding-standards:
-        name: "Coding Standards (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }})"
+        name: "Coding Standards (PHP ${{ matrix.php-version }})"
 
         runs-on: "ubuntu-latest"
 
@@ -25,9 +26,6 @@ jobs:
             matrix:
                 php-version:
                     - "8.1" # Always use the lowest version of PHP since a higher version would create actual syntax errors in lower versions
-
-                dependencies:
-                    - "highest"
 
         steps:
             -   name: "Checkout"
@@ -43,7 +41,7 @@ jobs:
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v3"
                 with:
-                    dependency-versions: "${{ matrix.dependencies }}"
+                    dependency-versions: "highest"
 
             -   name: "Validate composer"
                 run: "composer validate --strict"
@@ -54,6 +52,9 @@ jobs:
             -   name: "Check style"
                 run: "composer check-style"
 
+            -   name: "Run Rector"
+                run: "vendor/bin/rector --dry-run"
+
             -   name: "Lint yaml files"
                 run: "(cd tests/Application && bin/console lint:yaml ../../src/Resources)"
 
@@ -61,7 +62,7 @@ jobs:
                 run: "(cd tests/Application && bin/console lint:twig ../../src/Resources)"
 
     dependency-analysis:
-        name: "Dependency Analysis (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }} | Symfony: ${{ matrix.symfony }})"
+        name: "Dependency Analysis (PHP ${{ matrix.php-version }} | Deps: ${{ matrix.dependencies }})"
 
         runs-on: "ubuntu-latest"
 
@@ -69,62 +70,11 @@ jobs:
             matrix:
                 php-version:
                     - "8.1"
-                    - "8.2"
+                    - "8.3"
 
                 dependencies:
                     - "lowest"
                     - "highest"
-
-                symfony:
-                    - "~5.4.0"
-                    - "~6.4.0"
-
-        steps:
-            -   name: "Checkout"
-                uses: "actions/checkout@v4"
-
-            -   name: "Setup PHP, with composer and extensions"
-                uses: "shivammathur/setup-php@v2"
-                with:
-                    coverage: "none"
-                    extensions: "${{ env.PHP_EXTENSIONS }}"
-                    php-version: "${{ matrix.php-version }}"
-                    tools: "composer-require-checker, composer-unused, flex"
-
-            -   name: "Remove require-dev section in composer.json"
-                run: "composer config --unset require-dev"
-            
-            -   name: "Install composer dependencies"
-                uses: "ramsey/composer-install@v3"
-                env:
-                    SYMFONY_REQUIRE: "${{ matrix.symfony }}"
-                with:
-                    dependency-versions: "${{ matrix.dependencies }}"
-            
-            -   name: "Run maglnet/composer-require-checker"
-                run: "composer-require-checker check --config-file=$(pwd)/composer-require-checker.json"
-
-            -   name: "Run composer-unused/composer-unused"
-                run: "composer-unused"
-
-    static-code-analysis:
-        name: "Static Code Analysis (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }} | Symfony: ${{ matrix.symfony }})"
-
-        runs-on: "ubuntu-latest"
-
-        strategy:
-            matrix:
-                php-version:
-                    - "8.1"
-                    - "8.2"
-
-                dependencies:
-                    - "lowest"
-                    - "highest"
-
-                symfony:
-                    - "~5.4.0"
-                    - "~6.4.0"
 
         steps:
             -   name: "Checkout"
@@ -138,21 +88,64 @@ jobs:
                     php-version: "${{ matrix.php-version }}"
                     tools: "flex"
 
-            -   name: "Remove sylius/sylius from composer.json"
-                run: "composer remove --dev --no-update --no-plugins --no-scripts sylius/sylius"
-            
+            -   name: "Remove require-dev section in composer.json"
+                run: "composer config --unset require-dev"
+
+            -   name: "Add composer-dependency-analyser"
+                run: "composer require --no-update --no-plugins --no-scripts --dev shipmonk/composer-dependency-analyser"
+
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v3"
-                env:
-                    SYMFONY_REQUIRE: "${{ matrix.symfony }}"
+                with:
+                    dependency-versions: "${{ matrix.dependencies }}"
+
+            -   name: "Run composer-dependency-analyser"
+                run: "vendor/bin/composer-dependency-analyser"
+
+    static-code-analysis:
+        name: "Static Code Analysis (PHP ${{ matrix.php-version }} | Deps: ${{ matrix.dependencies }} | Sylius: ${{ matrix.sylius }})"
+
+        runs-on: "ubuntu-latest"
+
+        strategy:
+            matrix:
+                php-version:
+                    - "8.1"
+                    - "8.2"
+                    - "8.3"
+
+                dependencies:
+                    - "highest"
+
+                sylius:
+                    - "~1.13.0"
+                    - "~1.14.0"
+
+        steps:
+            -   name: "Checkout"
+                uses: "actions/checkout@v4"
+
+            -   name: "Setup PHP, with composer and extensions"
+                uses: "shivammathur/setup-php@v2"
+                with:
+                    coverage: "none"
+                    extensions: "${{ env.PHP_EXTENSIONS }}"
+                    php-version: "${{ matrix.php-version }}"
+                    tools: "flex"
+
+            -   name: "Require matching Sylius version"
+                run: "composer require --dev --no-update sylius/sylius:\"${{ matrix.sylius }}\""
+
+            -   name: "Install composer dependencies"
+                uses: "ramsey/composer-install@v3"
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
 
             -   name: "Static analysis"
-                run: "vendor/bin/psalm --php-version=${{ matrix.php-version }}"
+                run: "composer analyse"
 
     unit-tests:
-        name: "Unit tests (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }} | Symfony: ${{ matrix.symfony }})"
+        name: "Unit tests (PHP ${{ matrix.php-version }} | Deps: ${{ matrix.dependencies }} | Sylius: ${{ matrix.sylius }})"
 
         runs-on: "ubuntu-latest"
 
@@ -161,13 +154,14 @@ jobs:
                 php-version:
                     - "8.1"
                     - "8.2"
+                    - "8.3"
 
                 dependencies:
                     - "highest"
 
-                symfony:
-                    - "~5.4.0"
-                    - "~6.4.0"
+                sylius:
+                    - "~1.13.0"
+                    - "~1.14.0"
 
         steps:
             -   name: "Checkout"
@@ -181,21 +175,19 @@ jobs:
                     php-version: "${{ matrix.php-version }}"
                     tools: "flex"
 
-            -   name: "Remove sylius/sylius from composer.json"
-                run: "composer remove --dev --no-update --no-plugins --no-scripts sylius/sylius"
-            
+            -   name: "Require matching Sylius version"
+                run: "composer require --dev --no-update sylius/sylius:\"${{ matrix.sylius }}\""
+
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v3"
-                env:
-                    SYMFONY_REQUIRE: "${{ matrix.symfony }}"
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
 
-            -   name: "Run phpunit"
-                run: "composer phpunit"
+            -   name: "Run unit tests"
+                run: "vendor/bin/phpunit --testsuite unit"
 
-    integration-tests:
-        name: "Integration tests (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }} | Symfony: ${{ matrix.symfony }})"
+    functional-tests:
+        name: "Functional tests (PHP ${{ matrix.php-version }} | Sylius: ${{ matrix.sylius }})"
 
         runs-on: "ubuntu-latest"
 
@@ -203,13 +195,11 @@ jobs:
             matrix:
                 php-version:
                     - "8.1"
-                    - "8.2"
+                    - "8.3"
 
-                dependencies:
-                    - "highest"
-
-                symfony:
-                    - "~6.4"
+                sylius:
+                    - "~1.13.0"
+                    - "~1.14.0"
 
         steps:
             -   name: "Start MySQL"
@@ -224,25 +214,18 @@ jobs:
                     coverage: "none"
                     extensions: "${{ env.PHP_EXTENSIONS }}"
                     php-version: "${{ matrix.php-version }}"
-                    tools: "flex,symfony"
+                    tools: "flex"
 
-            -   name: "Setup node"
-                uses: "actions/setup-node@v4"
-                with:
-                    node-version: "18"
+            -   name: "Require matching Sylius version"
+                run: "composer require --dev --no-update sylius/sylius:\"${{ matrix.sylius }}\""
 
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v3"
-                env:
-                    SYMFONY_REQUIRE: "${{ matrix.symfony }}"
                 with:
-                    dependency-versions: "${{ matrix.dependencies }}"
-
-            -   name: "Install wkhtmltopdf"
-                run: "sudo apt-get install wkhtmltopdf"
+                    dependency-versions: "highest"
 
             -   name: "Lint container"
-                run: '(cd tests/Application && bin/console lint:container)'
+                run: "(cd tests/Application && bin/console lint:container)"
 
             -   name: "Create database"
                 run: "(cd tests/Application && bin/console doctrine:database:create)"
@@ -253,77 +236,23 @@ jobs:
             -   name: "Validate Doctrine mapping"
                 run: "(cd tests/Application && bin/console doctrine:schema:validate)"
 
-            -   name: "Get Yarn cache directory"
-                id: "yarn-cache"
-                run: "echo \"::set-output name=dir::$(yarn cache dir)\""
-
-            -   name: "Cache Yarn"
-                uses: "actions/cache@v2"
-                with:
-                    path: "${{ steps.yarn-cache.outputs.dir }}"
-                    key: "yarn-${{ hashFiles('**/package.json **/yarn.lock') }}"
-                    restore-keys: "yarn-"
-
-            -   name: "Install JS dependencies"
-                run: "(cd tests/Application && yarn install)"
-
-            -   name: "Install assets"
-                run: "(cd tests/Application && bin/console assets:install public -vvv)"
-
-            -   name: "Build assets"
-                run: "(cd tests/Application && yarn build)"
-
-            -   name: "Output PHP version for Symfony CLI"
-                run: "php -v | head -n 1 | awk '{ print $2 }' > .php-version"
-
-            -   name: "Install certificates"
-                run: "symfony server:ca:install"
-
-            -   name: "Run Chrome Headless"
-                run: "google-chrome-stable --enable-automation --disable-background-networking --no-default-browser-check --no-first-run --disable-popup-blocking --disable-default-apps --allow-insecure-localhost --disable-translate --disable-extensions --no-sandbox --enable-features=Metal --headless --remote-debugging-port=9222 --window-size=2880,1800 --proxy-server='direct://' --proxy-bypass-list='*' http://127.0.0.1 > /dev/null 2>&1 &"
-
-            -   name: "Wait for Chrome to start"
-                run: |
-                    until curl -s http://127.0.0.1:9222/json/version | grep "Browser" > /dev/null 2>&1
-                    do
-                        sleep 1
-                    done
-
-            -   name: "Run webserver"
-                run: "(cd tests/Application && symfony server:start --port=8080 --dir=public --daemon)"
-
-            -   name: "Wait for webserver to start"
-                run: |
-                    until symfony server:list | grep /public > /dev/null 2>&1
-                    do
-                        sleep 1
-                    done
-
-            -   name: "Run behat"
-                run: "vendor/bin/behat --colors --strict -vvv --no-interaction || vendor/bin/behat --colors --strict -vvv --no-interaction --rerun"
-
-            -   name: "Upload Behat logs"
-                uses: "actions/upload-artifact@v4"
-                if: "failure()"
-                with:
-                    name: "Behat logs"
-                    path: "etc/build/"
-                    if-no-files-found: "ignore"
+            -   name: "Run functional tests"
+                run: "vendor/bin/phpunit --testsuite functional"
 
     code-coverage:
-        name: "Code Coverage (PHP ${{ matrix.php-version }} | Dependency versions: ${{ matrix.dependencies }})"
+        name: "Code Coverage (PHP ${{ matrix.php-version }})"
 
         runs-on: "ubuntu-latest"
 
         strategy:
             matrix:
                 php-version:
-                    - "8.2"
-
-                dependencies:
-                    - "highest"
+                    - "8.3"
 
         steps:
+            -   name: "Start MySQL"
+                run: "sudo /etc/init.d/mysql start"
+
             -   name: "Checkout"
                 uses: "actions/checkout@v4"
 
@@ -337,12 +266,20 @@ jobs:
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v3"
                 with:
-                    dependency-versions: "${{ matrix.dependencies }}"
+                    dependency-versions: "highest"
+
+            -   name: "Create database"
+                run: "(cd tests/Application && bin/console doctrine:database:create)"
+
+            -   name: "Create database schema"
+                run: "(cd tests/Application && bin/console doctrine:schema:create)"
 
             -   name: "Collect code coverage with pcov and phpunit/phpunit"
                 run: "vendor/bin/phpunit --coverage-clover=.build/logs/clover.xml"
 
             -   name: "Send code coverage report to Codecov.io"
+                uses: "codecov/codecov-action@v4"
+                with:
+                    files: ".build/logs/clover.xml"
                 env:
                     CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"
-                run: "bash <(curl -s https://codecov.io/bash)"

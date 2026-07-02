@@ -11,18 +11,13 @@ use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 use Webmozart\Assert\Assert;
 
+/**
+ * @implements DataTransformerInterface<GiftCardInterface, string>
+ */
 final class GiftCardToCodeDataTransformer implements DataTransformerInterface
 {
-    private GiftCardRepositoryInterface $giftCardRepository;
-
-    private ChannelContextInterface $channelContext;
-
-    public function __construct(
-        GiftCardRepositoryInterface $giftCardRepository,
-        ChannelContextInterface $channelContext,
-    ) {
-        $this->giftCardRepository = $giftCardRepository;
-        $this->channelContext = $channelContext;
+    public function __construct(private readonly GiftCardRepositoryInterface $giftCardRepository, private readonly ChannelContextInterface $channelContext)
+    {
     }
 
     /**

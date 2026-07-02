@@ -1,0 +1,8 @@
+sylius_mailer:
+    emails:
+        setono_sylius_gift_card__gift_card:
+            subject: setono_sylius_gift_card.email.new_gift_card
+            template: "@SetonoSyliusGiftCardPlugin/Email/giftCard.html.twig"
+        setono_sylius_gift_card__gift_cards_from_order:
+            subject: setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order
+            template: "@SetonoSyliusGiftCardPlugin/Email/giftCardsFromOrder.html.twig"

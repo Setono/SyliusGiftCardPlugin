@@ -13,11 +13,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class CustomerAutocompleteChoiceType extends AbstractType
 {
-    private UrlGeneratorInterface $urlGenerator;
-
-    public function __construct(UrlGeneratorInterface $urlGenerator)
+    public function __construct(private readonly UrlGeneratorInterface $urlGenerator)
     {
-        $this->urlGenerator = $urlGenerator;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

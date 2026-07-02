@@ -24,29 +24,14 @@ final class AddGiftCardToOrderAction
 {
     use ORMManagerTrait;
 
-    private FormFactoryInterface $formFactory;
-
-    private CartContextInterface $cartContext;
-
-    private GiftCardApplicatorInterface $giftCardApplicator;
-
-    private RedirectUrlResolverInterface $redirectRouteResolver;
-
-    private Environment $twig;
-
     public function __construct(
-        FormFactoryInterface $formFactory,
-        CartContextInterface $cartContext,
-        GiftCardApplicatorInterface $giftCardApplicator,
-        RedirectUrlResolverInterface $redirectRouteResolver,
-        Environment $twig,
+        private FormFactoryInterface $formFactory,
+        private CartContextInterface $cartContext,
+        private GiftCardApplicatorInterface $giftCardApplicator,
+        private RedirectUrlResolverInterface $redirectRouteResolver,
+        private Environment $twig,
         ManagerRegistry $managerRegistry,
     ) {
-        $this->formFactory = $formFactory;
-        $this->cartContext = $cartContext;
-        $this->giftCardApplicator = $giftCardApplicator;
-        $this->redirectRouteResolver = $redirectRouteResolver;
-        $this->twig = $twig;
         $this->managerRegistry = $managerRegistry;
     }
 

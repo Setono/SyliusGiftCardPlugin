@@ -9,15 +9,11 @@ use Sylius\Component\Order\Model\OrderItemInterface;
 
 final class GiftCardInformationFactory implements GiftCardInformationFactoryInterface
 {
-    /** @var class-string<GiftCardInformationInterface> */
-    private string $className;
-
     /**
      * @param class-string<GiftCardInformationInterface> $className
      */
-    public function __construct(string $className)
+    public function __construct(private readonly string $className)
     {
-        $this->className = $className;
     }
 
     public function createNew(OrderItemInterface $orderItem): GiftCardInformationInterface

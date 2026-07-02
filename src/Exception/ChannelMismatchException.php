@@ -10,9 +10,9 @@ use Sylius\Component\Channel\Model\ChannelInterface;
 
 final class ChannelMismatchException extends InvalidArgumentException implements ExceptionInterface
 {
-    private ChannelInterface $actualChannel;
+    private readonly ChannelInterface $actualChannel;
 
-    private ChannelInterface $expectedChannel;
+    private readonly ChannelInterface $expectedChannel;
 
     public function __construct(ChannelInterface $actualChannel, ChannelInterface $expectedChannel)
     {

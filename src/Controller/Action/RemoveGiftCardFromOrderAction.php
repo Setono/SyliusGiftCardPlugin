@@ -21,21 +21,12 @@ final class RemoveGiftCardFromOrderAction
 {
     use ORMManagerTrait;
 
-    private CartContextInterface $cartContext;
-
-    private GiftCardApplicatorInterface $giftCardApplicator;
-
-    private RedirectUrlResolverInterface $redirectRouteResolver;
-
     public function __construct(
-        CartContextInterface $cartContext,
-        GiftCardApplicatorInterface $giftCardApplicator,
-        RedirectUrlResolverInterface $redirectRouteResolver,
+        private CartContextInterface $cartContext,
+        private GiftCardApplicatorInterface $giftCardApplicator,
+        private RedirectUrlResolverInterface $redirectRouteResolver,
         ManagerRegistry $managerRegistry,
     ) {
-        $this->cartContext = $cartContext;
-        $this->giftCardApplicator = $giftCardApplicator;
-        $this->redirectRouteResolver = $redirectRouteResolver;
         $this->managerRegistry = $managerRegistry;
     }
 

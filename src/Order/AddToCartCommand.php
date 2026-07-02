@@ -9,20 +9,8 @@ use Sylius\Component\Core\Model\OrderItemInterface;
 
 class AddToCartCommand implements AddToCartCommandInterface
 {
-    protected OrderInterface $cart;
-
-    protected OrderItemInterface $cartItem;
-
-    protected GiftCardInformationInterface $giftCardInformation;
-
-    public function __construct(
-        OrderInterface $cart,
-        OrderItemInterface $cartItem,
-        GiftCardInformationInterface $giftCardInformation,
-    ) {
-        $this->cart = $cart;
-        $this->cartItem = $cartItem;
-        $this->giftCardInformation = $giftCardInformation;
+    public function __construct(protected OrderInterface $cart, protected OrderItemInterface $cartItem, protected GiftCardInformationInterface $giftCardInformation)
+    {
     }
 
     public function getCart(): OrderInterface

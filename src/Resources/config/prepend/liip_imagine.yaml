@@ -1,0 +1,8 @@
+liip_imagine:
+    filter_sets:
+        setono_sylius_gift_card_design_thumbnail:
+            filters:
+                thumbnail: { size: [240, 152], mode: inset }
+        setono_sylius_gift_card_design_preview:
+            filters:
+                thumbnail: { size: [1200, 1200], mode: inset }

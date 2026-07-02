@@ -23,23 +23,17 @@ use Symfony\Component\Form\FormEvents;
 
 final class GiftCardType extends AbstractResourceType
 {
-    private RepositoryInterface $currencyRepository;
-
-    private GiftCardCodeGeneratorInterface $giftCardCodeGenerator;
-
     /**
+     * @param RepositoryInterface<CurrencyInterface> $currencyRepository
      * @param list<string> $validationGroups
      */
     public function __construct(
         string $dataClass,
-        RepositoryInterface $currencyRepository,
-        GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
+        private readonly RepositoryInterface $currencyRepository,
+        private readonly GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         array $validationGroups = [],
     ) {
         parent::__construct($dataClass, $validationGroups);
-
-        $this->currencyRepository = $currencyRepository;
-        $this->giftCardCodeGenerator = $giftCardCodeGenerator;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void

@@ -9,12 +9,8 @@ use function sprintf;
 
 final class GiftCardNotFoundException extends InvalidArgumentException implements ExceptionInterface
 {
-    private string $giftCard;
-
-    public function __construct(string $giftCard)
+    public function __construct(private readonly string $giftCard)
     {
-        $this->giftCard = $giftCard;
-
         parent::__construct(sprintf('The gift card with code "%s" was not found', $this->giftCard));
     }
 

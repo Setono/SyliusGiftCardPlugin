@@ -1,7 +1,0 @@
-{% if form.giftCardInformation is defined %}
-    {% set giftCardInformationForm = form.giftCardInformation %}
-    {% if giftCardInformationForm.amount is defined %}
-        {{ form_row(giftCardInformationForm.amount, sylius_test_form_attribute('gift-card-amount-input')) }}
-    {% endif %}
-    {{ form_row(giftCardInformationForm.customMessage, sylius_test_form_attribute('gift-card-custom-message-input')) }}
-{% endif %}

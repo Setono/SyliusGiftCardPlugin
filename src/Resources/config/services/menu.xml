@@ -5,16 +5,9 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-
         <service id="setono_sylius_gift_card.listener.admin.menu_builder"
                  class="Setono\SyliusGiftCardPlugin\Menu\AdminMenuListener">
             <tag name="kernel.event_listener" event="sylius.menu.admin.main" method="addAdminMenuItems"/>
         </service>
-
-        <service id="setono_sylius_gift_card.listener.shop.menu_builder"
-                 class="Setono\SyliusGiftCardPlugin\Menu\AccountMenuListener">
-            <tag name="kernel.event_listener" event="sylius.menu.shop.account" method="addAccountMenuItems"/>
-        </service>
-
     </services>
 </container>
