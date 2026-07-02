@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<constraint-mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://symfony.com/schema/dic/constraint-mapping"
+                    xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/services/constraint-mapping-1.0.xsd">
+
+    <class name="Setono\SyliusGiftCardPlugin\Model\GiftCardDesign">
+        <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\UniqueDesignImageTypes">
+            <option name="groups">setono_sylius_gift_card</option>
+        </constraint>
+    </class>
+</constraint-mapping>

@@ -3,30 +3,36 @@
 
 {{ form_errors(form) }}
 
-<div class="ui segment">
-    <h4 class="ui dividing header">{{ 'sylius.ui.details'|trans }}</h4>
+<div class="ui two column stackable grid">
+    <div class="column">
+        <div class="ui segment">
+            <h4 class="ui dividing header">{{ 'sylius.ui.details'|trans }}</h4>
 
-    <div class="two fields">
-        {{ form_row(form.code) }}
-        {{ form_row(form.position) }}
+            <div class="two fields">
+                {{ form_row(form.code) }}
+                {{ form_row(form.position) }}
+            </div>
+
+            {{ translationForm(form.translations) }}
+            {{ form_row(form.channels) }}
+            {{ form_row(form.enabled) }}
+        </div>
     </div>
 
-    {{ translationForm(form.translations) }}
-    {{ form_row(form.channels) }}
-    {{ form_row(form.enabled) }}
-</div>
+    <div class="column">
+        <div class="ui segment">
+            <h4 class="ui dividing header">{{ 'setono_sylius_gift_card.ui.design_images'|trans }}</h4>
+            <p class="ui text">{{ 'setono_sylius_gift_card.ui.design_images_help'|trans }}</p>
 
-<div class="ui segment">
-    <h4 class="ui dividing header">{{ 'setono_sylius_gift_card.ui.design_images'|trans }}</h4>
-    <p class="ui text">{{ 'setono_sylius_gift_card.ui.design_images_help'|trans }}</p>
+            {{ form_row(form.images) }}
 
-    {{ form_row(form.images) }}
-
-    {% if resource is defined and resource.id is not null %}
-        <a href="{{ path('setono_sylius_gift_card_admin_gift_card_design_preview_pdf', {'id': resource.id}) }}"
-           target="_blank" class="ui labeled icon button">
-            <i class="file pdf icon"></i>
-            {{ 'setono_sylius_gift_card.ui.preview_pdf'|trans }}
-        </a>
-    {% endif %}
+            {% if resource is defined and resource.id is not null %}
+                <a href="{{ path('setono_sylius_gift_card_admin_gift_card_design_preview_pdf', {'id': resource.id}) }}"
+                   target="_blank" class="ui labeled icon button">
+                    <i class="file pdf icon"></i>
+                    {{ 'setono_sylius_gift_card.ui.preview_pdf'|trans }}
+                </a>
+            {% endif %}
+        </div>
+    </div>
 </div>

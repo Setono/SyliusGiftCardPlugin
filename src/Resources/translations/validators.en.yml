@@ -22,3 +22,5 @@ setono_sylius_gift_card:
         name:
             not_blank: Please enter a name
             max_length: The name must not be longer than {{ limit }} characters
+        images:
+            unique_type: You can only add one "{{ type }}" image to a design.
