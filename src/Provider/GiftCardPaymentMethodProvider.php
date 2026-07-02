@@ -38,6 +38,12 @@ final class GiftCardPaymentMethodProvider implements GiftCardPaymentMethodProvid
         $paymentMethod->setCode($this->paymentMethodCode);
         $paymentMethod->setEnabled(true);
 
+        // createWithGateway() only sets the gateway config factory name; gatewayName is a NOT NULL column, so set it too
+        $gatewayConfig = $paymentMethod->getGatewayConfig();
+        if (null !== $gatewayConfig) {
+            $gatewayConfig->setGatewayName($this->paymentMethodCode);
+        }
+
         $localeCode = $channel->getDefaultLocale()?->getCode() ?? 'en_US';
         $paymentMethod->setCurrentLocale($localeCode);
         $paymentMethod->setFallbackLocale($localeCode);
