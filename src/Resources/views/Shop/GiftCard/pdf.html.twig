@@ -8,35 +8,14 @@
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
+    {{ include('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/_cardStyle.html.twig') }}
     <style>
         @page { margin: 0; }
         html, body { margin: 0; padding: 0; height: 100%; font-family: 'DejaVu Sans', sans-serif; }
         .card { position: relative; width: 100%; height: 100%; overflow: hidden; }
-        .bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        /* In the PDF the shared card fills the whole page */
+        .ssgc-card { width: 100%; height: 100%; }
 
-        /* ---------- FRONT ---------- */
-        .card--front { background: #1c1b18; color: #f2f0ea; }
-        .frame { position: absolute; top: 18px; left: 18px; right: 18px; bottom: 18px; border: 1px solid #3a3833; border-radius: 12px; }
-        .brand { position: absolute; top: 40px; left: 42px; }
-        .brand-mark { display: inline-block; width: 15px; height: 15px; line-height: 15px; text-align: center; border: 1px solid #cfcbc0; border-radius: 4px; font-size: 9px; font-weight: bold; vertical-align: middle; }
-        .brand-name { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b7b3a8; vertical-align: middle; padding-left: 6px; }
-        .tag { position: absolute; top: 44px; right: 42px; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #8f8b81; }
-        .hero { position: absolute; left: 42px; right: 42px; bottom: 116px; }
-        .eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #8f8b81; margin-bottom: 10px; }
-        .title { font-size: 52px; font-weight: bold; line-height: 1; }
-        .message { font-size: 12px; font-style: italic; color: #b7b3a8; margin-top: 12px; }
-        .meta { position: absolute; bottom: 42px; }
-        .meta .k { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #8f8b81; margin-bottom: 6px; }
-        .meta--value { left: 42px; }
-        .meta--value .v { font-size: 22px; font-weight: bold; }
-        .meta--no { right: 42px; text-align: right; }
-        .meta--no .v { font-size: 12px; letter-spacing: 1px; }
-
-        .img-scrim { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 24px; background: #000000; opacity: 0.55; }
-        .img-scrim .a { font-size: 26px; font-weight: bold; color: #ffffff; }
-        .img-scrim .c { font-size: 13px; letter-spacing: 2px; color: #ffffff; margin-top: 4px; }
-
-        /* ---------- BACK ---------- */
         .card--back { background: #f2f0ea; color: #1c1b18; }
         .stripe { position: absolute; top: 54px; left: 0; right: 0; height: 44px; background: #1c1b18; }
         .k { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #8b8577; margin-bottom: 10px; }
@@ -50,48 +29,23 @@
         .divider { position: absolute; left: 42px; right: 42px; bottom: 66px; border-top: 1px solid #ddd8cc; }
         .terms { position: absolute; left: 42px; right: 220px; bottom: 34px; font-size: 8.5px; line-height: 1.5; color: #8b8577; }
         .foot-brand { position: absolute; right: 42px; bottom: 34px; font-size: 9px; color: #4a463d; }
-        .foot-brand .brand-mark { border-color: #1c1b18; color: #1c1b18; }
+        .foot-brand .ssgc-card__mark { border-color: #1c1b18; color: #1c1b18; }
     </style>
 </head>
 <body>
-    <div class="card card--front">
-        {% if frontImagePath is not null %}
-            <img class="bg" src="{{ frontImagePath }}" alt=""/>
-            <div class="img-scrim">
-                <div class="a">{{ formatted_amount }}</div>
-                <div class="c">{{ formatted_code }}</div>
-            </div>
-        {% else %}
-            <div class="frame"></div>
-
-            <div class="brand">
-                <span class="brand-mark">{{ brand_initial }}</span>
-                <span class="brand-name">{{ brand_name }}</span>
-            </div>
-            <div class="tag">{{ 'setono_sylius_gift_card.pdf.gift_card'|trans|upper }}</div>
-
-            <div class="hero">
-                <div class="eyebrow">{{ 'setono_sylius_gift_card.pdf.tagline'|trans|upper }}</div>
-                <div class="title">{{ 'setono_sylius_gift_card.pdf.gift_card'|trans }}</div>
-                {% if giftCard.customMessage is not empty %}
-                    <div class="message">{{ giftCard.customMessage }}</div>
-                {% endif %}
-            </div>
-
-            <div class="meta meta--value">
-                <div class="k">{{ 'setono_sylius_gift_card.pdf.value'|trans|upper }}</div>
-                <div class="v">{{ formatted_amount }}</div>
-            </div>
-            <div class="meta meta--no">
-                <div class="k">{{ 'setono_sylius_gift_card.pdf.number'|trans|upper }}</div>
-                <div class="v">{{ formatted_code }}</div>
-            </div>
-        {% endif %}
-    </div>
+    {{ include('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/_card.html.twig', {
+        brand_name: brand_name,
+        brand_initial: brand_initial,
+        formatted_amount: formatted_amount,
+        formatted_code: formatted_code,
+        message: giftCard.customMessage,
+        front_image_url: frontImagePath,
+        preview: false,
+    }, false) }}
 
     <div class="card card--back">
         {% if backImagePath is not null %}
-            <img class="bg" src="{{ backImagePath }}" alt=""/>
+            <img class="ssgc-card__bg" src="{{ backImagePath }}" alt=""/>
         {% else %}
             <div class="stripe"></div>
 
@@ -117,7 +71,7 @@
                 {% endif %}
             </div>
             <div class="foot-brand">
-                <span class="brand-mark">{{ brand_initial }}</span>
+                <span class="ssgc-card__mark">{{ brand_initial }}</span>
                 {{ brand_url ?: brand_name }}
             </div>
         {% endif %}

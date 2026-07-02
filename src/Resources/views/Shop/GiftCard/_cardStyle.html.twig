@@ -1,0 +1,30 @@
+<style>
+    /* Shared gift card front styling used by both the PDF (dompdf) and the on-site live preview.
+       Only dompdf-safe features are used (absolute positioning, px, border-radius, gradients).
+       The card box size (width/height) is set by the including context; internal positions are tuned for ~560x396. */
+    .ssgc-card { position: relative; overflow: hidden; font-family: 'DejaVu Sans', 'Helvetica Neue', Arial, sans-serif; }
+    .ssgc-card__bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    .ssgc-card--front { background: #1c1b18; color: #f2f0ea; }
+    .ssgc-card__frame { position: absolute; top: 18px; left: 18px; right: 18px; bottom: 18px; border: 1px solid #3a3833; border-radius: 12px; }
+    .ssgc-card__brand { position: absolute; top: 40px; left: 42px; }
+    .ssgc-card__mark { display: inline-block; width: 15px; height: 15px; line-height: 15px; text-align: center; border: 1px solid #cfcbc0; border-radius: 4px; font-size: 9px; font-weight: bold; vertical-align: middle; }
+    .ssgc-card__brandname { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b7b3a8; vertical-align: middle; padding-left: 6px; }
+    .ssgc-card__tag { position: absolute; top: 44px; right: 42px; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #8f8b81; }
+    .ssgc-card__hero { position: absolute; left: 42px; right: 42px; bottom: 116px; }
+    .ssgc-card__eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #8f8b81; margin-bottom: 10px; }
+    .ssgc-card__title { font-size: 52px; font-weight: bold; line-height: 1; }
+    .ssgc-card__message { font-size: 12px; font-style: italic; color: #b7b3a8; margin-top: 12px; }
+    .ssgc-card__meta { position: absolute; bottom: 42px; }
+    .ssgc-card__k { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #8f8b81; margin-bottom: 6px; }
+    .ssgc-card__meta--value { left: 42px; }
+    .ssgc-card__meta--value .ssgc-card__v { font-size: 22px; font-weight: bold; }
+    .ssgc-card__meta--no { right: 42px; text-align: right; }
+    .ssgc-card__meta--no .ssgc-card__v { font-size: 12px; letter-spacing: 1px; }
+
+    /* Front variant with a merchant-supplied image */
+    .ssgc-card__scrim { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 26px; background: linear-gradient(to bottom, rgba(20, 19, 16, 0), rgba(20, 19, 16, 0.82)); }
+    .ssgc-card__scrim-amount { font-size: 27px; font-weight: bold; color: #ffffff; }
+    .ssgc-card__scrim-message { font-size: 12px; font-style: italic; color: #f2f0ea; margin-top: 5px; }
+    .ssgc-card__scrim-code { font-size: 12px; letter-spacing: 2px; color: #e8e5dc; margin-top: 7px; }
+</style>

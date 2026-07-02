@@ -25,39 +25,28 @@
     border-radius: 4px;
 }
 
-#setono-gift-card-information .setono-gift-card-preview {
+/* Live preview: the shared .ssgc-card is a fixed 560x396 box scaled to fit this frame */
+#setono-gift-card-information .ssgc-preview {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto 1.5rem;
+}
+
+#setono-gift-card-information .ssgc-preview__frame {
     position: relative;
-    display: inline-block;
-    max-width: 100%;
+    width: 100%;
+    padding-bottom: 70.71%; /* 396 / 560 */
+    overflow: hidden;
+    border-radius: 14px;
+    background: #1c1b18;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
 }
 
-#setono-gift-card-information .setono-gift-card-preview img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-}
-
-#setono-gift-card-information .setono-gift-card-preview-overlay {
+#setono-gift-card-information .ssgc-preview__frame .ssgc-card {
     position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 1rem;
-    color: #fff;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-    pointer-events: none;
-}
-
-#setono-gift-card-information .setono-gift-card-preview-amount {
-    font-size: 1.75rem;
-    font-weight: 700;
-}
-
-#setono-gift-card-information .setono-gift-card-preview-message {
-    font-style: italic;
-    align-self: flex-start;
-    max-width: 80%;
-    word-break: break-word;
+    top: 0;
+    left: 0;
+    width: 560px;
+    height: 396px;
+    transform-origin: top left;
 }
