@@ -1,10 +1,24 @@
 {% extends '@SyliusAdmin/layout.html.twig' %}
 
-{% block content %}
-    <div class="ui segment">
-        <h1 class="ui header">{{ 'setono_sylius_gift_card.ui.outstanding_balance'|trans }}</h1>
-        <p>{{ 'setono_sylius_gift_card.ui.outstanding_balance_help'|trans }}</p>
+{% import '@SyliusUi/Macro/headers.html.twig' as headers %}
+{% import '@SyliusAdmin/Macro/breadcrumb.html.twig' as breadcrumb %}
 
+{% block title %}{{ 'setono_sylius_gift_card.ui.outstanding_balance'|trans }} {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="ui stackable one column grid">
+        <div class="column">
+            {{ headers.default('setono_sylius_gift_card.ui.outstanding_balance'|trans, 'balance scale', 'setono_sylius_gift_card.ui.outstanding_balance_help'|trans) }}
+
+            {% set breadcrumbs = [
+                { label: 'sylius.ui.administration'|trans, url: path('sylius_admin_dashboard') },
+                { label: 'setono_sylius_gift_card.ui.outstanding_balance'|trans }
+            ] %}
+            {{ breadcrumb.crumble(breadcrumbs) }}
+        </div>
+    </div>
+
+    <div class="ui segment">
         <table class="ui celled table">
             <thead>
                 <tr>

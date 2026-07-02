@@ -6,7 +6,7 @@
     <meta charset="utf-8"/>
     <style>
         @page { margin: 0; }
-        body { margin: 0; font-family: 'DejaVu Sans', sans-serif; color: #1b1b1b; }
+        html, body { margin: 0; padding: 0; height: 100%; font-family: 'DejaVu Sans', sans-serif; color: #1b1b1b; }
         .card { position: relative; width: 100%; height: 100%; overflow: hidden; }
         .card--front { background: linear-gradient(135deg, #2c3e50, #4ca1af); color: #ffffff; }
         .bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
@@ -39,8 +39,6 @@
             {% endif %}
         </div>
     </div>
-
-    <div style="page-break-before: always;"></div>
 
     <div class="card card--back">
         {% if backImagePath is not null %}

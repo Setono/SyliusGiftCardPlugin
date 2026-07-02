@@ -1,3 +1,6 @@
+{% from '@SyliusAdmin/Macro/translationForm.html.twig' import translationForm %}
+{% form_theme form.images '@SetonoSyliusGiftCardPlugin/Admin/GiftCardDesign/Form/_imageWidget.html.twig' %}
+
 {{ form_errors(form) }}
 
 <div class="ui segment">
@@ -8,7 +11,7 @@
         {{ form_row(form.position) }}
     </div>
 
-    {{ form_row(form.translations) }}
+    {{ translationForm(form.translations) }}
     {{ form_row(form.channels) }}
     {{ form_row(form.enabled) }}
 </div>

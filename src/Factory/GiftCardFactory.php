@@ -61,6 +61,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
             return null;
         }
 
-        return new \DateTimeImmutable('+' . $this->defaultValidityPeriod);
+        // A gift card stays valid through the end of its expiry day
+        return (new \DateTimeImmutable('+' . $this->defaultValidityPeriod))->setTime(23, 59, 59);
     }
 }

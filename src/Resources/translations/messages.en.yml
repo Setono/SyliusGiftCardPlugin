@@ -12,6 +12,7 @@ setono_sylius_gift_card:
             position: Position
             images: Images
             image_type: Image type
+            image_file_help: 'Use a landscape image at least 1050×740px (JPG or PNG). It is used as the full-bleed background of the gift card, so keep important content away from the edges.'
             front_image: Front image
             back_image: Back image
         gift_card_information:
@@ -42,6 +43,7 @@ setono_sylius_gift_card:
         average: Average
         back: Back
         count: Count
+        current_balance: Current balance
         create_gift_card: Create gift card
         create_gift_card_design: Create gift card design
         create_gift_card_product: Create gift card product
@@ -61,7 +63,7 @@ setono_sylius_gift_card:
         your_message_here: Your message here
         design: Design
         design_images: Design images
-        design_images_help: Upload a front image (shown in the picker, preview and on the gift card) and, optionally, a back image.
+        design_images_help: 'Upload a front image (shown in the picker, preview and on the gift card) and, optionally, a back image. Landscape orientation, at least 1050×740px, JPG or PNG.'
         enter_gift_card_code: Enter gift card code
         front: Front
         gift_card: Gift card
@@ -75,9 +77,14 @@ setono_sylius_gift_card:
         manage_gift_card_designs: Manage gift card designs
         new_gift_card_design: New gift card design
         no_image: No image
+        no_transactions: This gift card has no transactions yet.
         physical: 'Physical — shipped to you'
         position: Position
         remaining_to_pay: Remaining to pay
+        transactions: Transactions
+        transaction_type_manual: Manual adjustment
+        transaction_type_redeem: Redeemed
+        transaction_type_restore: Restored
         virtual: 'Virtual — delivered instantly by email'
     pdf:
         valid_until: 'Valid until'

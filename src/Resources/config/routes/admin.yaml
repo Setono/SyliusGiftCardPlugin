@@ -25,6 +25,18 @@ setono_sylius_gift_card_admin_gift_card_balance:
             section: admin
             permission: true
 
+setono_sylius_gift_card_admin_gift_card_show:
+    path: /gift-cards/{id}
+    methods: [GET]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: setono_sylius_gift_card.controller.gift_card::showAction
+        _sylius:
+            section: admin
+            permission: true
+            template: '@SetonoSyliusGiftCardPlugin/Admin/GiftCard/show.html.twig'
+
 setono_sylius_gift_card_admin_create_gift_card_product:
     path: /gift-cards/create-product
     methods: [GET, POST]

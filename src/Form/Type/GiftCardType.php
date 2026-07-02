@@ -15,7 +15,7 @@ use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -72,11 +72,25 @@ final class GiftCardType extends AbstractResourceType
                 'placeholder' => 'setono_sylius_gift_card.form.gift_card.custom_message_placeholder',
             ],
         ]);
-        $builder->add('expiresAt', DateTimeType::class, [
+        $builder->add('expiresAt', DateType::class, [
             'label' => 'setono_sylius_gift_card.form.gift_card.expires_at',
             'widget' => 'single_text',
             'html5' => true,
+            'input' => 'datetime',
+            'required' => false,
         ]);
+        // A gift card stays valid through the end of its expiry day, so the admin only picks a date and the time is
+        // pinned to 23:59:59
+        $builder->get('expiresAt')->addModelTransformer(new CallbackTransformer(
+            static fn (?\DateTimeInterface $date): ?\DateTimeInterface => $date,
+            static function (?\DateTimeInterface $date): ?\DateTimeInterface {
+                if (null === $date) {
+                    return null;
+                }
+
+                return \DateTime::createFromInterface($date)->setTime(23, 59, 59);
+            },
+        ));
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
             /** @var GiftCardInterface $giftCard */
             $giftCard = $event->getData();

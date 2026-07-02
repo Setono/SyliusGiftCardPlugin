@@ -25,6 +25,10 @@ final class GiftCardDesignImageType extends AbstractResourceType
             ->add('file', FileType::class, [
                 'label' => 'sylius.form.image.file',
                 'required' => false,
+                'help' => 'setono_sylius_gift_card.form.gift_card_design.image_file_help',
+                'attr' => [
+                    'accept' => 'image/png, image/jpeg',
+                ],
             ])
         ;
     }

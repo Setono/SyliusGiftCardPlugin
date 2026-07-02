@@ -1,0 +1,19 @@
+{% block setono_sylius_gift_card_gift_card_design_image_widget %}
+    {% set image = form.vars.value %}
+    <div class="ui stackable grid">
+        <div class="four wide column">
+            {% if image is not null and image.path is not null %}
+                <img src="{{ image.path|imagine_filter('setono_sylius_gift_card_design_thumbnail') }}"
+                     alt="" class="ui fluid bordered rounded image"/>
+            {% else %}
+                <div class="ui fluid bordered rounded placeholder">
+                    <div class="image" style="min-height: 90px;"></div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="twelve wide column">
+            {{ form_row(form.type) }}
+            {{ form_row(form.file) }}
+        </div>
+    </div>
+{% endblock %}
