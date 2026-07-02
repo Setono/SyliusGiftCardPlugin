@@ -97,6 +97,7 @@ sylius_grid:
                 image:
                     type: twig
                     label: setono_sylius_gift_card.ui.image
+                    path: .
                     options:
                         template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardDesign/Grid/Field/image.html.twig"
                 code:
