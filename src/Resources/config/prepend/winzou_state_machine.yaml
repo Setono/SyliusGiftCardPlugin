@@ -18,6 +18,14 @@ winzou_state_machine:
     sylius_order:
         callbacks:
             after:
+                setono_sylius_gift_card__commit_redemption:
+                    on: ["create"]
+                    do: ["@setono_sylius_gift_card.redemption_method", "commit"]
+                    args: ["object"]
+                setono_sylius_gift_card__rollback_redemption:
+                    on: ["cancel"]
+                    do: ["@setono_sylius_gift_card.redemption_method", "rollback"]
+                    args: ["object"]
                 setono_sylius_gift_card__disable_gift_cards:
                     on: ["cancel"]
                     do: ["@setono_sylius_gift_card.operator.order_gift_card", "disable"]

@@ -2,6 +2,28 @@
 <container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
-    <!-- Services exclusive to the "adjustment" redemption mode. Populated in the redemption phases of the 1.x rewrite -->
-    <services/>
+    <services>
+        <service id="setono_sylius_gift_card.order_processor.gift_card_adjustment"
+                 class="Setono\SyliusGiftCardPlugin\OrderProcessor\GiftCardAdjustmentProcessor">
+            <argument type="service" id="translator"/>
+            <argument type="service" id="sylius.custom_factory.adjustment"/>
+            <argument type="service" id="setono_sylius_gift_card.calculator.gift_card_coverage"/>
+
+            <tag name="sylius.order_processor" priority="5"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.redemption_method.adjustment"
+                 class="Setono\SyliusGiftCardPlugin\Redemption\AdjustmentRedemptionMethod">
+            <argument type="service" id="sylius.order_processing.order_processor.composite"/>
+            <argument type="service" id="setono_sylius_gift_card.calculator.gift_card_coverage"/>
+            <argument type="service" id="setono_sylius_gift_card.operator.gift_card_balance"/>
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+        </service>
+
+        <!-- public because commit()/rollback() are called from the winzou state machine -->
+        <service id="setono_sylius_gift_card.redemption_method"
+                 alias="setono_sylius_gift_card.redemption_method.adjustment" public="true"/>
+        <service id="Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface"
+                 alias="setono_sylius_gift_card.redemption_method"/>
+    </services>
 </container>

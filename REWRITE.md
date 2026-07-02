@@ -195,7 +195,17 @@ Container boots, `lint:container` OK.
 - yarn install + build completed (shop assets ready for browser verification).
 - **Deferred**: `send` (email on pay) → phase 10 (needs email manager); admin "Create gift card product" scaffold → phase 11 (admin UI); cart-line partial + shop PDF preview route → phase 8/10 (needs redemption UI + PDF generator).
 
-### Phases 6–12 — NOT STARTED
+### Phases 6 + 7: Redemption shared core + adjustment mode — COMPLETE ✅ (built together — interdependent)
+- **Shared core**: `EligibleTotalCalculator` (order total minus gift-card line items — can't buy a gift card with a gift card), `GiftCardCoverageCalculator` (+`GiftCardCoverage` VO; per-card min(balance, remaining), skips unusable/currency-mismatched), `GiftCardBalanceOperator` (sole balance mutator; writes `GiftCardTransaction` ledger; idempotency via nullable-unique key; `InsufficientGiftCardBalanceException`; `adjust()` for manual admin changes; never flushes).
+- `GiftCardApplicator` rewritten: guards (usable, checkout not completed, channel match, **currency match**), normalizes code, delegates to the aliased redemption method. New exceptions `GiftCardCurrencyMismatchException`, `InsufficientGiftCardBalanceException`.
+- `Redemption\GiftCardRedemptionMethodInterface` (apply/remove/getCoveredAmount/commit/rollback) + abstract `RedemptionMethod` base (apply/remove = M2M mutation + composite reprocess; coverage via calculator).
+- `GiftCardIsApplicable` compound constraint + validator (enabled/expired/balance/channel/currency/already-applied) against the current cart.
+- **Adjustment mode**: `GiftCardAdjustmentProcessor` (order processor priority 5, negative `order_gift_card` adjustments from coverage), `AdjustmentRedemptionMethod` (commit→balance redeem, rollback→restore, idempotency keys `redeem:order:{id}:gift_card:{id}`). Aliased to `setono_sylius_gift_card.redemption_method` (public).
+- **One pair of winzou callbacks for both modes**: `sylius_order.create`→`redemption_method.commit`, `sylius_order.cancel`→`rollback` (the alias resolves to the active mode's method — no mode-specific create/cancel callbacks needed). **Verified registered.**
+- Clearer compiler pass already registers the adjustment type. Container lints, PHPStan/ECS/Rector green.
+- **Redemption behavior to be verified end-to-end via Playwright after phase 8** (needs the shop apply UI) + functional tests in phase 12.
+
+### Phases 8–12 — NOT STARTED
 
 ## Findings
 
