@@ -14,7 +14,7 @@ Encore
   .cleanupOutputBeforeBuild()
   .enableSourceMaps(!Encore.isProduction())
   .enableVersioning(Encore.isProduction())
-  .enableSassLoader();
+  .enableSassLoader(() => {}, { resolveUrlLoader: false });
 
 const shopConfig = Encore.getWebpackConfig();
 
@@ -34,7 +34,7 @@ Encore
   .cleanupOutputBeforeBuild()
   .enableSourceMaps(!Encore.isProduction())
   .enableVersioning(Encore.isProduction())
-  .enableSassLoader();
+  .enableSassLoader(() => {}, { resolveUrlLoader: false });
 
 const adminConfig = Encore.getWebpackConfig();
 
