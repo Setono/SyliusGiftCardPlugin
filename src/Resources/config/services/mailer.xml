@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="setono_sylius_gift_card.email_manager.gift_card"
+                 class="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManager">
+            <argument type="service" id="sylius.email_sender"/>
+            <argument type="service" id="setono_sylius_gift_card.pdf.generator"/>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface"
+                 alias="setono_sylius_gift_card.email_manager.gift_card"/>
+
+        <service id="setono_sylius_gift_card.event_subscriber.send_gift_card_email"
+                 class="Setono\SyliusGiftCardPlugin\EventSubscriber\SendGiftCardEmailSubscriber">
+            <argument type="service" id="setono_sylius_gift_card.email_manager.gift_card"/>
+
+            <tag name="kernel.event_subscriber"/>
+        </service>
+    </services>
+</container>

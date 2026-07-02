@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Operator;
 
 use Doctrine\Persistence\ObjectManager;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
@@ -22,6 +23,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
     public function __construct(
         private readonly GiftCardFactoryInterface $giftCardFactory,
         private readonly ObjectManager $giftCardManager,
+        private readonly GiftCardEmailManagerInterface $emailManager,
     ) {
     }
 
@@ -87,6 +89,16 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         }
 
         $this->giftCardManager->flush();
+    }
+
+    public function send(OrderInterface $order): void
+    {
+        $giftCards = self::getGiftCards($order);
+        if (0 === count($giftCards)) {
+            return;
+        }
+
+        $this->emailManager->sendGiftCardsFromOrder($order, $giftCards);
     }
 
     public function disable(OrderInterface $order): void

@@ -16,6 +16,17 @@ setono_sylius_gift_card_admin_gift_card:
                 icon: 'gift'
     type: sylius.resource
 
+setono_sylius_gift_card_admin_gift_card_pdf:
+    path: /gift-cards/{id}/pdf
+    methods: [GET]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: setono_sylius_gift_card.controller.action.download_pdf
+        _sylius:
+            section: admin
+            permission: true
+
 setono_sylius_gift_card_admin_gift_card_design:
     resource: |
         alias: setono_sylius_gift_card.gift_card_design
@@ -32,3 +43,14 @@ setono_sylius_gift_card_admin_gift_card_design:
             index:
                 icon: 'palette'
     type: sylius.resource
+
+setono_sylius_gift_card_admin_gift_card_design_preview_pdf:
+    path: /gift-card-designs/{id}/preview-pdf
+    methods: [GET]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: setono_sylius_gift_card.controller.action.admin.preview_design_pdf
+        _sylius:
+            section: admin
+            permission: true

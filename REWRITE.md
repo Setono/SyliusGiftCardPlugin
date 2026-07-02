@@ -218,7 +218,16 @@ Container boots, `lint:container` OK.
 - **Deferred to phase 12 functional tests**: coverage math with a real product, checkout-complete reconcile/enable, cancel rollback/disable (deterministic without browser). `OrderGiftCardsUsable` checkout-complete validator deferred (coverage calc already ignores dead cards).
 - Known local-only cosmetic: design images render broken in dev (liip-imagine media path) — not a plugin defect.
 
-### Phases 9–12 — NOT STARTED
+### Phase 10: PDF + email — COMPLETE ✅ (PDF browser-verified)
+- `Pdf/GiftCardPdfGeneratorInterface` + `DompdfGiftCardPdfGenerator` (dompdf, config page size, resolves design front/back image absolute paths, chroot to public dir). Template `Shop/GiftCard/pdf.html.twig` (two pages: front artwork+overlay, back with code/terms).
+- `Mailer/GiftCardEmailManager` (Sylius `SenderInterface`; PDF attachments via `tempnam()`+`.pdf` rename, unlinked in `finally`). `sendGiftCardsFromOrder` (all delivery types) + `sendGiftCard` (admin/resend).
+- `OrderGiftCardOperator::send()` added; winzou `sylius_order_payment.pay` → `send` callback (verified registered). `SendGiftCardEmailSubscriber` on `gift_card.post_create` (admin-created cards).
+- Admin PDF download action + admin design example-PDF preview action + routes.
+- Email templates rewritten for 1.x (extend SyliusShop email layout, list gift cards, note PDF attachment).
+- **🎯 BROWSER-VERIFIED**: admin login → `/admin/gift-cards/21/pdf` **downloaded a valid 22KB `%PDF-1.7` document**. dompdf pipeline works end-to-end.
+- Email-on-payment wiring verified (callback registered); full send verified in phase 12 functional tests.
+
+### Phases 9, 11, 12 — NOT STARTED
 
 ## Findings
 

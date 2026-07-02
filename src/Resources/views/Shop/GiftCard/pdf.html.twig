@@ -1,0 +1,56 @@
+{% set formatted_amount = giftCard.amount|sylius_format_money(giftCard.currencyCode) %}
+{% set formatted_code = giftCard.code|slice(0, 4) ~ '-' ~ giftCard.code|slice(4, 4) ~ '-' ~ giftCard.code|slice(8, 4) ~ '-' ~ giftCard.code|slice(12) %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <style>
+        @page { margin: 0; }
+        body { margin: 0; font-family: 'DejaVu Sans', sans-serif; color: #1b1b1b; }
+        .card { position: relative; width: 100%; height: 100%; overflow: hidden; }
+        .card--front { background: linear-gradient(135deg, #2c3e50, #4ca1af); color: #ffffff; }
+        .bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 24px; box-sizing: border-box; }
+        .amount { font-size: 40px; font-weight: bold; }
+        .label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.85; }
+        .message { position: absolute; bottom: 70px; left: 24px; right: 24px; font-style: italic; font-size: 16px; }
+        .code { position: absolute; bottom: 24px; left: 24px; font-size: 18px; letter-spacing: 3px; font-weight: bold; }
+        .expires { position: absolute; bottom: 24px; right: 24px; font-size: 11px; opacity: 0.85; }
+        .card--back { background: #f4f6f8; padding: 24px; box-sizing: border-box; }
+        .card--back h2 { margin: 0 0 12px; font-size: 16px; }
+        .card--back p { font-size: 12px; line-height: 1.5; }
+        .card--back .big-code { font-size: 22px; letter-spacing: 4px; font-weight: bold; margin: 16px 0; }
+    </style>
+</head>
+<body>
+    <div class="card card--front">
+        {% if frontImagePath is not null %}
+            <img class="bg" src="{{ frontImagePath }}" alt=""/>
+        {% endif %}
+        <div class="overlay">
+            <div class="label">{{ 'setono_sylius_gift_card.email.your_gift_card'|trans }}</div>
+            <div class="amount">{{ formatted_amount }}</div>
+            {% if giftCard.customMessage is not empty %}
+                <div class="message">{{ giftCard.customMessage }}</div>
+            {% endif %}
+            <div class="code">{{ formatted_code }}</div>
+            {% if giftCard.expiresAt is not null %}
+                <div class="expires">{{ 'setono_sylius_gift_card.pdf.valid_until'|trans }} {{ giftCard.expiresAt|date('Y-m-d') }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="page-break-before: always;"></div>
+
+    <div class="card card--back">
+        {% if backImagePath is not null %}
+            <img class="bg" src="{{ backImagePath }}" alt=""/>
+        {% else %}
+            <h2>{{ 'setono_sylius_gift_card.pdf.how_to_use'|trans }}</h2>
+            <p>{{ 'setono_sylius_gift_card.pdf.how_to_use_text'|trans }}</p>
+            <div class="big-code">{{ formatted_code }}</div>
+            <p>{{ 'setono_sylius_gift_card.email.balance'|trans }}: {{ formatted_amount }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,10 +1,10 @@
 {# @var giftCards \Setono\SyliusGiftCardPlugin\Model\GiftCardInterface[] #}
 {% extends '@SyliusShop/Email/layout.html.twig' %}
 
-{% block subject %}{{ 'setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order'|trans }}{% endblock %}
+{% block subject %}{{ 'setono_sylius_gift_card.email.new_gift_card'|trans }}{% endblock %}
 
 {% block content %}
-    <p>{{ 'setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order'|trans }} {{ order.number }}:</p>
+    <p>{{ 'setono_sylius_gift_card.email.new_gift_card_intro'|trans }}</p>
 
     {% for giftCard in giftCards %}
         <p>

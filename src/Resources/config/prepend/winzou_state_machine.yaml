@@ -14,6 +14,10 @@ winzou_state_machine:
                     on: ["pay"]
                     do: ["@setono_sylius_gift_card.operator.order_gift_card", "enable"]
                     args: ["object"]
+                setono_sylius_gift_card__send_gift_cards:
+                    on: ["pay"]
+                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "send"]
+                    args: ["object"]
 
     sylius_order:
         callbacks:

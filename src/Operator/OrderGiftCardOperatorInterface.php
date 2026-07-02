@@ -24,6 +24,11 @@ interface OrderGiftCardOperatorInterface
     public function enable(OrderInterface $order): void;
 
     /**
+     * Called when the order is paid. Emails the gift cards bought on the order to the customer
+     */
+    public function send(OrderInterface $order): void;
+
+    /**
      * Called when the order is cancelled. Disables all gift cards bought on the order
      */
     public function disable(OrderInterface $order): void;

@@ -54,10 +54,15 @@ setono_sylius_gift_card:
         position: Position
         remaining_to_pay: Remaining to pay
         virtual: 'Virtual — delivered instantly by email'
+    pdf:
+        valid_until: 'Valid until'
+        how_to_use: How to use your gift card
+        how_to_use_text: Enter the code below at checkout to redeem your gift card.
     email:
         balance: Balance
         new_gift_card: New gift card
         new_gift_card_intro: A new gift card was created for you
+        pdf_attached: Your gift card is attached to this email as a PDF.
         your_gift_card: Your gift card
         your_gift_cards_you_bought_in_the_order: Your gift cards you bought in the order
 
