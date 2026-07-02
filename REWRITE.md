@@ -227,6 +227,11 @@ Container boots, `lint:container` OK.
 - **🎯 BROWSER-VERIFIED**: admin login → `/admin/gift-cards/21/pdf` **downloaded a valid 22KB `%PDF-1.7` document**. dompdf pipeline works end-to-end.
 - Email-on-payment wiring verified (callback registered); full send verified in phase 12 functional tests.
 
+### Asset build (user-requested) — DONE ✅
+- `yarn build`/`yarn dev` failed on `resolve-url-loader` 3.x + dart-sass ("PostCSS received undefined"). Fixed by disabling resolve-url-loader in `tests/Application/webpack.config.js` (`enableSassLoader(() => {}, { resolveUrlLoader: false })`) → Encore emits the 2MB Sylius CSS + entrypoints.
+- Local dev server needs a router script (`public/router.php`, gitignored) so `php -S` routes `/media/cache/...` to Symfony (liip on-demand thumbnails) instead of 404ing.
+- **🎯 Verified styled**: product page renders with full Sylius theme; **the gift card live preview works** — design image as card background with amount + message overlaid, updating as the customer types.
+
 ### Phases 9, 11, 12 — NOT STARTED
 
 ## Findings
