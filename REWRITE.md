@@ -205,7 +205,20 @@ Container boots, `lint:container` OK.
 - Clearer compiler pass already registers the adjustment type. Container lints, PHPStan/ECS/Rector green.
 - **Redemption behavior to be verified end-to-end via Playwright after phase 8** (needs the shop apply UI) + functional tests in phase 12.
 
-### Phases 8–12 — NOT STARTED
+### Phase 8: Shop redemption UI — COMPLETE ✅ (browser-verified)
+- Apply/remove actions rewritten redirect-based: apply (POST, form + `GiftCardIsApplicable` validation via command attributes, flash errors), remove (**POST + CSRF** token `setono_remove_gift_card_{code}`).
+- `Twig\GiftCardRedemptionExtension` + runtime: `setono_gift_card_apply_form`, covered amount (total + per-card), remaining total, payment-mode flag.
+- Cart partials injected via `prepend/sylius_ui.yaml`: `_giftCards.html.twig` (apply box + applied-card list with per-card coverage + CSRF remove buttons) on `sylius.shop.cart.summary`; `_giftCardTotals.html.twig` (gift cards line + "Remaining to pay" in payment mode) on `sylius.shop.cart.summary.totals`.
+- Translations for constraints + UI.
+- **🎯 BROWSER-VERIFIED via Playwright (adjustment mode, dev server on :8899):**
+  - Product page renders the gift card section: variant Virtual/Physical selector, amount field, Classic design radio picker, message textarea, and the **live HTML preview** column.
+  - Filling amount=$50 + message + add-to-cart → **pending disabled GiftCard created** in DB: correct grouped code, amount 5000, deliveryType `virtual` (from variant), design=Classic, message, linked to order item unit. ✅ (the whole purchase flow, phases 4-5, proven live)
+  - Cart shows the injected "Apply gift card" box; applying code `J2T6...` **attached the card to the order** (M2M row). Coverage $0 correctly demonstrates "can't buy a gift card with a gift card" (cart held only a gift-card product). ✅
+- **Test-app fixes made during verification** (committed): added `SyliusStateMachineAbstractionBundle`; removed stale 0.12.x template overrides (shop cart/checkout/totals, admin order totals, shop layout with the dropped balance-search link); removed `giftCardAmountConfigurable` from the admin product form; set `webpack_encore.strict_mode: false` (test app builds fail on Node 22 — infra, not plugin; also lets CI functional tests run without built assets); fixed fixture channel-assignment fallback (empty `channels` node → all channels).
+- **Deferred to phase 12 functional tests**: coverage math with a real product, checkout-complete reconcile/enable, cancel rollback/disable (deterministic without browser). `OrderGiftCardsUsable` checkout-complete validator deferred (coverage calc already ignores dead cards).
+- Known local-only cosmetic: design images render broken in dev (liip-imagine media path) — not a plugin defect.
+
+### Phases 9–12 — NOT STARTED
 
 ## Findings
 

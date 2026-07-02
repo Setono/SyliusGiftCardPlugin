@@ -14,10 +14,28 @@ setono_sylius_gift_card:
             image_type: Image type
             front_image: Front image
             back_image: Back image
+        gift_card_information:
+            amount: Amount
+            custom_message: Message
+            custom_message_placeholder: Write a short message to the recipient...
+            design: Design
+    gift_card:
+        not_enabled: This gift card is not active.
+        expired: This gift card has expired.
+        no_balance: This gift card has no balance left.
+        channel_mismatch: This gift card cannot be used in this channel.
+        currency_mismatch: This gift card is in a different currency than your order.
+        already_applied: This gift card is already applied to your order.
+    gift_card_information:
+        amount:
+            too_low: 'The gift card amount must be at least {{ minimum }}.'
+            too_high: 'The gift card amount may not be more than {{ maximum }}.'
     ui:
         amount: Amount
+        apply_gift_card: Apply
         applied_gift_cards: Applied gift cards
         back: Back
+        your_message_here: Your message here
         design: Design
         design_images: Design images
         design_images_help: Upload a front image (shown in the picker, preview and on the gift card) and, optionally, a back image.

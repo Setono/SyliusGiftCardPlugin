@@ -5,3 +5,15 @@ sylius_ui:
                 setono_gift_card_information:
                     template: "@SetonoSyliusGiftCardPlugin/Shop/Product/Show/_giftCardInformation.html.twig"
                     priority: 10
+
+        sylius.shop.cart.summary:
+            blocks:
+                setono_gift_cards:
+                    template: "@SetonoSyliusGiftCardPlugin/Shop/Cart/_giftCards.html.twig"
+                    priority: 10
+
+        sylius.shop.cart.summary.totals:
+            blocks:
+                setono_gift_card_totals:
+                    template: "@SetonoSyliusGiftCardPlugin/Shop/Cart/_giftCardTotals.html.twig"
+                    priority: 10

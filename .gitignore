@@ -7,3 +7,5 @@
 .php-version
 
 /tests/Application/yarn.lock
+/.playwright-mcp/
+/tests/Application/public/build/

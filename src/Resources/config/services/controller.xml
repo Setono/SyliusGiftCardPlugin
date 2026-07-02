@@ -13,7 +13,6 @@
             <argument type="service" id="sylius.context.cart"/>
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
-            <argument type="service" id="twig"/>
             <argument type="service" id="doctrine"/>
         </service>
 
@@ -22,6 +21,7 @@
             <argument type="service" id="sylius.context.cart"/>
             <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
+            <argument type="service" id="security.csrf.token_manager"/>
             <argument type="service" id="doctrine"/>
         </service>
     </services>

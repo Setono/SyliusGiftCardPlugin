@@ -83,6 +83,10 @@ class GiftCardProductExampleFactory extends AbstractExampleFactory implements Ex
 
         /** @var list<ChannelInterface> $channels */
         $channels = $options['channels'];
+        if ([] === $channels) {
+            /** @var list<ChannelInterface> $channels */
+            $channels = $this->channelRepository->findAll();
+        }
         foreach ($channels as $channel) {
             $product->addChannel($channel);
         }

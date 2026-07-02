@@ -65,6 +65,10 @@ class GiftCardDesignExampleFactory extends AbstractExampleFactory implements Exa
 
         /** @var list<ChannelInterface> $channels */
         $channels = $options['channels'];
+        if ([] === $channels) {
+            /** @var list<ChannelInterface> $channels */
+            $channels = $this->channelRepository->findAll();
+        }
         foreach ($channels as $channel) {
             $design->addChannel($channel);
         }

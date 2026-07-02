@@ -11,13 +11,13 @@ use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Twig\Environment;
 use Webmozart\Assert\Assert;
 
 final class AddGiftCardToOrderAction
@@ -25,11 +25,10 @@ final class AddGiftCardToOrderAction
     use ORMManagerTrait;
 
     public function __construct(
-        private FormFactoryInterface $formFactory,
-        private CartContextInterface $cartContext,
-        private GiftCardApplicatorInterface $giftCardApplicator,
-        private RedirectUrlResolverInterface $redirectRouteResolver,
-        private Environment $twig,
+        private readonly FormFactoryInterface $formFactory,
+        private readonly CartContextInterface $cartContext,
+        private readonly GiftCardApplicatorInterface $giftCardApplicator,
+        private readonly RedirectUrlResolverInterface $redirectRouteResolver,
         ManagerRegistry $managerRegistry,
     ) {
         $this->managerRegistry = $managerRegistry;
@@ -39,32 +38,53 @@ final class AddGiftCardToOrderAction
     {
         /** @var OrderInterface|null $order */
         $order = $this->cartContext->getCart();
-
         if (null === $order) {
             throw new NotFoundHttpException();
         }
 
-        $addGiftCardToOrderCommand = new AddGiftCardToOrderCommand();
-        $form = $this->formFactory->create(AddGiftCardToOrderType::class, $addGiftCardToOrderCommand);
+        $command = new AddGiftCardToOrderCommand();
+        $form = $this->formFactory->create(AddGiftCardToOrderType::class, $command);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $giftCard = $addGiftCardToOrderCommand->getGiftCard();
-            Assert::notNull($giftCard);
-            $this->giftCardApplicator->apply($order, $giftCard);
+        $session = $request->getSession();
 
+        if ($form->isSubmitted() && $form->isValid()) {
+            $giftCard = $command->getGiftCard();
+            Assert::notNull($giftCard);
+
+            $this->giftCardApplicator->apply($order, $giftCard);
             $this->getManager($order)->flush();
 
-            $session = $request->getSession();
             if ($session instanceof Session) {
                 $session->getFlashBag()->add('success', 'setono_sylius_gift_card.gift_card_added');
             }
-
-            return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));
+        } elseif ($session instanceof Session) {
+            foreach ($this->collectErrors($form) as $error) {
+                $session->getFlashBag()->add('error', $error);
+            }
         }
 
-        return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/Shop/addGiftCardToOrder.html.twig', [
-            'form' => $form->createView(),
-        ]));
+        return new RedirectResponse(
+            $this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'),
+        );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function collectErrors(\Symfony\Component\Form\FormInterface $form): array
+    {
+        $errors = [];
+
+        /** @var FormError $error */
+        foreach ($form->getErrors(true) as $error) {
+            $errors[] = $error->getMessage();
+        }
+
+        if ([] === $errors) {
+            $errors[] = 'setono_sylius_gift_card.gift_card.could_not_be_applied';
+        }
+
+        return $errors;
     }
 }
