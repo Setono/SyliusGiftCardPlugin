@@ -15,16 +15,11 @@
         <service id="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactoryInterface"
                  alias="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory"/>
 
-        <service id="sylius.factory.add_to_cart_command" class="Setono\SyliusGiftCardPlugin\Order\Factory\AddToCartCommandFactory"
-                 public="true">
+        <service id="Setono\SyliusGiftCardPlugin\Order\Factory\AddToCartCommandFactory"
+                 decorates="sylius.factory.add_to_cart_command">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Order\Factory\AddToCartCommandFactory.inner"/>
             <argument>%setono_sylius_gift_card.order.model.add_to_cart_command.class%</argument>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory" />
-        </service>
-
-        <service id="sylius.form.type.add_to_cart" class="Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType">
-            <argument>%setono_sylius_gift_card.order.model.add_to_cart_command.class%</argument>
-            <argument>%sylius.form.type.add_to_cart.validation_groups%</argument>
-            <tag name="form.type" />
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory"/>
         </service>
     </services>
 </container>

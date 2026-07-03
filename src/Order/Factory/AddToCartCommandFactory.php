@@ -9,17 +9,29 @@ use Sylius\Bundle\OrderBundle\Factory\AddToCartCommandFactoryInterface;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\Model\OrderItemInterface;
 
+/**
+ * Decorates the core add to cart command factory so the created command carries gift card information
+ */
 final class AddToCartCommandFactory implements AddToCartCommandFactoryInterface
 {
     /**
      * @param class-string<AddToCartCommandInterface> $className
      */
-    public function __construct(private readonly string $className, private readonly GiftCardInformationFactoryInterface $giftCardInformationFactory)
-    {
+    public function __construct(
+        private readonly AddToCartCommandFactoryInterface $decorated,
+        private readonly string $className,
+        private readonly GiftCardInformationFactoryInterface $giftCardInformationFactory,
+    ) {
     }
 
     public function createWithCartAndCartItem(OrderInterface $cart, OrderItemInterface $cartItem): AddToCartCommandInterface
     {
-        return new $this->className($cart, $cartItem, $this->giftCardInformationFactory->createNew($cartItem));
+        $command = $this->decorated->createWithCartAndCartItem($cart, $cartItem);
+
+        return new $this->className(
+            $command->getCart(),
+            $command->getCartItem(),
+            $this->giftCardInformationFactory->createNew($cartItem),
+        );
     }
 }

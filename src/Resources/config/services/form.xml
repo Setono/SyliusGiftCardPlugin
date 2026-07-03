@@ -39,6 +39,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Form\Extension\AddToCartTypeExtension"
                  class="Setono\SyliusGiftCardPlugin\Form\Extension\AddToCartTypeExtension">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Cart\CartGiftCardHandler"/>
+            <argument>%setono_sylius_gift_card.order.model.add_to_cart_command.class%</argument>
             <tag name="form.type_extension" extended-type="Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType"/>
         </service>
 
