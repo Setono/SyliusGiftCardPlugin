@@ -28,6 +28,13 @@ final class AddToCartCommandFactory implements AddToCartCommandFactoryInterface
     {
         $command = $this->decorated->createWithCartAndCartItem($cart, $cartItem);
 
+        // A lower priority decorator already produced a gift card aware command; respect it instead of clobbering it.
+        // This lets an application that extends our command (and points the command class parameter at it) compose
+        // cleanly with this decorator
+        if ($command instanceof AddToCartCommandInterface) {
+            return $command;
+        }
+
         return new $this->className(
             $command->getCart(),
             $command->getCartItem(),

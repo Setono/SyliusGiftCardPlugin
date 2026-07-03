@@ -15,8 +15,10 @@
         <service id="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactoryInterface"
                  alias="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory"/>
 
+        <!-- decoration-priority is negative so this decorator is applied last (outermost): its idempotency check then
+             sees whatever the rest of the chain produced and only wraps a command that is not yet gift card aware -->
         <service id="Setono\SyliusGiftCardPlugin\Order\Factory\AddToCartCommandFactory"
-                 decorates="sylius.factory.add_to_cart_command">
+                 decorates="sylius.factory.add_to_cart_command" decoration-priority="-10">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Order\Factory\AddToCartCommandFactory.inner"/>
             <argument>%setono_sylius_gift_card.order.model.add_to_cart_command.class%</argument>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory"/>
