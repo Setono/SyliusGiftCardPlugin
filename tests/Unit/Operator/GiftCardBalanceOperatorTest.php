@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Operator;
 
-use Doctrine\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -113,9 +114,12 @@ final class GiftCardBalanceOperatorTest extends TestCase
         $repository = $this->prophesize(RepositoryInterface::class);
         $repository->findOneBy(Argument::any())->willReturn($existingTransactionForKey ? new GiftCardTransaction() : null);
 
-        $manager = $this->prophesize(ObjectManager::class);
+        $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->persist(Argument::any())->willReturn(null);
 
-        return new GiftCardBalanceOperator($factory->reveal(), $repository->reveal(), $manager->reveal());
+        $managerRegistry = $this->prophesize(ManagerRegistry::class);
+        $managerRegistry->getManagerForClass(Argument::any())->willReturn($manager->reveal());
+
+        return new GiftCardBalanceOperator($factory->reveal(), $repository->reveal(), $managerRegistry->reveal());
     }
 }

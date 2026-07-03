@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use Doctrine\Persistence\ManagerRegistry;
-use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
+use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
@@ -22,7 +22,7 @@ use Webmozart\Assert\Assert;
 
 final class AddGiftCardToOrderAction
 {
-    use ORMManagerTrait;
+    use ORMTrait;
 
     public function __construct(
         private readonly FormFactoryInterface $formFactory,

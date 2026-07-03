@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Payum\Core\Model\GatewayConfigInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProvider;
 use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
@@ -60,6 +61,9 @@ final class GiftCardPaymentMethodProviderTest extends GiftCardFunctionalTestCase
         /** @var PaymentMethodFactoryInterface<PaymentMethodInterface> $factory */
         $factory = $container->get('sylius.factory.payment_method');
 
-        return new GiftCardPaymentMethodProvider($repository, $factory, $this->manager, 'gift_card');
+        /** @var ManagerRegistry $managerRegistry */
+        $managerRegistry = $container->get('doctrine');
+
+        return new GiftCardPaymentMethodProvider($repository, $factory, $managerRegistry, 'gift_card');
     }
 }

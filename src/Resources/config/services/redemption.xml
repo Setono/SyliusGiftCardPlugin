@@ -20,7 +20,7 @@
                  class="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator">
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card_transaction"/>
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_transaction"/>
-            <argument type="service" id="setono_sylius_gift_card.manager.gift_card_transaction"/>
+            <argument type="service" id="doctrine"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface"
                  alias="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator"/>

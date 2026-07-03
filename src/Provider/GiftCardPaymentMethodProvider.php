@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Provider;
 
-use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Setono\Doctrine\ORMTrait;
 use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -14,12 +15,15 @@ use Sylius\Component\Payment\Repository\PaymentMethodRepositoryInterface;
 
 final class GiftCardPaymentMethodProvider implements GiftCardPaymentMethodProviderInterface
 {
+    use ORMTrait;
+
     /**
      * @param PaymentMethodRepositoryInterface<PaymentMethodInterface> $paymentMethodRepository
      * @param PaymentMethodFactoryInterface<PaymentMethodInterface> $paymentMethodFactory
      */
-    public function __construct(private readonly PaymentMethodRepositoryInterface $paymentMethodRepository, private readonly PaymentMethodFactoryInterface $paymentMethodFactory, private readonly ObjectManager $paymentMethodManager, private readonly string $paymentMethodCode, private readonly LoggerInterface $logger = new NullLogger())
+    public function __construct(private readonly PaymentMethodRepositoryInterface $paymentMethodRepository, private readonly PaymentMethodFactoryInterface $paymentMethodFactory, ManagerRegistry $managerRegistry, private readonly string $paymentMethodCode, private readonly LoggerInterface $logger = new NullLogger())
     {
+        $this->managerRegistry = $managerRegistry;
     }
 
     public function getPaymentMethod(ChannelInterface $channel): PaymentMethodInterface
@@ -51,8 +55,9 @@ final class GiftCardPaymentMethodProvider implements GiftCardPaymentMethodProvid
 
         $paymentMethod->addChannel($channel);
 
-        $this->paymentMethodManager->persist($paymentMethod);
-        $this->paymentMethodManager->flush();
+        $manager = $this->getManager($paymentMethod);
+        $manager->persist($paymentMethod);
+        $manager->flush();
 
         $this->logger->info(sprintf(
             'Created the "%s" gift card payment method because it did not exist yet',

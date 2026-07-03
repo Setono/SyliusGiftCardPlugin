@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Operator;
 
-use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\ManagerRegistry;
+use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Exception\InsufficientGiftCardBalanceException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
@@ -16,6 +17,8 @@ use Webmozart\Assert\Assert;
 
 final class GiftCardBalanceOperator implements GiftCardBalanceOperatorInterface
 {
+    use ORMTrait;
+
     /**
      * @param FactoryInterface<GiftCardTransactionInterface> $transactionFactory
      * @param RepositoryInterface<GiftCardTransactionInterface> $transactionRepository
@@ -23,8 +26,9 @@ final class GiftCardBalanceOperator implements GiftCardBalanceOperatorInterface
     public function __construct(
         private readonly FactoryInterface $transactionFactory,
         private readonly RepositoryInterface $transactionRepository,
-        private readonly ObjectManager $transactionManager,
+        ManagerRegistry $managerRegistry,
     ) {
+        $this->managerRegistry = $managerRegistry;
     }
 
     public function redeem(
@@ -100,6 +104,6 @@ final class GiftCardBalanceOperator implements GiftCardBalanceOperatorInterface
 
         $giftCard->addTransaction($transaction);
 
-        $this->transactionManager->persist($transaction);
+        $this->getManager($transaction)->persist($transaction);
     }
 }

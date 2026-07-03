@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Controller\Action\Admin;
 
 use Doctrine\Persistence\ManagerRegistry;
-use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
+use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Form\Type\AdjustGiftCardBalanceType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
@@ -21,7 +21,7 @@ use Twig\Environment;
 
 final class AdjustGiftCardBalanceAction
 {
-    use ORMManagerTrait;
+    use ORMTrait;
 
     public function __construct(
         private readonly GiftCardRepositoryInterface $giftCardRepository,

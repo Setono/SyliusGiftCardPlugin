@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Cart;
 
-use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\ManagerRegistry;
+use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
@@ -16,10 +17,13 @@ use Webmozart\Assert\Assert;
 
 final class CartGiftCardHandler implements CartGiftCardHandlerInterface
 {
+    use ORMTrait;
+
     public function __construct(
         private readonly GiftCardFactoryInterface $giftCardFactory,
-        private readonly ObjectManager $giftCardManager,
+        ManagerRegistry $managerRegistry,
     ) {
+        $this->managerRegistry = $managerRegistry;
     }
 
     public function handle(AddToCartCommandInterface $command): void
@@ -57,7 +61,7 @@ final class CartGiftCardHandler implements CartGiftCardHandlerInterface
             $giftCard->setOrderItemUnit($unit);
             $giftCard->disable();
 
-            $this->giftCardManager->persist($giftCard);
+            $this->getManager($giftCard)->persist($giftCard);
         }
     }
 

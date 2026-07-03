@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Controller\Action\Admin;
 
-use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\ManagerRegistry;
+use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardProductExampleFactory;
 use Sylius\Component\Core\Model\ProductInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -19,11 +20,14 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 final class CreateGiftCardProductAction
 {
+    use ORMTrait;
+
     public function __construct(
         private readonly GiftCardProductExampleFactory $productFactory,
-        private readonly ObjectManager $productManager,
+        ManagerRegistry $managerRegistry,
         private readonly UrlGeneratorInterface $urlGenerator,
     ) {
+        $this->managerRegistry = $managerRegistry;
     }
 
     public function __invoke(Request $request): Response
@@ -35,8 +39,9 @@ final class CreateGiftCardProductAction
             'enabled' => false,
         ]);
 
-        $this->productManager->persist($product);
-        $this->productManager->flush();
+        $manager = $this->getManager($product);
+        $manager->persist($product);
+        $manager->flush();
 
         $session = $request->getSession();
         if ($session instanceof Session) {

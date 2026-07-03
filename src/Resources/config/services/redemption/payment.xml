@@ -12,7 +12,7 @@
                  class="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProvider">
             <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="sylius.factory.payment_method"/>
-            <argument type="service" id="sylius.manager.payment_method"/>
+            <argument type="service" id="doctrine"/>
             <argument>%setono_sylius_gift_card.redemption.payment_method_code%</argument>
             <argument type="service" id="logger" on-invalid="null"/>
         </service>

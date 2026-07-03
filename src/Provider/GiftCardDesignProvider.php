@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Provider;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\ORMException;
+use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImageInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardDesignRepositoryInterface;
@@ -18,14 +19,17 @@ use Symfony\Component\HttpFoundation\File\File;
 
 final class GiftCardDesignProvider implements GiftCardDesignProviderInterface
 {
+    use ORMTrait;
+
     private const DEFAULT_DESIGN_CODE = 'classic';
 
     /**
      * @param FactoryInterface<GiftCardDesignInterface> $designFactory
      * @param FactoryInterface<GiftCardDesignImageInterface> $designImageFactory
      */
-    public function __construct(private readonly GiftCardDesignRepositoryInterface $designRepository, private readonly FactoryInterface $designFactory, private readonly FactoryInterface $designImageFactory, private readonly ImageUploaderInterface $imageUploader, private readonly EntityManagerInterface $designManager, private readonly string $defaultImagePath, private readonly LoggerInterface $logger = new NullLogger())
+    public function __construct(private readonly GiftCardDesignRepositoryInterface $designRepository, private readonly FactoryInterface $designFactory, private readonly FactoryInterface $designImageFactory, private readonly ImageUploaderInterface $imageUploader, ManagerRegistry $managerRegistry, private readonly string $defaultImagePath, private readonly LoggerInterface $logger = new NullLogger())
     {
+        $this->managerRegistry = $managerRegistry;
     }
 
     public function getDesigns(ChannelInterface $channel): array
@@ -60,8 +64,9 @@ final class GiftCardDesignProvider implements GiftCardDesignProviderInterface
         try {
             $this->imageUploader->upload($image);
 
-            $this->designManager->persist($design);
-            $this->designManager->flush();
+            $manager = $this->getManager($design);
+            $manager->persist($design);
+            $manager->flush();
 
             $this->logger->info(sprintf(
                 'Created a default "%s" gift card design for channel "%s" because it had no enabled designs',

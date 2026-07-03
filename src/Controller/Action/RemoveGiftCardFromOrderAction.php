@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use Doctrine\Persistence\ManagerRegistry;
-use Setono\DoctrineObjectManagerTrait\ORM\ORMManagerTrait;
+use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface;
@@ -21,7 +21,7 @@ use Webmozart\Assert\Assert;
 
 final class RemoveGiftCardFromOrderAction
 {
-    use ORMManagerTrait;
+    use ORMTrait;
 
     public function __construct(
         private readonly CartContextInterface $cartContext,

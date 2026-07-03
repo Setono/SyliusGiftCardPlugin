@@ -8,7 +8,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator"
                  class="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator" public="true">
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
+            <argument type="service" id="doctrine"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManager"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface"

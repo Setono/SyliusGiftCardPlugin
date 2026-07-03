@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Operator;
 
-use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\ManagerRegistry;
+use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
@@ -20,11 +21,14 @@ use Webmozart\Assert\Assert;
 
 final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
 {
+    use ORMTrait;
+
     public function __construct(
         private readonly GiftCardFactoryInterface $giftCardFactory,
-        private readonly ObjectManager $giftCardManager,
+        ManagerRegistry $managerRegistry,
         private readonly GiftCardEmailManagerInterface $emailManager,
     ) {
+        $this->managerRegistry = $managerRegistry;
     }
 
     public function reconcile(OrderInterface $order): void
@@ -43,6 +47,8 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         /** @var CustomerInterface|null $customer */
         $customer = $order->getCustomer();
 
+        $manager = null;
+
         foreach ($items as $item) {
             $template = self::findTemplateGiftCard($item);
             $deliveryType = self::resolveDeliveryType($item);
@@ -60,8 +66,10 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
                     $giftCard->setOrderItemUnit($unit);
                     $giftCard->disable();
 
-                    $this->giftCardManager->persist($giftCard);
+                    $this->getManager($giftCard)->persist($giftCard);
                 }
+
+                $manager ??= $this->getManager($giftCard);
 
                 // Snapshot the final paid amount (after any promotions) as the initial and current balance
                 $total = $unit->getTotal();
@@ -74,7 +82,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
             }
         }
 
-        $this->giftCardManager->flush();
+        $manager?->flush();
     }
 
     public function enable(OrderInterface $order): void
@@ -88,7 +96,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
             $giftCard->enable();
         }
 
-        $this->giftCardManager->flush();
+        $this->getManager($giftCards[0])->flush();
     }
 
     public function send(OrderInterface $order): void
@@ -112,7 +120,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
             $giftCard->disable();
         }
 
-        $this->giftCardManager->flush();
+        $this->getManager($giftCards[0])->flush();
     }
 
     /**
