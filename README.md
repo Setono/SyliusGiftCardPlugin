@@ -153,11 +153,25 @@ setono_sylius_gift_card:
 
 ### Customizing the PDF
 
-Gift cards render to PDF with [dompdf](https://github.com/dompdf/dompdf). Override `@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig` to change the layout, or replace/decorate `Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface` to use a different engine.
+Gift cards render to PDF with [dompdf](https://github.com/dompdf/dompdf). Override `@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig` to change the layout, or replace/decorate `Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface` to use a different engine.
 
 ### Changing what gift cards may pay for
 
 By default gift cards may pay for everything except gift-card line items. Decorate `Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface` to change this.
+
+### Customizing the add-to-cart command
+
+To capture the amount, message and design the customer picks, the plugin decorates Sylius' `sylius.factory.add_to_cart_command` so it produces a `Setono\SyliusGiftCardPlugin\Order\AddToCartCommand` — which implements `Setono\SyliusGiftCardPlugin\Order\AddToCartCommandInterface` and carries the gift card information — and the add-to-cart form binds to that class.
+
+If your application needs its own add-to-cart command, make it extend `AddToCartCommand` (or implement `AddToCartCommandInterface`) and point the command class parameter at it:
+
+```yaml
+# config/services.yaml
+parameters:
+    setono_sylius_gift_card.order.model.add_to_cart_command.class: App\Order\AddToCartCommand
+```
+
+The plugin verifies this at container compile time and fails with an actionable message if the configured class does not implement the interface. Its factory decorator is idempotent and applied outermost, so it also composes cleanly with a decorator of your own on `sylius.factory.add_to_cart_command`.
 
 ## Development
 
