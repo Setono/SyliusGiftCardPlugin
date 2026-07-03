@@ -278,8 +278,6 @@ jobs:
                 run: "vendor/bin/phpunit --coverage-clover=.build/logs/clover.xml"
 
             -   name: "Send code coverage report to Codecov.io"
-                uses: "codecov/codecov-action@v4"
-                with:
-                    files: ".build/logs/clover.xml"
+                uses: "codecov/codecov-action@v5"
                 env:
                     CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"

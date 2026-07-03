@@ -9,4 +9,3 @@
 /tests/Application/yarn.lock
 /.playwright-mcp/
 /tests/Application/public/build/
-/tests/Application/public/router.php

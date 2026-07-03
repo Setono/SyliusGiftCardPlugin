@@ -12,7 +12,6 @@
             </constraint>
             <constraint name="Length">
                 <option name="max">255</option>
-                <option name="maxMessage">setono_sylius_gift_card.gift_card_design.name.max_length</option>
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>

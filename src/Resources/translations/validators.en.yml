@@ -10,7 +10,6 @@ setono_sylius_gift_card:
         code:
             not_blank: Please enter code
             unique: Code must be unique
-            max_length: Code must not be longer than {{ limit }} characters|Code must not be longer than {{ limit }} characters
         amount:
             not_blank: Please enter amount
             integer: Amount must be an integer  
@@ -21,6 +20,5 @@ setono_sylius_gift_card:
     gift_card_design:
         name:
             not_blank: Please enter a name
-            max_length: The name must not be longer than {{ limit }} characters
         images:
             unique_type: You can only add one "{{ type }}" image to a design.
