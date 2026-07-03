@@ -20,7 +20,7 @@ final class GiftCardBalanceAction
     {
         $balances = $this->giftCardRepository->findBalance(new \DateTimeImmutable());
 
-        return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/Admin/GiftCard/balance.html.twig', [
+        return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/admin/gift_card/balance.html.twig', [
             'balances' => $balances,
         ]));
     }

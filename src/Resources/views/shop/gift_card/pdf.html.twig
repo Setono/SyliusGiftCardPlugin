@@ -8,7 +8,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
-    {{ include('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/_cardStyle.html.twig') }}
+    {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig') }}
     <style>
         @page { margin: 0; }
         html, body { margin: 0; padding: 0; height: 100%; font-family: 'DejaVu Sans', sans-serif; }
@@ -33,7 +33,7 @@
     </style>
 </head>
 <body>
-    {{ include('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/_card.html.twig', {
+    {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card.html.twig', {
         brand_name: brand_name,
         brand_initial: brand_initial,
         formatted_amount: formatted_amount,

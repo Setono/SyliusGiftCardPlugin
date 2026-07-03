@@ -5,7 +5,7 @@
     {% set brand_initial = brand_name|slice(0, 1)|upper %}
     {% set currency_code = channel and channel.baseCurrency ? channel.baseCurrency.code : 'USD' %}
 
-    {{ include('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/_cardStyle.html.twig') }}
+    {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig') }}
 
     <div id="setono-gift-card-information"
          class="ui segment"
@@ -16,7 +16,7 @@
 
         <div class="ssgc-preview">
             <div class="ssgc-preview__frame">
-                {{ include('@SetonoSyliusGiftCardPlugin/Shop/GiftCard/_card.html.twig', {
+                {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card.html.twig', {
                     brand_name: brand_name,
                     brand_initial: brand_initial,
                     formatted_amount: '',

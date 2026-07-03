@@ -7,7 +7,7 @@
         <service id="setono_sylius_gift_card.pdf.generator.dompdf"
                  class="Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator">
             <argument type="service" id="twig"/>
-            <argument>@SetonoSyliusGiftCardPlugin/Shop/GiftCard/pdf.html.twig</argument>
+            <argument>@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig</argument>
             <argument>%setono_sylius_gift_card.pdf.page_size%</argument>
             <argument>%sylius_core.public_dir%</argument>
         </service>

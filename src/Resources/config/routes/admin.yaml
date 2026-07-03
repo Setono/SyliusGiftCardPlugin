@@ -11,7 +11,7 @@ setono_sylius_gift_card_admin_gift_card:
             all:
                 subheader: setono_sylius_gift_card.ui.manage_gift_cards
                 templates:
-                    form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/_form.html.twig"
+                    form: "@SetonoSyliusGiftCardPlugin/admin/gift_card/_form.html.twig"
             index:
                 icon: 'gift'
     type: sylius.resource
@@ -35,7 +35,7 @@ setono_sylius_gift_card_admin_gift_card_show:
         _sylius:
             section: admin
             permission: true
-            template: '@SetonoSyliusGiftCardPlugin/Admin/GiftCard/show.html.twig'
+            template: '@SetonoSyliusGiftCardPlugin/admin/gift_card/show.html.twig'
 
 setono_sylius_gift_card_admin_create_gift_card_product:
     path: /gift-cards/create-product
@@ -80,7 +80,7 @@ setono_sylius_gift_card_admin_gift_card_design:
             all:
                 subheader: setono_sylius_gift_card.ui.manage_gift_card_designs
                 templates:
-                    form: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardDesign/_form.html.twig"
+                    form: "@SetonoSyliusGiftCardPlugin/admin/gift_card_design/_form.html.twig"
             index:
                 icon: 'palette'
     type: sylius.resource

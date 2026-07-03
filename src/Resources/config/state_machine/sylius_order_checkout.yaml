@@ -1,8 +1,0 @@
-winzou_state_machine:
-    sylius_order_checkout:
-        callbacks:
-            after:
-                setono_gift_card_associate_to_customer:
-                    on: ["complete"]
-                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "associateToCustomer"]
-                    args: ["object"]

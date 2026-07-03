@@ -19,20 +19,20 @@ sylius_grid:
                     type: twig
                     label: sylius.ui.customer
                     options:
-                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/customer.html.twig"
+                        template: "@SetonoSyliusGiftCardPlugin/admin/gift_card/grid/field/customer.html.twig"
                 amount:
                     type: twig
                     label: sylius.ui.amount
                     path: .
                     options:
-                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/amount.html.twig"
+                        template: "@SetonoSyliusGiftCardPlugin/admin/gift_card/grid/field/amount.html.twig"
                 deliveryType:
                     type: twig
                     label: setono_sylius_gift_card.ui.delivery_type
                     path: .
                     sortable: ~
                     options:
-                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCard/Grid/Field/deliveryType.html.twig"
+                        template: "@SetonoSyliusGiftCardPlugin/admin/gift_card/grid/field/delivery_type.html.twig"
                 enabled:
                     type: twig
                     label: sylius.ui.enabled
@@ -107,7 +107,7 @@ sylius_grid:
                     label: setono_sylius_gift_card.ui.image
                     path: .
                     options:
-                        template: "@SetonoSyliusGiftCardPlugin/Admin/GiftCardDesign/Grid/Field/image.html.twig"
+                        template: "@SetonoSyliusGiftCardPlugin/admin/gift_card_design/grid/field/image.html.twig"
                 code:
                     type: string
                     label: sylius.ui.code

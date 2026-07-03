@@ -61,7 +61,7 @@ final class AdjustGiftCardBalanceAction
             return new RedirectResponse($this->urlGenerator->generate('setono_sylius_gift_card_admin_gift_card_update', ['id' => $id]));
         }
 
-        return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/Admin/GiftCard/adjustBalance.html.twig', [
+        return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/admin/gift_card/adjust_balance.html.twig', [
             'giftCard' => $giftCard,
             'form' => $form->createView(),
         ]));
