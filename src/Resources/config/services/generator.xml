@@ -3,17 +3,17 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="setono_sylius_gift_card.generator.gift_card_code"
+        <service id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator"
                  class="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument>%setono_sylius_gift_card.code_length%</argument>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface"
-                 alias="setono_sylius_gift_card.generator.gift_card_code"/>
+                 alias="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator"/>
 
-        <service id="setono_sylius_gift_card.normalizer.gift_card_code"
+        <service id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer"
                  class="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer"/>
         <service id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"
-                 alias="setono_sylius_gift_card.normalizer.gift_card_code"/>
+                 alias="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer"/>
     </services>
 </container>

@@ -4,7 +4,7 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="setono_sylius_gift_card.pdf.generator.dompdf"
+        <service id="Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator"
                  class="Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator">
             <argument type="service" id="twig"/>
             <argument>@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig</argument>
@@ -12,8 +12,10 @@
             <argument>%sylius_core.public_dir%</argument>
         </service>
 
-        <service id="setono_sylius_gift_card.pdf.generator" alias="setono_sylius_gift_card.pdf.generator.dompdf"/>
         <service id="Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface"
-                 alias="setono_sylius_gift_card.pdf.generator"/>
+                 alias="Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator"/>
+
+        <!-- kept as a convenience seam referenced by the mailer and controllers -->
+        <service id="setono_sylius_gift_card.pdf.generator" alias="Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator"/>
     </services>
 </container>

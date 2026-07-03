@@ -4,7 +4,7 @@ winzou_state_machine:
             after:
                 setono_sylius_gift_card__reconcile_gift_cards:
                     on: ["complete"]
-                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "reconcile"]
+                    do: ['@Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator',"reconcile"]
                     args: ["object"]
 
     sylius_order_payment:
@@ -12,11 +12,11 @@ winzou_state_machine:
             after:
                 setono_sylius_gift_card__enable_gift_cards:
                     on: ["pay"]
-                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "enable"]
+                    do: ['@Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator',"enable"]
                     args: ["object"]
                 setono_sylius_gift_card__send_gift_cards:
                     on: ["pay"]
-                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "send"]
+                    do: ['@Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator',"send"]
                     args: ["object"]
 
     sylius_order:
@@ -32,5 +32,5 @@ winzou_state_machine:
                     args: ["object"]
                 setono_sylius_gift_card__disable_gift_cards:
                     on: ["cancel"]
-                    do: ["@setono_sylius_gift_card.operator.order_gift_card", "disable"]
+                    do: ['@Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator',"disable"]
                     args: ["object"]

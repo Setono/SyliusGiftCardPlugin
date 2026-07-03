@@ -4,16 +4,16 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="setono_sylius_gift_card.validator.valid_gift_card_amount"
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator"
                  class="Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator">
             <argument type="service" id="sylius.context.channel"/>
-            <argument type="service" id="setono_sylius_gift_card.provider.gift_card_amount_limits"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider"/>
             <argument type="service" id="sylius.money_formatter"/>
 
             <tag name="validator.constraint_validator"/>
         </service>
 
-        <service id="setono_sylius_gift_card.validator.unique_design_image_types"
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\UniqueDesignImageTypesValidator"
                  class="Setono\SyliusGiftCardPlugin\Validator\Constraints\UniqueDesignImageTypesValidator">
             <tag name="validator.constraint_validator"/>
         </service>

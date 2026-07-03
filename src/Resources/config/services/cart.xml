@@ -4,12 +4,12 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="setono_sylius_gift_card.cart.gift_card_handler"
+        <service id="Setono\SyliusGiftCardPlugin\Cart\CartGiftCardHandler"
                  class="Setono\SyliusGiftCardPlugin\Cart\CartGiftCardHandler">
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Cart\CartGiftCardHandlerInterface"
-                 alias="setono_sylius_gift_card.cart.gift_card_handler"/>
+                 alias="Setono\SyliusGiftCardPlugin\Cart\CartGiftCardHandler"/>
     </services>
 </container>

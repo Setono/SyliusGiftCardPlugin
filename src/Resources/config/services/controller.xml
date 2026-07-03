@@ -7,31 +7,31 @@
     <services>
         <defaults public="true"/>
 
-        <service id="setono_sylius_gift_card.controller.action.add_gift_card_to_order"
+        <service id="Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction">
             <argument type="service" id="form.factory"/>
             <argument type="service" id="sylius.context.cart"/>
-            <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver"/>
             <argument type="service" id="doctrine"/>
         </service>
 
-        <service id="setono_sylius_gift_card.controller.action.remove_gift_card_from_order"
+        <service id="Setono\SyliusGiftCardPlugin\Controller\Action\RemoveGiftCardFromOrderAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\RemoveGiftCardFromOrderAction">
             <argument type="service" id="sylius.context.cart"/>
-            <argument type="service" id="setono_sylius_gift_card.applicator.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.resolver.redirect_url"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver"/>
             <argument type="service" id="security.csrf.token_manager"/>
             <argument type="service" id="doctrine"/>
         </service>
 
-        <service id="setono_sylius_gift_card.controller.action.download_pdf"
+        <service id="Setono\SyliusGiftCardPlugin\Controller\Action\DownloadGiftCardPdfAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\DownloadGiftCardPdfAction">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.pdf.generator"/>
         </service>
 
-        <service id="setono_sylius_gift_card.controller.action.admin.preview_design_pdf"
+        <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\PreviewGiftCardDesignPdfAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\PreviewGiftCardDesignPdfAction">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_design"/>
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
@@ -39,25 +39,25 @@
             <argument type="service" id="sylius.context.channel"/>
         </service>
 
-        <service id="setono_sylius_gift_card.controller.action.admin.balance"
+        <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GiftCardBalanceAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\GiftCardBalanceAction">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="twig"/>
         </service>
 
-        <service id="setono_sylius_gift_card.controller.action.admin.adjust_balance"
+        <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\AdjustGiftCardBalanceAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\AdjustGiftCardBalanceAction">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.operator.gift_card_balance"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator"/>
             <argument type="service" id="form.factory"/>
             <argument type="service" id="twig"/>
             <argument type="service" id="router"/>
             <argument type="service" id="doctrine"/>
         </service>
 
-        <service id="setono_sylius_gift_card.controller.action.admin.create_gift_card_product"
+        <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction">
-            <argument type="service" id="setono_sylius_gift_card.fixture.example_factory.gift_card_product"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardProductExampleFactory"/>
             <argument type="service" id="sylius.manager.product"/>
             <argument type="service" id="router"/>
         </service>

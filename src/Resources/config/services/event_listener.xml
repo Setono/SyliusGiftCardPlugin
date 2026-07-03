@@ -4,7 +4,7 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="setono_sylius_gift_card.event_subscriber.gift_card_deletion"
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardDeletionSubscriber"
                  class="Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardDeletionSubscriber">
             <tag name="kernel.event_subscriber"/>
         </service>
@@ -18,7 +18,7 @@
             <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_design.pre_update" method="uploadImages"/>
         </service>
 
-        <service id="setono_sylius_gift_card.listener.pending_gift_card_cleanup"
+        <service id="Setono\SyliusGiftCardPlugin\EventListener\PendingGiftCardCleanupListener"
                  class="Setono\SyliusGiftCardPlugin\EventListener\PendingGiftCardCleanupListener">
             <tag name="doctrine.event_listener" event="onFlush"/>
         </service>

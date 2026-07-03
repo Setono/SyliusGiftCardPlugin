@@ -8,17 +8,17 @@
     </parameters>
 
     <services>
-        <service id="setono_sylius_gift_card.order.factory.gift_card_information"
+        <service id="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory"
                  class="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory">
             <argument>%setono_sylius_gift_card.order.model.gift_card_information.class%</argument>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactoryInterface"
-                 alias="setono_sylius_gift_card.order.factory.gift_card_information"/>
+                 alias="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory"/>
 
         <service id="sylius.factory.add_to_cart_command" class="Setono\SyliusGiftCardPlugin\Order\Factory\AddToCartCommandFactory"
                  public="true">
             <argument>%setono_sylius_gift_card.order.model.add_to_cart_command.class%</argument>
-            <argument type="service" id="setono_sylius_gift_card.order.factory.gift_card_information" />
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory" />
         </service>
 
         <service id="sylius.form.type.add_to_cart" class="Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType">
