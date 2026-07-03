@@ -12,6 +12,16 @@ Add gift card functionality to your Sylius store:
 
 > This is the `1.x` line for **Sylius 1.13 / 1.14**. It is a ground-up rewrite of the `0.12.x` plugin. There is **no API layer** in 1.x — see [`UPGRADE-1.0.md`](UPGRADE-1.0.md) if you are coming from `0.12.x`.
 
+## Table of contents
+
+- [How it works](#how-it-works)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Customization](#customization)
+- [Development](#development)
+- [License](#license)
+
 ## How it works
 
 ### Virtual vs physical
@@ -30,6 +40,15 @@ The customer enters a gift card code in the cart. Depending on `setono_sylius_gi
 - **`payment`**: the order total stays intact; each applied gift card becomes a completed [`Payment`](https://docs.sylius.com/the-book/carts-and-orders/payments) using a lazily-created *offline* gift card payment method, and the remainder is charged through the normal gateway. The payment step is skipped automatically when gift cards cover the whole order.
 
 In both modes gift cards cannot be used to buy other gift cards, balances are committed when the order is placed and restored when it is cancelled/refunded, and every balance change is recorded in an append-only ledger.
+
+## Requirements
+
+| Requirement | Version                                    |
+|-------------|--------------------------------------------|
+| PHP         | >= 8.1                                      |
+| Sylius      | 1.13 / 1.14                                 |
+| Symfony     | ^6.4                                        |
+| ORM         | doctrine/orm (the only supported driver)   |
 
 ## Installation
 
@@ -151,9 +170,17 @@ setono_sylius_gift_card:
         page_size: A6                    # any page size supported by dompdf
 ```
 
+## Customization
+
+Every extension point below is a plain service or template you replace — no configuration flags required.
+
 ### Customizing the PDF
 
 Gift cards render to PDF with [dompdf](https://github.com/dompdf/dompdf). Override `@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig` to change the layout, or replace/decorate `Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface` to use a different engine.
+
+### Customizing the emails
+
+The plugin sends two emails: `setono_sylius_gift_card__gift_card` (a single gift card, sent when one is created in the admin panel) and `setono_sylius_gift_card__gift_cards_from_order` (all gift cards from a paid order, sent to the buyer). Override their templates at `@SetonoSyliusGiftCardPlugin/email/gift_card.html.twig` and `@SetonoSyliusGiftCardPlugin/email/gift_cards_from_order.html.twig`, or redefine the emails under the `sylius_mailer` key to change the sender or subject.
 
 ### Changing what gift cards may pay for
 
@@ -173,6 +200,18 @@ parameters:
 
 The plugin verifies this at container compile time and fails with an actionable message if the configured class does not implement the interface. Its factory decorator is idempotent and applied outermost, so it also composes cleanly with a decorator of your own on `sylius.factory.add_to_cart_command`.
 
+### Overriding models, repositories and factories
+
+The `gift_card`, `gift_card_design` and `gift_card_transaction` resources follow the standard Sylius resource configuration, so you can swap any model, repository, controller or factory for your own class:
+
+```yaml
+setono_sylius_gift_card:
+    resources:
+        gift_card:
+            classes:
+                model: App\Entity\GiftCard\GiftCard
+```
+
 ## Development
 
 ```bash
@@ -184,6 +223,10 @@ composer check-style    # ECS
 ```
 
 See [`CLAUDE.md`](CLAUDE.md) for the full development workflow, including Playwright-based UI verification against the bundled `tests/Application`.
+
+## License
+
+This plugin is released under the [MIT License](LICENSE).
 
 [ico-version]: https://img.shields.io/packagist/v/setono/sylius-gift-card-plugin.svg
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg
