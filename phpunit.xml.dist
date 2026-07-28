@@ -3,7 +3,7 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          colors="true"
-         bootstrap="tests/Application/config/bootstrap.php">
+         bootstrap="vendor/sylius/test-application/config/bootstrap.php">
     <coverage includeUncoveredFiles="true" processUncoveredFiles="true">
         <include>
             <directory suffix=".php">src/</directory>
@@ -15,7 +15,7 @@
         </testsuite>
     </testsuites>
     <php>
-        <server name="KERNEL_CLASS_PATH" value="tests/Application/Kernel.php"/>
+        <server name="KERNEL_CLASS" value="Sylius\TestApplication\Kernel"/>
         <server name="IS_DOCTRINE_ORM_SUPPORTED" value="true"/>
 
         <env name="APP_ENV" value="test"/>

@@ -1,3 +1,0 @@
-imports:
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }

@@ -1,2 +1,0 @@
-setono_sylius_gift_card:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml"

@@ -4,6 +4,8 @@ imports:
 
 default:
     extensions:
+        DMore\ChromeExtension\Behat\ServiceContainer\ChromeExtension: ~
+
         FriendsOfBehat\MinkDebugExtension:
             directory: etc/build
             clean_start: false
@@ -11,39 +13,27 @@ default:
 
         Behat\MinkExtension:
             files_path: "%paths.base%/vendor/sylius/sylius/src/Sylius/Behat/Resources/fixtures/"
-            base_url: "http://localhost:8080/"
+            base_url: "%env(BEHAT_BASE_URL)%"
             default_session: symfony
-            javascript_session: chrome
+            javascript_session: chromedriver
             sessions:
                 symfony:
                     symfony: ~
-                chrome:
-                    selenium2:
-                        browser: chrome
-                        capabilities:
-                            browserName: chrome
-                            browser: chrome
-                            version: ""
-                            marionette: null # https://github.com/Behat/MinkExtension/pull/311
-                            chrome:
-                                switches:
-                                    - "start-fullscreen"
-                                    - "start-maximized"
-                                    - "no-sandbox"
-                            extra_capabilities:
-                                unexpectedAlertBehaviour: accept
-                firefox:
-                    selenium2:
-                        browser: firefox
-            show_auto: false
+                chromedriver:
+                    chrome:
+                        api_url: "%env(BEHAT_CHROME_URL)%"
+                        validate_certificate: false
 
         FriendsOfBehat\SymfonyExtension:
-            bootstrap: tests/Application/config/bootstrap.php
+            bootstrap: vendor/sylius/test-application/config/bootstrap.php
             kernel:
-                class: Setono\SyliusGiftCardPlugin\Tests\Application\Kernel
+                class: Sylius\TestApplication\Kernel
+                environment: test
 
         FriendsOfBehat\VariadicExtension: ~
 
         FriendsOfBehat\SuiteSettingsExtension:
             paths:
                 - "features"
+
+        SyliusLabs\SuiteTagsExtension: ~
