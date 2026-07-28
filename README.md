@@ -21,10 +21,6 @@ can be used for auditing.
 
 ![Screenshot showing gift card admin create page](docs/images/admin-gift-card-create.png)
 
-## Api platform support
-
-Everything related to Gift Card can be done via API. Whether it is admin or shop actions
-
 ## Installation
 
 ### Require plugin with composer:
@@ -39,7 +35,7 @@ $ composer require setono/sylius-gift-card-plugin
 # config/packages/setono_sylius_gift_card.yaml
 imports:
     # ...
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/config/app/config.yaml" }
 ```
 
 ### (Optional) Import fixtures 
@@ -50,7 +46,7 @@ If you wish to have some gift cards to play with in your application during deve
 # config/packages/setono_sylius_gift_card.yaml
 imports:
     # ...
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/config/app/fixtures.yaml" }
 ```
 
 ### Import routing:
@@ -58,7 +54,7 @@ imports:
 ```yaml
 # config/routes.yaml
 setono_sylius_gift_card:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml"
+    resource: "@SetonoSyliusGiftCardPlugin/config/routes.yaml"
 ```
 
 or if your app doesn't use locales:
@@ -66,7 +62,7 @@ or if your app doesn't use locales:
 ```yaml
 # config/routes.yaml
 setono_sylius_gift_card:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes_no_locale.yaml"
+    resource: "@SetonoSyliusGiftCardPlugin/config/routes_no_locale.yaml"
 ```
 
 ### Add plugin class to your `bundles.php`:
@@ -86,7 +82,7 @@ $bundles = [
 
 ### Copy templates
 
-You will find the templates you need to override in the [test application](https://github.com/Setono/SyliusGiftCardPlugin/tree/master/tests/Application/templates).
+You will find the templates you need to override in the [test application](https://github.com/Setono/SyliusGiftCardPlugin/tree/master/tests/TestApplication/templates).
 
 ### Extend entities
 
@@ -271,32 +267,6 @@ sylius_product:
         product:
             classes:
                 model: App\Entity\Product\Product
-```
-
-### Copy Api Resources
-
-Resources declaration that need to be copied are:
-* [Order.xml](src/Resources/config/api_resources/Order.xml)
-
-If you already have them overriden, just change the following routes:
-
-**[Order.xml](src/Resources/config/api_resources/Order.xml)**
-```xml
-<itemOperation name="shop_add_item">
-    <attribute name="method">PATCH</attribute>
-    <attribute name="path">/shop/orders/{tokenValue}/items</attribute>
-    <attribute name="messenger">input</attribute>
-    <attribute name="input">Setono\SyliusGiftCardPlugin\Api\Command\AddItemToCart</attribute> <!-- This has been changed compared to the core -->
-    <attribute name="normalization_context">
-        <attribute name="groups">shop:cart:read</attribute>
-    </attribute>
-    <attribute name="denormalization_context">
-        <attribute name="groups">shop:cart:add_item</attribute>
-    </attribute>
-    <attribute name="openapi_context">
-        <attribute name="summary">Adds Item to cart</attribute>
-    </attribute>
-</itemOperation>
 ```
 
 ### Update your database:

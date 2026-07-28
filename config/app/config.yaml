@@ -1,6 +1,6 @@
 imports:
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/grids.yaml" }
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/sylius_ui.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/config/grids.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/config/sylius_ui.yaml" }
 
 sylius_mailer:
     emails:

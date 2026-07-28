@@ -1,6 +1,6 @@
 imports:
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/config/app/config.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/config/app/fixtures.yaml" }
     - { resource: "services_test.php" }
 
 twig:

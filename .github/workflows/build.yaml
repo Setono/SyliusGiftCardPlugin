@@ -97,10 +97,10 @@ jobs:
                 run: "vendor/bin/console lint:container"
 
             -   name: "Lint yaml files"
-                run: "vendor/bin/console lint:yaml src/Resources"
+                run: "vendor/bin/console lint:yaml config"
 
             -   name: "Lint twig files"
-                run: "vendor/bin/console lint:twig src/Resources"
+                run: "vendor/bin/console lint:twig templates"
 
             -   name: "Check style"
                 run: "composer check-style"
@@ -139,7 +139,7 @@ jobs:
                 run: "vendor/bin/console doctrine:schema:validate"
 
             -   name: "Install assets"
-                run: "vendor/bin/console assets:install -vvv"
+                run: "vendor/bin/console assets:install vendor/sylius/test-application/public -vvv"
 
             -   name: "Build assets"
                 run: "(cd vendor/sylius/test-application && yarn build)"

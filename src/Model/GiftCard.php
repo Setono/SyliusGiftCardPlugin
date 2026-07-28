@@ -210,9 +210,6 @@ class GiftCard implements GiftCardInterface
         $this->channel = $channel;
     }
 
-    /**
-     * API specific methods. See src/Resources/config/serializer/Model.GiftCard.yml
-     */
     public function getCustomerIdentification(): ?array
     {
         $customer = $this->getCustomer();

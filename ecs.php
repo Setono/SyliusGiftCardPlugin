@@ -10,8 +10,4 @@ return static function (ECSConfig $config): void {
         'src',
         'tests',
     ]);
-    $config->skip([
-        'tests/Application/node_modules/**',
-        'tests/Application/var/**',
-    ]);
 };
