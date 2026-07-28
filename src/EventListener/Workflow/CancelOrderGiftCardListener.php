@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\EventListener\Workflow;
 
+use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Modifier\OrderGiftCardAmountModifierInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
-use Sylius\Component\Core\Model\OrderInterface;
 use Symfony\Component\Workflow\Event\CompletedEvent;
 use Webmozart\Assert\Assert;
 

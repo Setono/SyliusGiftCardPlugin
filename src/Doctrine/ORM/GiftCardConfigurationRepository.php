@@ -19,10 +19,8 @@ class GiftCardConfigurationRepository extends EntityRepository implements GiftCa
             ->join('o.channelConfigurations', 'c')
             ->andWhere('c.channel = :channel')
             ->andWhere('c.locale = :locale')
-            ->setParameters([
-                'channel' => $channel,
-                'locale' => $locale,
-            ])
+            ->setParameter('channel', $channel)
+            ->setParameter('locale', $locale)
             ->getQuery()
             ->getOneOrNullResult()
         ;

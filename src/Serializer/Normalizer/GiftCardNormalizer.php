@@ -25,12 +25,13 @@ final class GiftCardNormalizer implements NormalizerInterface
     }
 
     /**
-     * @param GiftCardInterface|mixed $object
-     * @param string $format
+     * @param GiftCardInterface|mixed $data
+     * @param array<string, mixed> $context
      */
-    public function normalize($object, $format = null, array $context = []): array
+    public function normalize($data, ?string $format = null, array $context = []): array
     {
-        Assert::isInstanceOf($object, GiftCardInterface::class);
+        Assert::isInstanceOf($data, GiftCardInterface::class);
+        $object = $data;
 
         $data = $this->objectNormalizer->normalize($object, $format, $context);
         if (!is_array($data) && !$data instanceof ArrayObject) {
@@ -47,11 +48,7 @@ final class GiftCardNormalizer implements NormalizerInterface
         return $data;
     }
 
-    /**
-     * @param mixed $data
-     * @param string $format
-     */
-    public function supportsNormalization($data, $format = null, array $context = []): bool
+    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
     {
         $groups = (array) ($context['groups'] ?? []);
 

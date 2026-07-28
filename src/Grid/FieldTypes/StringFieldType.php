@@ -21,7 +21,7 @@ final class StringFieldType implements FieldTypeInterface
         $this->propertyAccessor = $propertyAccessor;
     }
 
-    public function render(Field $field, $data, array $options): string
+    public function render(Field $field, mixed $data, array $options): string
     {
         try {
             if (!is_object($data) && !is_array($data)) {

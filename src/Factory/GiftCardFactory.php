@@ -46,6 +46,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         $validityPeriod = $channelConfiguration->getDefaultValidityPeriod();
         if (null !== $validityPeriod) {
             $today = $this->clock->now()->modify('+' . $validityPeriod);
+            Assert::notFalse($today);
             $giftCard->setExpiresAt($today);
         }
 

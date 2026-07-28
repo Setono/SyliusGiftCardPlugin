@@ -15,7 +15,7 @@
         <!-- <directory name="tests"/> TODO Readd this -->
         <ignoreFiles>
             <directory name="src/Fixture"/>
-            <directory name="tests/Application"/>
+            <directory name="tests/TestApplication"/>
             <directory name="vendor"/>
         </ignoreFiles>
     </projectFiles>
@@ -31,11 +31,16 @@
         <function name="print_r"/>
     </forbiddenFunctions>
     <issueHandlers>
-        <DeprecatedInterface>
+        <DeprecatedClass>
             <errorLevel type="suppress">
-                <referencedClass name="Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface"/>
+                <file name="src/DependencyInjection/SetonoSyliusGiftCardExtension.php"/>
             </errorLevel>
-        </DeprecatedInterface>
+        </DeprecatedClass>
+        <InvalidArgument>
+            <errorLevel type="suppress">
+                <file name="src/DependencyInjection/Configuration.php"/>
+            </errorLevel>
+        </InvalidArgument>
         <PluginIssue name="QueryBuilderSetParameter" errorLevel="suppress"/>
         <MissingTemplateParam>
             <errorLevel type="suppress">
@@ -46,10 +51,5 @@
             </errorLevel>
         </MissingTemplateParam>
         <RedundantConditionGivenDocblockType errorLevel="suppress"/>
-        <UndefinedDocblockClass>
-            <errorLevel type="suppress">
-                <referencedClass name="ApiPlatform\Api\IriConverterInterface"/>
-            </errorLevel>
-        </UndefinedDocblockClass>
     </issueHandlers>
 </psalm>

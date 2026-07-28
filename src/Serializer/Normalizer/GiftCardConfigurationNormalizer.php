@@ -31,12 +31,13 @@ final class GiftCardConfigurationNormalizer implements NormalizerInterface
     }
 
     /**
-     * @param GiftCardConfigurationInterface|mixed $object
-     * @param string $format
+     * @param GiftCardConfigurationInterface|mixed $data
+     * @param array<string, mixed> $context
      */
-    public function normalize($object, $format = null, array $context = []): array
+    public function normalize($data, ?string $format = null, array $context = []): array
     {
-        Assert::isInstanceOf($object, GiftCardConfigurationInterface::class);
+        Assert::isInstanceOf($data, GiftCardConfigurationInterface::class);
+        $object = $data;
 
         $data = $this->objectNormalizer->normalize($object, $format, $context);
         if (!is_array($data) && !$data instanceof ArrayObject) {
@@ -67,11 +68,7 @@ final class GiftCardConfigurationNormalizer implements NormalizerInterface
         return $data;
     }
 
-    /**
-     * @param mixed $data
-     * @param string $format
-     */
-    public function supportsNormalization($data, $format = null, array $context = []): bool
+    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
     {
         $groups = (array) ($context['groups'] ?? []);
 
