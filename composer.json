@@ -103,6 +103,15 @@
         "analyse": "psalm",
         "check-style": "ecs check",
         "fix-style": "ecs check --fix",
-        "phpunit": "phpunit"
+        "phpunit": "phpunit",
+        "post-install-cmd": [
+            "@create-console-symlink"
+        ],
+        "post-update-cmd": [
+            "@create-console-symlink"
+        ],
+        "create-console-symlink": [
+            "@php bin/create_console_symlink.php"
+        ]
     }
 }
