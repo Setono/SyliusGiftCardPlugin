@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Provider\OrderEligibleTotalProvider;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
+use Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity\Order;
 
 final class OrderEligibleTotalProviderTest extends TestCase
 {

@@ -7,8 +7,8 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Order;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Order\AddToCartCommand;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
+use Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity\Order;
+use Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity\OrderItem;
 
 final class AddToCartCommandTest extends TestCase
 {

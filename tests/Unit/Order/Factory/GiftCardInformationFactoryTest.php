@@ -7,7 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Order\Factory;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
+use Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity\OrderItem;
 
 final class GiftCardInformationFactoryTest extends TestCase
 {
