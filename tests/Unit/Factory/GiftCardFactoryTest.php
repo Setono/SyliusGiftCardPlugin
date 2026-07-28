@@ -15,11 +15,11 @@ use Setono\SyliusGiftCardPlugin\Provider\GiftCardConfigurationProviderInterface;
 use Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity\Order;
 use Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity\OrderItemUnit;
-use Symfony\Component\Clock\MockClock;
 use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Currency\Context\CurrencyContextInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
+use Symfony\Component\Clock\MockClock;
 
 final class GiftCardFactoryTest extends TestCase
 {
