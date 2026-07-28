@@ -1,0 +1,63 @@
+imports:
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
+    - { resource: "services_test.php" }
+
+twig:
+    paths:
+        '%kernel.project_dir%/../../../tests/TestApplication/templates': ~
+
+sylius_api:
+    enabled: true
+
+sylius_customer:
+    resources:
+        customer:
+            classes:
+                repository: Setono\SyliusGiftCardPlugin\Tests\TestApplication\Repository\CustomerRepository
+
+sylius_order:
+    resources:
+        order:
+            classes:
+                model: Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity\Order
+                repository: Setono\SyliusGiftCardPlugin\Tests\TestApplication\Repository\OrderRepository
+        order_item:
+            classes:
+                model: Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity\OrderItem
+        order_item_unit:
+            classes:
+                model: Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity\OrderItemUnit
+
+sylius_product:
+    resources:
+        product:
+            classes:
+                model: Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity\Product
+
+when@test:
+    setono_sylius_gift_card:
+        pdf_rendering:
+            default_orientation: 'Landscape'
+            available_orientations:
+                - Landscape
+            default_page_size: 'B0'
+            available_page_sizes:
+                - A5
+                - B0
+
+    sylius_theme:
+        sources:
+            test: ~
+
+# Remove if you do not need to extend entities
+doctrine:
+    orm:
+        entity_managers:
+            default:
+                mappings:
+                    TestApplication:
+                        is_bundle: false
+                        type: attribute
+                        dir: '%kernel.project_dir%/../../../tests/TestApplication/Entity'
+                        prefix: Setono\SyliusGiftCardPlugin\Tests\TestApplication\Entity

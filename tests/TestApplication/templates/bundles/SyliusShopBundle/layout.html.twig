@@ -1,0 +1,18 @@
+{# @see https://symfony.com/blog/new-in-symfony-3-4-improved-the-overriding-of-templates#overriding-and-extending-templates #}
+{% extends '@!SyliusShop/layout.html.twig' %}
+
+{% block header %}
+    <header>
+        {% include '@SyliusShop/_header.html.twig' %}
+
+        {{ sylius_template_event('sylius.shop.layout.after_header') }}
+
+        <div class="ui large stackable menu">
+            {{ render(url('sylius_shop_partial_taxon_index_by_code', {'code': 'category', 'template': '@SyliusShop/Taxon/_horizontalMenu.html.twig'})) }}
+
+            <a href="{{ path('setono_sylius_gift_card_shop_search_gift_card') }}" class="item">
+                {{ 'setono_sylius_gift_card.ui.gift_card_search'|trans }}
+            </a>
+        </div>
+    </header>
+{% endblock %}
