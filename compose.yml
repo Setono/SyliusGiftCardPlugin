@@ -14,7 +14,7 @@ services:
         cap_add:
             - SYS_NICE # prevent "mbind: Operation not permitted" errors
         ports:
-            - ${MYSQL_PORT:-3306}:3306
+            - ${MYSQL_PORT:-33062}:3306
         volumes:
             - setono-sylius-gift-card-plugin-mysql-data:/var/lib/mysql:rw
     nginx:

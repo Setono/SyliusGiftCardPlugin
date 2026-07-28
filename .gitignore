@@ -1,19 +1,20 @@
 /vendor/
+/var/
 /node_modules/
 /composer.lock
-/var/
+/docker/
 
 /etc/build/*
 !/etc/build/.gitignore
 
-/tests/Application/yarn.lock
-
-/behat.yml
-/phpspec.yml
 /.phpunit.result.cache
-.php-version
-
+/behat.yml
+/behat.sh
+/phpspec.yml
 /compose.override.yml
+/compose.test.yml
+
+/.php-version
 /php.ini
 
 /tests/TestApplication/.env.local
