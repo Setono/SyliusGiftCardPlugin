@@ -6,14 +6,16 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Behat\Context\Setup;
 
 use Behat\Behat\Context\Context;
 use Doctrine\Persistence\ObjectManager;
-use Setono\SyliusGiftCardPlugin\Api\Command\AddGiftCardToOrder;
+use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Repository\OrderRepositoryInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
+use Webmozart\Assert\Assert;
 
 final class GiftCardContext implements Context
 {
@@ -25,20 +27,24 @@ final class GiftCardContext implements Context
 
     private ObjectManager $productManager;
 
-    private MessageBusInterface $messageBus;
+    private OrderRepositoryInterface $orderRepository;
+
+    private GiftCardApplicatorInterface $giftCardApplicator;
 
     public function __construct(
         SharedStorageInterface $sharedStorage,
         GiftCardRepositoryInterface $giftCardRepository,
         GiftCardFactoryInterface $giftCardFactory,
         ObjectManager $productManager,
-        MessageBusInterface $messageBus,
+        OrderRepositoryInterface $orderRepository,
+        GiftCardApplicatorInterface $giftCardApplicator,
     ) {
         $this->sharedStorage = $sharedStorage;
         $this->giftCardRepository = $giftCardRepository;
         $this->giftCardFactory = $giftCardFactory;
         $this->productManager = $productManager;
-        $this->messageBus = $messageBus;
+        $this->orderRepository = $orderRepository;
+        $this->giftCardApplicator = $giftCardApplicator;
     }
 
     /**
@@ -116,8 +122,11 @@ final class GiftCardContext implements Context
     public function iApplyGiftCardToOrder(string $code): void
     {
         $cartToken = $this->sharedStorage->get('cart_token');
-        $message = new AddGiftCardToOrder($cartToken);
-        $message->setGiftCardCode($code);
-        $this->messageBus->dispatch($message);
+
+        /** @var OrderInterface|null $order */
+        $order = $this->orderRepository->findOneBy(['tokenValue' => $cartToken]);
+        Assert::notNull($order);
+
+        $this->giftCardApplicator->apply($order, $code);
     }
 }
