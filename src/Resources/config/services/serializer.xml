@@ -7,7 +7,7 @@
         <service id="setono_sylius_gift_card.serializer.normalizer.gift_card"
                  class="Setono\SyliusGiftCardPlugin\Serializer\Normalizer\GiftCardNormalizer">
             <argument type="service" id="serializer.normalizer.object"/>
-            <argument type="service" id="sylius.money_formatter"/>
+            <argument type="service" id="sylius.formatter.money"/>
 
             <tag name="serializer.normalizer"/>
         </service>

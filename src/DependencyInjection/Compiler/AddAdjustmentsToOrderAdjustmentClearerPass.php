@@ -7,23 +7,20 @@ namespace Setono\SyliusGiftCardPlugin\DependencyInjection\Compiler;
 use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Webmozart\Assert\Assert;
 
 final class AddAdjustmentsToOrderAdjustmentClearerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        if (!$container->has('sylius.order_processing.order_adjustments_clearer')) {
+        if (!$container->hasParameter('sylius.order_processing.adjustment_clearing_types')) {
             return;
         }
 
-        $clearerDefinition = $container->getDefinition('sylius.order_processing.order_adjustments_clearer');
-
-        $adjustmentsToRemove = $clearerDefinition->getArgument(0);
-        Assert::isArray($adjustmentsToRemove);
+        $adjustmentsToRemove = $container->getParameter('sylius.order_processing.adjustment_clearing_types');
+        \assert(\is_array($adjustmentsToRemove));
 
         $adjustmentsToRemove[] = AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT;
 
-        $clearerDefinition->setArgument(0, $adjustmentsToRemove);
+        $container->setParameter('sylius.order_processing.adjustment_clearing_types', $adjustmentsToRemove);
     }
 }
