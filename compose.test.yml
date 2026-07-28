@@ -1,0 +1,4 @@
+services:
+    php:
+        environment:
+            APP_ENV: test

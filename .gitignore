@@ -12,3 +12,9 @@
 /phpspec.yml
 /.phpunit.result.cache
 .php-version
+
+/compose.override.yml
+/php.ini
+
+/tests/TestApplication/.env.local
+/tests/TestApplication/.env.*.local
