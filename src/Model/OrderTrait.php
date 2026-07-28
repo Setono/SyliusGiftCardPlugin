@@ -15,9 +15,7 @@ use Sylius\Component\Core\Model\Order;
  */
 trait OrderTrait
 {
-    /**
-     * @var Collection<int, GiftCardInterface>
-     */
+    /** @var Collection<int, GiftCardInterface> */
     #[ORM\ManyToMany(targetEntity: GiftCardInterface::class, inversedBy: 'appliedOrders')]
     #[ORM\JoinTable(name: 'setono_sylius_gift_card__order_gift_cards')]
     #[ORM\JoinColumn(name: 'order_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
