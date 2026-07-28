@@ -25,12 +25,41 @@
         <service id="setono_sylius_gift_card.listener.gift_card_configuration_images_upload"
                  class="Sylius\Bundle\CoreBundle\EventListener\ImagesUploadListener"
                  parent="sylius.listener.images_upload">
-            <argument type="service" id="sylius.image_uploader"/>
+            <argument type="service" id="sylius.uploader.image"/>
 
             <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_configuration.pre_create"
                  method="uploadImages"/>
             <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_configuration.pre_update"
                  method="uploadImages"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.listener.workflow.decrement_gift_card_amount"
+                 class="Setono\SyliusGiftCardPlugin\EventListener\Workflow\DecrementGiftCardAmountListener">
+            <argument type="service" id="setono_sylius_gift_card.modifier.order_gift_card_amount"/>
+
+            <tag name="kernel.event_listener" event="workflow.sylius_order.completed.create"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.listener.workflow.cancel_order_gift_card"
+                 class="Setono\SyliusGiftCardPlugin\EventListener\Workflow\CancelOrderGiftCardListener">
+            <argument type="service" id="setono_sylius_gift_card.modifier.order_gift_card_amount"/>
+            <argument type="service" id="setono_sylius_gift_card.operator.order_gift_card"/>
+
+            <tag name="kernel.event_listener" event="workflow.sylius_order.completed.cancel"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.listener.workflow.associate_gift_card_to_customer"
+                 class="Setono\SyliusGiftCardPlugin\EventListener\Workflow\AssociateGiftCardToCustomerListener">
+            <argument type="service" id="setono_sylius_gift_card.operator.order_gift_card"/>
+
+            <tag name="kernel.event_listener" event="workflow.sylius_order_checkout.completed.complete"/>
+        </service>
+
+        <service id="setono_sylius_gift_card.listener.workflow.enable_and_send_gift_card"
+                 class="Setono\SyliusGiftCardPlugin\EventListener\Workflow\EnableAndSendGiftCardListener">
+            <argument type="service" id="setono_sylius_gift_card.operator.order_gift_card"/>
+
+            <tag name="kernel.event_listener" event="workflow.sylius_order_payment.completed.pay"/>
         </service>
     </services>
 </container>

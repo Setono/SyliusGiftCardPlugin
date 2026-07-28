@@ -16,4 +16,6 @@ interface OrderGiftCardOperatorInterface
     public function enable(OrderInterface $order): void;
 
     public function disable(OrderInterface $order): void;
+
+    public function send(OrderInterface $order): void;
 }
