@@ -1,7 +1,11 @@
-sylius_ui:
-    events:
-        sylius.shop.product.show.add_to_cart_form:
-            blocks:
-                setono_sylius_gift_card_information:
-                    template: '@SetonoSyliusGiftCardPlugin/Shop/Product/Show/_addToCartGiftCardInformation.html.twig'
-                    priority: 10
+sylius_twig_hooks:
+    hooks:
+        'sylius_shop.product.show.content.info.summary.add_to_cart':
+            setono_sylius_gift_card_information:
+                template: '@SetonoSyliusGiftCardPlugin/Shop/Product/Show/_addToCartGiftCardInformation.html.twig'
+                priority: 50
+
+        'sylius_shop.cart.index.content.form.sections.general.summary':
+            setono_sylius_gift_card_applied_gift_cards:
+                template: '@SetonoSyliusGiftCardPlugin/Shop/Cart/Summary/_appliedGiftCards.html.twig'
+                priority: 150
