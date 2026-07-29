@@ -110,8 +110,9 @@
 
         <service id="setono_sylius_gift_card.form.type.customer_autocomplete_choice"
                  class="Setono\SyliusGiftCardPlugin\Form\Type\CustomerAutocompleteChoiceType">
-            <argument type="service" id="router"/>
+            <argument>%sylius.model.customer.class%</argument>
             <tag name="form.type"/>
+            <tag name="ux.entity_autocomplete_field"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Form\Type\Rule\HasNoGiftCardConfigurationType">
