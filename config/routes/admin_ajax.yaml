@@ -1,30 +1,3 @@
-setono_sylius_gift_card_admin_ajax_customer_by_email_phrase:
-    path: /customer/search
-    methods: [GET]
-    defaults:
-        _controller: sylius.controller.customer::indexAction
-        _format: json
-        _sylius:
-            serialization_groups: [Default]
-            permission: true
-            repository:
-                method: findByEmailPartForGiftCard
-                arguments:
-                    email: $phrase
-
-setono_sylius_gift_card_admin_ajax_customer_by_email:
-    path: /customer/email
-    methods: [GET]
-    defaults:
-        _controller: sylius.controller.customer::indexAction
-        _format: json
-        _sylius:
-            serialization_groups: [Default]
-            permission: true
-            repository:
-                method: findBy
-                arguments: [email: $email]
-
 setono_sylius_gift_card_admin_ajax_generate_pdf:
     path: /gift-card-configurations/{id}/generate-encoded-example-pdf
     methods: [ PUT ]
