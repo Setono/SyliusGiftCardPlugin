@@ -9,5 +9,6 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 
 interface GiftCardConfigurationFactoryInterface extends FactoryInterface
 {
+    #[\Override]
     public function createNew(): GiftCardConfigurationInterface;
 }

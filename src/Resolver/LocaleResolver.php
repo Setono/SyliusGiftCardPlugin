@@ -24,6 +24,7 @@ final class LocaleResolver implements LocaleResolverInterface
         $this->channelRepository = $channelRepository;
     }
 
+    #[\Override]
     public function resolveFromCustomer(CustomerInterface $customer): string
     {
         $latestOrder = $this->orderRepository->findLatestByCustomer($customer);
@@ -34,6 +35,7 @@ final class LocaleResolver implements LocaleResolverInterface
         return $this->resolve();
     }
 
+    #[\Override]
     public function resolveFromOrder(OrderInterface $order): string
     {
         $localeCode = $order->getLocaleCode();
@@ -49,6 +51,7 @@ final class LocaleResolver implements LocaleResolverInterface
         return $this->resolve();
     }
 
+    #[\Override]
     public function resolveFromChannel(ChannelInterface $channel): string
     {
         return $this->_resolveFromChannel($channel) ?? $this->resolve();

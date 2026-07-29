@@ -22,6 +22,7 @@ final class DefaultGiftCardConfigurationMustExistValidator extends ConstraintVal
     /**
      * @param mixed $value
      */
+    #[\Override]
     public function validate($value, Constraint $constraint): void
     {
         if (!$constraint instanceof DefaultGiftCardConfigurationMustExist) {

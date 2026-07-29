@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Provider;
 
 final class DefaultGiftCardTemplateContentProvider implements DefaultGiftCardTemplateContentProviderInterface
 {
+    #[\Override]
     public function getContent(): string
     {
         return <<<TWIG

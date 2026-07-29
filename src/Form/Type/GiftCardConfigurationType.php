@@ -44,6 +44,7 @@ final class GiftCardConfigurationType extends AbstractResourceType
         $this->preferredPageSizes = $preferredPageSizes;
     }
 
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add('code', TextType::class, [
@@ -119,6 +120,7 @@ final class GiftCardConfigurationType extends AbstractResourceType
         );
     }
 
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return 'setono_sylius_gift_card_gift_card_configuration';

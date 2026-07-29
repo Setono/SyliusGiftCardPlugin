@@ -30,6 +30,7 @@ final class GiftCardConfigurationFactory implements GiftCardConfigurationFactory
         $this->defaultPageSize = $defaultPageSize;
     }
 
+    #[\Override]
     public function createNew(): GiftCardConfigurationInterface
     {
         /** @var GiftCardConfigurationInterface $configuration */

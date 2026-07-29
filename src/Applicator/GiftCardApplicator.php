@@ -29,6 +29,7 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
     /**
      * @param string|GiftCardInterface $giftCard
      */
+    #[\Override]
     public function apply(OrderInterface $order, $giftCard): void
     {
         if (is_string($giftCard)) {
@@ -65,6 +66,7 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
     /**
      * @param string|GiftCardInterface $giftCard
      */
+    #[\Override]
     public function remove(OrderInterface $order, $giftCard): void
     {
         if (is_string($giftCard)) {

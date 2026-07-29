@@ -50,6 +50,7 @@ final class PdfRenderer implements PdfRendererInterface
         $this->normalizer = $normalizer;
     }
 
+    #[\Override]
     public function render(
         GiftCardInterface $giftCard,
         GiftCardConfigurationInterface $giftCardConfiguration = null,

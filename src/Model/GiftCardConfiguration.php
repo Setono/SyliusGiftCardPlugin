@@ -47,26 +47,31 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         $this->channelConfigurations = new ArrayCollection();
     }
 
+    #[\Override]
     public function getId(): ?int
     {
         return $this->id;
     }
 
+    #[\Override]
     public function getCode(): ?string
     {
         return $this->code;
     }
 
+    #[\Override]
     public function setCode(?string $code): void
     {
         $this->code = $code;
     }
 
+    #[\Override]
     public function getImages(): Collection
     {
         return $this->images;
     }
 
+    #[\Override]
     public function getImagesByType(string $type): Collection
     {
         return $this->images->filter(function (ImageInterface $image) use ($type): bool {
@@ -74,16 +79,19 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         });
     }
 
+    #[\Override]
     public function hasImages(): bool
     {
         return !$this->getImages()->isEmpty();
     }
 
+    #[\Override]
     public function hasImage(ImageInterface $image): bool
     {
         return $this->getImages()->contains($image);
     }
 
+    #[\Override]
     public function addImage(ImageInterface $image): void
     {
         if (!$this->hasImage($image)) {
@@ -92,6 +100,7 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         }
     }
 
+    #[\Override]
     public function removeImage(ImageInterface $image): void
     {
         if ($this->hasImage($image)) {
@@ -100,6 +109,7 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         }
     }
 
+    #[\Override]
     public function getBackgroundImage(): ?GiftCardConfigurationImageInterface
     {
         $images = $this->getImagesByType(GiftCardConfigurationImageInterface::TYPE_BACKGROUND);
@@ -113,6 +123,7 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         return $image;
     }
 
+    #[\Override]
     public function setBackgroundImage(?GiftCardConfigurationImageInterface $image): void
     {
         $actualImage = $this->getBackgroundImage();
@@ -130,21 +141,25 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         $this->addImage($image);
     }
 
+    #[\Override]
     public function getChannelConfigurations(): Collection
     {
         return $this->channelConfigurations;
     }
 
+    #[\Override]
     public function hasChannelConfigurations(): bool
     {
         return !$this->channelConfigurations->isEmpty();
     }
 
+    #[\Override]
     public function hasChannelConfiguration(GiftCardChannelConfigurationInterface $channelConfiguration): bool
     {
         return $this->channelConfigurations->contains($channelConfiguration);
     }
 
+    #[\Override]
     public function addChannelConfiguration(GiftCardChannelConfigurationInterface $channelConfiguration): void
     {
         if (!$this->hasChannelConfiguration($channelConfiguration)) {
@@ -153,6 +168,7 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         }
     }
 
+    #[\Override]
     public function removeChannelConfiguration(GiftCardChannelConfigurationInterface $channelConfiguration): void
     {
         if ($this->hasChannelConfiguration($channelConfiguration)) {
@@ -161,51 +177,61 @@ class GiftCardConfiguration implements GiftCardConfigurationInterface
         }
     }
 
+    #[\Override]
     public function isDefault(): bool
     {
         return $this->default;
     }
 
+    #[\Override]
     public function setDefault(bool $default): void
     {
         $this->default = $default;
     }
 
+    #[\Override]
     public function getDefaultValidityPeriod(): ?string
     {
         return $this->defaultValidityPeriod;
     }
 
+    #[\Override]
     public function setDefaultValidityPeriod(?string $defaultValidityPeriod): void
     {
         $this->defaultValidityPeriod = $defaultValidityPeriod;
     }
 
+    #[\Override]
     public function getPageSize(): ?string
     {
         return $this->pageSize;
     }
 
+    #[\Override]
     public function setPageSize(?string $pageSize): void
     {
         $this->pageSize = $pageSize;
     }
 
+    #[\Override]
     public function getOrientation(): ?string
     {
         return $this->orientation;
     }
 
+    #[\Override]
     public function setOrientation(?string $orientation): void
     {
         $this->orientation = $orientation;
     }
 
+    #[\Override]
     public function getTemplate(): ?string
     {
         return $this->template;
     }
 
+    #[\Override]
     public function setTemplate(?string $template): void
     {
         $this->template = $template;

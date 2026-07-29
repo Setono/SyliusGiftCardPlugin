@@ -34,6 +34,7 @@ final class OrderGiftCardProcessor implements OrderProcessorInterface
     /**
      * @param BaseOrderInterface|OrderInterface $order
      */
+    #[\Override]
     public function process(BaseOrderInterface $order): void
     {
         Assert::isInstanceOf($order, OrderInterface::class);

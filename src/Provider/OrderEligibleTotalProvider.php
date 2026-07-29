@@ -9,6 +9,7 @@ use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 
 final class OrderEligibleTotalProvider implements OrderEligibleTotalProviderInterface
 {
+    #[\Override]
     public function getEligibleTotal(OrderInterface $order, GiftCardInterface $giftCard): int
     {
         return $order->getTotal();

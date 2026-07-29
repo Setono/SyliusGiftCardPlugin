@@ -20,6 +20,7 @@ final class CustomerAutocompleteChoiceType extends AbstractType
         $this->urlGenerator = $urlGenerator;
     }
 
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
@@ -29,6 +30,7 @@ final class CustomerAutocompleteChoiceType extends AbstractType
         ]);
     }
 
+    #[\Override]
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
         $view->vars['remote_criteria_type'] = 'contains';
@@ -37,11 +39,13 @@ final class CustomerAutocompleteChoiceType extends AbstractType
         $view->vars['load_edit_url'] = $this->urlGenerator->generate('setono_sylius_gift_card_admin_ajax_customer_by_email');
     }
 
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return 'setono_sylius_gift_card_customer_autocomplete_choice';
     }
 
+    #[\Override]
     public function getParent(): string
     {
         return ResourceAutocompleteChoiceType::class;

@@ -33,6 +33,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         $this->giftCardOrderEmailManager = $giftCardOrderEmailManager;
     }
 
+    #[\Override]
     public function associateToCustomer(OrderInterface $order): void
     {
         $items = self::getOrderItemsThatAreGiftCards($order);
@@ -58,6 +59,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         $this->giftCardManager->flush();
     }
 
+    #[\Override]
     public function enable(OrderInterface $order): void
     {
         $giftCards = $this->getGiftCards($order);
@@ -77,6 +79,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
      * Calls when Order this GiftCardCode was bought at
      * become cancelled
      */
+    #[\Override]
     public function disable(OrderInterface $order): void
     {
         $giftCards = $this->getGiftCards($order);
@@ -92,6 +95,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         $this->giftCardManager->flush();
     }
 
+    #[\Override]
     public function send(OrderInterface $order): void
     {
         $giftCards = $this->getGiftCards($order);

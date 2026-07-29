@@ -28,6 +28,7 @@ final class GiftCardNormalizer implements NormalizerInterface
      * @param GiftCardInterface|mixed $data
      * @param array<string, mixed> $context
      */
+    #[\Override]
     public function normalize($data, ?string $format = null, array $context = []): array
     {
         Assert::isInstanceOf($data, GiftCardInterface::class);
@@ -48,6 +49,7 @@ final class GiftCardNormalizer implements NormalizerInterface
         return $data;
     }
 
+    #[\Override]
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
     {
         $groups = (array) ($context['groups'] ?? []);
@@ -55,6 +57,7 @@ final class GiftCardNormalizer implements NormalizerInterface
         return $data instanceof GiftCardInterface && in_array('setono:sylius-gift-card:render', $groups, true);
     }
 
+    #[\Override]
     public function getSupportedTypes(?string $format): array
     {
         return [

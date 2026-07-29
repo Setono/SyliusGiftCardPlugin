@@ -7,13 +7,13 @@ namespace Setono\SyliusGiftCardPlugin\Order;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 
-class AddToCartCommand implements AddToCartCommandInterface
+final class AddToCartCommand implements AddToCartCommandInterface
 {
-    protected OrderInterface $cart;
+    private OrderInterface $cart;
 
-    protected OrderItemInterface $cartItem;
+    private OrderItemInterface $cartItem;
 
-    protected GiftCardInformationInterface $giftCardInformation;
+    private GiftCardInformationInterface $giftCardInformation;
 
     public function __construct(
         OrderInterface $cart,
@@ -25,16 +25,19 @@ class AddToCartCommand implements AddToCartCommandInterface
         $this->giftCardInformation = $giftCardInformation;
     }
 
+    #[\Override]
     public function getCart(): OrderInterface
     {
         return $this->cart;
     }
 
+    #[\Override]
     public function getCartItem(): OrderItemInterface
     {
         return $this->cartItem;
     }
 
+    #[\Override]
     public function getGiftCardInformation(): GiftCardInformationInterface
     {
         return $this->giftCardInformation;

@@ -45,6 +45,7 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
         $this->cacheDir = $cacheDir;
     }
 
+    #[\Override]
     public function sendEmailToCustomerWithGiftCard(CustomerInterface $customer, GiftCardInterface $giftCard): void
     {
         $email = $customer->getEmail();
@@ -72,6 +73,7 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
         });
     }
 
+    #[\Override]
     public function sendEmailWithGiftCardsFromOrder(OrderInterface $order, array $giftCards): void
     {
         $customer = $order->getCustomer();

@@ -20,6 +20,7 @@ final class ValidPageSizeValidator extends ConstraintValidator
     /**
      * @param mixed $value
      */
+    #[\Override]
     public function validate($value, Constraint $constraint): void
     {
         if (!$constraint instanceof ValidPageSize) {

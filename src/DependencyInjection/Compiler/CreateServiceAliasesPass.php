@@ -10,6 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class CreateServiceAliasesPass implements CompilerPassInterface
 {
+    #[\Override]
     public function process(ContainerBuilder $container): void
     {
         // if this service is already defined, we don't need to do anything. It means the Sylius version is < 1.11

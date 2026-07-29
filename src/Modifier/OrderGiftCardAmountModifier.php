@@ -15,6 +15,7 @@ use function sprintf;
  */
 final class OrderGiftCardAmountModifier implements OrderGiftCardAmountModifierInterface
 {
+    #[\Override]
     public function decrement(OrderInterface $order): void
     {
         foreach ($order->getAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT) as $adjustment) {
@@ -35,6 +36,7 @@ final class OrderGiftCardAmountModifier implements OrderGiftCardAmountModifierIn
         }
     }
 
+    #[\Override]
     public function increment(OrderInterface $order): void
     {
         foreach ($order->getAdjustments(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT) as $adjustment) {

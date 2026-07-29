@@ -10,6 +10,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class GiftCardConfigurationImageType extends ImageType
 {
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         parent::buildForm($builder, $options);
@@ -19,6 +20,7 @@ final class GiftCardConfigurationImageType extends ImageType
         }
     }
 
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
         parent::configureOptions($resolver);
@@ -27,6 +29,7 @@ final class GiftCardConfigurationImageType extends ImageType
         $resolver->setAllowedTypes('remove_type', ['bool']);
     }
 
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return 'setono_sylius_gift_card_gift_card_configuration_image';

@@ -28,6 +28,7 @@ final class GiftCardToCodeDataTransformer implements DataTransformerInterface
     /**
      * @param GiftCardInterface|mixed $value
      */
+    #[\Override]
     public function transform($value): ?string
     {
         if (null === $value || '' === $value) {
@@ -39,6 +40,7 @@ final class GiftCardToCodeDataTransformer implements DataTransformerInterface
         return $value->getCode();
     }
 
+    #[\Override]
     public function reverseTransform($value): ?GiftCardInterface
     {
         if (null === $value || '' === $value) {

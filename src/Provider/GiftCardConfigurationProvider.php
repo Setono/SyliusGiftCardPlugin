@@ -45,6 +45,7 @@ final class GiftCardConfigurationProvider implements GiftCardConfigurationProvid
         $this->managerRegistry = $managerRegistry;
     }
 
+    #[\Override]
     public function getConfiguration(BaseChannelInterface $channel, LocaleInterface $locale): GiftCardConfigurationInterface
     {
         $configuration = $this->giftCardConfigurationRepository->findOneByChannelAndLocale($channel, $locale);
@@ -70,6 +71,7 @@ final class GiftCardConfigurationProvider implements GiftCardConfigurationProvid
         return $configuration;
     }
 
+    #[\Override]
     public function getConfigurationForGiftCard(GiftCardInterface $giftCard): GiftCardConfigurationInterface
     {
         $channel = $giftCard->getChannel();

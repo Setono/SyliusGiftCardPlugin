@@ -22,6 +22,7 @@ final class DefaultGiftCardConfigurationSubscriber implements EventSubscriberInt
         $this->giftCardConfigurationRepository = $giftCardConfigurationRepository;
     }
 
+    #[\Override]
     public static function getSubscribedEvents(): array
     {
         return [

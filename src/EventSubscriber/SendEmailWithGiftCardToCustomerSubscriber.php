@@ -23,6 +23,7 @@ final class SendEmailWithGiftCardToCustomerSubscriber implements EventSubscriber
         $this->giftCardEmailManager = $giftCardEmailManager;
     }
 
+    #[\Override]
     public static function getSubscribedEvents(): array
     {
         return [

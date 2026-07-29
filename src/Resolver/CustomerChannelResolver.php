@@ -23,6 +23,7 @@ final class CustomerChannelResolver implements CustomerChannelResolverInterface
         $this->channelRepository = $channelRepository;
     }
 
+    #[\Override]
     public function resolve(CustomerInterface $customer): ChannelInterface
     {
         $latestOrder = $this->orderRepository->findLatestByCustomer($customer);

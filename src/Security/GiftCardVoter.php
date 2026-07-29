@@ -17,6 +17,7 @@ final class GiftCardVoter extends Voter
 {
     public const READ = 'read';
 
+    #[\Override]
     protected function supports(mixed $attribute, mixed $subject): bool
     {
         if (self::READ !== $attribute) {
@@ -30,6 +31,7 @@ final class GiftCardVoter extends Voter
         return true;
     }
 
+    #[\Override]
     protected function voteOnAttribute(mixed $attribute, mixed $subject, TokenInterface $token): bool
     {
         Assert::isInstanceOf($subject, GiftCardInterface::class);

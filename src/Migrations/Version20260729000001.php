@@ -9,11 +9,13 @@ use Doctrine\Migrations\AbstractMigration;
 
 final class Version20260729000001 extends AbstractMigration
 {
+    #[\Override]
     public function getDescription(): string
     {
         return 'Create gift card tables and add gift card columns to sylius_product';
     }
 
+    #[\Override]
     public function up(Schema $schema): void
     {
         $this->addSql('CREATE TABLE setono_sylius_gift_card__configuration (id INT AUTO_INCREMENT NOT NULL, code VARCHAR(255) NOT NULL, enabled TINYINT(1) NOT NULL, is_default TINYINT(1) DEFAULT 0 NOT NULL, defaultValidityPeriod VARCHAR(255) DEFAULT NULL, pageSize VARCHAR(255) DEFAULT NULL, orientation VARCHAR(255) DEFAULT NULL, template LONGTEXT NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME DEFAULT NULL, UNIQUE INDEX UNIQ_ADC64AD077153098 (code), PRIMARY KEY(id)) DEFAULT CHARACTER SET UTF8 COLLATE `UTF8_unicode_ci` ENGINE = InnoDB');
@@ -35,6 +37,7 @@ final class Version20260729000001 extends AbstractMigration
         $this->addSql('ALTER TABLE sylius_product ADD giftCard TINYINT(1) DEFAULT 0 NOT NULL, ADD giftCardAmountConfigurable TINYINT(1) DEFAULT 0 NOT NULL');
     }
 
+    #[\Override]
     public function down(Schema $schema): void
     {
         $this->addSql('ALTER TABLE sylius_product DROP giftCard, DROP giftCardAmountConfigurable');

@@ -12,6 +12,7 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 
 interface GiftCardFactoryInterface extends FactoryInterface
 {
+    #[\Override]
     public function createNew(): GiftCardInterface;
 
     public function createForChannel(ChannelInterface $channel): GiftCardInterface;

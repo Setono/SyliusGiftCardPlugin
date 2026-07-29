@@ -42,6 +42,7 @@ final class GiftCardType extends AbstractResourceType
         $this->giftCardCodeGenerator = $giftCardCodeGenerator;
     }
 
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->addEventSubscriber(new AddCodeFormSubscriber());
@@ -118,10 +119,11 @@ final class GiftCardType extends AbstractResourceType
                 return null;
             }
 
-            return (int) round($amount * 100);
+            return (int) round($amount * 100.0);
         }));
     }
 
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return 'setono_sylius_gift_card_gift_card';

@@ -10,6 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class AddAdjustmentsToOrderAdjustmentClearerPass implements CompilerPassInterface
 {
+    #[\Override]
     public function process(ContainerBuilder $container): void
     {
         if (!$container->hasParameter('sylius.order_processing.adjustment_clearing_types')) {

@@ -34,6 +34,7 @@ final class GiftCardConfigurationNormalizer implements NormalizerInterface
      * @param GiftCardConfigurationInterface|mixed $data
      * @param array<string, mixed> $context
      */
+    #[\Override]
     public function normalize($data, ?string $format = null, array $context = []): array
     {
         Assert::isInstanceOf($data, GiftCardConfigurationInterface::class);
@@ -68,6 +69,7 @@ final class GiftCardConfigurationNormalizer implements NormalizerInterface
         return $data;
     }
 
+    #[\Override]
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
     {
         $groups = (array) ($context['groups'] ?? []);
@@ -79,6 +81,7 @@ final class GiftCardConfigurationNormalizer implements NormalizerInterface
         );
     }
 
+    #[\Override]
     public function getSupportedTypes(?string $format): array
     {
         return [

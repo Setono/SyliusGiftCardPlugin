@@ -60,31 +60,37 @@ class GiftCard implements GiftCardInterface
         return (string) $this->code;
     }
 
+    #[\Override]
     public function getCode(): ?string
     {
         return $this->code;
     }
 
+    #[\Override]
     public function setCode(?string $code): void
     {
         $this->code = $code;
     }
 
+    #[\Override]
     public function getId(): ?int
     {
         return $this->id;
     }
 
+    #[\Override]
     public function isDeletable(): bool
     {
         return null === $this->orderItemUnit;
     }
 
+    #[\Override]
     public function getOrderItemUnit(): ?OrderItemUnitInterface
     {
         return $this->orderItemUnit;
     }
 
+    #[\Override]
     public function setOrderItemUnit(OrderItemUnitInterface $orderItemUnit): void
     {
         if ($this->orderItemUnit === $orderItemUnit) {
@@ -96,6 +102,7 @@ class GiftCard implements GiftCardInterface
         $orderItemUnit->setGiftCard($this);
     }
 
+    #[\Override]
     public function getOrder(): ?OrderInterface
     {
         $orderItemUnit = $this->getOrderItemUnit();
@@ -112,21 +119,25 @@ class GiftCard implements GiftCardInterface
         return $order;
     }
 
+    #[\Override]
     public function getCustomer(): ?CustomerInterface
     {
         return $this->customer;
     }
 
+    #[\Override]
     public function setCustomer(?CustomerInterface $customer): void
     {
         $this->customer = $customer;
     }
 
+    #[\Override]
     public function getInitialAmount(): ?int
     {
         return $this->initialAmount;
     }
 
+    #[\Override]
     public function setInitialAmount(int $initialAmount): void
     {
         if (null !== $this->initialAmount) {
@@ -136,11 +147,13 @@ class GiftCard implements GiftCardInterface
         $this->initialAmount = $initialAmount;
     }
 
+    #[\Override]
     public function getAmount(): int
     {
         return $this->amount;
     }
 
+    #[\Override]
     public function setAmount(int $amount): void
     {
         if (null === $this->initialAmount) {
@@ -150,16 +163,19 @@ class GiftCard implements GiftCardInterface
         $this->amount = $amount;
     }
 
+    #[\Override]
     public function getAppliedOrders(): Collection
     {
         return $this->appliedOrders;
     }
 
+    #[\Override]
     public function hasAppliedOrders(): bool
     {
         return !$this->getAppliedOrders()->isEmpty();
     }
 
+    #[\Override]
     public function hasAppliedCompletedOrders(): bool
     {
         foreach ($this->appliedOrders as $appliedOrder) {
@@ -171,6 +187,7 @@ class GiftCard implements GiftCardInterface
         return false;
     }
 
+    #[\Override]
     public function addAppliedOrder(OrderInterface $order): void
     {
         if (!$this->hasAppliedOrder($order)) {
@@ -178,6 +195,7 @@ class GiftCard implements GiftCardInterface
         }
     }
 
+    #[\Override]
     public function removeAppliedOrder(OrderInterface $order): void
     {
         if ($this->hasAppliedOrder($order)) {
@@ -185,31 +203,37 @@ class GiftCard implements GiftCardInterface
         }
     }
 
+    #[\Override]
     public function hasAppliedOrder(OrderInterface $order): bool
     {
         return $this->appliedOrders->contains($order);
     }
 
+    #[\Override]
     public function getCurrencyCode(): ?string
     {
         return $this->currencyCode;
     }
 
+    #[\Override]
     public function setCurrencyCode(string $currencyCode): void
     {
         $this->currencyCode = $currencyCode;
     }
 
+    #[\Override]
     public function getChannel(): ?ChannelInterface
     {
         return $this->channel;
     }
 
+    #[\Override]
     public function setChannel(ChannelInterface $channel): void
     {
         $this->channel = $channel;
     }
 
+    #[\Override]
     public function getCustomerIdentification(): ?array
     {
         $customer = $this->getCustomer();
@@ -223,6 +247,7 @@ class GiftCard implements GiftCardInterface
         ];
     }
 
+    #[\Override]
     public function getOrderIdentification(): ?array
     {
         $order = $this->getOrder();
@@ -244,6 +269,7 @@ class GiftCard implements GiftCardInterface
         ];
     }
 
+    #[\Override]
     public function getChannelCode(): ?string
     {
         $channel = $this->getChannel();
@@ -254,41 +280,49 @@ class GiftCard implements GiftCardInterface
         return $channel->getCode();
     }
 
+    #[\Override]
     public function hasOrderOrCustomer(): bool
     {
         return null !== $this->getCustomer() || null !== $this->getOrder();
     }
 
+    #[\Override]
     public function getCustomMessage(): ?string
     {
         return $this->customMessage;
     }
 
+    #[\Override]
     public function setCustomMessage(?string $customMessage): void
     {
         $this->customMessage = $customMessage;
     }
 
+    #[\Override]
     public function setOrigin(?string $origin): void
     {
         $this->origin = $origin;
     }
 
+    #[\Override]
     public function getOrigin(): ?string
     {
         return $this->origin;
     }
 
+    #[\Override]
     public function getExpiresAt(): ?DateTimeInterface
     {
         return $this->expiresAt;
     }
 
+    #[\Override]
     public function setExpiresAt(?DateTimeInterface $expiresAt): void
     {
         $this->expiresAt = $expiresAt;
     }
 
+    #[\Override]
     public function isExpired(DateTimeInterface $date = null): bool
     {
         if (null === $date) {
@@ -303,11 +337,13 @@ class GiftCard implements GiftCardInterface
         return $date > $giftCardValidUntil;
     }
 
+    #[\Override]
     public function getSendNotificationEmail(): bool
     {
         return $this->sendNotificationEmail;
     }
 
+    #[\Override]
     public function setSendNotificationEmail(bool $sendNotificationEmail = true): void
     {
         $this->sendNotificationEmail = $sendNotificationEmail;

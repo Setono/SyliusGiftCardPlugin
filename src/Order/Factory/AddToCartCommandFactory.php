@@ -27,6 +27,7 @@ final class AddToCartCommandFactory implements AddToCartCommandFactoryInterface
         $this->giftCardInformationFactory = $giftCardInformationFactory;
     }
 
+    #[\Override]
     public function createWithCartAndCartItem(OrderInterface $cart, OrderItemInterface $cartItem): AddToCartCommandInterface
     {
         return new $this->className($cart, $cartItem, $this->giftCardInformationFactory->createNew($cartItem));

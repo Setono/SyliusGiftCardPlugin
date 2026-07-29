@@ -10,6 +10,7 @@ final class DefaultGiftCardConfigurationMustExist extends Constraint
 {
     public string $message = 'setono_sylius_gift_card.gift_card_configuration.default_configuration_must_exist';
 
+    #[\Override]
     public function getTargets(): array
     {
         return [self::CLASS_CONSTRAINT];

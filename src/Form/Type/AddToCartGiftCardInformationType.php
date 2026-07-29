@@ -45,6 +45,7 @@ final class AddToCartGiftCardInformationType extends AbstractType
         $this->channelContext = $channelContext;
     }
 
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($options): void {
@@ -84,6 +85,7 @@ final class AddToCartGiftCardInformationType extends AbstractType
         ]);
     }
 
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefault('data_class', $this->dataClass);

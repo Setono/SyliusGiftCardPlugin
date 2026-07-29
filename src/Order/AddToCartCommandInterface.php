@@ -10,8 +10,10 @@ use Sylius\Component\Core\Model\OrderItemInterface;
 
 interface AddToCartCommandInterface extends BaseCommandInterface
 {
+    #[\Override]
     public function getCart(): OrderInterface;
 
+    #[\Override]
     public function getCartItem(): OrderItemInterface;
 
     public function getGiftCardInformation(): GiftCardInformationInterface;

@@ -26,6 +26,7 @@ final class AddGiftCardToOrderType extends AbstractType
         $this->validationGroups = $validationGroups;
     }
 
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -41,6 +42,7 @@ final class AddGiftCardToOrderType extends AbstractType
         $builder->get('giftCard')->addModelTransformer($this->giftCardToCodeDataTransformer);
     }
 
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
@@ -49,6 +51,7 @@ final class AddGiftCardToOrderType extends AbstractType
         ]);
     }
 
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return 'setono_sylius_gift_card_add_gift_card_to_order';

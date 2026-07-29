@@ -25,6 +25,7 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
     ) {
     }
 
+    #[\Override]
     public static function getExtendedTypes(): iterable
     {
         return [
@@ -32,6 +33,7 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
         ];
     }
 
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->addEventListener(FormEvents::PRE_SET_DATA, [$this, 'reworkFormForGiftCard']);

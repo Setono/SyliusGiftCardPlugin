@@ -26,6 +26,7 @@ final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
         $this->codeLength = $codeLength;
     }
 
+    #[\Override]
     public function generate(): string
     {
         do {
@@ -34,6 +35,7 @@ final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
             /** @psalm-suppress ArgumentTypeCoercion */
             $code = bin2hex(random_bytes($this->codeLength));
             $code = preg_replace('/[01]/', '', $code); // remove hard to read characters
+            Assert::notNull($code);
             $code = mb_strtoupper(mb_substr($code, 0, $this->codeLength));
         } while (mb_strlen($code) !== $this->codeLength || $this->exists($code));
 

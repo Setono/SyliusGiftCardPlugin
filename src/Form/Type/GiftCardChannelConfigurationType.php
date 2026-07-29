@@ -11,6 +11,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 
 final class GiftCardChannelConfigurationType extends AbstractResourceType
 {
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add('channel', ChannelChoiceType::class, [
@@ -23,6 +24,7 @@ final class GiftCardChannelConfigurationType extends AbstractResourceType
         ]);
     }
 
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return 'setono_sylius_gift_card_gift_card_channel_configuration';

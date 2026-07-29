@@ -8,6 +8,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationInterface;
 
 final class PdfRenderingOptionsProvider implements PdfRenderingOptionsProviderInterface
 {
+    #[\Override]
     public function getRenderingOptions(GiftCardConfigurationInterface $giftCardConfiguration): array
     {
         $options = [];

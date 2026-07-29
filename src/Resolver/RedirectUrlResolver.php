@@ -18,6 +18,7 @@ final class RedirectUrlResolver implements RedirectUrlResolverInterface
         $this->router = $router;
     }
 
+    #[\Override]
     public function getUrlToRedirectTo(Request $request, string $defaultRoute): string
     {
         /** @var mixed $redirect */

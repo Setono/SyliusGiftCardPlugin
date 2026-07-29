@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Provider;
 
-class DatePeriodUnitProvider implements DatePeriodUnitProviderInterface
+final class DatePeriodUnitProvider implements DatePeriodUnitProviderInterface
 {
+    #[\Override]
     public function getPeriodUnits(): array
     {
         return [

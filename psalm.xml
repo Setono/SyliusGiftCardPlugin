@@ -20,7 +20,6 @@
         </ignoreFiles>
     </projectFiles>
     <plugins>
-        <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
         <pluginClass class="Weirdan\DoctrinePsalmPlugin\Plugin"/>
         <pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin"/>
     </plugins>
@@ -42,6 +41,13 @@
             </errorLevel>
         </InvalidArgument>
         <PluginIssue name="QueryBuilderSetParameter" errorLevel="suppress"/>
+        <ClassMustBeFinal>
+            <errorLevel type="suppress">
+                <!-- entities and repositories are meant to be extended by host applications -->
+                <directory name="src/Model"/>
+                <directory name="src/Doctrine"/>
+            </errorLevel>
+        </ClassMustBeFinal>
         <MissingTemplateParam>
             <errorLevel type="suppress">
                 <directory name="src/Factory"/>

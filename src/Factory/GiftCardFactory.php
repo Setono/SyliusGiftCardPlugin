@@ -28,6 +28,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
     ) {
     }
 
+    #[\Override]
     public function createNew(): GiftCardInterface
     {
         /** @var GiftCardInterface $giftCard */
@@ -37,6 +38,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         return $giftCard;
     }
 
+    #[\Override]
     public function createForChannel(ChannelInterface $channel): GiftCardInterface
     {
         $giftCard = $this->createNew();
@@ -53,6 +55,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         return $giftCard;
     }
 
+    #[\Override]
     public function createForChannelFromAdmin(ChannelInterface $channel): GiftCardInterface
     {
         $giftCard = $this->createForChannel($channel);
@@ -61,6 +64,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         return $giftCard;
     }
 
+    #[\Override]
     public function createFromOrderItemUnit(OrderItemUnitInterface $orderItemUnit): GiftCardInterface
     {
         /** @var OrderInterface|null $order */
@@ -78,6 +82,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         return $giftCard;
     }
 
+    #[\Override]
     public function createFromOrderItemUnitAndCart(
         OrderItemUnitInterface $orderItemUnit,
         OrderInterface $cart,
@@ -98,6 +103,7 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         return $giftCard;
     }
 
+    #[\Override]
     public function createExample(): GiftCardInterface
     {
         $giftCard = $this->createNew();

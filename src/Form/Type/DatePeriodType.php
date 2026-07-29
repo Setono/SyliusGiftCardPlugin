@@ -19,6 +19,7 @@ final class DatePeriodType extends AbstractType
         $this->datePeriodUnitProvider = $datePeriodUnitProvider;
     }
 
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add('value', IntegerType::class, [

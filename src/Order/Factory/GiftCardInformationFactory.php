@@ -20,6 +20,7 @@ final class GiftCardInformationFactory implements GiftCardInformationFactoryInte
         $this->className = $className;
     }
 
+    #[\Override]
     public function createNew(OrderItemInterface $orderItem): GiftCardInformationInterface
     {
         return new $this->className($orderItem->getUnitPrice());

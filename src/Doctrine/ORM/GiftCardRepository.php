@@ -15,6 +15,7 @@ use Webmozart\Assert\Assert;
 
 class GiftCardRepository extends EntityRepository implements GiftCardRepositoryInterface
 {
+    #[\Override]
     public function createListQueryBuilder(): QueryBuilder
     {
         return $this->createQueryBuilder('o')
@@ -23,6 +24,7 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
         ;
     }
 
+    #[\Override]
     public function findOneEnabledByCodeAndChannel(string $code, ChannelInterface $channel): ?GiftCardInterface
     {
         $giftCard = $this->findOneBy([
@@ -35,6 +37,7 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
         return $giftCard;
     }
 
+    #[\Override]
     public function findOneByCode(string $code): ?GiftCardInterface
     {
         $giftCard = $this->findOneBy([
@@ -45,6 +48,7 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
         return $giftCard;
     }
 
+    #[\Override]
     public function findOneByOrderItemUnit(OrderItemUnitInterface $orderItemUnit): ?GiftCardInterface
     {
         $giftCard = $this->findOneBy([
@@ -55,6 +59,7 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
         return $giftCard;
     }
 
+    #[\Override]
     public function findEnabled(): array
     {
         $giftCards = $this->findBy([
@@ -66,6 +71,7 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
         return $giftCards;
     }
 
+    #[\Override]
     public function createAccountListQueryBuilder(CustomerInterface $customer): QueryBuilder
     {
         $qb = $this->createListQueryBuilder();

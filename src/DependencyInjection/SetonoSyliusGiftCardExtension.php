@@ -15,6 +15,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
 {
     use PrependDoctrineMigrationsTrait;
 
+    #[\Override]
     public function load(array $configs, ContainerBuilder $container): void
     {
         /**
@@ -69,21 +70,25 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
         $loader->load('services.xml');
     }
 
+    #[\Override]
     public function prepend(ContainerBuilder $container): void
     {
         $this->prependDoctrineMigrations($container);
     }
 
+    #[\Override]
     protected function getMigrationsNamespace(): string
     {
         return 'DoctrineMigrations';
     }
 
+    #[\Override]
     protected function getMigrationsDirectory(): string
     {
         return '@SetonoSyliusGiftCardPlugin/src/Migrations';
     }
 
+    #[\Override]
     protected function getNamespacesOfMigrationsExecutedBefore(): array
     {
         return [

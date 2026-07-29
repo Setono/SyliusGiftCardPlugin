@@ -42,11 +42,13 @@ final class GiftCardBalanceCollection implements Countable, Iterator
         return $collection;
     }
 
+    #[\Override]
     public function count(): int
     {
         return count($this->collection);
     }
 
+    #[\Override]
     public function current(): GiftCardBalance
     {
         $cur = current($this->collection);
@@ -57,11 +59,13 @@ final class GiftCardBalanceCollection implements Countable, Iterator
         return $cur;
     }
 
+    #[\Override]
     public function next(): void
     {
         next($this->collection);
     }
 
+    #[\Override]
     public function key(): ?string
     {
         $k = (string) key($this->collection);
@@ -69,11 +73,13 @@ final class GiftCardBalanceCollection implements Countable, Iterator
         return '' === $k ? null : $k;
     }
 
+    #[\Override]
     public function valid(): bool
     {
         return key($this->collection) !== null;
     }
 
+    #[\Override]
     public function rewind(): void
     {
         reset($this->collection);

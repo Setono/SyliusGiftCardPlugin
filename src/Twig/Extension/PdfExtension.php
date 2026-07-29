@@ -9,6 +9,7 @@ use Twig\TwigFunction;
 
 final class PdfExtension extends AbstractExtension
 {
+    #[\Override]
     public function getFunctions(): array
     {
         return [

@@ -10,6 +10,7 @@ final class HasBackgroundImage extends Constraint
 {
     public string $message = 'setono_sylius_gift_card.gift_card_configuration.background_image_required';
 
+    #[\Override]
     public function getTargets(): array
     {
         return [self::CLASS_CONSTRAINT];
