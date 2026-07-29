@@ -1,8 +1,10 @@
-{% import '@SyliusUi/Macro/buttons.html.twig' as buttons %}
-
-{% set path = options.link.url|default(path(options.link.route, options.link.parameters)) %}
 {% set visible = options.visible is defined ? options.visible : true %}
 
 {% if visible %}
-    {{ buttons.default(path, action.label, null, 'list', 'primary') }}
+    {% set path = options.link.url|default(path(options.link.route, options.link.parameters)) %}
+    {% set message = action.label %}
+
+    <a href="{{ path }}" class="btn btn-icon" data-bs-toggle="tooltip" data-bs-title="{{ message|trans }}">
+        {{ ux_icon(action.icon|default('tabler:list')) }}
+    </a>
 {% endif %}

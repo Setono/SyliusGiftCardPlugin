@@ -1,8 +1,9 @@
-{# todo this should be a knp menu builder instead #}
-<div class="ui labeled icon top right floating dropdown button primary link">
-    <i class="plus icon"></i>
-    <span class="text">{{ 'sylius.ui.create'|trans }}</span>
-    <div class="menu">
+<div class="dropdown drop">
+    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        {{ ux_icon('tabler:plus') }}
+        {{ 'sylius.ui.create'|trans }}
+    </button>
+    <div class="dropdown-menu dropdown-menu-end">
         {{ render(url('setono_sylius_gift_card_admin_gift_card_create_for_channel')) }}
     </div>
 </div>

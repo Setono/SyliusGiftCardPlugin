@@ -1,9 +1,6 @@
-{% import '@SyliusUi/Macro/buttons.html.twig' as buttons %}
+{% set path = path('setono_sylius_gift_card_admin_gift_card_balance') %}
 
-{{ buttons.default(
-    path('setono_sylius_gift_card_admin_gift_card_balance'),
-    'setono_sylius_gift_card.ui.balance'|trans,
-    null,
-    'balance scale',
-    'grey')
-}}
+<a href="{{ path }}" class="btn">
+    {{ ux_icon('tabler:wallet') }}
+    {{ 'setono_sylius_gift_card.ui.balance'|trans }}
+</a>
