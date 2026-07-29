@@ -1,6 +1,7 @@
 /vendor/
 /var/
 /node_modules/
+/drivers/
 /composer.lock
 /docker/
 
@@ -11,9 +12,11 @@
 /behat.yml
 /behat.sh
 /phpspec.yml
+/phpunit.xml
 /compose.override.yml
 /compose.test.yml
 
+# Symfony CLI https://symfony.com/doc/current/setup/symfony_server.html#different-php-settings-per-project
 /.php-version
 /php.ini
 

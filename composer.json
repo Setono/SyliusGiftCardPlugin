@@ -41,9 +41,19 @@
     "require-dev": {
         "babdev/pagerfanta-bundle": "^4.4",
         "behat/behat": "^3.16",
+        "behat/mink": "^1.13",
+        "behat/mink-selenium2-driver": "^1.7",
+        "dbrekelmans/bdi": "^1.4",
         "dmore/behat-chrome-extension": "^1.4",
         "dmore/chrome-mink-driver": "^2.9",
         "doctrine/doctrine-bundle": "^2.13",
+        "friends-of-behat/mink-browserkit-driver": "^1.6",
+        "friends-of-behat/mink-debug-extension": "^2.1",
+        "friends-of-behat/mink-extension": "^2.7",
+        "friends-of-behat/page-object-extension": "^0.3",
+        "friends-of-behat/suite-settings-extension": "^1.1",
+        "friends-of-behat/symfony-extension": "^2.6",
+        "friends-of-behat/variadic-extension": "^1.6",
         "lexik/jwt-authentication-bundle": "^3.1",
         "matthiasnoback/symfony-config-test": "^5.1",
         "matthiasnoback/symfony-dependency-injection-test": "^5.1",
@@ -51,13 +61,16 @@
         "phpspec/phpspec": "^7.4",
         "phpspec/prophecy-phpunit": "^2.0.2",
         "phpunit/phpunit": "^9.6.17",
-        "polishsymfonycommunity/symfony-mocker-container": "^1.0.7",
+        "polishsymfonycommunity/symfony-mocker-container": "^1.0",
         "psalm/plugin-phpunit": "^0.18.4",
         "psalm/plugin-symfony": "^5.0",
+        "rector/rector": "^1.0",
         "setono/code-quality-pack": "^2.7",
-        "setono/sylius-behat-pack": "^0.2.2",
+        "sylius-labs/coding-standard": "^4.4",
         "sylius-labs/suite-tags-extension": "~0.2",
+        "sylius/sylius-rector": "^2.0",
         "sylius/test-application": "^2.0.0@alpha",
+        "symfony/browser-kit": "^6.4 || ^7.4",
         "symfony/debug-bundle": "^6.4 || ^7.4",
         "symfony/dotenv": "^6.4 || ^7.4",
         "symfony/intl": "^6.4 || ^7.4",
@@ -92,16 +105,31 @@
         "branch-alias": {
             "dev-sylius-2": "2.0-dev"
         },
-        "symfony": {
-            "require": "^7.4"
-        },
         "public-dir": "vendor/sylius/test-application/public"
     },
     "scripts": {
+        "database-reset": [
+            "vendor/bin/console doctrine:database:drop --force --if-exists",
+            "vendor/bin/console doctrine:database:create",
+            "vendor/bin/console doctrine:migration:migrate -n",
+            "vendor/bin/console sylius:fixtures:load -n"
+        ],
+        "frontend-clear": [
+            "cd vendor/sylius/test-application && yarn install && yarn build",
+            "vendor/bin/console assets:install"
+        ],
+        "test-app-init": [
+            "@database-reset",
+            "@frontend-clear"
+        ],
         "analyse": "psalm",
         "check-style": "ecs check",
         "fix-style": "ecs check --fix",
         "phpunit": "phpunit",
+        "behat": "behat --strict -vvv --no-interaction || behat --strict -vvv --no-interaction --rerun",
+        "auto-scripts": {
+            "security-checker security:check": "script"
+        },
         "post-install-cmd": [
             "@create-console-symlink"
         ],
