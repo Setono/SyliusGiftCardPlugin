@@ -12,8 +12,8 @@
             <div class="hstack gap-2 mb-1">
                 <div>
                     {{ adjustment.originCode }}
-                    <a href="{{ path('setono_sylius_gift_card_shop_remove_gift_card_from_order', {'giftCard': adjustment.originCode}) }}">
-                        <i class="remove icon red"></i>
+                    <a href="{{ path('setono_sylius_gift_card_shop_remove_gift_card_from_order', {'giftCard': adjustment.originCode}) }}" class="text-danger">
+                        {{ ux_icon('tabler:x') }}
                     </a>
                 </div>
                 <div class="ms-auto text-end" id="setono-cart-gift-card-applied-amount">
