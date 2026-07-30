@@ -1,0 +1,12 @@
+{% block setono_sylius_gift_card_gift_card_configuration_image_widget %}
+    {% if form.type is defined %}
+        {{ form_row(form.type) }}
+    {% endif %}
+
+    {% if form.vars.value.path|default(null) is not null %}
+        <img class="img-thumbnail mb-2" style="max-width: 150px;" src="{{ form.vars.value.path|imagine_filter('sylius_small') }}" alt="" />
+    {% endif %}
+
+    {{ form_widget(form.file) }}
+    {{ form_errors(form.file) }}
+{% endblock %}

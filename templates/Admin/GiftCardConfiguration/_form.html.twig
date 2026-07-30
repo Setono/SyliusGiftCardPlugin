@@ -1,60 +1,57 @@
-{% form_theme form '@SyliusAdmin/Form/imagesTheme.html.twig' %}
+{% if form is not defined %}
+    {% set form = hookable_metadata.context.form %}
+{% endif %}
+{% if resource is not defined %}
+    {% set resource = hookable_metadata.context.resource %}
+{% endif %}
 
-<style>
-    /* This is a hack to fix this: https://github.com/Setono/SyliusGiftCardPlugin/issues/207 */
-    .ui.grid:empty {
-        display: none;
-    }
-</style>
+{% form_theme form '@SetonoSyliusGiftCardPlugin/Admin/GiftCardConfiguration/_imageFormTheme.html.twig' %}
 
 {{ form_errors(form) }}
-<div class="ui two column stackable grid">
-    <div class="column">
-        <div class="ui segment">
-            {{ form_row(form.code) }}
-            <div class="required field">
-                {{ form_label(form.defaultValidityPeriod) }}
-                <div class="ui action input">
-                    {{ form_widget(form.defaultValidityPeriod.value) }}
-                    {{ form_widget(form.defaultValidityPeriod.unit, {'attr': {'class': 'ui compact selection dropdown'}}) }}
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="card mb-3">
+            <div class="card-body">
+                {{ form_row(form.code) }}
+                <div class="mb-3">
+                    {{ form_label(form.defaultValidityPeriod) }}
+                    <div class="input-group">
+                        {{ form_widget(form.defaultValidityPeriod.value) }}
+                        {{ form_widget(form.defaultValidityPeriod.unit) }}
+                    </div>
+                    {{ form_errors(form.defaultValidityPeriod) }}
                 </div>
+                {{ form_row(form.backgroundImage) }}
+                {{ form_row(form.pageSize) }}
+                {{ form_row(form.orientation) }}
             </div>
-            <div class="field" id="ssgc_configuration_background_image">
-                {{ form_label(form.backgroundImage) }}
-                {{ form_widget(form.backgroundImage) }}
-                {{ form_errors(form.backgroundImage) }}
-            </div>
-            {{ form_row(form.pageSize) }}
-            {{ form_row(form.orientation) }}
         </div>
     </div>
-    <div class="column">
-        <div class="ui segment">
-            {{ form_row(form.enabled) }}
-            {{ form_row(form.default) }}
-            {{ form_row(form.channelConfigurations) }}
+    <div class="col-12 col-md-6">
+        <div class="card mb-3">
+            <div class="card-body">
+                {{ form_row(form.enabled) }}
+                {{ form_row(form.default) }}
+                {{ form_row(form.channelConfigurations) }}
+            </div>
         </div>
     </div>
 </div>
 
-<div class="ui hidden divider"></div>
-
-<h3 class="ui top attached header">
-    {{ 'setono_sylius_gift_card.ui.gift_card_configuration.pdf_live_rendering.title'|trans }}
-</h3>
-<div class="ui attached segment">
-    <div class="ui two column stackable grid">
-        <div class="column">
+<h3 class="mb-3">{{ 'setono_sylius_gift_card.ui.gift_card_configuration.pdf_live_rendering.title'|trans }}</h3>
+<div class="card mb-3">
+    <div class="card-body row">
+        <div class="col-12 col-md-6">
             {{ form_row(form.template, {'attr': {'rows': 40}}) }}
             {% if resource.id is not null %}
-                <button class="ui button primary labeled icon js-ssgc-apply-pdf-changes"
+                <button type="button" class="btn btn-primary js-ssgc-apply-pdf-changes"
                         data-url="{{ path('setono_sylius_gift_card_admin_ajax_generate_pdf', {'id': resource.id}) }}">
-                    <i class="icon check"></i>
+                    {{ ux_icon('tabler:check') }}
                     {{ 'setono_sylius_gift_card.ui.update_preview'|trans }}
                 </button>
             {% endif %}
         </div>
-        <div class="column js-ssgc-live-render-container" style="height: 900px;">
+        <div class="col-12 col-md-6" style="height: 900px;">
             <embed id="js-ssgc-live-render-box"
                    src="data:application/pdf;base64,{{ ssgc_get_base64_encoded_example_pdf_content(resource, true) }}"
                    style="width: 100%;height: 100%;"
@@ -62,3 +59,20 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const button = document.querySelector('.js-ssgc-apply-pdf-changes');
+        if (button === null) {
+            return;
+        }
+
+        button.addEventListener('click', async () => {
+            const response = await fetch(button.dataset.url, {
+                method: 'PUT',
+                body: new FormData(button.closest('form')),
+            });
+            document.getElementById('js-ssgc-live-render-box').src = 'data:application/pdf;base64,' + await response.text();
+        });
+    });
+</script>
