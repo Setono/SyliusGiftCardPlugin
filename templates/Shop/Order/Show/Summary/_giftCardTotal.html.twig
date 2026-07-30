@@ -1,0 +1,26 @@
+{% import "@SyliusShop/shared/macro/money.html.twig" as money %}
+
+{% set order = hookable_metadata.context.order %}
+{% set gift_card_adjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
+{% set gift_card_adjustments = order.getAdjustments(gift_card_adjustment) %}
+
+{% if gift_card_adjustments.count > 0 %}
+    <tr>
+        <td class="text-end w-75">
+            {{ 'setono_sylius_gift_card.ui.gift_cards'|trans }}:
+        </td>
+        <td class="text-end" {{ sylius_test_html_attribute('gift-card-total') }}>
+            {{ money.format(-order.getAdjustmentsTotal(gift_card_adjustment), order.currencyCode) }}
+
+            <div {{ sylius_test_html_attribute('order-gift-cards-details') }}>
+                {% for adjustment in gift_card_adjustments %}
+                    <div>
+                        <small class="text-body-tertiary">
+                            {{ adjustment.originCode }}: {{ money.format(adjustment.amount, order.currencyCode) }}
+                        </small>
+                    </div>
+                {% endfor %}
+            </div>
+        </td>
+    </tr>
+{% endif %}
