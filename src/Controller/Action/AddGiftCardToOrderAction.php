@@ -63,16 +63,23 @@ final class AddGiftCardToOrderAction
         $form = $this->formFactory->create(AddGiftCardToOrderType::class, $addGiftCardToOrderCommand);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $giftCard = $addGiftCardToOrderCommand->getGiftCard();
-            Assert::notNull($giftCard);
-            $this->giftCardApplicator->apply($order, $giftCard);
-
-            $this->getManager($order)->flush();
-
+        if ($form->isSubmitted()) {
             $session = $request->getSession();
-            if ($session instanceof Session) {
-                $session->getFlashBag()->add('success', 'setono_sylius_gift_card.gift_card_added');
+
+            if ($form->isValid()) {
+                $giftCard = $addGiftCardToOrderCommand->getGiftCard();
+                Assert::notNull($giftCard);
+                $this->giftCardApplicator->apply($order, $giftCard);
+
+                $this->getManager($order)->flush();
+
+                if ($session instanceof Session) {
+                    $session->getFlashBag()->add('success', 'setono_sylius_gift_card.gift_card_added');
+                }
+            } elseif ($session instanceof Session) {
+                foreach ($form->getErrors(true) as $error) {
+                    $session->getFlashBag()->add('error', $error->getMessage());
+                }
             }
 
             return new RedirectResponse($this->redirectRouteResolver->getUrlToRedirectTo($request, 'sylius_shop_cart_summary'));

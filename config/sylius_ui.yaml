@@ -9,3 +9,8 @@ sylius_twig_hooks:
             setono_sylius_gift_card_applied_gift_cards:
                 template: '@SetonoSyliusGiftCardPlugin/Shop/Cart/Summary/_appliedGiftCards.html.twig'
                 priority: 150
+
+        'sylius_shop.cart.index.content':
+            setono_sylius_gift_card_add_gift_card_to_order:
+                template: '@SetonoSyliusGiftCardPlugin/Shop/Cart/Summary/_addGiftCardToOrder.html.twig'
+                priority: 50
