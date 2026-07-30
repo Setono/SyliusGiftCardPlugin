@@ -4,7 +4,7 @@ setono_sylius_gift_card_admin_gift_card:
         section: admin
         permission: true
         only: [index, update, delete, bulkDelete]
-        templates: '@SyliusAdmin\\shared\\crud'
+        templates: "@SyliusAdmin\\shared\\crud"
         redirect: index
         grid: setono_sylius_gift_card_admin_gift_card
         vars:
@@ -42,7 +42,7 @@ setono_sylius_gift_card_admin_gift_card_configuration:
         section: admin
         permission: true
         only: [index, create, update, delete, bulkDelete]
-        templates: '@SyliusAdmin\\shared\\crud'
+        templates: "@SyliusAdmin\\shared\\crud"
         redirect: index
         grid: setono_sylius_gift_card_admin_gift_card_configuration
         vars:
