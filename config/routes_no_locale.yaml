@@ -8,7 +8,3 @@ setono_sylius_gift_card_admin:
 setono_sylius_gift_card_admin_ajax:
     resource: "@SetonoSyliusGiftCardPlugin/config/routes/admin_ajax.yaml"
     prefix: /admin/ajax
-    
-setono_sylius_gift_card_admin_api:
-    resource: "@SetonoSyliusGiftCardPlugin/config/routes/admin_api.yaml"
-    prefix: /api/v{version}
