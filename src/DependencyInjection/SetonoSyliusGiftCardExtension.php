@@ -59,12 +59,6 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
             $config['pdf_rendering']['preferred_page_sizes'],
         );
 
-        // Load default CSS file
-        $container->setParameter(
-            'setono_sylius_gift_card.default_css_file',
-            '@SetonoSyliusGiftCardPlugin/Shop/GiftCard/defaultGiftCardConfiguration.css.twig',
-        );
-
         $this->registerResources('setono_sylius_gift_card', $config['driver'], $config['resources'], $container);
 
         $loader->load('services.xml');
