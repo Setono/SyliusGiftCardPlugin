@@ -60,3 +60,8 @@ sylius_twig_hooks:
             default:
                 template: '@SetonoSyliusGiftCardPlugin/Admin/GiftCardConfiguration/_form.html.twig'
                 priority: 0
+
+        'setono_sylius_gift_card_admin_gift_card_create.create.content.form.sections.general':
+            default:
+                template: '@SetonoSyliusGiftCardPlugin/Admin/GiftCard/_form.html.twig'
+                priority: 0
