@@ -7,7 +7,7 @@ sylius_grid:
                     repository:
                         method: createCompletedQueryBuilderByGiftCard
                         arguments:
-                            giftCard: $id
+                            criteria: $id
             fields:
                 coveredByGiftCards:
                     type: twig
