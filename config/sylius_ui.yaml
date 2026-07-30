@@ -24,3 +24,24 @@ sylius_twig_hooks:
             setono_sylius_gift_card_total:
                 template: '@SetonoSyliusGiftCardPlugin/Shop/Order/Show/Summary/_giftCardTotal.html.twig'
                 priority: 250
+
+        'setono_sylius_gift_card.shop.account.gift_card.index.content':
+            breadcrumbs:
+                template: '@SetonoSyliusGiftCardPlugin/Shop/Account/GiftCard/Index/_breadcrumbs.html.twig'
+                priority: 200
+            menu:
+                template: '@SyliusShop/account/common/content/menu.html.twig'
+                priority: 100
+            main:
+                template: '@SyliusShop/account/common/content/main.html.twig'
+                priority: 0
+
+        'setono_sylius_gift_card.shop.account.gift_card.index.content.main':
+            grid:
+                template: '@SyliusShop/shared/grid.html.twig'
+                priority: 0
+
+        'setono_sylius_gift_card.shop.account.gift_card.index.content.main.header':
+            title:
+                template: '@SetonoSyliusGiftCardPlugin/Shop/Account/GiftCard/Index/_title.html.twig'
+                priority: 100
