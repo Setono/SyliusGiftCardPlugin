@@ -1,0 +1,5 @@
+knp_snappy:
+    pdf:
+        binary: /usr/local/bin/wkhtmltopdf
+    image:
+        binary: /usr/local/bin/wkhtmltoimage
