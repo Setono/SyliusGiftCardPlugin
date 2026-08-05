@@ -73,6 +73,11 @@ $bundles = [
 
 The plugin auto-configures the state machine, grids, UI events, email templates and image filters for you — you do **not** need to import any bundle configuration manually.
 
+Both state machine adapters Sylius supports are covered: the plugin registers winzou callbacks *and* the
+equivalent Symfony Workflow listeners, so it behaves the same whichever adapter
+`sylius_core.state_machine.default_adapter` is set to. Only the adapter actually applying a transition emits
+its events, so the work is never done twice.
+
 ### Import routing
 
 ```yaml
