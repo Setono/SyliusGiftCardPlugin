@@ -54,6 +54,7 @@ setono_sylius_gift_card:
         enter_gift_card_code: Indtast gavekortskoden
         edit_gift_card_configuration: Rediger konfiguration af gavekort
         gift_card: Gavekort
+        gift_card_configuration: Gavekortskonfiguration
         gift_card_configurations: Gavekortskonfigurationer
         gift_card_channel_does_not_match_channel: Gavekortet er købt på en anden kanal, brug venligst gavekortet på %channel%
         gift_card_code_is_invalid: Gavekortskoden er ugyldig

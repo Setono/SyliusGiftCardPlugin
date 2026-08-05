@@ -54,6 +54,7 @@ setono_sylius_gift_card:
         enter_gift_card_code: Renseignez le numéro de chèque-cadeau
         edit_gift_card_configuration: Modifier la configuration
         gift_card: Chèque-cadeau
+        gift_card_configuration: Configuration de chèque-cadeau
         gift_card_configurations: Config. chèques-cadeaux
         gift_card_channel_does_not_match_channel: Ce chèque-cadeau a été acheté sur un autre canal, veuillez l'utiliser sur %channel%
         gift_card_code_is_invalid: Numéro de chèque-cadeau invalide
