@@ -25,6 +25,7 @@ final class DompdfGiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
     {
         $html = $this->twig->render($this->template, [
             'giftCard' => $giftCard,
+            'localeCode' => $this->resolveLocaleCode($giftCard),
             'frontImagePath' => $this->resolveImagePath($giftCard->getDesign()?->getFrontImage()),
             'backImagePath' => $this->resolveImagePath($giftCard->getDesign()?->getBackImage()),
         ]);
@@ -40,6 +41,17 @@ final class DompdfGiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
         $dompdf->render();
 
         return (string) $dompdf->output();
+    }
+
+    /**
+     * The PDF is rendered outside a request (order confirmation, admin resend), so the locale cannot be
+     * taken from the locale context. Use the locale the card was bought in, falling back to the channel
+     * default; the template falls back to the same locale Sylius' money formatter uses when it gets none.
+     */
+    private function resolveLocaleCode(GiftCardInterface $giftCard): ?string
+    {
+        return $giftCard->getOrder()?->getLocaleCode()
+            ?? $giftCard->getChannel()?->getDefaultLocale()?->getCode();
     }
 
     private function resolveImagePath(?GiftCardDesignImageInterface $image): ?string

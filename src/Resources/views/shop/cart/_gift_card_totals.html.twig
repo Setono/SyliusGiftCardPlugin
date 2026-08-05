@@ -5,12 +5,12 @@
     {% if covered > 0 %}
         <div class="row" {{ sylius_test_html_attribute('gift-cards-total') }}>
             <div class="right aligned column">{{ 'setono_sylius_gift_card.ui.gift_cards'|trans }}</div>
-            <div class="right aligned column">-{{ covered|sylius_format_money(order.currencyCode) }}</div>
+            <div class="right aligned column">-{{ covered|sylius_format_money(order.currencyCode, sylius.localeCode) }}</div>
         </div>
         {% if setono_gift_card_payment_mode() %}
             <div class="row" {{ sylius_test_html_attribute('gift-cards-remaining-total') }}>
                 <div class="right aligned column">{{ 'setono_sylius_gift_card.ui.remaining_to_pay'|trans }}</div>
-                <div class="right aligned column">{{ setono_gift_card_remaining_total(order)|sylius_format_money(order.currencyCode) }}</div>
+                <div class="right aligned column">{{ setono_gift_card_remaining_total(order)|sylius_format_money(order.currencyCode, sylius.localeCode) }}</div>
             </div>
         {% endif %}
     {% endif %}

@@ -37,11 +37,11 @@
                         </tr>
                         <tr>
                             <td><strong>{{ 'sylius.ui.amount'|trans }}</strong></td>
-                            <td>{{ giftCard.amount|sylius_format_money(giftCard.currencyCode) }}</td>
+                            <td>{{ giftCard.amount|sylius_format_money(giftCard.currencyCode, sylius.localeCode) }}</td>
                         </tr>
                         <tr>
                             <td><strong>{{ 'setono_sylius_gift_card.ui.initial_amount'|trans }}</strong></td>
-                            <td>{{ giftCard.initialAmount|sylius_format_money(giftCard.currencyCode) }}</td>
+                            <td>{{ giftCard.initialAmount|sylius_format_money(giftCard.currencyCode, sylius.localeCode) }}</td>
                         </tr>
                         <tr>
                             <td><strong>{{ 'setono_sylius_gift_card.ui.delivery_type'|trans }}</strong></td>
@@ -115,7 +115,7 @@
                                     <td>{{ transaction.createdAt ? transaction.createdAt|date('Y-m-d H:i') : '-' }}</td>
                                     <td>{{ ('setono_sylius_gift_card.ui.transaction_type_' ~ transaction.type)|trans }}</td>
                                     <td class="right aligned">
-                                        {{ transaction.amount|sylius_format_money(giftCard.currencyCode) }}
+                                        {{ transaction.amount|sylius_format_money(giftCard.currencyCode, sylius.localeCode) }}
                                     </td>
                                     <td>{{ transaction.reason ?: '-' }}</td>
                                     <td>

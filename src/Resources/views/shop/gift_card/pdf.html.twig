@@ -1,4 +1,4 @@
-{% set formatted_amount = giftCard.amount|sylius_format_money(giftCard.currencyCode) %}
+{% set formatted_amount = giftCard.amount|sylius_format_money(giftCard.currencyCode, localeCode|default('en')) %}
 {% set formatted_code = giftCard.code|slice(0, 4) ~ '-' ~ giftCard.code|slice(4, 4) ~ '-' ~ giftCard.code|slice(8, 4) ~ '-' ~ giftCard.code|slice(12) %}
 {% set brand_name = giftCard.channel ? giftCard.channel.name : ('setono_sylius_gift_card.pdf.gift_card'|trans) %}
 {% set brand_initial = brand_name|slice(0, 1)|upper %}

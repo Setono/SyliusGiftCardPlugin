@@ -33,8 +33,8 @@
                     <tr>
                         <td>{{ balance.currencyCode }}</td>
                         <td class="right aligned">{{ balance.count }}</td>
-                        <td class="right aligned">{{ balance.amount|sylius_format_money(balance.currencyCode) }}</td>
-                        <td class="right aligned">{{ (balance.count > 0 ? (balance.amount // balance.count) : 0)|sylius_format_money(balance.currencyCode) }}</td>
+                        <td class="right aligned">{{ balance.amount|sylius_format_money(balance.currencyCode, sylius.localeCode) }}</td>
+                        <td class="right aligned">{{ (balance.count > 0 ? (balance.amount // balance.count) : 0)|sylius_format_money(balance.currencyCode, sylius.localeCode) }}</td>
                     </tr>
                 {% else %}
                     <tr>

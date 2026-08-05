@@ -28,7 +28,7 @@
 
             <div class="ui info message">
                 {{ 'setono_sylius_gift_card.ui.current_balance'|trans }}:
-                <strong>{{ giftCard.amount|sylius_format_money(giftCard.currencyCode) }}</strong>
+                <strong>{{ giftCard.amount|sylius_format_money(giftCard.currencyCode, sylius.localeCode) }}</strong>
             </div>
 
             {{ form_row(form.amount) }}
