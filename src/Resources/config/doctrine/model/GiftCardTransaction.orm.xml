@@ -4,10 +4,6 @@
                   xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
     <mapped-superclass name="Setono\SyliusGiftCardPlugin\Model\GiftCardTransaction"
                        table="setono_sylius_gift_card__gift_card_transaction">
-        <unique-constraints>
-            <unique-constraint name="setono_sylius_gift_card__transaction_idempotency" columns="idempotency_key"/>
-        </unique-constraints>
-
         <id name="id" column="id" type="integer">
             <generator strategy="AUTO"/>
         </id>
@@ -15,7 +11,7 @@
         <field name="amount" type="integer"/>
         <field name="type" length="16"/>
         <field name="reason" type="text" nullable="true"/>
-        <field name="idempotencyKey" column="idempotency_key" nullable="true"/>
+        <field name="idempotencyKey" column="idempotency_key" nullable="true" unique="true"/>
 
         <field name="createdAt" column="created_at" type="datetime">
             <gedmo:timestampable on="create"/>

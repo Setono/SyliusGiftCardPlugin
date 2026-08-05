@@ -14,8 +14,5 @@
 
         <service id="Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface"
                  alias="Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator"/>
-
-        <!-- kept as a convenience seam referenced by the mailer and controllers -->
-        <service id="setono_sylius_gift_card.pdf.generator" alias="Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator"/>
     </services>
 </container>

@@ -365,9 +365,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
         ];
 
         foreach ($configuration as $extension => $config) {
-            if ($container->hasExtension($extension)) {
-                $container->prependExtensionConfig($extension, $config);
-            }
+            $container->prependExtensionConfig($extension, $config);
         }
     }
 }

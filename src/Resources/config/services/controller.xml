@@ -28,14 +28,14 @@
         <service id="Setono\SyliusGiftCardPlugin\Controller\Action\DownloadGiftCardPdfAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\DownloadGiftCardPdfAction">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.pdf.generator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\PreviewGiftCardDesignPdfAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\PreviewGiftCardDesignPdfAction">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_design"/>
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
-            <argument type="service" id="setono_sylius_gift_card.pdf.generator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface"/>
             <argument type="service" id="sylius.context.channel"/>
         </service>
 

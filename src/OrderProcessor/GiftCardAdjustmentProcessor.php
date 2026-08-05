@@ -14,9 +14,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use Webmozart\Assert\Assert;
 
 /**
- * Converts each applied gift card into a negative order adjustment. Gift card adjustments are cleared and
- * recomputed on every processing run (see AddAdjustmentsToOrderAdjustmentClearerPass), so this only runs in
- * the "adjustment" redemption mode
+ * Converts each applied gift card into a negative order adjustment, so this only runs in the "adjustment"
+ * redemption mode. Adjustments are cleared and recomputed on every processing run
  */
 final class GiftCardAdjustmentProcessor implements OrderProcessorInterface
 {
@@ -33,6 +32,12 @@ final class GiftCardAdjustmentProcessor implements OrderProcessorInterface
     public function process(BaseOrderInterface $order): void
     {
         Assert::isInstanceOf($order, OrderInterface::class);
+
+        // Sylius' own adjustments clearer can only be told about this adjustment type from 1.14.2 onwards,
+        // where the sylius.order_processing.adjustment_clearing_types parameter was introduced. Clearing what
+        // we previously added ourselves keeps the recomputation correct on every supported version, and has to
+        // happen before the early return below so adjustments do not survive removing the last gift card.
+        $order->removeAdjustmentsRecursively(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT);
 
         if ($order->isEmpty() || !$order->hasGiftCards()) {
             return;

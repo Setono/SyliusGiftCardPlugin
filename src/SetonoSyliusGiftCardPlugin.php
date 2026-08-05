@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin;
 
-use Setono\SyliusGiftCardPlugin\DependencyInjection\Compiler\AddAdjustmentsToOrderAdjustmentClearerPass;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\Compiler\ValidateAddToCartCommandClassPass;
 use Sylius\Bundle\CoreBundle\Application\SyliusPluginTrait;
 use Sylius\Bundle\ResourceBundle\AbstractResourceBundle;
@@ -19,7 +18,6 @@ final class SetonoSyliusGiftCardPlugin extends AbstractResourceBundle
     {
         parent::build($container);
 
-        $container->addCompilerPass(new AddAdjustmentsToOrderAdjustmentClearerPass());
         $container->addCompilerPass(new ValidateAddToCartCommandClassPass());
     }
 
