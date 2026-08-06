@@ -1,4 +1,4 @@
-{% import "@SyliusAdmin/Common/Macro/money.html.twig" as money %}
+{% import "@SyliusAdmin/shared/helper/money.html.twig" as money %}
 
 {% set giftCardAdjustment = constant('Setono\\SyliusGiftCardPlugin\\Model\\AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT') %}
 {% set giftCardAdjustments = order.getAdjustments(giftCardAdjustment) %}
