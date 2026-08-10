@@ -42,6 +42,7 @@ setono_sylius_gift_card:
         applied_gift_cards: Applied gift cards
         average: Average
         back: Back
+        balance: Balance
         count: Count
         current_balance: Current balance
         create_gift_card: Create gift card
@@ -62,6 +63,7 @@ setono_sylius_gift_card:
         total: Total
         your_message_here: Your message here
         design: Design
+        designs: Designs
         design_images: Design images
         design_images_help: 'Upload a front image (shown in the picker, preview and on the gift card) and, optionally, a back image. Landscape orientation, at least 1050×740px, JPG or PNG.'
         enter_gift_card_code: Enter gift card code

@@ -253,6 +253,28 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                     ],
                                     'icon' => 'shopping bag',
                                 ],
+                                // Designs and the outstanding balance report live here rather than in the admin
+                                // menu, so this plugin only takes up a single menu entry
+                                'designs' => [
+                                    'type' => 'default',
+                                    'label' => 'setono_sylius_gift_card.ui.designs',
+                                    'options' => [
+                                        'link' => [
+                                            'route' => 'setono_sylius_gift_card_admin_gift_card_design_index',
+                                        ],
+                                    ],
+                                    'icon' => 'paint brush',
+                                ],
+                                'balance' => [
+                                    'type' => 'default',
+                                    'label' => 'setono_sylius_gift_card.ui.balance',
+                                    'options' => [
+                                        'link' => [
+                                            'route' => 'setono_sylius_gift_card_admin_gift_card_balance',
+                                        ],
+                                    ],
+                                    'icon' => 'balance scale',
+                                ],
                             ],
                             'item' => [
                                 'show' => [
@@ -348,6 +370,18 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                             'main' => [
                                 'create' => [
                                     'type' => 'create',
+                                ],
+                                // Designs are reached from the gift cards index rather than the admin menu,
+                                // so offer the way back here
+                                'gift_cards' => [
+                                    'type' => 'default',
+                                    'label' => 'setono_sylius_gift_card.ui.gift_cards',
+                                    'options' => [
+                                        'link' => [
+                                            'route' => 'setono_sylius_gift_card_admin_gift_card_index',
+                                        ],
+                                    ],
+                                    'icon' => 'gift',
                                 ],
                             ],
                             'item' => [

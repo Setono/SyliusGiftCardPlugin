@@ -16,6 +16,10 @@ final class AdminMenuListener
         $this->addCatalogChild($menu);
     }
 
+    /**
+     * Only gift cards gets a menu entry. Designs and the outstanding balance report are reachable as actions
+     * on the gift cards index instead, so a single plugin does not take up three slots in the admin menu
+     */
     private function addCatalogChild(ItemInterface $menu): void
     {
         $submenu = $menu->getChild('catalog');
@@ -26,20 +30,6 @@ final class AdminMenuListener
             ])
             ->setLabel('setono_sylius_gift_card.ui.gift_cards')
             ->setLabelAttribute('icon', 'gift')
-        ;
-        $item
-            ->addChild('gift_card_designs', [
-                'route' => 'setono_sylius_gift_card_admin_gift_card_design_index',
-            ])
-            ->setLabel('setono_sylius_gift_card.ui.gift_card_designs')
-            ->setLabelAttribute('icon', 'palette')
-        ;
-        $item
-            ->addChild('gift_card_balance', [
-                'route' => 'setono_sylius_gift_card_admin_gift_card_balance',
-            ])
-            ->setLabel('setono_sylius_gift_card.ui.outstanding_balance')
-            ->setLabelAttribute('icon', 'balance scale')
         ;
     }
 }

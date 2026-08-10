@@ -10,8 +10,10 @@
         <div class="column">
             {{ headers.default('setono_sylius_gift_card.ui.outstanding_balance'|trans, 'balance scale', 'setono_sylius_gift_card.ui.outstanding_balance_help'|trans) }}
 
+            {# This report is reached from the gift cards index rather than the admin menu, so the crumbs lead back there #}
             {% set breadcrumbs = [
                 { label: 'sylius.ui.administration'|trans, url: path('sylius_admin_dashboard') },
+                { label: 'setono_sylius_gift_card.ui.gift_cards'|trans, url: path('setono_sylius_gift_card_admin_gift_card_index') },
                 { label: 'setono_sylius_gift_card.ui.outstanding_balance'|trans }
             ] %}
             {{ breadcrumb.crumble(breadcrumbs) }}

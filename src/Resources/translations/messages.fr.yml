@@ -41,6 +41,7 @@ setono_sylius_gift_card:
         applied_gift_cards: Chèques-cadeaux utilisés
         average_amount: Montant moyen
         balance: Solde
+        designs: Modèles
         bought_at_order: Commande d'origine
         channel_configurations: Configurations des canaux
         configuration: Configuration

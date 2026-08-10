@@ -41,6 +41,7 @@ setono_sylius_gift_card:
         applied_gift_cards: Anvendte gavekort
         average_amount: Gennemsnitligt beløb
         balance: Saldo
+        designs: Design
         bought_at_order: Købt ved ordre
         channel_configurations: Kanalkonfigurationer
         configuration: Konfiguration
