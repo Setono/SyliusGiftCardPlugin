@@ -78,6 +78,7 @@ setono_sylius_gift_card:
         image: Image
         manage_gift_cards: Gérer les chèques-cadeaux
         manage_gift_card_designs: Gérer les modèles de chèques-cadeaux
+        new_gift_card: Nouveau chèque-cadeau
         new_gift_card_design: Nouveau modèle de chèque-cadeau
         no_image: Pas d'image
         no_transactions: Ce chèque-cadeau n'a encore aucune transaction.

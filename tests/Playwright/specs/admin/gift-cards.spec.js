@@ -41,6 +41,31 @@ test.describe('admin gift cards', () => {
         await expect(page.locator('a[href="/admin/gift-cards/"]').first()).toBeVisible();
     });
 
+    /**
+     * The balance is the ledger's business: it may only be moved through the adjust balance action, which
+     * records a transaction. Exposing it on the edit form let an admin move it leaving no trace of why.
+     */
+    test('the balance can only be set while issuing a card', async ({ page }) => {
+        const id = await firstGiftCardId(page);
+
+        await page.goto(`/admin/gift-cards/${id}/edit`);
+        await expect(page.locator('[name*="[amount]"]')).toHaveCount(0);
+
+        await page.goto('/admin/gift-cards/new');
+        await expect(page.locator('[name*="[amount]"]')).toHaveCount(1);
+    });
+
+    test('the adjust balance form is themed', async ({ page }) => {
+        const id = await firstGiftCardId(page);
+
+        const response = await page.goto(`/admin/gift-cards/${id}/adjust-balance`);
+        expect(response?.status()).toBe(200);
+
+        // Semantic UI scopes its field styling under .ui.form; without the class the form renders unstyled
+        await expect(page.locator('form.ui.form')).toHaveCount(1);
+        await expect(page.locator('form.ui.form .field')).not.toHaveCount(0);
+    });
+
     test('a gift card PDF can be downloaded', async ({ page }) => {
         const id = await firstGiftCardId(page);
 

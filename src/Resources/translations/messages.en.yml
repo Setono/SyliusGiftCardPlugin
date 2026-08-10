@@ -78,6 +78,7 @@ setono_sylius_gift_card:
         image: Image
         manage_gift_cards: Manage gift cards
         manage_gift_card_designs: Manage gift card designs
+        new_gift_card: New gift card
         new_gift_card_design: New gift card design
         no_image: No image
         no_transactions: This gift card has no transactions yet.

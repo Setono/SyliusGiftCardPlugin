@@ -78,6 +78,7 @@ setono_sylius_gift_card:
         image: Billede
         manage_gift_cards: Administrer gavekort
         manage_gift_card_designs: Administrer gavekortdesign
+        new_gift_card: Nyt gavekort
         new_gift_card_design: Nyt gavekortdesign
         no_image: Intet billede
         no_transactions: Dette gavekort har endnu ingen transaktioner.

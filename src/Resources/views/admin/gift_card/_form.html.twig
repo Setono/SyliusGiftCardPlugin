@@ -19,7 +19,11 @@
     <div class="column">
         <div class="ui segment">
             {{ form_row(form.currencyCode) }}
-            {{ form_row(form.amount) }}
+            {# The balance is only settable while issuing the card; afterwards it is changed through the
+               adjust balance action, so every movement is recorded in the transaction ledger #}
+            {% if form.amount is defined %}
+                {{ form_row(form.amount) }}
+            {% endif %}
             {{ form_row(form.customMessage) }}
         </div>
     </div>

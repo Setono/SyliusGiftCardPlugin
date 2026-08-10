@@ -56,11 +56,27 @@ final class GiftCardType extends AbstractResourceType
                     'required' => false,
                     'label' => 'setono_sylius_gift_card.form.gift_card.send_notification_email',
                 ]);
+            } else {
+                // The balance is only settable while the card is being issued. Afterwards it belongs to the
+                // balance operator, which records every movement in the transaction ledger — editing the
+                // amount here would move the balance without leaving any trace of why. It is removed rather
+                // than never added, so the minor units transformer below still has a field to attach to
+                $event->getForm()->remove('amount');
             }
         });
         $builder->add('amount', NumberType::class, [
             'label' => 'sylius.ui.amount',
         ]);
+
+        // A card issued from the admin starts its life at the amount it was created with
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event): void {
+            /** @var GiftCardInterface $giftCard */
+            $giftCard = $event->getData();
+
+            if (null === $giftCard->getId()) {
+                $giftCard->setInitialAmount($giftCard->getAmount());
+            }
+        });
         $builder->add('enabled', CheckboxType::class, [
             'label' => 'sylius.ui.enabled',
             'required' => false,
