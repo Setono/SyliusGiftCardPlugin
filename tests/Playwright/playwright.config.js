@@ -1,5 +1,6 @@
 // @ts-check
 const { defineConfig, devices } = require('@playwright/test');
+const { ADMIN_STORAGE_STATE } = require('./specs/support/paths');
 
 // The test application is served by `symfony serve`, which uses a locally issued certificate, so HTTPS
 // errors are ignored rather than requiring the local CA to be trusted on every machine and in CI.
@@ -34,7 +35,7 @@ module.exports = defineConfig({
             use: {
                 ...devices['Desktop Chrome'],
                 // Reuse the signed in session instead of logging in per test
-                storageState: '.auth/admin.json',
+                storageState: ADMIN_STORAGE_STATE,
             },
         },
         {
