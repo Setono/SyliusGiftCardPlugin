@@ -1,87 +1,112 @@
 setono_sylius_gift_card:
     form:
-        add_to_cart:
-            gift_card_information:
-                amount: Valeure
-                custom_message: Message personnalisé
-                custom_message_placeholder: Si vous souhaitez ajouter un message personnalisé à votre chèque-cadeau, écrivez le ici...
-        channel_configuration:
-            channel: Canal
-            locale: Langue
-        date_period:
-            unit: Unité
-            unit_day: Jours
-            unit_hour: Heures
-            unit_month: Mois
-            unit_week: Semaines
-            unit_year: Années
-            value: Valeur
+        product:
+            gift_card: Chèque-cadeau
         gift_card:
             channel: Canal
             custom_message: Message personnalisé
-            custom_message_placeholder: Ce message sera affiché sur le PDF du chèque-cadeau...
+            custom_message_placeholder: Ce message sera imprimé sur le chèque-cadeau...
             expires_at: Expire le
             send_notification_email: Envoyer un email de notification
-        gift_card_configuration:
-            background_image: Image de fond
-            channel_configurations: Configurations des canaux
-            code: Code
-            default: Configuration par défaut
-            default_validity_period: Durée de validité par défaut
-            enabled: Activé
-            orientation: Orientation
-            page_size: Taille de la page
-        product:
-            gift_card: Chèque-cadeau
-            gift_card_amount_configurable: Montant chèque-cadeau configurable
+        gift_card_design:
+            position: Position
+            images: Images
+            image_type: Type d'image
+            image_file_help: "Utilisez une image au format paysage d'au moins 1050×740px (JPG ou PNG). Elle sert de fond perdu au chèque-cadeau, veillez donc à éloigner le contenu important des bords."
+            front_image: Image recto
+            back_image: Image verso
+        gift_card_information:
+            amount: Montant
+            custom_message: Message
+            custom_message_placeholder: Écrivez un court message au destinataire...
+            design: Modèle
+        adjust_balance:
+            amount: Montant
+            amount_help: Un montant positif augmente le solde, un montant négatif le diminue.
+            reason: Motif
+    gift_card:
+        not_enabled: Ce chèque-cadeau n'est pas actif.
+        expired: Ce chèque-cadeau a expiré.
+        no_balance: Ce chèque-cadeau n'a plus de solde.
+        channel_mismatch: Ce chèque-cadeau ne peut pas être utilisé sur ce canal.
+        currency_mismatch: Ce chèque-cadeau est dans une devise différente de celle de votre commande.
+        already_applied: Ce chèque-cadeau est déjà appliqué à votre commande.
+    gift_card_information:
+        amount:
+            too_low: 'Le montant du chèque-cadeau doit être au moins de {{ minimum }}.'
+            too_high: 'Le montant du chèque-cadeau ne peut pas dépasser {{ maximum }}.'
     ui:
-        active: Actif
-        add_gift_card_to_order: Ajouter le chèque-cadeau
+        adjust_balance: Ajuster le solde
         amount: Montant
+        apply_gift_card: Appliquer
         applied_gift_cards: Chèques-cadeaux utilisés
-        average_amount: Montant moyen
+        average: Moyenne
+        back: Retour
         balance: Solde
-        designs: Modèles
-        bought_at_order: Commande d'origine
-        channel_configurations: Configurations des canaux
-        configuration: Configuration
-        covered_by_gift_cards: Montant pris en charge
         count: Nombre
-        create_for_channel: Créer pour %channel%
-        customer_help_text: Quand vous attribuez un chèque-cadeau à un client, Sylius peut envoyer un email à ce client.
-        customer_email: Customer email
-        download_pdf: PDF
-        edit_gift_card: Edit gift card
+        current_balance: Solde actuel
+        create_gift_card: Créer un chèque-cadeau
+        create_gift_card_design: Créer un modèle de chèque-cadeau
+        create_gift_card_product: Créer un produit chèque-cadeau
+        customer_help_text: Lorsqu'un client est associé et que la notification est activée, il reçoit le chèque-cadeau par email
+        edit_gift_card: Modifier le chèque-cadeau
+        edit_gift_card_design: Modifier le modèle de chèque-cadeau
+        delivery_type: Type de livraison
+        delivery_type_virtual: Virtuel
+        delivery_type_physical: Physique
+        download_pdf: Télécharger le PDF
+        initial_amount: Montant initial
+        no_customer: Pas de client
+        outstanding_balance: Solde des chèques-cadeaux en circulation
+        outstanding_balance_help: Le solde total encore disponible sur tous les chèques-cadeaux utilisables, groupé par devise.
+        preview_message: 'Joyeux anniversaire ! Profitez bien de ce cadeau.'
+        preview_pdf: Aperçu du PDF
+        total: Total
+        your_message_here: Votre message ici
+        design: Modèle
+        designs: Modèles
+        design_images: Images du modèle
+        design_images_help: "Téléversez une image recto (affichée dans le sélecteur, l'aperçu et sur le chèque-cadeau) et, éventuellement, une image verso. Format paysage, au moins 1050×740px, JPG ou PNG."
         enter_gift_card_code: Renseignez le numéro de chèque-cadeau
-        edit_gift_card_configuration: Modifier la configuration
+        front: Recto
         gift_card: Chèque-cadeau
-        gift_card_configurations: Config. chèques-cadeaux
         gift_card_channel_does_not_match_channel: Ce chèque-cadeau a été acheté sur un autre canal, veuillez l'utiliser sur %channel%
         gift_card_code_is_invalid: Numéro de chèque-cadeau invalide
         gift_cards: Chèques-cadeaux
-        gift_card_search: Chercher un chèque cadeau
-        gift_cards_adjustment_total: Montant des chèques-cadeaux
+        gift_card_designs: Modèles de chèques-cadeaux
         has_no_gift_card: Ne contient pas de chèque-cadeau
-        initial_amount: Montant initial
-        in_cart: In cart
-        list_orders: Lister les commandes
+        image: Image
         manage_gift_cards: Gérer les chèques-cadeaux
-        manage_gift_card_configurations: Gérer les configurations de chèques-cadeaux
-        new_gift_card: Nouveau chèque-cadeau
-        new_gift_card_configuration: Nouvelle configuration de chèque-cadeau
-        manually_created: Créé manuellement
-        no_gift_card: Pas de chèque-cadeau utilisé
-        no_customer: Pas de client
-        product_is_not_gift_card: Le produit n'est pas un chèque cadeau
-        resend_email: Renvoyer l'email
-        total: Total
-        update_preview: Update preview
-        your_gift_card_will_only_be_charged_if_you_complete_your_order: Votre chèque-cadeau ne sera débité que si vous complétez votre commande
+        manage_gift_card_designs: Gérer les modèles de chèques-cadeaux
+        new_gift_card_design: Nouveau modèle de chèque-cadeau
+        no_image: Pas d'image
+        no_transactions: Ce chèque-cadeau n'a encore aucune transaction.
+        physical: 'Physique — expédié chez vous'
+        position: Position
+        remaining_to_pay: Reste à payer
+        transactions: Transactions
+        transaction_type_manual: Ajustement manuel
+        transaction_type_redeem: Utilisé
+        transaction_type_restore: Restauré
+        virtual: 'Virtuel — livré immédiatement par email'
+    pdf:
+        valid_until: "Valable jusqu'au"
+        how_to_use: Comment utiliser votre chèque-cadeau
+        how_to_use_text: Saisissez le code ci-dessous lors du paiement pour utiliser votre chèque-cadeau.
+        gift_card: Chèque-cadeau
+        tagline: Le cadeau qui fait toujours plaisir
+        value: Valeur
+        number: 'N°'
+        how_to_redeem: Comment l'utiliser
+        how_to_redeem_text: "Saisissez le code ci-dessous lors du paiement sur notre site, ou présentez cette carte en magasin pour déduire le solde de votre achat."
+        redemption_code: Code d'utilisation
+        terms: "Conditions générales applicables. Cette carte n'est ni échangeable contre des espèces ni remplaçable en cas de perte ou de vol."
     email:
         balance: Solde
         new_gift_card: Nouveau chèque-cadeau
         new_gift_card_intro: Un nouveau chèque-cadeau a été créé pour vous
-        your_gift_card: Votre chèque cadeau
+        pdf_attached: Votre chèque-cadeau est joint à cet email au format PDF.
+        your_gift_card: Votre chèque-cadeau
         your_gift_cards_you_bought_in_the_order: Vos chèques-cadeaux achetés avec cette commande
 
 # Missing from Sylius for some reason

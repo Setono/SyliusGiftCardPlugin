@@ -59,6 +59,7 @@ setono_sylius_gift_card:
         no_customer: No customer
         outstanding_balance: Outstanding gift card balance
         outstanding_balance_help: The total balance still available on all usable gift cards, grouped by currency.
+        preview_message: 'Happy birthday! Enjoy this gift on us.'
         preview_pdf: Preview PDF
         total: Total
         your_message_here: Your message here

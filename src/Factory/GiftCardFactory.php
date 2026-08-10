@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Factory;
 
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
@@ -40,17 +39,6 @@ final class GiftCardFactory implements GiftCardFactoryInterface
         if (null !== $baseCurrency && null !== $baseCurrency->getCode()) {
             $giftCard->setCurrencyCode($baseCurrency->getCode());
         }
-
-        return $giftCard;
-    }
-
-    public function createExample(ChannelInterface $channel, ?GiftCardDesignInterface $design = null): GiftCardInterface
-    {
-        $giftCard = $this->createForChannel($channel);
-        $giftCard->setAmount(5000);
-        $giftCard->setInitialAmount(5000);
-        $giftCard->setDesign($design);
-        $giftCard->setCustomMessage('Happy birthday! Enjoy this gift on us.');
 
         return $giftCard;
     }
