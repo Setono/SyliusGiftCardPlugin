@@ -41,15 +41,23 @@ vendor/bin/rector --dry-run                # rector check (CI runs this)
 
 UI MUST be covered by **Playwright tests**, not just looked at once. Ad-hoc checking only ever exercises the page you happened to change, so regressions on every other page go unnoticed — a dropped option in the test app's `_details.html.twig` override left *every* non-simple product's admin edit page returning a 500, and manual verification of the gift card pages never touched it.
 
-Write tests that load every page the plugin affects and assert a 200 plus the expected content, covering at least:
+The suite lives in `tests/Playwright` and runs against a served `tests/Application`:
 
-- Shop: product page gift card form (amount, message, design picker, live preview), cart, checkout in both redemption modes
-- Admin: gift cards index/show/edit, designs index/edit, balance dashboard, PDF preview and download
-- Admin pages the plugin only touches indirectly — in particular **product edit for both simple and non-simple products**, since the test app overrides Sylius templates there
+```bash
+(cd tests/Application && symfony serve -d --port=8080)   # serve the app first
+cd tests/Playwright && yarn install && npx playwright install chromium
+npx playwright test                       # whole suite
+npx playwright test --project=admin       # admin specs only
+npx playwright test --headed -g 'cart'    # watch a single test
+```
+
+`PLAYWRIGHT_BASE_URL` overrides the default `https://127.0.0.1:8080`. The admin specs share a signed-in session created by `specs/auth.setup.js`; the shop specs run anonymously. Specs must **discover their subjects** (grid links, locale switcher) rather than hardcode ids, codes or locales, so they keep working against a freshly seeded database.
+
+Any new UI needs a spec here. Coverage today: admin gift cards index/show/edit, designs index/edit, balance report, gift card and design preview PDFs, product edit for simple/configurable/gift card products, and the shop gift card product page, locales and add-to-cart. **Checkout in both redemption modes is not covered yet** — that is the main gap.
 
 When a test app template overrides a Sylius one, diff it against the original in `vendor/sylius/sylius/.../Resources/views/` before trusting it; the override silently drifts as Sylius changes, and options dropped from a `form_row` call fail only at render time.
 
-Use the Playwright MCP tools (configured in `.mcp.json`) while developing a change, but land the coverage as a test.
+Use the Playwright MCP tools (configured in `.mcp.json`) while developing a change, but land the coverage as a spec.
 
 ## Architecture
 

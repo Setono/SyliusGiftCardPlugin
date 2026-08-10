@@ -13,5 +13,7 @@ return static function (ECSConfig $config): void {
     $config->skip([
         'tests/Application/node_modules/**',
         'tests/Application/var/**',
+        // the Playwright suite is JavaScript
+        'tests/Playwright/**',
     ]);
 };

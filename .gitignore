@@ -9,3 +9,9 @@
 /tests/Application/yarn.lock
 /.playwright-mcp/
 /tests/Application/public/build/
+
+# The Playwright lock file is committed on purpose, so CI can install with --frozen-lockfile
+/tests/Playwright/node_modules/
+/tests/Playwright/test-results/
+/tests/Playwright/playwright-report/
+/tests/Playwright/.auth/

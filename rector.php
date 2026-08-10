@@ -17,6 +17,8 @@ return static function (RectorConfig $rectorConfig): void {
 
     $rectorConfig->skip([
         __DIR__ . '/tests/Application',
+        // the Playwright suite is JavaScript
+        __DIR__ . '/tests/Playwright',
     ]);
 
     $rectorConfig->sets([

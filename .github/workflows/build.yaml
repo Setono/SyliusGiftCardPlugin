@@ -236,6 +236,82 @@ jobs:
             -   name: "Run functional tests"
                 run: "vendor/bin/phpunit --testsuite functional"
 
+    end-to-end-tests:
+        name: "End to end tests (PHP ${{ matrix.php-version }})"
+
+        runs-on: "ubuntu-latest"
+
+        # The test application is served for real here, so it needs an environment with a normal session
+        # storage rather than the mock one the test environment uses for functional tests
+        env:
+            APP_ENV: "dev"
+            APP_DEBUG: "1"
+            PLAYWRIGHT_BASE_URL: "http://127.0.0.1:8080"
+
+        strategy:
+            matrix:
+                php-version:
+                    - "8.3"
+
+        steps:
+            -   name: "Start MySQL"
+                run: "sudo /etc/init.d/mysql start"
+
+            -   name: "Checkout"
+                uses: "actions/checkout@v4"
+
+            -   name: "Setup PHP, with composer and extensions"
+                uses: "shivammathur/setup-php@v2"
+                with:
+                    coverage: "none"
+                    extensions: "${{ env.PHP_EXTENSIONS }}"
+                    php-version: "${{ matrix.php-version }}"
+                    tools: "flex, symfony-cli"
+
+            -   name: "Install composer dependencies"
+                uses: "ramsey/composer-install@v3"
+                with:
+                    dependency-versions: "highest"
+
+            -   name: "Setup Node"
+                uses: "actions/setup-node@v4"
+                with:
+                    node-version-file: "tests/Application/.nvmrc"
+
+            -   name: "Build assets"
+                run: "(cd tests/Application && yarn install --frozen-lockfile && yarn build)"
+
+            -   name: "Create database and load fixtures"
+                run: |
+                    cd tests/Application
+                    bin/console doctrine:database:create
+                    bin/console doctrine:schema:create
+                    bin/console sylius:fixtures:load -n
+                    bin/console assets:install public --symlink --relative
+
+            -   name: "Serve the test application"
+                run: |
+                    cd tests/Application
+                    symfony serve --no-tls --daemon --port=8080
+                    symfony server:status
+
+            -   name: "Install Playwright"
+                run: |
+                    cd tests/Playwright
+                    yarn install --frozen-lockfile
+                    npx playwright install chromium --with-deps
+
+            -   name: "Run end to end tests"
+                run: "(cd tests/Playwright && npx playwright test)"
+
+            -   name: "Upload the report"
+                uses: "actions/upload-artifact@v4"
+                if: "failure()"
+                with:
+                    name: "playwright-report"
+                    path: "tests/Playwright/playwright-report"
+                    retention-days: 7
+
     code-coverage:
         name: "Code Coverage (PHP ${{ matrix.php-version }})"
 
