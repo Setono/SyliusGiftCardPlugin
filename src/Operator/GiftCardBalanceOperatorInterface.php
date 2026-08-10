@@ -47,4 +47,13 @@ interface GiftCardBalanceOperatorInterface
      * Manually changes the balance by $delta (positive or negative) for administrative reasons, recording the reason
      */
     public function adjust(GiftCardInterface $giftCard, int $delta, string $reason): void;
+
+    /**
+     * Records the balance a gift card was issued with, so the ledger accounts for the opening balance and not
+     * just the movements after it. This does not change the balance: the card already holds it.
+     *
+     * Recording is idempotent per gift card, so callers do not have to know whether issuance was already
+     * recorded — a card whose amount is re-snapshotted before it becomes usable is still only issued once.
+     */
+    public function issue(GiftCardInterface $giftCard): void;
 }

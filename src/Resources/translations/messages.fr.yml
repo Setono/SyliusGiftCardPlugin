@@ -86,6 +86,7 @@ setono_sylius_gift_card:
         position: Position
         remaining_to_pay: Reste à payer
         transactions: Transactions
+        transaction_type_issue: Émis
         transaction_type_manual: Ajustement manuel
         transaction_type_redeem: Utilisé
         transaction_type_restore: Restauré

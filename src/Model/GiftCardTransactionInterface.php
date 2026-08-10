@@ -14,6 +14,12 @@ use Sylius\Component\Resource\Model\ResourceInterface;
  */
 interface GiftCardTransactionInterface extends ResourceInterface
 {
+    /**
+     * The opening balance a gift card was issued with. Recorded once per card, so that the ledger accounts
+     * for the whole balance rather than only the movements after issuance
+     */
+    public const TYPE_ISSUE = 'issue';
+
     public const TYPE_REDEEM = 'redeem';
 
     public const TYPE_RESTORE = 'restore';

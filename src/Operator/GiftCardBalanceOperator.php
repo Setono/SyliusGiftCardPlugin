@@ -85,6 +85,32 @@ final class GiftCardBalanceOperator implements GiftCardBalanceOperatorInterface
         $this->record($giftCard, $delta, GiftCardTransactionInterface::TYPE_MANUAL, null, null, null, $reason);
     }
 
+    public function issue(GiftCardInterface $giftCard): void
+    {
+        $amount = $giftCard->getAmount();
+        if ($amount <= 0) {
+            return;
+        }
+
+        // Keyed off the gift card code, which is unique, so the nullable unique index on the ledger makes
+        // issuance impossible to record twice however many times callers ask for it
+        $idempotencyKey = self::issuanceIdempotencyKey($giftCard);
+        if (null !== $this->transactionRepository->findOneBy(['idempotencyKey' => $idempotencyKey])) {
+            return;
+        }
+
+        // Deliberately no setAmount(): the card already holds this balance, the ledger is only catching up
+        $this->record($giftCard, $amount, GiftCardTransactionInterface::TYPE_ISSUE, null, null, $idempotencyKey, null);
+    }
+
+    private static function issuanceIdempotencyKey(GiftCardInterface $giftCard): string
+    {
+        $code = $giftCard->getCode();
+        Assert::stringNotEmpty($code, 'A gift card must have a code before its issuance can be recorded');
+
+        return 'issue-' . $code;
+    }
+
     private function record(
         GiftCardInterface $giftCard,
         int $amount,

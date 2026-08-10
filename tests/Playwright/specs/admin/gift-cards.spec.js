@@ -55,6 +55,20 @@ test.describe('admin gift cards', () => {
         await expect(page.locator('[name*="[amount]"]')).toHaveCount(1);
     });
 
+    /**
+     * The ledger is meant to account for the whole balance. Before issuance was recorded, a card that
+     * demonstrably held money showed an empty transactions list, so the panel explained nothing.
+     */
+    test('the transactions list explains the balance', async ({ page }) => {
+        const id = await firstGiftCardId(page);
+
+        await page.goto(`/admin/gift-cards/${id}`);
+
+        const rows = page.locator('table tbody tr');
+        await expect(rows.first()).toBeVisible();
+        await expect(page.getByText('Issued', { exact: false }).first()).toBeVisible();
+    });
+
     test('the adjust balance form is themed', async ({ page }) => {
         const id = await firstGiftCardId(page);
 

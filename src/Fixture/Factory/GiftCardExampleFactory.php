@@ -7,6 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Fixture\Factory;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use function sprintf;
 use Sylius\Bundle\CoreBundle\Fixture\Factory\AbstractExampleFactory;
@@ -38,6 +39,7 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
         protected GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         protected ChannelRepositoryInterface $channelRepository,
         protected RepositoryInterface $currencyRepository,
+        protected GiftCardBalanceOperatorInterface $balanceOperator,
     ) {
         $this->faker = \Faker\Factory::create();
         $this->optionsResolver = new OptionsResolver();
@@ -92,6 +94,10 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
 
         $giftCard->setDeliveryType($deliveryType);
         $giftCard->setEnabled((bool) $options['enabled']);
+
+        // Seeded cards go through the balance operator too, so the demo data does not show cards holding
+        // money with an empty ledger behind them
+        $this->balanceOperator->issue($giftCard);
 
         return $giftCard;
     }

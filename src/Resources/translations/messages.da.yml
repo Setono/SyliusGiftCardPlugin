@@ -86,6 +86,7 @@ setono_sylius_gift_card:
         position: Placering
         remaining_to_pay: Resterende at betale
         transactions: Transaktioner
+        transaction_type_issue: Udstedt
         transaction_type_manual: Manuel justering
         transaction_type_redeem: Indløst
         transaction_type_restore: Gendannet

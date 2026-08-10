@@ -27,6 +27,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         private readonly GiftCardFactoryInterface $giftCardFactory,
         ManagerRegistry $managerRegistry,
         private readonly GiftCardEmailManagerInterface $emailManager,
+        private readonly GiftCardBalanceOperatorInterface $balanceOperator,
     ) {
         $this->managerRegistry = $managerRegistry;
     }
@@ -94,6 +95,10 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
 
         foreach ($giftCards as $giftCard) {
             $giftCard->enable();
+
+            // Issuance is recorded here rather than when the card is created, because a pending card's amount
+            // is re-snapshotted during reconciliation; this is the first moment the balance is final
+            $this->balanceOperator->issue($giftCard);
         }
 
         $this->getManager($giftCards[0])->flush();

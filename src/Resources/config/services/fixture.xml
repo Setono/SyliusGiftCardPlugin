@@ -11,6 +11,7 @@
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator"/>
             <argument type="service" id="sylius.repository.channel"/>
             <argument type="service" id="sylius.repository.currency"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardFixture"
