@@ -37,13 +37,25 @@ vendor/bin/rector --dry-run                # rector check (CI runs this)
 - Use Prophecy for mocking (phpspec/prophecy-phpunit), not PHPUnit mock objects.
 - Form type tests extend `Symfony\Component\Form\Test\TypeTestCase`.
 
-## UI verification with Playwright MCP
+## UI testing with Playwright
 
-All UI changes MUST be verified with the Playwright MCP tools (configured in `.mcp.json`): run the test application, then use browser navigation and screenshots to confirm the change renders and behaves correctly — product page gift card form (amount, message, design picker, live preview), cart, checkout in both redemption modes, and the admin panel (gift cards, designs, balance dashboard).
+UI MUST be covered by **Playwright tests**, not just looked at once. Ad-hoc checking only ever exercises the page you happened to change, so regressions on every other page go unnoticed — a dropped option in the test app's `_details.html.twig` override left *every* non-simple product's admin edit page returning a 500, and manual verification of the gift card pages never touched it.
+
+Write tests that load every page the plugin affects and assert a 200 plus the expected content, covering at least:
+
+- Shop: product page gift card form (amount, message, design picker, live preview), cart, checkout in both redemption modes
+- Admin: gift cards index/show/edit, designs index/edit, balance dashboard, PDF preview and download
+- Admin pages the plugin only touches indirectly — in particular **product edit for both simple and non-simple products**, since the test app overrides Sylius templates there
+
+When a test app template overrides a Sylius one, diff it against the original in `vendor/sylius/sylius/.../Resources/views/` before trusting it; the override silently drifts as Sylius changes, and options dropped from a `form_row` call fail only at render time.
+
+Use the Playwright MCP tools (configured in `.mcp.json`) while developing a change, but land the coverage as a test.
 
 ## Architecture
 
-Namespace `Setono\SyliusGiftCardPlugin\` maps to `src/`; tests are `Setono\SyliusGiftCardPlugin\Tests\` in `tests/`. Bundle class `src/SetonoSyliusGiftCardPlugin.php`; services are XML files under `src/Resources/config/services/` imported by `services.xml`. The DI extension prepends configuration for other bundles (winzou state machine, sylius_ui, sylius_grid, liip_imagine, sylius_mailer) from YAML files in `src/Resources/config/prepend/` — host apps do not import plugin config manually. Register the bundle before SyliusGridBundle.
+Namespace `Setono\SyliusGiftCardPlugin\` maps to `src/`; tests are `Setono\SyliusGiftCardPlugin\Tests\` in `tests/`. Bundle class `src/SetonoSyliusGiftCardPlugin.php`; services are XML files under `src/Resources/config/services/` imported by `services.xml`. The DI extension prepends configuration for other bundles (winzou state machine, sylius_ui, sylius_grid, liip_imagine, sylius_mailer) as PHP arrays built in `prepend()` — host apps do not import plugin config manually. Register the bundle before SyliusGridBundle.
+
+State machine callbacks are registered twice, once as winzou callbacks in `prepend()` and once as Symfony Workflow listeners in `src/EventListener/Workflow/`, so the plugin works under either adapter. Keep the two in sync when changing them.
 
 Only doctrine/orm is supported. Resources: `gift_card`, `gift_card_design` (translatable, images with front|back types), `gift_card_transaction` (append-only balance ledger, written only by the balance operator).
 
