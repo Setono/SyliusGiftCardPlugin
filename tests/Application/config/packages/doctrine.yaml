@@ -16,6 +16,10 @@ doctrine:
     orm:
         auto_generate_proxy_classes: '%kernel.debug%'
         auto_mapping: true
+        # Sylius names its own columns explicitly, so this only affects mappings that leave the column name
+        # implicit — the plugin's, here. Picking a strategy is the application's call, and this is the one a
+        # Sylius application would normally use, so the test app exercises the plugin the way a real one does.
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
         mappings:
             App:
                 is_bundle: false
