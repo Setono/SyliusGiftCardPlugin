@@ -16,7 +16,7 @@ final class ValidGiftCardAmount extends Constraint
 
     public string $tooHighMessage = 'setono_sylius_gift_card.gift_card_information.amount.too_high';
 
-    public function getTargets(): string|array
+    public function getTargets(): string
     {
         return self::PROPERTY_CONSTRAINT;
     }

@@ -48,7 +48,7 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
     }
 
     /**
-     * @param array<string, mixed> $options
+     * @param array<array-key, mixed> $options
      */
     public function create(array $options = []): GiftCardInterface
     {
@@ -58,7 +58,7 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
     }
 
     /**
-     * @param array<string, mixed> $options
+     * @param array<array-key, mixed> $options
      */
     protected function createGiftCard(array $options): GiftCardInterface
     {
@@ -142,16 +142,18 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
                     return $currencyCode;
                 })->toArray();
 
+                Assert::nullOrString($currencyCode);
+
                 Assert::notNull($currency, sprintf(
                     'Currency %s was not found. Use one of: %s',
-                    $currencyCode,
+                    (string) $currencyCode,
                     implode(', ', $channelCurrenciesCodes),
                 ));
 
                 Assert::oneOf($currency, $channel->getCurrencies()->toArray(), sprintf(
                     'Expecting one of %s currencies, got: %s',
                     implode(', ', $channelCurrenciesCodes),
-                    $currencyCode,
+                    (string) $currencyCode,
                 ));
 
                 return $currency;
@@ -175,6 +177,8 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
                 if ($deliveryType instanceof GiftCardDeliveryType) {
                     return $deliveryType;
                 }
+
+                Assert::string($deliveryType);
 
                 return GiftCardDeliveryType::from($deliveryType);
             })

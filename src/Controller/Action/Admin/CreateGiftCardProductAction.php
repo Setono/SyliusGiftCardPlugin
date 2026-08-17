@@ -7,7 +7,6 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action\Admin;
 use Doctrine\Persistence\ManagerRegistry;
 use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardProductExampleFactory;
-use Sylius\Component\Core\Model\ProductInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,7 +31,6 @@ final class CreateGiftCardProductAction
 
     public function __invoke(Request $request): Response
     {
-        /** @var ProductInterface $product */
         $product = $this->productFactory->create([
             'code' => 'gift_card_' . bin2hex(random_bytes(4)),
             'name' => 'Gift card',

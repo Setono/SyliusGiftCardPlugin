@@ -31,7 +31,6 @@ final class RedirectUrlResolver implements RedirectUrlResolverInterface
 
         $referrer = $request->headers->get('referer');
         if (is_string($referrer)) {
-            /** @var mixed $redirectTo */
             $redirectTo = filter_var($referrer, FILTER_SANITIZE_URL);
 
             if (is_string($redirectTo)) {

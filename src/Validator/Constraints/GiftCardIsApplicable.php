@@ -24,7 +24,7 @@ final class GiftCardIsApplicable extends Constraint
 
     public string $alreadyAppliedMessage = 'setono_sylius_gift_card.gift_card.already_applied';
 
-    public function getTargets(): string|array
+    public function getTargets(): string
     {
         return self::PROPERTY_CONSTRAINT;
     }

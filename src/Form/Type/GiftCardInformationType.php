@@ -18,6 +18,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
+/**
+ * @extends AbstractType<\Setono\SyliusGiftCardPlugin\Order\GiftCardInformationInterface>
+ */
 final class GiftCardInformationType extends AbstractType
 {
     private const VALIDATION_GROUPS = ['setono_sylius_gift_card'];

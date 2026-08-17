@@ -35,7 +35,6 @@ final class RemoveGiftCardFromOrderAction
 
     public function __invoke(Request $request, string $giftCard): Response
     {
-        /** @var OrderInterface|null $order */
         $order = $this->cartContext->getCart();
         Assert::isInstanceOf($order, OrderInterface::class);
 

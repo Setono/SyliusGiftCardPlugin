@@ -21,7 +21,6 @@ final class ValidateAddToCartCommandClassPass implements CompilerPassInterface
 
     public function process(ContainerBuilder $container): void
     {
-        /** @var mixed $class */
         $class = $container->getParameter(self::PARAMETER);
 
         if (is_string($class) && is_a($class, AddToCartCommandInterface::class, true)) {

@@ -43,7 +43,6 @@ final class AddToCartCommandFactoryTest extends TestCase
 
         $command = $factory->createWithCartAndCartItem($cart, $cartItem);
 
-        self::assertInstanceOf(AddToCartCommandInterface::class, $command);
         self::assertSame($cart, $command->getCart());
         self::assertSame($cartItem, $command->getCartItem());
         self::assertSame($giftCardInformation, $command->getGiftCardInformation());

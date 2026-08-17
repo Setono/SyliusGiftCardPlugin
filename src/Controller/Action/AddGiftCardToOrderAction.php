@@ -36,9 +36,8 @@ final class AddGiftCardToOrderAction
 
     public function __invoke(Request $request): Response
     {
-        /** @var OrderInterface|null $order */
         $order = $this->cartContext->getCart();
-        if (null === $order) {
+        if (!$order instanceof OrderInterface) {
             throw new NotFoundHttpException();
         }
 
@@ -70,6 +69,8 @@ final class AddGiftCardToOrderAction
     }
 
     /**
+     * @param \Symfony\Component\Form\FormInterface<AddGiftCardToOrderCommand> $form
+     *
      * @return list<string>
      */
     private function collectErrors(\Symfony\Component\Form\FormInterface $form): array

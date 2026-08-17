@@ -44,7 +44,7 @@ class GiftCardDesignExampleFactory extends AbstractExampleFactory implements Exa
     }
 
     /**
-     * @param array<string, mixed> $options
+     * @param array<array-key, mixed> $options
      */
     public function create(array $options = []): GiftCardDesignInterface
     {
@@ -60,7 +60,10 @@ class GiftCardDesignExampleFactory extends AbstractExampleFactory implements Exa
         Assert::string($name);
         $design->setName($name);
 
-        $design->setPosition((int) $options['position']);
+        $position = $options['position'];
+        Assert::integer($position);
+        $design->setPosition($position);
+
         $design->setEnabled((bool) $options['enabled']);
 
         /** @var list<ChannelInterface> $channels */
@@ -103,8 +106,13 @@ class GiftCardDesignExampleFactory extends AbstractExampleFactory implements Exa
             ->setDefault('code', fn (Options $options): string => (string) $this->faker->unique()->slug(2))
             ->setDefault('name', function (Options $options): string {
                 $words = $this->faker->words(2, true);
+                if (is_string($words)) {
+                    return $words;
+                }
 
-                return is_string($words) ? $words : implode(' ', $words);
+                Assert::allString($words);
+
+                return implode(' ', $words);
             })
             ->setDefault('position', 0)
             ->setAllowedTypes('position', 'int')

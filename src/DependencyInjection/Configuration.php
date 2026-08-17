@@ -43,7 +43,7 @@ final class Configuration implements ConfigurationInterface
                     ->info('A strtotime compatible interval (e.g. "3 years") added to the purchase date. Set to null to make gift cards valid forever')
                     ->defaultValue('3 years')
                     ->validate()
-                        ->ifTrue(static fn ($value): bool => null !== $value && false === strtotime(sprintf('+%s', (string) $value)))
+                        ->ifTrue(static fn ($value): bool => null !== $value && (!is_string($value) || false === strtotime(sprintf('+%s', $value))))
                         ->thenInvalid('The default_validity_period must be a valid strtotime interval, e.g. "3 years": %s')
                     ->end()
                 ->end()

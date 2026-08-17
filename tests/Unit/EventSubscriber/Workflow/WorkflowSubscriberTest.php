@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\EventSubscriber\Workflow;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\MethodProphecy;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\CommitRedemptionSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\DisableGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\EnableGiftCardsSubscriber;
@@ -18,6 +19,7 @@ use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Symfony\Component\Workflow\Event\CompletedEvent;
 use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\Transition;
+use Webmozart\Assert\Assert;
 
 /**
  * These subscribers are the Symfony Workflow counterparts of the winzou callbacks prepended in
@@ -39,7 +41,9 @@ final class WorkflowSubscriberTest extends TestCase
         $order = $this->prophesize(OrderInterface::class)->reveal();
 
         $operator = $this->prophesize(OrderGiftCardOperatorInterface::class);
-        $operator->{$method}($order)->shouldBeCalledOnce();
+        $call = $operator->__call($method, [$order]);
+        Assert::isInstanceOf($call, MethodProphecy::class);
+        $call->shouldBeCalledOnce();
 
         $subscriber = $factory($operator->reveal());
         $subscriber($this->completedEvent($order));
@@ -57,7 +61,9 @@ final class WorkflowSubscriberTest extends TestCase
         $order = $this->prophesize(OrderInterface::class)->reveal();
 
         $redemptionMethod = $this->prophesize(GiftCardRedemptionMethodInterface::class);
-        $redemptionMethod->{$method}($order)->shouldBeCalledOnce();
+        $call = $redemptionMethod->__call($method, [$order]);
+        Assert::isInstanceOf($call, MethodProphecy::class);
+        $call->shouldBeCalledOnce();
 
         $subscriber = $factory($redemptionMethod->reveal());
         $subscriber($this->completedEvent($order));

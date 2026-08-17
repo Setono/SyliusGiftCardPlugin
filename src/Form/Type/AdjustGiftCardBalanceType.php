@@ -12,6 +12,9 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Webmozart\Assert\Assert;
 
+/**
+ * @extends AbstractType<AdjustGiftCardBalanceCommand>
+ */
 final class AdjustGiftCardBalanceType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void

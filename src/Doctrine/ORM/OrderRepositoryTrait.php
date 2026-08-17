@@ -12,7 +12,7 @@ use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Customer\Model\CustomerInterface;
 
 /**
- * @mixin EntityRepository
+ * @mixin EntityRepository<OrderInterface>
  */
 trait OrderRepositoryTrait
 {

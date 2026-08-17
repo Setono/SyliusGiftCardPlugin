@@ -55,7 +55,7 @@ class GiftCardProductExampleFactory extends AbstractExampleFactory implements Ex
     }
 
     /**
-     * @param array<string, mixed> $options
+     * @param array<array-key, mixed> $options
      */
     public function create(array $options = []): ProductInterface
     {
@@ -100,7 +100,10 @@ class GiftCardProductExampleFactory extends AbstractExampleFactory implements Ex
             $optionValue = $this->findOptionValue($option, $valueCode);
             Assert::notNull($optionValue);
 
-            $variant = $this->createVariant($product, $code, $optionValue, $deliveryType, $channels, (int) $options['price']);
+            $price = $options['price'];
+            Assert::integer($price);
+
+            $variant = $this->createVariant($product, $code, $optionValue, $deliveryType, $channels, $price);
             $product->addVariant($variant);
         }
 
@@ -201,7 +204,7 @@ class GiftCardProductExampleFactory extends AbstractExampleFactory implements Ex
         return array_values(array_filter(array_map(
             static fn (LocaleInterface $locale): ?string => $locale->getCode(),
             $locales,
-        )));
+        ), static fn (?string $code): bool => null !== $code));
     }
 
     protected function configureOptions(OptionsResolver $resolver): void
@@ -209,7 +212,12 @@ class GiftCardProductExampleFactory extends AbstractExampleFactory implements Ex
         $resolver
             ->setDefault('name', 'Gift card')
             ->setAllowedTypes('name', 'string')
-            ->setDefault('code', fn (Options $options): string => StringInflector::nameToCode((string) $options['name']))
+            ->setDefault('code', function (Options $options): string {
+                $name = $options['name'];
+                Assert::string($name);
+
+                return StringInflector::nameToCode($name);
+            })
             ->setDefault('enabled', true)
             ->setAllowedTypes('enabled', 'bool')
             ->setDefault('price', 5000)
