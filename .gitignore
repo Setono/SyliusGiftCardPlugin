@@ -11,6 +11,9 @@
 /tests/Application/public/build/
 
 # The Playwright lock file is committed on purpose, so CI can install with --frozen-lockfile
+# copied into place to build a payment mode container; see tests/Application/config/redemption_payment.yaml
+/tests/Application/config/packages/zz_redemption_payment.yaml
+
 /tests/Playwright/node_modules/
 /tests/Playwright/test-results/
 /tests/Playwright/playwright-report/

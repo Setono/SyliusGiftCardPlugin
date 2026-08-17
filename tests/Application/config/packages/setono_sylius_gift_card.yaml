@@ -1,2 +1,16 @@
 imports:
     - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
+
+sylius_fixtures:
+    suites:
+        default:
+            fixtures:
+                setono_gift_card:
+                    options:
+                        custom:
+                            # A card with a known code and a balance large enough to cover a whole order, so the
+                            # end to end redemption specs have something to apply without scraping the admin
+                            e2e:
+                                code: E2EREDEMPTION01
+                                amount: 1000
+                                enabled: true
