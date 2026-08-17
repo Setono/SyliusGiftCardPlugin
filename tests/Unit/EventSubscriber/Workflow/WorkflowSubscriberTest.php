@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\Tests\Unit\EventListener\Workflow;
+namespace Setono\SyliusGiftCardPlugin\Tests\Unit\EventSubscriber\Workflow;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
-use Setono\SyliusGiftCardPlugin\EventListener\Workflow\CommitRedemptionListener;
-use Setono\SyliusGiftCardPlugin\EventListener\Workflow\DisableGiftCardsListener;
-use Setono\SyliusGiftCardPlugin\EventListener\Workflow\EnableGiftCardsListener;
-use Setono\SyliusGiftCardPlugin\EventListener\Workflow\ReconcileGiftCardsListener;
-use Setono\SyliusGiftCardPlugin\EventListener\Workflow\RollbackRedemptionListener;
-use Setono\SyliusGiftCardPlugin\EventListener\Workflow\SendGiftCardsListener;
+use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\CommitRedemptionSubscriber;
+use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\DisableGiftCardsSubscriber;
+use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\EnableGiftCardsSubscriber;
+use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\ReconcileGiftCardsSubscriber;
+use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\RollbackRedemptionSubscriber;
+use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\SendGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
@@ -20,15 +20,15 @@ use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\Transition;
 
 /**
- * These listeners are the Symfony Workflow counterparts of the winzou callbacks prepended in
+ * These subscribers are the Symfony Workflow counterparts of the winzou callbacks prepended in
  * SetonoSyliusGiftCardExtension, so each has to forward the order to exactly the same collaborator method
  */
-final class WorkflowListenerTest extends TestCase
+final class WorkflowSubscriberTest extends TestCase
 {
     use ProphecyTrait;
 
     /**
-     * @dataProvider operatorListeners
+     * @dataProvider operatorSubscribers
      *
      * @param \Closure(OrderGiftCardOperatorInterface):callable $factory
      *
@@ -41,12 +41,12 @@ final class WorkflowListenerTest extends TestCase
         $operator = $this->prophesize(OrderGiftCardOperatorInterface::class);
         $operator->{$method}($order)->shouldBeCalledOnce();
 
-        $listener = $factory($operator->reveal());
-        $listener($this->completedEvent($order));
+        $subscriber = $factory($operator->reveal());
+        $subscriber($this->completedEvent($order));
     }
 
     /**
-     * @dataProvider redemptionListeners
+     * @dataProvider redemptionSubscribers
      *
      * @param \Closure(GiftCardRedemptionMethodInterface):callable $factory
      *
@@ -59,8 +59,8 @@ final class WorkflowListenerTest extends TestCase
         $redemptionMethod = $this->prophesize(GiftCardRedemptionMethodInterface::class);
         $redemptionMethod->{$method}($order)->shouldBeCalledOnce();
 
-        $listener = $factory($redemptionMethod->reveal());
-        $listener($this->completedEvent($order));
+        $subscriber = $factory($redemptionMethod->reveal());
+        $subscriber($this->completedEvent($order));
     }
 
     /** @test */
@@ -69,32 +69,32 @@ final class WorkflowListenerTest extends TestCase
         $operator = $this->prophesize(OrderGiftCardOperatorInterface::class);
         $operator->enable(\Prophecy\Argument::cetera())->shouldNotBeCalled();
 
-        $listener = new EnableGiftCardsListener($operator->reveal());
+        $subscriber = new EnableGiftCardsSubscriber($operator->reveal());
 
         $this->expectException(\InvalidArgumentException::class);
 
-        $listener($this->completedEvent(new \stdClass()));
+        $subscriber($this->completedEvent(new \stdClass()));
     }
 
     /**
      * @return iterable<string, array{\Closure(OrderGiftCardOperatorInterface):callable, string}>
      */
-    public function operatorListeners(): iterable
+    public function operatorSubscribers(): iterable
     {
         yield 'reconcile on checkout complete' => [
-            static fn (OrderGiftCardOperatorInterface $operator): callable => new ReconcileGiftCardsListener($operator),
+            static fn (OrderGiftCardOperatorInterface $operator): callable => new ReconcileGiftCardsSubscriber($operator),
             'reconcile',
         ];
         yield 'enable on order paid' => [
-            static fn (OrderGiftCardOperatorInterface $operator): callable => new EnableGiftCardsListener($operator),
+            static fn (OrderGiftCardOperatorInterface $operator): callable => new EnableGiftCardsSubscriber($operator),
             'enable',
         ];
         yield 'send on order paid' => [
-            static fn (OrderGiftCardOperatorInterface $operator): callable => new SendGiftCardsListener($operator),
+            static fn (OrderGiftCardOperatorInterface $operator): callable => new SendGiftCardsSubscriber($operator),
             'send',
         ];
         yield 'disable on order cancelled' => [
-            static fn (OrderGiftCardOperatorInterface $operator): callable => new DisableGiftCardsListener($operator),
+            static fn (OrderGiftCardOperatorInterface $operator): callable => new DisableGiftCardsSubscriber($operator),
             'disable',
         ];
     }
@@ -102,14 +102,14 @@ final class WorkflowListenerTest extends TestCase
     /**
      * @return iterable<string, array{\Closure(GiftCardRedemptionMethodInterface):callable, string}>
      */
-    public function redemptionListeners(): iterable
+    public function redemptionSubscribers(): iterable
     {
         yield 'commit on order created' => [
-            static fn (GiftCardRedemptionMethodInterface $method): callable => new CommitRedemptionListener($method),
+            static fn (GiftCardRedemptionMethodInterface $method): callable => new CommitRedemptionSubscriber($method),
             'commit',
         ];
         yield 'rollback on order cancelled' => [
-            static fn (GiftCardRedemptionMethodInterface $method): callable => new RollbackRedemptionListener($method),
+            static fn (GiftCardRedemptionMethodInterface $method): callable => new RollbackRedemptionSubscriber($method),
             'rollback',
         ];
     }

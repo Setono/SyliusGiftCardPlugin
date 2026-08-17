@@ -18,12 +18,12 @@
             <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_design.pre_update" method="uploadImages"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\EventListener\RecordGiftCardIssuanceListener"
-                 class="Setono\SyliusGiftCardPlugin\EventListener\RecordGiftCardIssuanceListener">
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\RecordGiftCardIssuanceSubscriber"
+                 class="Setono\SyliusGiftCardPlugin\EventSubscriber\RecordGiftCardIssuanceSubscriber">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator"/>
             <argument type="service" id="doctrine"/>
 
-            <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card.post_create" method="recordIssuance"/>
+            <tag name="kernel.event_subscriber"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\EventListener\PendingGiftCardCleanupListener"

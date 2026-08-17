@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\EventListener;
+namespace Setono\SyliusGiftCardPlugin\EventSubscriber;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
 use Sylius\Bundle\ResourceBundle\Event\ResourceControllerEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Records the opening balance of a gift card created from the admin.
@@ -18,7 +19,7 @@ use Sylius\Bundle\ResourceBundle\Event\ResourceControllerEvent;
  * Both go through the balance operator, whose recording is idempotent per card, so a card that somehow
  * reaches both paths is still only issued once.
  */
-final class RecordGiftCardIssuanceListener
+final class RecordGiftCardIssuanceSubscriber implements EventSubscriberInterface
 {
     use ORMTrait;
 
@@ -27,6 +28,13 @@ final class RecordGiftCardIssuanceListener
         ManagerRegistry $managerRegistry,
     ) {
         $this->managerRegistry = $managerRegistry;
+    }
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            'setono_sylius_gift_card.gift_card.post_create' => 'recordIssuance',
+        ];
     }
 
     public function recordIssuance(ResourceControllerEvent $event): void

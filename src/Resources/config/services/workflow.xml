@@ -8,36 +8,39 @@
             Symfony Workflow counterparts of the winzou callbacks prepended in SetonoSyliusGiftCardExtension.
             Sylius applies transitions through a single configured adapter (sylius_core.state_machine.default_adapter),
             so exactly one of the two sets runs for any given transition and the work is never done twice.
+
+            Each subscriber names the transition it reacts to, and its priority where one matters, in
+            getSubscribedEvents().
         -->
 
-        <service id="Setono\SyliusGiftCardPlugin\EventListener\Workflow\ReconcileGiftCardsListener">
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\ReconcileGiftCardsSubscriber">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator"/>
-            <tag name="kernel.event_listener" event="workflow.sylius_order_checkout.completed.complete"/>
+            <tag name="kernel.event_subscriber"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\EventListener\Workflow\EnableGiftCardsListener">
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\EnableGiftCardsSubscriber">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator"/>
-            <tag name="kernel.event_listener" event="workflow.sylius_order_payment.completed.pay" priority="100"/>
+            <tag name="kernel.event_subscriber"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\EventListener\Workflow\SendGiftCardsListener">
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\SendGiftCardsSubscriber">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator"/>
-            <tag name="kernel.event_listener" event="workflow.sylius_order_payment.completed.pay"/>
+            <tag name="kernel.event_subscriber"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\EventListener\Workflow\CommitRedemptionListener">
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\CommitRedemptionSubscriber">
             <argument type="service" id="setono_sylius_gift_card.redemption_method"/>
-            <tag name="kernel.event_listener" event="workflow.sylius_order.completed.create"/>
+            <tag name="kernel.event_subscriber"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\EventListener\Workflow\RollbackRedemptionListener">
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\RollbackRedemptionSubscriber">
             <argument type="service" id="setono_sylius_gift_card.redemption_method"/>
-            <tag name="kernel.event_listener" event="workflow.sylius_order.completed.cancel" priority="100"/>
+            <tag name="kernel.event_subscriber"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\EventListener\Workflow\DisableGiftCardsListener">
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\DisableGiftCardsSubscriber">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator"/>
-            <tag name="kernel.event_listener" event="workflow.sylius_order.completed.cancel"/>
+            <tag name="kernel.event_subscriber"/>
         </service>
     </services>
 </container>

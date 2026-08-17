@@ -66,7 +66,9 @@ Use the Playwright MCP tools (configured in `.mcp.json`) while developing a chan
 
 Namespace `Setono\SyliusGiftCardPlugin\` maps to `src/`; tests are `Setono\SyliusGiftCardPlugin\Tests\` in `tests/`. Bundle class `src/SetonoSyliusGiftCardPlugin.php`; services are XML files under `src/Resources/config/services/` imported by `services.xml`. The DI extension prepends configuration for other bundles (winzou state machine, sylius_ui, sylius_grid, liip_imagine, sylius_mailer) as PHP arrays built in `prepend()` — host apps do not import plugin config manually. Register the bundle before SyliusGridBundle.
 
-State machine callbacks are registered twice, once as winzou callbacks in `prepend()` and once as Symfony Workflow listeners in `src/EventListener/Workflow/`, so the plugin works under either adapter. Keep the two in sync when changing them.
+State machine callbacks are registered twice, once as winzou callbacks in `prepend()` and once as Symfony Workflow subscribers in `src/EventSubscriber/Workflow/`, so the plugin works under either adapter. Keep the two in sync when changing them.
+
+Anything reacting to a Symfony event is an **event subscriber**, so the event name and priority live in `getSubscribedEvents()` next to the code rather than in a service tag. `kernel.event_listener` is only used where a subscriber is impossible — currently Sylius' own `ImagesUploadListener`, which we cannot add the interface to. Doctrine's `onFlush` listener is a Doctrine event, not a Symfony one, and stays a listener.
 
 Only doctrine/orm is supported. Resources: `gift_card`, `gift_card_design` (translatable, images with front|back types), `gift_card_transaction` (append-only balance ledger, written only by the balance operator).
 

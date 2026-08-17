@@ -15,5 +15,4 @@ CHANGELOG.md                        export-ignore
 composer-dependency-analyser.php    export-ignore
 ecs.php                             export-ignore
 phpunit.xml.dist                    export-ignore
-psalm.xml                           export-ignore
 UPGRADE-0.12.md                     export-ignore

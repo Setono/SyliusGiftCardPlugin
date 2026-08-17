@@ -123,7 +123,6 @@ final class Configuration implements ConfigurationInterface
 
     private function addGiftCardDesignSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress PossiblyNullReference,PossiblyUndefinedMethod */
         $nodeBuilder
             ->arrayNode('gift_card_design')
                 ->addDefaultsIfNotSet()

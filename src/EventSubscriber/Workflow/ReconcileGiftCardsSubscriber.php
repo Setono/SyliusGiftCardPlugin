@@ -2,24 +2,32 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\EventListener\Workflow;
+namespace Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow;
 
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Sylius\Component\Core\Model\OrderInterface;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Workflow\Event\CompletedEvent;
 use Webmozart\Assert\Assert;
 
 /**
- * Disables the gift cards bought in an order when the order is cancelled
+ * Reconciles the gift cards bought in an order once checkout completes
  *
  * This mirrors the equivalent winzou callback prepended in SetonoSyliusGiftCardExtension, so the plugin
  * behaves the same whichever state machine adapter the application is configured with. Only the adapter
  * actually applying the transition emits its events, so the two can never both run
  */
-final class DisableGiftCardsListener
+final class ReconcileGiftCardsSubscriber implements EventSubscriberInterface
 {
     public function __construct(private readonly OrderGiftCardOperatorInterface $orderGiftCardOperator)
     {
+    }
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            'workflow.sylius_order_checkout.completed.complete' => '__invoke',
+        ];
     }
 
     public function __invoke(CompletedEvent $event): void
@@ -27,6 +35,6 @@ final class DisableGiftCardsListener
         $order = $event->getSubject();
         Assert::isInstanceOf($order, OrderInterface::class);
 
-        $this->orderGiftCardOperator->disable($order);
+        $this->orderGiftCardOperator->reconcile($order);
     }
 }
