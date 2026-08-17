@@ -29,7 +29,7 @@ jobs:
 
         steps:
             -   name: "Checkout"
-                uses: "actions/checkout@v4"
+                uses: "actions/checkout@v5"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -53,7 +53,7 @@ jobs:
                 run: "composer check-style"
 
             -   name: "Run Rector"
-                run: "vendor/bin/rector --dry-run"
+                run: "vendor/bin/rector process --dry-run"
 
             -   name: "Lint yaml files"
                 run: "(cd tests/Application && bin/console lint:yaml ../../src/Resources)"
@@ -78,7 +78,7 @@ jobs:
 
         steps:
             -   name: "Checkout"
-                uses: "actions/checkout@v4"
+                uses: "actions/checkout@v5"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -117,7 +117,7 @@ jobs:
 
         steps:
             -   name: "Checkout"
-                uses: "actions/checkout@v4"
+                uses: "actions/checkout@v5"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -153,7 +153,7 @@ jobs:
 
         steps:
             -   name: "Checkout"
-                uses: "actions/checkout@v4"
+                uses: "actions/checkout@v5"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -188,7 +188,7 @@ jobs:
                 run: "sudo /etc/init.d/mysql start"
 
             -   name: "Checkout"
-                uses: "actions/checkout@v4"
+                uses: "actions/checkout@v5"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -213,7 +213,7 @@ jobs:
                 run: "(cd tests/Application && bin/console doctrine:schema:create)"
 
             -   name: "Validate Doctrine mapping"
-                run: "(cd tests/Application && bin/console doctrine:schema:validate)"
+                run: "(cd tests/Application && bin/console doctrine:schema:validate -vvv)" # the verbose flag shows the missing SQL statements, if any
 
             -   name: "Run functional tests"
                 run: "vendor/bin/phpunit --testsuite functional"
@@ -240,7 +240,7 @@ jobs:
                 run: "sudo /etc/init.d/mysql start"
 
             -   name: "Checkout"
-                uses: "actions/checkout@v4"
+                uses: "actions/checkout@v5"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
@@ -294,6 +294,42 @@ jobs:
                     path: "tests/Playwright/playwright-report"
                     retention-days: 7
 
+    mutation-tests:
+        name: "Mutation tests (PHP ${{ matrix.php-version }})"
+
+        runs-on: "ubuntu-latest"
+
+        strategy:
+            matrix:
+                php-version:
+                    - "8.3"
+
+                dependencies:
+                    - "highest"
+
+        steps:
+            -   name: "Checkout"
+                uses: "actions/checkout@v5"
+
+            -   name: "Setup PHP, with composer and extensions"
+                uses: "shivammathur/setup-php@v2"
+                with:
+                    coverage: "pcov"
+                    extensions: "${{ env.PHP_EXTENSIONS }}"
+                    php-version: "${{ matrix.php-version }}"
+
+            -   name: "Install composer dependencies"
+                uses: "ramsey/composer-install@v3"
+                with:
+                    dependency-versions: "${{ matrix.dependencies }}"
+
+            # Scoped to the unit suite: infection runs the test suite itself, and the functional one needs a
+            # booted kernel and a database that this job deliberately does not provision
+            -   name: "Run infection"
+                run: "vendor/bin/infection --threads=max --test-framework-options=\"--testsuite=unit\""
+                env:
+                    STRYKER_DASHBOARD_API_KEY: "${{ secrets.STRYKER_DASHBOARD_API_KEY }}"
+
     code-coverage:
         name: "Code Coverage (PHP ${{ matrix.php-version }})"
 
@@ -309,7 +345,7 @@ jobs:
                 run: "sudo /etc/init.d/mysql start"
 
             -   name: "Checkout"
-                uses: "actions/checkout@v4"
+                uses: "actions/checkout@v5"
 
             -   name: "Setup PHP, with composer and extensions"
                 uses: "shivammathur/setup-php@v2"
