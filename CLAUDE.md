@@ -36,6 +36,7 @@ vendor/bin/rector --dry-run                # rector check (CI runs this)
 - Use a BDD-style naming convention for test methods (`it_does_something`) with the `@test` annotation or `test` prefix.
 - Use Prophecy for mocking (phpspec/prophecy-phpunit), not PHPUnit mock objects.
 - Form type tests extend `Symfony\Component\Form\Test\TypeTestCase`.
+- Form types should bind to a `data_class` rather than produce an array, and their constraints belong on that class as attributes — so the rules travel with the data instead of with the one form that happens to produce it, and consumers get a typed object instead of an array shape annotation. See `AdjustGiftCardBalanceCommand` / `AddGiftCardToOrderCommand`.
 
 ## UI testing with Playwright
 
