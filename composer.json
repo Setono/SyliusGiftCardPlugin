@@ -58,11 +58,14 @@
         "webmozart/assert": "^1.11"
     },
     "require-dev": {
+        "api-platform/core": "^2.7.16",
         "babdev/pagerfanta-bundle": "^3.8",
         "doctrine/doctrine-bundle": "^2.7",
+        "lexik/jwt-authentication-bundle": "^2.17",
         "matthiasnoback/symfony-config-test": "^4.3 || ^5.1",
         "polishsymfonycommunity/symfony-mocker-container": "^1.0.7",
         "setono/sylius-plugin-pack": "~1.14.1",
+        "sylius-labs/polyfill-symfony-security": "^1.1.2",
         "symfony/debug-bundle": "^6.4",
         "symfony/dotenv": "^6.4",
         "symfony/intl": "^6.4",

@@ -112,6 +112,7 @@ jobs:
                     - "8.3"
 
                 dependencies:
+                    - "lowest"
                     - "highest"
 
 
@@ -148,6 +149,7 @@ jobs:
                     - "8.3"
 
                 dependencies:
+                    - "lowest"
                     - "highest"
 
 
@@ -172,7 +174,7 @@ jobs:
                 run: "vendor/bin/phpunit --testsuite unit"
 
     functional-tests:
-        name: "Functional tests (PHP ${{ matrix.php-version }})"
+        name: "Functional tests (PHP ${{ matrix.php-version }} | Deps: ${{ matrix.dependencies }})"
 
         runs-on: "ubuntu-latest"
 
@@ -181,6 +183,10 @@ jobs:
                 php-version:
                     - "8.1"
                     - "8.3"
+
+                dependencies:
+                    - "lowest"
+                    - "highest"
 
 
         steps:
@@ -201,7 +207,7 @@ jobs:
             -   name: "Install composer dependencies"
                 uses: "ramsey/composer-install@v3"
                 with:
-                    dependency-versions: "highest"
+                    dependency-versions: "${{ matrix.dependencies }}"
 
             -   name: "Lint container"
                 run: "(cd tests/Application && bin/console lint:container)"

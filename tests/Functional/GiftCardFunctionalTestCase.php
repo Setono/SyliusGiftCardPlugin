@@ -66,7 +66,7 @@ abstract class GiftCardFunctionalTestCase extends KernelTestCase
 
     private function createSchema(): void
     {
-        $metadata = $this->manager->getMetadataFactory()->getAllMetadata();
+        $metadata = array_values($this->manager->getMetadataFactory()->getAllMetadata());
         $schemaTool = new SchemaTool($this->manager);
         $schemaTool->dropSchema($metadata);
         $schemaTool->createSchema($metadata);

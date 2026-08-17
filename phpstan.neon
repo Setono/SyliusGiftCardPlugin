@@ -27,6 +27,13 @@ parameters:
     treatPhpDocTypesAsCertain: false
 
     ignoreErrors:
+        # Twig runtime extensions are declared as [RuntimeClass::class, 'method']. Twig 3 types that form
+        # explicitly (callable|array{class-string, string}|null) but the Twig 2 we still support only says
+        # callable|null, so on the lowest supported version PHPStan cannot see it as valid.
+        -
+            message: '#\$callable of class Twig\\TwigFunction constructor expects#'
+            path: src/Twig/Extension/*
+
         # These traits are the plugin's public API: host applications apply them to their own Product, Order,
         # OrderItemUnit and repository classes. Nothing inside the plugin uses them, and tests/Application —
         # which does — is excluded from analysis, so PHPStan can only ever see them as unused.
