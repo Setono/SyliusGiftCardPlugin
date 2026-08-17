@@ -301,24 +301,8 @@ jobs:
                     yarn install --frozen-lockfile
                     npx playwright install chromium --with-deps
 
-            -   name: "Run end to end tests (adjustment redemption mode)"
+            -   name: "Run end to end tests"
                 run: "(cd tests/Playwright && npx playwright test)"
-
-            # The redemption mode decides which service file the extension loads, so it is fixed when the
-            # container is compiled: covering the other mode means rebuilding and serving a second container
-            -   name: "Rebuild the application in payment redemption mode"
-                run: |
-                    cd tests/Application
-                    cp config/redemption_payment.yaml config/packages/zz_redemption_payment.yaml
-                    bin/console cache:clear
-                    symfony server:stop
-                    symfony serve --no-tls --daemon --port=8080
-                    bin/console debug:container --parameter=setono_sylius_gift_card.redemption.mode
-
-            -   name: "Run end to end tests (payment redemption mode)"
-                env:
-                    REDEMPTION_MODE: "payment"
-                run: "(cd tests/Playwright && npx playwright test --project=shop)"
 
             -   name: "Upload the report"
                 uses: "actions/upload-artifact@v4"

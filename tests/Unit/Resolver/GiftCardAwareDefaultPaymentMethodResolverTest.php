@@ -19,7 +19,7 @@ use Sylius\Component\Payment\Model\PaymentInterface as BasePaymentInterface;
 use Sylius\Component\Payment\Resolver\DefaultPaymentMethodResolverInterface;
 
 /**
- * The gift card payment method is a real, enabled payment method in the "payment" redemption mode, so the
+ * The gift card payment method is a real, enabled payment method, so the
  * decorated resolver can hand it back as the default for a gateway payment. This resolver has to keep that
  * from happening without breaking checkout for the channel
  */

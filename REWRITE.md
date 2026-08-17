@@ -57,6 +57,13 @@ Admin: standard resource create (channel field, currency from channel base, expi
 
 ## Redemption — one abstraction, two modes
 
+> **Superseded.** The two modes shipped as planned and were then cut back to one: a redeemed gift card is
+> always a `Payment`. Research into other platforms found none that make this configurable — Shopify and
+> BigCommerce treat gift cards as a payment method, Magento treats them as a discount and has a long-standing
+> feature request to stop. The payment reading is also what accounting expects, since selling a gift card takes
+> money for a liability that redemption settles. Adjustment mode is gone; the rest of this section still
+> describes the shared core and the payment path accurately.
+
 ```yaml
 setono_sylius_gift_card:
     redemption:

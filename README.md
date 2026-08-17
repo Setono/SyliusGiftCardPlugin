@@ -7,7 +7,7 @@
 Add gift card functionality to your Sylius store:
 
 - **Buy gift cards** — customers choose the amount, a design and an optional message, and pick whether the gift card is **virtual** (delivered by email as a PDF) or **physical** (shipped like a normal product).
-- **Redeem gift cards** — customers apply a gift card code in the cart. You choose, via configuration, whether redeeming a gift card creates an **order adjustment** or a **real payment entity**.
+- **Redeem gift cards** — customers apply a gift card code in the cart, and it becomes a **real payment** against the order rather than a discount on it.
 - **Admin management** — a gift card grid, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger), and an outstanding-balance dashboard.
 
 > This is the `1.x` line for **Sylius 1.13 / 1.14**. It is a ground-up rewrite of the `0.12.x` plugin. There is **no API layer** in 1.x — see [`UPGRADE-1.0.md`](UPGRADE-1.0.md) if you are coming from `0.12.x`.
@@ -34,12 +34,11 @@ The customer chooses the amount, a design and an optional message on the product
 
 ### Redeeming a gift card
 
-The customer enters a gift card code in the cart. Depending on `setono_sylius_gift_card.redemption.mode`:
+The customer enters a gift card code in the cart. The order total stays intact and each applied gift card becomes a completed [`Payment`](https://docs.sylius.com/the-book/carts-and-orders/payments) using a lazily-created *offline* gift card payment method; the remainder is charged through the normal gateway, and the payment step is skipped automatically when gift cards cover the whole order.
 
-- **`adjustment`** (default): applied gift cards become negative order adjustments, reducing the order total. The gateway then charges the reduced total.
-- **`payment`**: the order total stays intact; each applied gift card becomes a completed [`Payment`](https://docs.sylius.com/the-book/carts-and-orders/payments) using a lazily-created *offline* gift card payment method, and the remainder is charged through the normal gateway. The payment step is skipped automatically when gift cards cover the whole order.
+A gift card is treated as a means of payment rather than a discount, because that is what it is: selling one takes money for a liability the shop settles later, so redeeming it settles that liability instead of reducing what the order is worth. It also keeps gift cards out of the way of promotions, and matches what order management and accounting systems expect to receive.
 
-In both modes gift cards cannot be used to buy other gift cards, balances are committed when the order is placed and restored when it is cancelled/refunded, and every balance change is recorded in an append-only ledger.
+Gift cards cannot be used to buy other gift cards, balances are committed when the order is placed and restored when it is cancelled/refunded, and every balance change is recorded in an append-only ledger.
 
 ## Requirements
 
@@ -169,8 +168,7 @@ setono_sylius_gift_card:
         minimum_amount: 100              # minor units (e.g. cents)
         maximum_amount: ~                # null = no maximum
     redemption:
-        mode: adjustment                 # 'adjustment' or 'payment'
-        payment_method_code: gift_card   # code of the (auto-created) payment method used in payment mode
+        payment_method_code: gift_card   # code of the (auto-created) payment method a redeemed gift card is paid with
     pdf:
         page_size: A6                    # any page size supported by dompdf
 ```

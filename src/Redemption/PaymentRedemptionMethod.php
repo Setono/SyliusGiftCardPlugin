@@ -21,9 +21,9 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 use Webmozart\Assert\Assert;
 
 /**
- * The redemption method used when `setono_sylius_gift_card.redemption.mode` is "payment": each applied gift card
- * becomes a real, completed Sylius payment at order placement, so the order total stays intact and the remaining
- * amount is charged through the normal gateway
+ * Each applied gift card becomes a real, completed Sylius payment at order placement, so the order total stays
+ * intact and only the remaining amount is charged through the normal gateway. A gift card settles a liability
+ * the shop already took payment for, which is a payment rather than a reduction in what the order is worth
  */
 final class PaymentRedemptionMethod extends RedemptionMethod
 {

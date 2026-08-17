@@ -17,7 +17,7 @@ final class ConfigurationTest extends TestCase
     public function it_has_sensible_redemption_defaults(): void
     {
         $this->assertProcessedConfigurationEquals([[]], [
-            'redemption' => ['mode' => 'adjustment', 'payment_method_code' => 'gift_card'],
+            'redemption' => ['payment_method_code' => 'gift_card'],
         ], 'redemption');
     }
 
@@ -42,11 +42,11 @@ final class ConfigurationTest extends TestCase
     }
 
     /** @test */
-    public function it_only_allows_adjustment_or_payment_redemption_modes(): void
+    public function it_rejects_an_empty_payment_method_code(): void
     {
         $this->assertPartialConfigurationIsInvalid(
-            [['redemption' => ['mode' => 'invalid']]],
-            'redemption.mode',
+            [['redemption' => ['payment_method_code' => '']]],
+            'redemption.payment_method_code',
         );
     }
 

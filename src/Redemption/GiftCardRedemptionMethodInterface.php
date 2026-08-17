@@ -8,9 +8,9 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 
 /**
- * A redemption method decides what happens when a gift card is used to pay for an order. There are two
- * implementations selected by the `setono_sylius_gift_card.redemption.mode` configuration: one that creates
- * order adjustments and one that creates real payment entities
+ * A redemption method decides what happens when a gift card is used to pay for an order. The seam is kept so an
+ * application can substitute its own, but the plugin ships one implementation: a redeemed gift card becomes a
+ * real payment against the order rather than a discount on it
  */
 interface GiftCardRedemptionMethodInterface
 {

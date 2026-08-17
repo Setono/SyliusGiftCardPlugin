@@ -13,7 +13,6 @@
                  class="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardRedemptionRuntime">
             <argument type="service" id="setono_sylius_gift_card.redemption_method"/>
             <argument type="service" id="form.factory"/>
-            <argument>%setono_sylius_gift_card.redemption.mode%</argument>
 
             <tag name="twig.runtime"/>
         </service>

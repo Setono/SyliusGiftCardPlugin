@@ -12,9 +12,9 @@ use Sylius\Component\Order\Model\OrderInterface as BaseOrderInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 
 /**
- * Decorates Sylius' order payment processor in "payment" redemption mode: after the inner processor sizes the
- * gateway payment to the full order total, this reduces it to the amount not covered by gift cards (removing it
- * entirely when the gift cards cover everything)
+ * Decorates Sylius' order payment processor: after the inner processor sizes the gateway payment to the full
+ * order total, this reduces it to the amount not covered by gift cards (removing it entirely when the gift cards
+ * cover everything)
  */
 final class GiftCardAwareOrderPaymentProcessor implements OrderProcessorInterface
 {

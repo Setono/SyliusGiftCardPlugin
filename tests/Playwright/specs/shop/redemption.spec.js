@@ -3,17 +3,9 @@ const { test, expect } = require('@playwright/test');
 /**
  * Redemption through the shop UI.
  *
- * The plugin redeems in one of two modes, chosen by setono_sylius_gift_card.redemption.mode. The mode picks
- * which service file the extension loads, so it is fixed when the container is compiled and cannot be flipped
- * at runtime — running these specs in payment mode means building a second container. See
- * tests/Application/config/redemption_payment.yaml.
- *
- * REDEMPTION_MODE tells the specs which container they are pointed at, so they can assert the part of the UI
- * that actually differs: payment mode shows what is left to pay after the gift cards, adjustment mode does
- * not, because there the gift card is an order adjustment rather than a payment covering part of the total.
+ * A redeemed gift card becomes a payment against the order rather than a discount on it, so the order total
+ * is deliberately left alone and what moves is the amount still to be paid by other means.
  */
-const MODE = process.env.REDEMPTION_MODE ?? 'adjustment';
-
 // Seeded with a known code and a balance far larger than a cart, from the test application's fixtures
 const GIFT_CARD_CODE = 'E2EREDEMPTION01';
 
@@ -70,7 +62,7 @@ async function orderTotalInCents(page) {
 }
 
 /**
- * What is left for the customer to pay once the gift cards are counted. Only payment mode shows this.
+ * What is left for the customer to pay once the gift cards are counted.
  *
  * @param {import('@playwright/test').Page} page
  */
@@ -82,7 +74,7 @@ async function remainingToPayInCents(page) {
     return Math.round(parseFloat(match[1].replace(/,/g, '')) * 100);
 }
 
-test.describe(`shop redemption (${MODE} mode)`, () => {
+test.describe('shop redemption', () => {
     test('a gift card can be applied and covers what is owed', async ({ page }) => {
         await addSomethingToCart(page);
 
@@ -95,17 +87,9 @@ test.describe(`shop redemption (${MODE} mode)`, () => {
         // the card is listed as applied, by the code that was entered
         await expect(page.getByText(GIFT_CARD_CODE, { exact: false }).first()).toBeVisible();
 
-        const after = await orderTotalInCents(page);
-
-        if ('payment' === MODE) {
-            // The gift card becomes a payment against the order, so the order still costs what it did — what
-            // changes is how much of it is left for the customer to pay by other means
-            expect(after, 'a gift card payment should not change what the order costs').toBe(before);
-            expect(await remainingToPayInCents(page), 'the gift card should cover the whole order').toBe(0);
-        } else {
-            // The gift card is a negative adjustment on the order, so it reduces the total itself
-            expect(after, 'a gift card adjustment should reduce what is owed').toBeLessThan(before);
-        }
+        // The gift card pays for the order rather than discounting it, so the order still costs what it did
+        expect(await orderTotalInCents(page), 'redeeming should not change what the order costs').toBe(before);
+        expect(await remainingToPayInCents(page), 'the gift card should cover the whole order').toBe(0);
     });
 
     test('an applied gift card can be removed again', async ({ page }) => {
@@ -134,18 +118,10 @@ test.describe(`shop redemption (${MODE} mode)`, () => {
         await expect(page.getByText('NOSUCHCARD000000', { exact: false })).toHaveCount(0);
     });
 
-    test('the totals reflect the redemption mode the container was built with', async ({ page }) => {
+    test('the cart shows what is left to pay after the gift cards', async ({ page }) => {
         await addSomethingToCart(page);
         await applyGiftCard(page, GIFT_CARD_CODE);
 
-        // Only payment mode has a notion of "what is still to be paid by other means", because there the gift
-        // card becomes a payment alongside the others rather than an adjustment on the order
-        const remaining = page.getByText('Remaining to pay', { exact: false });
-
-        if ('payment' === MODE) {
-            await expect(remaining.first()).toBeVisible();
-        } else {
-            await expect(remaining).toHaveCount(0);
-        }
+        await expect(page.getByText('Remaining to pay', { exact: false }).first()).toBeVisible();
     });
 });

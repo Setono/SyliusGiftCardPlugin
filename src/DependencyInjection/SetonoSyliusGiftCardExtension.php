@@ -21,7 +21,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
          *     code_length: int,
          *     default_validity_period: string|null,
          *     purchase: array{minimum_amount: int, maximum_amount: int|null},
-         *     redemption: array{mode: string, payment_method_code: string},
+         *     redemption: array{payment_method_code: string},
          *     pdf: array{page_size: string},
          *     resources: array<string, mixed>,
          * } $config
@@ -33,7 +33,6 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
         $container->setParameter('setono_sylius_gift_card.default_validity_period', $config['default_validity_period']);
         $container->setParameter('setono_sylius_gift_card.purchase.minimum_amount', $config['purchase']['minimum_amount']);
         $container->setParameter('setono_sylius_gift_card.purchase.maximum_amount', $config['purchase']['maximum_amount']);
-        $container->setParameter('setono_sylius_gift_card.redemption.mode', $config['redemption']['mode']);
         $container->setParameter('setono_sylius_gift_card.redemption.payment_method_code', $config['redemption']['payment_method_code']);
         $container->setParameter('setono_sylius_gift_card.pdf.page_size', $config['pdf']['page_size']);
         $container->setParameter(
@@ -49,7 +48,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
         );
 
         $loader->load('services.xml');
-        $loader->load(sprintf('services/redemption/%s.xml', $config['redemption']['mode']));
+        $loader->load('services/redemption/payment.xml');
     }
 
     /**

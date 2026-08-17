@@ -13,7 +13,7 @@ use Sylius\Component\Payment\Repository\PaymentMethodRepositoryInterface;
 
 /**
  * The provider lazily creates the offline gift card payment method used in payment mode. Its services are only wired
- * when redemption.mode is "payment", so it is constructed directly here against the real Sylius factory/repository.
+ * only in the payment redemption service file, so it is constructed directly here against the real Sylius factory/repository.
  */
 final class GiftCardPaymentMethodProviderTest extends GiftCardFunctionalTestCase
 {

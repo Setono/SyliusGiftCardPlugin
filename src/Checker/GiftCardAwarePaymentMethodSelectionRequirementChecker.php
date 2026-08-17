@@ -10,8 +10,8 @@ use Sylius\Component\Core\Checker\OrderPaymentMethodSelectionRequirementCheckerI
 use Sylius\Component\Core\Model\OrderInterface;
 
 /**
- * In "payment" redemption mode the customer does not need to pick a payment method when gift cards cover the whole
- * order, even though the order total is not zero
+ * The customer does not need to pick a payment method when gift cards cover the whole order, even though the
+ * order total is not zero — the gift card payments already settle it
  */
 final class GiftCardAwarePaymentMethodSelectionRequirementChecker implements OrderPaymentMethodSelectionRequirementCheckerInterface
 {

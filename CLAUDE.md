@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `setono/sylius-gift-card-plugin` — a Sylius plugin adding gift card functionality. Version 1.x (branch `1.x`) is a full rewrite targeting Sylius 1.13/1.14, PHP >= 8.1, Symfony ^6.4. See `REWRITE.md` for the complete architecture plan, decisions, and progress log of the rewrite.
 
-Key feature set: customers buy gift cards choosing the amount themselves (virtual = email delivery, physical = shipped + design chosen by the customer); redeeming a gift card produces either an order adjustment or a real Payment entity depending on the `setono_sylius_gift_card.redemption.mode` config (`adjustment` | `payment`). No API layer.
+Key feature set: customers buy gift cards choosing the amount themselves (virtual = email delivery, physical = shipped + design chosen by the customer); redeeming a gift card creates a real Payment entity against the order, leaving the order total intact — a gift card settles a liability the shop already took money for, so it is a means of payment rather than a discount. No API layer.
 
 ## Commands
 
@@ -54,21 +54,9 @@ npx playwright test --headed -g 'cart'    # watch a single test
 
 `PLAYWRIGHT_BASE_URL` overrides the default `https://127.0.0.1:8080`. The admin specs share a signed-in session created by `specs/auth.setup.js`; the shop specs run anonymously. Specs must **discover their subjects** (grid links, locale switcher) rather than hardcode ids, codes or locales, so they keep working against a freshly seeded database.
 
-Any new UI needs a spec here. Coverage today: admin gift cards index/show/edit, designs index/edit, balance report, gift card and design preview PDFs, product edit for simple/configurable/gift card products, and the shop gift card product page, locales, add-to-cart and redemption in both modes.
+Any new UI needs a spec here. Coverage today: admin gift cards index/show/edit, designs index/edit, balance report, gift card and design preview PDFs, product edit for simple/configurable/gift card products, and the shop gift card product page, locales, add-to-cart and redemption.
 
-### Redemption modes
-
-`setono_sylius_gift_card.redemption.mode` decides which service file the extension loads, so it is fixed when the container is compiled — it cannot be an environment variable, and covering the other mode means building a second container:
-
-```bash
-cd tests/Application
-cp config/redemption_payment.yaml config/packages/zz_redemption_payment.yaml
-bin/console cache:clear && symfony server:stop && symfony serve --no-tls -d --port=8080
-(cd ../Playwright && REDEMPTION_MODE=payment npx playwright test --project=shop)
-rm config/packages/zz_redemption_payment.yaml && bin/console cache:clear   # back to adjustment
-```
-
-`REDEMPTION_MODE` tells the specs which container they are pointed at. The modes genuinely differ in the UI, so assertions branch on it: in **adjustment** mode the gift card is a negative order adjustment and reduces the order total; in **payment** mode it becomes a payment, so the order still costs what it did and a "Remaining to pay" row appears instead. CI runs the shop specs in both modes.
+Redemption does not change what the order costs — the gift card becomes a payment against it — so specs assert the "Remaining to pay" figure rather than expecting the order total to drop.
 
 When a test app template overrides a Sylius one, diff it against the original in `vendor/sylius/sylius/.../Resources/views/` before trusting it; the override silently drifts as Sylius changes, and options dropped from a `form_row` call fail only at render time.
 

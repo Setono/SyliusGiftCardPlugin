@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Calculator;
 
-use Setono\SyliusGiftCardPlugin\Model\AdjustmentInterface;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 
@@ -12,12 +11,9 @@ final class EligibleTotalCalculator implements EligibleTotalCalculatorInterface
 {
     public function getEligibleTotal(OrderInterface $order): int
     {
+        // Redeeming does not change what the order costs — a gift card becomes a payment against it — so the
+        // order total is already the pre-redemption total and needs no unwinding here
         $total = $order->getTotal();
-
-        // Exclude gift card adjustments already applied to the order so that the eligible total (and therefore the
-        // per-card coverage) is computed against the pre-redemption total. Without this the coverage shown for an
-        // applied card collapses to 0 once its own adjustment has reduced the order total.
-        $total -= $order->getAdjustmentsTotal(AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT);
 
         foreach ($order->getItems() as $item) {
             $product = $item->getProduct();

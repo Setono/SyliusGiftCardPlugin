@@ -17,7 +17,6 @@ final class GiftCardRedemptionExtension extends AbstractExtension
             new TwigFunction('setono_gift_card_covered_amount', [GiftCardRedemptionRuntime::class, 'getCoveredAmount']),
             new TwigFunction('setono_gift_card_covered_amount_by_gift_card', [GiftCardRedemptionRuntime::class, 'getCoveredAmountByGiftCard']),
             new TwigFunction('setono_gift_card_remaining_total', [GiftCardRedemptionRuntime::class, 'getRemainingTotal']),
-            new TwigFunction('setono_gift_card_payment_mode', [GiftCardRedemptionRuntime::class, 'isPaymentMode']),
         ];
     }
 }

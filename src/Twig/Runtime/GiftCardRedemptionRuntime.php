@@ -18,7 +18,6 @@ final class GiftCardRedemptionRuntime implements RuntimeExtensionInterface
     public function __construct(
         private readonly GiftCardRedemptionMethodInterface $redemptionMethod,
         private readonly FormFactoryInterface $formFactory,
-        private readonly string $redemptionMode,
     ) {
     }
 
@@ -45,10 +44,5 @@ final class GiftCardRedemptionRuntime implements RuntimeExtensionInterface
     public function getRemainingTotal(OrderInterface $order): int
     {
         return max(0, $order->getTotal() - $this->getCoveredAmount($order));
-    }
-
-    public function isPaymentMode(): bool
-    {
-        return 'payment' === $this->redemptionMode;
     }
 }
