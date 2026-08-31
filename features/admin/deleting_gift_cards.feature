@@ -7,7 +7,7 @@ Feature: Deleting an existing gift card
   Background:
     Given the store operates on a channel named "United States" in "USD" currency
     And I am logged in as an administrator
-    And the store has a gift card with code "GIFT-CARD-100" valued at "$100"
+    And the store has a gift card with code "GIFT-CARD-100" valued at "$100.00"
 
   @api
   Scenario: Deleting gift card

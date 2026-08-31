@@ -7,8 +7,8 @@ Feature: Applying gift card
   Background:
     Given the store operates on a single channel in "United States"
     And the store has a product "PHP T-Shirt" priced at "$100.00"
-    And the store has a product "Javascript T-Shirt" priced at "$1"
-    And the store has a gift card with code "GIFT-CARD-100" valued at "$100"
+    And the store has a product "Javascript T-Shirt" priced at "$1.00"
+    And the store has a gift card with code "GIFT-CARD-100" valued at "$100.00"
     And the store ships everywhere for free
     And the store allows paying offline
 

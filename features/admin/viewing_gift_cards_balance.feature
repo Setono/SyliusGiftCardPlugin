@@ -12,12 +12,12 @@ Feature: Viewing gift cards balance
     And the store operates on a channel named "Europe" in "EUR" currency
     And that channel allows to shop using "EUR" and "USD" currencies
     And I am logged in as an administrator
-    And the store has a gift card with code "GIFT-CARD-100" valued at "$100" on channel "United States"
-    And the store has a gift card with code "GIFT-CARD-200" valued at "$200" on channel "United States"
+    And the store has a gift card with code "GIFT-CARD-100" valued at "$100.00" on channel "United States"
+    And the store has a gift card with code "GIFT-CARD-200" valued at "$200.00" on channel "United States"
     And the store has a gift card with code "GIFT-CARD-50" valued at "€50" on channel "Europe"
 
   @api
   Scenario: Browsing gift cards
     When I browse gift cards balance
-    Then I should see a gift card balance of "$300" in "USD" currency
+    Then I should see a gift card balance of "$300.00" in "USD" currency
     And I should see a gift card balance of "€50" in "EUR" currency

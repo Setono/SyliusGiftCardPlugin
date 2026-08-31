@@ -5,11 +5,11 @@ Feature: Reading an existing gift card
 
   Background:
     Given the store operates on a channel named "United States" in "USD" currency
-    And the store has a gift card with code "GIFT-CARD-100" valued at "$100"
+    And the store has a gift card with code "GIFT-CARD-100" valued at "$100.00"
 
   @api
   Scenario: Browsing gift cards
     When I open the gift card "GIFT-CARD-100" page
-    Then It should be valued at "$100"
-    And It should be initially valued at "$100"
+    Then It should be valued at "$100.00"
+    And It should be initially valued at "$100.00"
     And It should have "USD" currency

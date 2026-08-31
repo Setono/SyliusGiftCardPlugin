@@ -9,7 +9,7 @@ Feature: Adding a configurable gift card to the cart
     And the store has a product "Gift card"
     And this product is a configurable gift card
 
-  @ui
+  @ui @mink:chromedriver
   Scenario: Adding a configurable gift card to the cart
     Given I am a logged in customer
     When I add this product to the cart with amount "$125.00" and custom message "Hey buddy"
