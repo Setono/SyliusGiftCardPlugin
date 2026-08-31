@@ -16,5 +16,17 @@
 
             <tag name="twig.runtime" />
         </service>
+
+        <service id="setono_sylius_gift_card.twig.extension.add_gift_card_to_order"
+                 class="Setono\SyliusGiftCardPlugin\Twig\Extension\AddGiftCardToOrderExtension">
+            <tag name="twig.extension" />
+        </service>
+
+        <service id="setono_sylius_gift_card.twig.extension.add_gift_card_to_order_runtime"
+                 class="Setono\SyliusGiftCardPlugin\Twig\Extension\AddGiftCardToOrderRuntime">
+            <argument type="service" id="form.factory" />
+
+            <tag name="twig.runtime" />
+        </service>
     </services>
 </container>
