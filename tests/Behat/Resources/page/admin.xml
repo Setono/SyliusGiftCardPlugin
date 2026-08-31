@@ -7,6 +7,7 @@
                  class="Setono\SyliusGiftCardPlugin\Tests\Behat\Page\Admin\Product\CreateSimpleProductPage"
                  parent="sylius.behat.page.admin.crud.create" public="false">
             <argument type="string">setono_sylius_gift_card_admin_product_create_gift_card</argument>
+            <argument type="service" id="Sylius\Behat\Service\Helper\AutocompleteHelperInterface" />
         </service>
     </services>
 </container>
