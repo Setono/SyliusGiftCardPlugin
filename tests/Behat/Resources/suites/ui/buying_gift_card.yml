@@ -3,7 +3,7 @@ default:
         ui_buying_gift_card:
             contexts:
                 - sylius.behat.context.hook.doctrine_orm
-                - sylius.behat.context.hook.email_spool
+                - sylius.behat.context.hook.mailer
 
                 - sylius.behat.context.transform.lexical
                 - sylius.behat.context.transform.product
