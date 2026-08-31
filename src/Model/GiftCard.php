@@ -323,7 +323,7 @@ class GiftCard implements GiftCardInterface
     }
 
     #[\Override]
-    public function isExpired(DateTimeInterface $date = null): bool
+    public function isExpired(?DateTimeInterface $date = null): bool
     {
         if (null === $date) {
             $date = new DateTime();

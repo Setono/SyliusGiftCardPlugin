@@ -129,7 +129,7 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
 
     public function setExpiresAt(?\DateTimeInterface $expiresAt): void;
 
-    public function isExpired(\DateTimeInterface $date = null): bool;
+    public function isExpired(?\DateTimeInterface $date = null): bool;
 
     public function getSendNotificationEmail(): bool;
 

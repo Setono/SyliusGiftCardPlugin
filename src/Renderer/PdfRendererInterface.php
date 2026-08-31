@@ -17,8 +17,8 @@ interface PdfRendererInterface
      */
     public function render(
         GiftCardInterface $giftCard,
-        GiftCardConfigurationInterface $giftCardConfiguration = null,
-        ChannelInterface $channel = null,
-        string $localeCode = null,
+        ?GiftCardConfigurationInterface $giftCardConfiguration = null,
+        ?ChannelInterface $channel = null,
+        ?string $localeCode = null,
     ): PdfResponse;
 }

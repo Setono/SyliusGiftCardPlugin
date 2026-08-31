@@ -62,10 +62,10 @@ final class DefaultGiftCardConfigurationSubscriberTest extends TestCase
         self::assertTrue($giftCardConfiguration->isDefault());
     }
 
-    private function getExistingGiftCardConfiguration(int $id = null, bool $default = true): GiftCardConfigurationInterface
+    private function getExistingGiftCardConfiguration(?int $id = null, bool $default = true): GiftCardConfigurationInterface
     {
         $obj = new class($id) extends GiftCardConfiguration {
-            public function __construct(int $id = null)
+            public function __construct(?int $id = null)
             {
                 parent::__construct();
 

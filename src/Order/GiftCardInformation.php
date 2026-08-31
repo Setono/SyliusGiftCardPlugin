@@ -10,7 +10,7 @@ final class GiftCardInformation implements GiftCardInformationInterface
 
     private ?string $customMessage;
 
-    public function __construct(int $amount, string $customMessage = null)
+    public function __construct(int $amount, ?string $customMessage = null)
     {
         $this->amount = $amount;
         $this->customMessage = $customMessage;
