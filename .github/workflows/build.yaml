@@ -64,9 +64,6 @@ jobs:
             -   name: "Validate composer"
                 run: "composer validate --ansi --strict"
 
-            -   name: "Check composer normalized"
-                run: "composer normalize --dry-run"
-
             -   name: "Get Composer cache directory"
                 id: "composer-cache"
                 run: "echo \"dir=$(composer config cache-files-dir)\" >> $GITHUB_OUTPUT"

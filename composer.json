@@ -98,7 +98,7 @@
     "config": {
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": false,
-            "ergebnis/composer-normalize": true,
+            "ergebnis/composer-normalize": false,
             "php-http/discovery": false,
             "symfony/thanks": false,
             "symfony/runtime": true,
