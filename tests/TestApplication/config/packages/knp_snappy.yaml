@@ -1,5 +1,5 @@
 knp_snappy:
     pdf:
-        binary: /usr/local/bin/wkhtmltopdf
+        binary: '%env(KNP_SNAPPY_PDF_BINARY)%'
     image:
-        binary: /usr/local/bin/wkhtmltoimage
+        binary: '%env(KNP_SNAPPY_IMAGE_BINARY)%'
