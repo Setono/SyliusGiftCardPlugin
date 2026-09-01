@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace spec\Setono\SyliusGiftCardPlugin\Applicator;
 
-use Doctrine\Persistence\ObjectManager;
 use PhpSpec\ObjectBehavior;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
@@ -18,10 +17,9 @@ final class GiftCardApplicatorSpec extends ObjectBehavior
 {
     public function let(
         GiftCardRepositoryInterface $giftCardRepository,
-        OrderProcessorInterface $orderProcessor,
-        ObjectManager $orderManager
+        OrderProcessorInterface $orderProcessor
     ): void {
-        $this->beConstructedWith($giftCardRepository, $orderProcessor, $orderManager);
+        $this->beConstructedWith($giftCardRepository, $orderProcessor);
     }
 
     public function it_implements_gift_card_applicator_interface(): void
@@ -37,13 +35,14 @@ final class GiftCardApplicatorSpec extends ObjectBehavior
     public function it_applies(
         GiftCardRepositoryInterface $giftCardRepository,
         OrderProcessorInterface $orderProcessor,
-        ObjectManager $orderManager,
         OrderInterface $order,
         GiftCardInterface $giftCard,
         ChannelInterface $channel
     ): void {
         $giftCardCode = '123';
 
+        $giftCard->isEnabled()->willReturn(true);
+        $giftCard->isExpired()->willReturn(false);
         $giftCard->getChannel()->willReturn($channel);
 
         $order->getChannel()->willReturn($channel);
@@ -52,7 +51,6 @@ final class GiftCardApplicatorSpec extends ObjectBehavior
         $giftCardRepository->findOneByCode($giftCardCode)->willReturn($giftCard);
 
         $orderProcessor->process($order)->shouldBeCalled();
-        $orderManager->flush()->shouldBeCalled();
 
         $this->apply($order, $giftCardCode);
     }
