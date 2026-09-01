@@ -64,7 +64,7 @@
         "matthiasnoback/symfony-config-test": "^5.1",
         "matthiasnoback/symfony-dependency-injection-test": "^5.1",
         "php-http/message-factory": "^1.1",
-        "phpspec/phpspec": "^7.4",
+        "phpspec/phpspec": "^8.0",
         "phpspec/prophecy-phpunit": "^2.0.2",
         "phpunit/phpunit": "^9.6.17",
         "polishsymfonycommunity/symfony-mocker-container": "^1.0",
