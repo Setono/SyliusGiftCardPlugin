@@ -13,8 +13,8 @@ Feature: Adding a new product that is a gift card
   Scenario: Adding a new gift card product
     Given I want to create a new simple product
     When I specify its code as "gift_card_100"
-    And I name it "Gift Card $100" in "English (United States)"
-    And I set its slug to "gift-card-100" in "English (United States)"
+    And I name it "Gift Card $100" in "English (United States)" locale
+    And I set its slug to "gift-card-100" in "English (United States)" locale
     And I set its price to "$100.00" for "United States" channel
     And I set its gift card value to true
     And I add it

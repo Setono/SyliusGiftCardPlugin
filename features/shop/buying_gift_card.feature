@@ -11,11 +11,11 @@ Feature: Buying a gift card
     And the store ships everywhere for free
     And the store allows paying offline
 
-  @ui
+  @ui @mink:chromedriver
   Scenario: Buying a gift card
     Given I am a logged in customer
-    And I have product "Gift card 100" in the cart
-    When I proceed selecting "Offline" payment method
+    And I have product "Gift card 100" added to the cart
+    When I proceed with selecting "Offline" payment method
     And I confirm my order and pay successfully
     Then I should see the thank you page
     And I should receive an email with gift card code
