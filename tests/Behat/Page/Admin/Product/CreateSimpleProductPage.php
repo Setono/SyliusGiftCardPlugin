@@ -16,7 +16,7 @@ final class CreateSimpleProductPage extends BaseCreateSimpleProductPage implemen
     protected function getDefinedElements(): array
     {
         return array_merge(parent::getDefinedElements(), [
-            'gift_card' => '#sylius_product_giftCard',
+            'gift_card' => '#sylius_admin_product_giftCard',
         ]);
     }
 }
