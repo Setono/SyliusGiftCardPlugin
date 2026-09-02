@@ -63,6 +63,7 @@
         "doctrine/doctrine-bundle": "^2.7",
         "lexik/jwt-authentication-bundle": "^2.17",
         "matthiasnoback/symfony-config-test": "^4.3 || ^5.1",
+        "payum/payum-bundle": "^2.7.1",
         "polishsymfonycommunity/symfony-mocker-container": "^1.0.7",
         "setono/sylius-plugin-pack": "~1.14.1",
         "sylius-labs/polyfill-symfony-security": "^1.1.2",

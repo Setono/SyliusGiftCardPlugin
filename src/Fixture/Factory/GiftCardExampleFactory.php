@@ -64,10 +64,7 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
     {
         /** @var GiftCardInterface|null $giftCard */
         $giftCard = $this->giftCardRepository->findOneBy(['code' => $options['code']]);
-        if (null === $giftCard) {
-            /** @var GiftCardInterface $giftCard */
-            $giftCard = $this->giftCardFactory->createNew();
-        }
+        $giftCard ??= $this->giftCardFactory->createNew();
 
         /** @var CurrencyInterface $currency */
         $currency = $options['currency'];
