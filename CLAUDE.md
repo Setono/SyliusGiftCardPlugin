@@ -36,7 +36,8 @@ vendor/bin/rector --dry-run                # rector check (CI runs this)
 - Use a BDD-style naming convention for test methods (`it_does_something`) with the `@test` annotation or `test` prefix.
 - Use Prophecy for mocking (phpspec/prophecy-phpunit), not PHPUnit mock objects.
 - Form type tests extend `Symfony\Component\Form\Test\TypeTestCase`.
-- Form types should bind to a `data_class` rather than produce an array, and their constraints belong on that class as attributes — so the rules travel with the data instead of with the one form that happens to produce it, and consumers get a typed object instead of an array shape annotation. See `AdjustGiftCardBalanceCommand` / `AddGiftCardToOrderCommand`.
+- Form types should bind to a `data_class` rather than produce an array — so the rules travel with the data instead of with the one form that happens to produce it, and consumers get a typed object instead of an array shape annotation. See `AdjustGiftCardBalanceCommand` / `AddGiftCardToOrderCommand`.
+- Validation constraints are declared in XML under `src/Resources/config/validation/`, one file per class, never as PHP attributes — models and command objects alike. Host applications override plugin validation by pointing at these files, which only works if every constraint lives there.
 
 ## UI testing with Playwright
 
@@ -78,5 +79,5 @@ Only doctrine/orm is supported. Resources: `gift_card`, `gift_card_design` (tran
 - A disabled, "pending" GiftCard is created at add-to-cart (one per OrderItemUnit) carrying amount/message/design/deliveryType; a reconciliation pass at checkout complete creates cards for quantity-bumped units, removes stale ones, and re-snapshots final amounts from unit totals. Cards are enabled on payment and emailed (all delivery types); disabled on order cancel.
 - `deliveryType` (virtual|physical) is derived from `variant->isShippingRequired()` — never from product structure assumptions.
 - Balance mutations go through the balance operator exclusively, which writes `GiftCardTransaction` ledger rows (idempotency via nullable-unique `idempotencyKey`). Nothing below controllers flushes.
-- Redemption is strategy-based: `adjustment` mode creates negative `order_gift_card` adjustments; `payment` mode creates one Payment per card (offline gateway payment method, lazily created). Balance is committed at order placement, restored on cancel/refund.
+- Redeeming a gift card creates one Payment per card against the order (offline gateway payment method, lazily created), leaving the order total intact. Balance is committed at order placement, restored on cancel/refund.
 - Gift cards cannot pay for gift-card line items (EligibleTotalCalculator default).

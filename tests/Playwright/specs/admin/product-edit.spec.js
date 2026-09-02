@@ -59,4 +59,25 @@ test.describe('admin product edit', () => {
         const dataUrl = await page.locator('.sylius-autocomplete').first().getAttribute('data-url');
         expect(dataUrl, 'the options autocomplete has no remote_url').toBeTruthy();
     });
+
+    /**
+     * The action scaffolds a product through the same factory the fixtures use, so a merchant lands on a
+     * ready-to-edit gift card product instead of assembling the option and both variants by hand
+     */
+    test('a gift card product can be scaffolded from the gift cards index', async ({ page }) => {
+        await page.goto('/admin/gift-cards/');
+        await page.getByRole('link', { name: /gift card product/i }).click();
+
+        await expect(page).toHaveURL(/\/admin\/products\/\d+\/edit/);
+        await expect(page).toHaveTitle(/Edit product/);
+
+        // Created disabled so the merchant reviews it before it goes live, and flagged as a gift card
+        await expect(page.locator('input[name*="[giftCard]"]')).toBeChecked();
+        await expect(page.locator('input[name="sylius_product[enabled]"]')).not.toBeChecked();
+
+        // One variant per delivery type, so the customer can pick virtual or physical straight away
+        const productId = /\/admin\/products\/(\d+)\/edit/.exec(page.url())[1];
+        await page.goto(`/admin/products/${productId}/variants/`);
+        await expect(page.locator('table tbody tr')).toHaveCount(2);
+    });
 });

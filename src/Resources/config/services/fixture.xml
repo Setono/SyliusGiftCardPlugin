@@ -41,15 +41,8 @@
 
         <service id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardProductExampleFactory"
                  class="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardProductExampleFactory">
-            <argument type="service" id="sylius.factory.product"/>
-            <argument type="service" id="sylius.factory.product_variant"/>
-            <argument type="service" id="sylius.factory.product_option"/>
-            <argument type="service" id="sylius.factory.product_option_value"/>
-            <argument type="service" id="sylius.factory.channel_pricing"/>
-            <argument type="service" id="sylius.repository.product_option"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface"/>
             <argument type="service" id="sylius.repository.channel"/>
-            <argument type="service" id="sylius.repository.locale"/>
-            <argument type="service" id="sylius.generator.slug"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardProductFixture"

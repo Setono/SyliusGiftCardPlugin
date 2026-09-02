@@ -18,7 +18,7 @@ final class GiftCardBalanceAction
 
     public function __invoke(): Response
     {
-        $balances = $this->giftCardRepository->findBalance(new \DateTimeImmutable());
+        $balances = $this->giftCardRepository->findBalance();
 
         return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/admin/gift_card/balance.html.twig', [
             'balances' => $balances,

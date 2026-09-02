@@ -26,7 +26,10 @@ interface GiftCardRepositoryInterface extends RepositoryInterface
     /**
      * Aggregates the outstanding balance of all usable gift cards, grouped by currency, computed in SQL.
      *
+     * Expiry is judged against $date, which defaults to now — the usual question is what is outstanding
+     * today, so callers only pass a date when they want a different point in time.
+     *
      * @return list<array{currencyCode: string, count: int, amount: int}>
      */
-    public function findBalance(\DateTimeInterface $date): array;
+    public function findBalance(?\DateTimeInterface $date = null): array;
 }

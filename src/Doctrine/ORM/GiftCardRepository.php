@@ -52,7 +52,7 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
         return $giftCard;
     }
 
-    public function findBalance(\DateTimeInterface $date): array
+    public function findBalance(?\DateTimeInterface $date = null): array
     {
         /** @var list<array{currencyCode: string, count: int|string, amount: int|string}> $rows */
         $rows = $this->createQueryBuilder('o')
@@ -60,7 +60,7 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
             ->andWhere('o.enabled = true')
             ->andWhere('o.amount > 0')
             ->andWhere('o.expiresAt IS NULL OR o.expiresAt > :date')
-            ->setParameter('date', $date)
+            ->setParameter('date', $date ?? new \DateTimeImmutable())
             ->groupBy('o.currencyCode')
             ->getQuery()
             ->getArrayResult()

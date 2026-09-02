@@ -13,5 +13,20 @@
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface"
                  alias="setono_sylius_gift_card.factory.gift_card"/>
+
+        <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactory"
+                 class="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactory">
+            <argument type="service" id="sylius.factory.product"/>
+            <argument type="service" id="sylius.factory.product_variant"/>
+            <argument type="service" id="sylius.factory.product_option"/>
+            <argument type="service" id="sylius.factory.product_option_value"/>
+            <argument type="service" id="sylius.factory.channel_pricing"/>
+            <argument type="service" id="sylius.repository.product_option"/>
+            <argument type="service" id="sylius.repository.channel"/>
+            <argument type="service" id="sylius.repository.locale"/>
+            <argument type="service" id="sylius.generator.slug"/>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactory"/>
     </services>
 </container>

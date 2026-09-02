@@ -6,7 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Controller\Action\Admin;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Setono\Doctrine\ORMTrait;
-use Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardProductExampleFactory;
+use Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +22,7 @@ final class CreateGiftCardProductAction
     use ORMTrait;
 
     public function __construct(
-        private readonly GiftCardProductExampleFactory $productFactory,
+        private readonly GiftCardProductFactoryInterface $productFactory,
         ManagerRegistry $managerRegistry,
         private readonly UrlGeneratorInterface $urlGenerator,
     ) {
@@ -31,11 +31,11 @@ final class CreateGiftCardProductAction
 
     public function __invoke(Request $request): Response
     {
-        $product = $this->productFactory->create([
-            'code' => 'gift_card_' . bin2hex(random_bytes(4)),
-            'name' => 'Gift card',
-            'enabled' => false,
-        ]);
+        $product = $this->productFactory->create(
+            'gift_card_' . bin2hex(random_bytes(4)),
+            'Gift card',
+            enabled: false,
+        );
 
         $manager = $this->getManager($product);
         $manager->persist($product);
