@@ -6,9 +6,6 @@ namespace Setono\SyliusGiftCardPlugin\Validator\Constraints;
 
 use Symfony\Component\Validator\Constraint;
 
-/**
- * @Annotation
- */
 #[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::IS_REPEATABLE)]
 final class ValidGiftCardAmount extends Constraint
 {

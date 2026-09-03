@@ -6,9 +6,6 @@ namespace Setono\SyliusGiftCardPlugin\Validator\Constraints;
 
 use Symfony\Component\Validator\Constraint;
 
-/**
- * @Annotation
- */
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final class UniqueDesignImageTypes extends Constraint
 {
