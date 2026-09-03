@@ -17,6 +17,17 @@ setono_sylius_gift_card:
             greater_than_or_equal: Le montant doit être supérieur ou égal à 1
         send_notification_email:
             boolean: L'envoi de l'email de notification doit être un booléen
+        not_enabled: Ce chèque-cadeau n'est pas actif.
+        expired: Ce chèque-cadeau a expiré.
+        no_balance: Ce chèque-cadeau n'a plus de solde.
+        channel_mismatch: Ce chèque-cadeau ne peut pas être utilisé sur ce canal.
+        currency_mismatch: Ce chèque-cadeau est dans une devise différente de celle de votre commande.
+        already_applied: Ce chèque-cadeau est déjà appliqué à votre commande.
+        adjustment_makes_balance_negative: 'Vous ne pouvez pas déduire plus que le solde du chèque-cadeau. Le solde est de {{ balance }}.'
+    gift_card_information:
+        amount:
+            too_low: 'Le montant du chèque-cadeau doit être au moins de {{ minimum }}.'
+            too_high: 'Le montant du chèque-cadeau ne peut pas dépasser {{ maximum }}.'
     gift_card_design:
         name:
             not_blank: Veuillez renseigner un nom

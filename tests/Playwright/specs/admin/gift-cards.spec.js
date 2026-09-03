@@ -80,6 +80,24 @@ test.describe('admin gift cards', () => {
         await expect(page.locator('form.ui.form .field')).not.toHaveCount(0);
     });
 
+    /**
+     * Deducting more than the card holds used to reach the balance operator, which asserts and returns a 500.
+     * It is ordinary user error, so it has to come back as a field error on a rendered form
+     */
+    test('deducting more than the balance is a validation error, not a crash', async ({ page }) => {
+        const id = await firstGiftCardId(page);
+
+        await page.goto(`/admin/gift-cards/${id}/adjust-balance`);
+        await page.locator('input[name$="[amount]"]').fill('-99999');
+        await page.locator('textarea[name$="[reason]"]').fill('trying to overdraw');
+        await page.getByRole('button', { name: /save|adjust/i }).first().click();
+
+        await expect(page.locator('.sylius-validation-error').first()).toBeVisible();
+        // The message has to be translated, not a raw key: constraint messages resolve in the validators domain
+        await expect(page.locator('.sylius-validation-error').first())
+            .toContainText(/Deducting more than the gift card holds/i);
+    });
+
     test('a gift card PDF can be downloaded', async ({ page }) => {
         const id = await firstGiftCardId(page);
 

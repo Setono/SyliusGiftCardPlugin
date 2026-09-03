@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Fixture\Factory;
 
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactory;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
@@ -20,7 +19,7 @@ use Webmozart\Assert\Assert;
 
 /**
  * Turns fixture options into a call to the real factory: building the product is domain logic and lives in
- * {@see GiftCardProductFactory}, so the admin panel creates gift card products the same way fixtures do
+ * {@see \Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactory}, so the admin panel creates gift card products the same way fixtures do
  */
 class GiftCardProductExampleFactory extends AbstractExampleFactory implements ExampleFactoryInterface
 {
@@ -80,7 +79,7 @@ class GiftCardProductExampleFactory extends AbstractExampleFactory implements Ex
             })
             ->setDefault('enabled', true)
             ->setAllowedTypes('enabled', 'bool')
-            ->setDefault('price', GiftCardProductFactory::DEFAULT_PRICE)
+            ->setDefault('price', GiftCardProductFactoryInterface::DEFAULT_PRICE)
             ->setAllowedTypes('price', 'int')
             ->setDefault('channels', LazyOption::all($this->channelRepository))
             ->setAllowedTypes('channels', 'array')

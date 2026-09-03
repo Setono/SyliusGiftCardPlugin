@@ -17,6 +17,17 @@ setono_sylius_gift_card:
             greater_than_or_equal: Beløbet skal være større end eller lig med 1
         send_notification_email:
             boolean: Send notifikationsmail skal være en boolsk værdi
+        not_enabled: Dette gavekort er ikke aktivt.
+        expired: Dette gavekort er udløbet.
+        no_balance: Der er ingen saldo tilbage på dette gavekort.
+        channel_mismatch: Dette gavekort kan ikke bruges i denne kanal.
+        currency_mismatch: Dette gavekort er i en anden valuta end din ordre.
+        already_applied: Dette gavekort er allerede tilføjet til din ordre.
+        adjustment_makes_balance_negative: 'Du kan ikke trække mere fra, end gavekortet indeholder. Saldoen er {{ balance }}.'
+    gift_card_information:
+        amount:
+            too_low: 'Gavekortets beløb skal være mindst {{ minimum }}.'
+            too_high: 'Gavekortets beløb må ikke være mere end {{ maximum }}.'
     gift_card_design:
         name:
             not_blank: Indtast venligst et navn

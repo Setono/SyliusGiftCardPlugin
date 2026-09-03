@@ -10,6 +10,8 @@ use Sylius\Component\Core\Model\ChannelInterface;
 
 interface GiftCardProductFactoryInterface
 {
+    public const DEFAULT_PRICE = 5000;
+
     /**
      * Creates a gift card product with the shared delivery option and one variant per delivery type.
      *
@@ -21,7 +23,7 @@ interface GiftCardProductFactoryInterface
     public function create(
         string $code,
         string $name,
-        int $price = GiftCardProductFactory::DEFAULT_PRICE,
+        int $price = self::DEFAULT_PRICE,
         bool $enabled = true,
         array $channels = [],
         array $deliveryTypes = [],

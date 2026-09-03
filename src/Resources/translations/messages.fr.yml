@@ -24,17 +24,6 @@ setono_sylius_gift_card:
             amount: Montant
             amount_help: Un montant positif augmente le solde, un montant négatif le diminue.
             reason: Motif
-    gift_card:
-        not_enabled: Ce chèque-cadeau n'est pas actif.
-        expired: Ce chèque-cadeau a expiré.
-        no_balance: Ce chèque-cadeau n'a plus de solde.
-        channel_mismatch: Ce chèque-cadeau ne peut pas être utilisé sur ce canal.
-        currency_mismatch: Ce chèque-cadeau est dans une devise différente de celle de votre commande.
-        already_applied: Ce chèque-cadeau est déjà appliqué à votre commande.
-    gift_card_information:
-        amount:
-            too_low: 'Le montant du chèque-cadeau doit être au moins de {{ minimum }}.'
-            too_high: 'Le montant du chèque-cadeau ne peut pas dépasser {{ maximum }}.'
     ui:
         adjust_balance: Ajuster le solde
         amount: Montant

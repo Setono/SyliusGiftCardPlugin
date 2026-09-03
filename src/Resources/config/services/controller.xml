@@ -59,6 +59,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface"/>
+            <argument type="service" id="sylius.repository.product"/>
             <argument type="service" id="doctrine"/>
             <argument type="service" id="router"/>
         </service>

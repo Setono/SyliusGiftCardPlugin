@@ -24,17 +24,6 @@ setono_sylius_gift_card:
             amount: Amount
             amount_help: A positive amount increases the balance, a negative amount decreases it.
             reason: Reason
-    gift_card:
-        not_enabled: This gift card is not active.
-        expired: This gift card has expired.
-        no_balance: This gift card has no balance left.
-        channel_mismatch: This gift card cannot be used in this channel.
-        currency_mismatch: This gift card is in a different currency than your order.
-        already_applied: This gift card is already applied to your order.
-    gift_card_information:
-        amount:
-            too_low: 'The gift card amount must be at least {{ minimum }}.'
-            too_high: 'The gift card amount may not be more than {{ maximum }}.'
     ui:
         adjust_balance: Adjust balance
         amount: Amount

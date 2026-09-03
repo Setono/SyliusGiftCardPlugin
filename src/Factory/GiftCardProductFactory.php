@@ -19,8 +19,6 @@ use Webmozart\Assert\Assert;
 
 final class GiftCardProductFactory implements GiftCardProductFactoryInterface
 {
-    public const DEFAULT_PRICE = 5000;
-
     private const DELIVERY_OPTION_CODE = 'gift_card_delivery';
 
     /**
@@ -111,7 +109,7 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
     ): ProductVariantInterface {
         /** @var ProductVariantInterface $variant */
         $variant = $this->productVariantFactory->createNew();
-        $variant->setCode(sprintf('%s-%s', $productCode, (string) $optionValue->getCode()));
+        $variant->setCode(sprintf('%s_%s', $productCode, (string) $optionValue->getCode()));
         $variant->setProduct($product);
         $variant->addOptionValue($optionValue);
         $variant->setShippingRequired(GiftCardDeliveryType::Physical === $deliveryType);

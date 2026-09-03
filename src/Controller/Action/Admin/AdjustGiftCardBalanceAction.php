@@ -41,7 +41,7 @@ final class AdjustGiftCardBalanceAction
             throw new NotFoundHttpException();
         }
 
-        $form = $this->formFactory->create(AdjustGiftCardBalanceType::class, new AdjustGiftCardBalanceCommand(), [
+        $form = $this->formFactory->create(AdjustGiftCardBalanceType::class, new AdjustGiftCardBalanceCommand($giftCard), [
             'currency' => (string) $giftCard->getCurrencyCode(),
         ]);
         $form->handleRequest($request);
@@ -50,7 +50,7 @@ final class AdjustGiftCardBalanceAction
             /** @var AdjustGiftCardBalanceCommand $command */
             $command = $form->getData();
 
-            $this->balanceOperator->adjust($giftCard, (int) $command->getAmount(), (string) $command->getReason());
+            $this->balanceOperator->adjust($command->getGiftCard(), (int) $command->getAmount(), (string) $command->getReason());
             $this->getManager($giftCard)->flush();
 
             $session = $request->getSession();
