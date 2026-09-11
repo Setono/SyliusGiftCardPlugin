@@ -1,0 +1,80 @@
+{% set formatted_amount = giftCard.amount|sylius_format_money(giftCard.currencyCode, localeCode|default('en')) %}
+{% set formatted_code = giftCard.code|slice(0, 4) ~ '-' ~ giftCard.code|slice(4, 4) ~ '-' ~ giftCard.code|slice(8, 4) ~ '-' ~ giftCard.code|slice(12) %}
+{% set brand_name = giftCard.channel ? giftCard.channel.name : ('setono_sylius_gift_card.pdf.gift_card'|trans) %}
+{% set brand_initial = brand_name|slice(0, 1)|upper %}
+{% set brand_url = giftCard.channel ? giftCard.channel.hostname : null %}
+{% set barcode = [2,1,1,3,1,2,1,1,2,3,1,1,2,1,3,1,1,2,1,1,3,2,1,1,2,1,1,3,1,2,1,1,2,3,1,1,2,1,3,1] %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig') }}
+    <style>
+        @page { margin: 0; }
+        html, body { margin: 0; padding: 0; height: 100%; font-family: 'DejaVu Sans', sans-serif; }
+        .card { position: relative; width: 100%; height: 100%; overflow: hidden; }
+        /* In the PDF the shared card fills the whole page */
+        .ssgc-card { width: 100%; height: 100%; }
+
+        .card--back { background: #f2f0ea; color: #1c1b18; }
+        .stripe { position: absolute; top: 54px; left: 0; right: 0; height: 44px; background: #1c1b18; }
+        .k { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #8b8577; margin-bottom: 10px; }
+        .redeem { position: absolute; top: 150px; left: 42px; width: 250px; }
+        .redeem p { margin: 0; font-size: 12px; line-height: 1.6; }
+        .codebox { position: absolute; top: 150px; right: 42px; width: 190px; }
+        .code-frame { border: 1px dashed #b9b3a5; border-radius: 6px; padding: 14px 6px; text-align: center; font-size: 15px; font-weight: bold; letter-spacing: 2px; }
+        .barcode { margin-top: 18px; white-space: nowrap; }
+        .barcode span { display: inline-block; height: 42px; background: #1c1b18; margin-right: 2px; vertical-align: top; }
+        .barcode-code { font-size: 10px; letter-spacing: 2px; margin-top: 5px; color: #4a463d; }
+        .divider { position: absolute; left: 42px; right: 42px; bottom: 66px; border-top: 1px solid #ddd8cc; }
+        .terms { position: absolute; left: 42px; right: 220px; bottom: 34px; font-size: 8.5px; line-height: 1.5; color: #8b8577; }
+        .foot-brand { position: absolute; right: 42px; bottom: 34px; font-size: 9px; color: #4a463d; }
+        .foot-brand .ssgc-card__mark { border-color: #1c1b18; color: #1c1b18; }
+    </style>
+</head>
+<body>
+    {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card.html.twig', {
+        brand_name: brand_name,
+        brand_initial: brand_initial,
+        formatted_amount: formatted_amount,
+        formatted_code: formatted_code,
+        message: giftCard.customMessage,
+        front_image_url: frontImagePath,
+        preview: false,
+    }, false) }}
+
+    <div class="card card--back">
+        {% if backImagePath is not null %}
+            <img class="ssgc-card__bg" src="{{ backImagePath }}" alt=""/>
+        {% else %}
+            <div class="stripe"></div>
+
+            <div class="redeem">
+                <div class="k">{{ 'setono_sylius_gift_card.pdf.how_to_redeem'|trans|upper }}</div>
+                <p>{{ 'setono_sylius_gift_card.pdf.how_to_redeem_text'|trans }}</p>
+            </div>
+
+            <div class="codebox">
+                <div class="k">{{ 'setono_sylius_gift_card.pdf.redemption_code'|trans|upper }}</div>
+                <div class="code-frame">{{ formatted_code }}</div>
+                <div class="barcode">
+                    {% for width in barcode %}<span style="width: {{ width }}px;"></span>{% endfor %}
+                </div>
+                <div class="barcode-code">{{ formatted_code }}</div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="terms">
+                {{ 'setono_sylius_gift_card.pdf.terms'|trans }}
+                {% if giftCard.expiresAt is not null %}
+                    {{ 'setono_sylius_gift_card.pdf.valid_until'|trans }} {{ giftCard.expiresAt|date('Y-m-d') }}.
+                {% endif %}
+            </div>
+            <div class="foot-brand">
+                <span class="ssgc-card__mark">{{ brand_initial }}</span>
+                {{ brand_url ?: brand_name }}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

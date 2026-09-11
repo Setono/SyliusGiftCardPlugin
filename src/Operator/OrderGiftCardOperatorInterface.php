@@ -6,14 +6,30 @@ namespace Setono\SyliusGiftCardPlugin\Operator;
 
 use Sylius\Component\Core\Model\OrderInterface;
 
+/**
+ * Operates on gift cards that were BOUGHT on an order (as opposed to gift cards used to pay for an order)
+ */
 interface OrderGiftCardOperatorInterface
 {
     /**
-     * Will create and persist all gift cards on the given order
+     * Called on checkout completion. Makes sure every gift card order item unit has a gift card (creating any
+     * that are missing after a quantity change), snapshots the final amount from the paid unit total, associates
+     * the customer and refreshes the expiry
      */
-    public function associateToCustomer(OrderInterface $order): void;
+    public function reconcile(OrderInterface $order): void;
 
+    /**
+     * Called when the order is paid. Enables all gift cards bought on the order
+     */
     public function enable(OrderInterface $order): void;
 
+    /**
+     * Called when the order is paid. Emails the gift cards bought on the order to the customer
+     */
+    public function send(OrderInterface $order): void;
+
+    /**
+     * Called when the order is cancelled. Disables all gift cards bought on the order
+     */
     public function disable(OrderInterface $order): void;
 }

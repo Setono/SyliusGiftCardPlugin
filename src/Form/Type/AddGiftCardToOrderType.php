@@ -16,14 +16,12 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 final class AddGiftCardToOrderType extends AbstractType
 {
-    private DataTransformerInterface $giftCardToCodeDataTransformer;
-
-    private array $validationGroups;
-
-    public function __construct(DataTransformerInterface $giftCardToCodeDataTransformer, array $validationGroups)
+    /**
+     * @param DataTransformerInterface<mixed, mixed> $giftCardToCodeDataTransformer
+     * @param list<string> $validationGroups
+     */
+    public function __construct(private readonly DataTransformerInterface $giftCardToCodeDataTransformer, private readonly array $validationGroups)
     {
-        $this->giftCardToCodeDataTransformer = $giftCardToCodeDataTransformer;
-        $this->validationGroups = $validationGroups;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void

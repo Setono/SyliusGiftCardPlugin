@@ -4,17 +4,17 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="setono_sylius_gift_card.twig.extension.pdf"
-                 class="Setono\SyliusGiftCardPlugin\Twig\Extension\PdfExtension">
-            <tag name="twig.extension" />
+        <service id="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardRedemptionExtension"
+                 class="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardRedemptionExtension">
+            <tag name="twig.extension"/>
         </service>
 
-        <service id="setono_sylius_gift_card.twig.extension.pdf_runtime"
-                 class="Setono\SyliusGiftCardPlugin\Twig\Extension\PdfRuntime">
-            <argument type="service" id="setono_sylius_gift_card.renderer.pdf" />
-            <argument type="service" id="setono_sylius_gift_card.custom_factory.gift_card" />
+        <service id="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardRedemptionRuntime"
+                 class="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardRedemptionRuntime">
+            <argument type="service" id="setono_sylius_gift_card.redemption_method"/>
+            <argument type="service" id="form.factory"/>
 
-            <tag name="twig.runtime" />
+            <tag name="twig.runtime"/>
         </service>
     </services>
 </container>

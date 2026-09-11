@@ -1,0 +1,30 @@
+{{ form_errors(form) }}
+<div class="ui two column stackable grid">
+    <div class="column">
+        <div class="ui segment">
+            {{ form_row(form.code) }}
+            {% if form.channel is defined %}
+                {{ form_row(form.channel) }}
+            {% endif %}
+            {{ form_row(form.enabled) }}
+            {{ form_row(form.expiresAt) }}
+            {{ form_row(form.customer) }}
+            {% if form.sendNotificationEmail is defined %}
+                <div class="ui info message">{{ 'setono_sylius_gift_card.ui.customer_help_text'|trans }}</div>
+                {{ form_row(form.sendNotificationEmail) }}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="ui segment">
+            {{ form_row(form.currencyCode) }}
+            {# The balance is only settable while issuing the card; afterwards it is changed through the
+               adjust balance action, so every movement is recorded in the transaction ledger #}
+            {% if form.amount is defined %}
+                {{ form_row(form.amount) }}
+            {% endif %}
+            {{ form_row(form.customMessage) }}
+        </div>
+    </div>
+</div>

@@ -5,31 +5,64 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Model;
 
 use PHPUnit\Framework\TestCase;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
-use Sylius\Component\Core\Model\ProductVariant;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Setono\SyliusGiftCardPlugin\Model\OrderItemTrait;
+use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
+use Sylius\Component\Core\Model\OrderItem as BaseOrderItem;
+use Sylius\Component\Core\Model\ProductVariantInterface;
 
 final class OrderItemTraitTest extends TestCase
 {
+    use ProphecyTrait;
+
     /**
      * @test
+     *
+     * A gift card item must equal itself, otherwise Sylius' OrderItemController::resolveAddedOrderItem()
+     * (`getItems()->filter(equals)->first()`) returns false and add-to-cart fails with a TypeError.
      */
-    public function it_asserts_two_gift_cards_can_not_be_identical(): void
+    public function a_gift_card_item_equals_itself(): void
     {
-        $firstOrderItem = new OrderItem();
-        $secondOrderItem = new OrderItem();
+        $item = $this->giftCardOrderItem();
 
-        $variant = new ProductVariant();
-        $product = new Product();
-        $variant->setProduct($product);
-        $firstOrderItem->setVariant($variant);
-
-        $variant->setProduct($product);
-        $secondOrderItem->setVariant($variant);
-
-        $this->assertTrue($firstOrderItem->equals($secondOrderItem));
-
-        $product->setGiftCard(true);
-        $this->assertFalse($firstOrderItem->equals($secondOrderItem));
+        self::assertTrue($item->equals($item));
     }
+
+    /** @test */
+    public function two_distinct_gift_card_items_are_never_equal(): void
+    {
+        $variant = $this->giftCardVariant();
+
+        $a = new GiftCardTestOrderItem();
+        $a->setVariant($variant);
+        $b = new GiftCardTestOrderItem();
+        $b->setVariant($variant);
+
+        self::assertFalse($a->equals($b));
+        self::assertFalse($b->equals($a));
+    }
+
+    private function giftCardOrderItem(): GiftCardTestOrderItem
+    {
+        $item = new GiftCardTestOrderItem();
+        $item->setVariant($this->giftCardVariant());
+
+        return $item;
+    }
+
+    private function giftCardVariant(): ProductVariantInterface
+    {
+        $product = $this->prophesize(ProductInterface::class);
+        $product->isGiftCard()->willReturn(true);
+
+        $variant = $this->prophesize(ProductVariantInterface::class);
+        $variant->getProduct()->willReturn($product->reveal());
+
+        return $variant->reveal();
+    }
+}
+
+final class GiftCardTestOrderItem extends BaseOrderItem
+{
+    use OrderItemTrait;
 }

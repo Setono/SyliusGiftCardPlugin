@@ -1,0 +1,136 @@
+{% extends '@SyliusAdmin/layout.html.twig' %}
+
+{% import '@SyliusUi/Macro/headers.html.twig' as headers %}
+{% import '@SyliusAdmin/Macro/breadcrumb.html.twig' as breadcrumb %}
+
+{% set giftCard = resource %}
+
+{% block title %}{{ giftCard.code }} {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="ui stackable grid">
+        <div class="column">
+            {{ headers.default(giftCard.code, 'gift', 'setono_sylius_gift_card.ui.gift_card'|trans) }}
+
+            {% set breadcrumbs = [
+                { label: 'sylius.ui.administration'|trans, url: path('sylius_admin_dashboard') },
+                { label: 'setono_sylius_gift_card.ui.gift_cards'|trans, url: path('setono_sylius_gift_card_admin_gift_card_index') },
+                { label: giftCard.code }
+            ] %}
+            {{ breadcrumb.crumble(breadcrumbs) }}
+        </div>
+    </div>
+
+    <div class="ui stackable two column grid">
+        <div class="column">
+            <div class="ui segment">
+                <h4 class="ui dividing header">{{ 'sylius.ui.details'|trans }}</h4>
+                <table class="ui very basic table">
+                    <tbody>
+                        <tr>
+                            <td><strong>{{ 'sylius.ui.code'|trans }}</strong></td>
+                            <td>{{ giftCard.code }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{{ 'sylius.ui.enabled'|trans }}</strong></td>
+                            <td>{% include '@SyliusUi/Grid/Field/enabled.html.twig' with {'data': giftCard.enabled} %}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{{ 'sylius.ui.amount'|trans }}</strong></td>
+                            <td>{{ giftCard.amount|sylius_format_money(giftCard.currencyCode, sylius.localeCode) }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{{ 'setono_sylius_gift_card.ui.initial_amount'|trans }}</strong></td>
+                            <td>{{ giftCard.initialAmount|sylius_format_money(giftCard.currencyCode, sylius.localeCode) }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{{ 'setono_sylius_gift_card.ui.delivery_type'|trans }}</strong></td>
+                            <td>{{ ('setono_sylius_gift_card.ui.delivery_type_' ~ giftCard.deliveryType.value)|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{{ 'sylius.ui.channel'|trans }}</strong></td>
+                            <td>{{ giftCard.channel ? giftCard.channel.name : '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{{ 'sylius.ui.customer'|trans }}</strong></td>
+                            <td>
+                                {% if giftCard.customer %}
+                                    <a href="{{ path('sylius_admin_customer_show', {'id': giftCard.customer.id}) }}">{{ giftCard.customer.email }}</a>
+                                {% else %}
+                                    {{ 'setono_sylius_gift_card.ui.no_customer'|trans }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>{{ 'setono_sylius_gift_card.ui.design'|trans }}</strong></td>
+                            <td>{{ giftCard.design ? giftCard.design.name : '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{{ 'setono_sylius_gift_card.form.gift_card.custom_message'|trans }}</strong></td>
+                            <td>{{ giftCard.customMessage ?: '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{{ 'setono_sylius_gift_card.form.gift_card.expires_at'|trans }}</strong></td>
+                            <td>{{ giftCard.expiresAt ? giftCard.expiresAt|date('Y-m-d') : '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{{ 'sylius.ui.created_at'|trans }}</strong></td>
+                            <td>{{ giftCard.createdAt ? giftCard.createdAt|date('Y-m-d H:i') : '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <a href="{{ path('setono_sylius_gift_card_admin_gift_card_update', {'id': giftCard.id}) }}" class="ui labeled icon button">
+                    <i class="pencil icon"></i>{{ 'sylius.ui.edit'|trans }}
+                </a>
+                <a href="{{ path('setono_sylius_gift_card_admin_gift_card_adjust_balance', {'id': giftCard.id}) }}" class="ui labeled icon button">
+                    <i class="balance scale icon"></i>{{ 'setono_sylius_gift_card.ui.adjust_balance'|trans }}
+                </a>
+                <a href="{{ path('setono_sylius_gift_card_admin_gift_card_pdf', {'id': giftCard.id}) }}" class="ui labeled icon button" target="_blank">
+                    <i class="download icon"></i>{{ 'setono_sylius_gift_card.ui.download_pdf'|trans }}
+                </a>
+            </div>
+        </div>
+
+        <div class="column">
+            <div class="ui segment">
+                <h4 class="ui dividing header">{{ 'setono_sylius_gift_card.ui.transactions'|trans }}</h4>
+
+                {% if giftCard.transactions is empty %}
+                    <p class="ui gray text">{{ 'setono_sylius_gift_card.ui.no_transactions'|trans }}</p>
+                {% else %}
+                    <table class="ui celled table">
+                        <thead>
+                            <tr>
+                                <th>{{ 'sylius.ui.date'|trans }}</th>
+                                <th>{{ 'sylius.ui.type'|trans }}</th>
+                                <th class="right aligned">{{ 'sylius.ui.amount'|trans }}</th>
+                                <th>{{ 'setono_sylius_gift_card.form.adjust_balance.reason'|trans }}</th>
+                                <th>{{ 'sylius.ui.order'|trans }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in giftCard.transactions %}
+                                <tr>
+                                    <td>{{ transaction.createdAt ? transaction.createdAt|date('Y-m-d H:i') : '-' }}</td>
+                                    <td>{{ ('setono_sylius_gift_card.ui.transaction_type_' ~ transaction.type)|trans }}</td>
+                                    <td class="right aligned">
+                                        {{ transaction.amount|sylius_format_money(giftCard.currencyCode, sylius.localeCode) }}
+                                    </td>
+                                    <td>{{ transaction.reason ?: '-' }}</td>
+                                    <td>
+                                        {% if transaction.order %}
+                                            <a href="{{ path('sylius_admin_order_show', {'id': transaction.order.id}) }}">#{{ transaction.order.number }}</a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

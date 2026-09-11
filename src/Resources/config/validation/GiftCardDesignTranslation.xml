@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<constraint-mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://symfony.com/schema/dic/constraint-mapping"
+                    xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/services/constraint-mapping-1.0.xsd">
+
+    <class name="Setono\SyliusGiftCardPlugin\Model\GiftCardDesignTranslation">
+        <property name="name">
+            <constraint name="NotBlank">
+                <option name="message">setono_sylius_gift_card.gift_card_design.name.not_blank</option>
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+            <constraint name="Length">
+                <option name="max">255</option>
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
+    </class>
+</constraint-mapping>

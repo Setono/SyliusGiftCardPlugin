@@ -1,0 +1,52 @@
+#setono-gift-card-information [data-js-gift-card-design-picker] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+#setono-gift-card-information .setono-gift-card-design-choice {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+#setono-gift-card-information .setono-gift-card-design-choice input {
+    margin-bottom: 4px;
+}
+
+#setono-gift-card-information .setono-gift-card-design-choice img {
+    max-width: 120px;
+    height: auto;
+    border-radius: 4px;
+}
+
+/* Live preview: the shared .ssgc-card is a fixed 560x396 box scaled to fit this frame */
+#setono-gift-card-information .ssgc-preview {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto 1.5rem;
+}
+
+#setono-gift-card-information .ssgc-preview__frame {
+    position: relative;
+    width: 100%;
+    padding-bottom: 70.71%; /* 396 / 560 */
+    overflow: hidden;
+    border-radius: 14px;
+    background: #1c1b18;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+#setono-gift-card-information .ssgc-preview__frame .ssgc-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 560px;
+    height: 396px;
+    transform-origin: top left;
+}

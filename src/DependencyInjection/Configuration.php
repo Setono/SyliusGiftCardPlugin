@@ -4,21 +4,19 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardConfigurationRepository;
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardDesignRepository;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepository;
-use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardChannelConfigurationType;
-use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationImageType;
-use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardConfigurationType;
+use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignType;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardChannelConfiguration;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardConfiguration;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardConfigurationImage;
-use Setono\SyliusGiftCardPlugin\Provider\PdfRenderingOptionsProviderInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesign;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImage;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignTranslation;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardTransaction;
 use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
-use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
 use Sylius\Component\Resource\Factory\Factory;
+use Sylius\Component\Resource\Factory\TranslatableFactory;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -32,41 +30,58 @@ final class Configuration implements ConfigurationInterface
 
         $rootNode = $treeBuilder->getRootNode();
 
-        /**
-         * @psalm-suppress MixedMethodCall,PossiblyNullReference,PossiblyUndefinedMethod,UndefinedInterfaceMethod
-         */
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
-                ->arrayNode('pdf_rendering')
-                ->addDefaultsIfNotSet()
+                ->integerNode('code_length')
+                    ->info('The number of significant characters in a generated gift card code (excluding group separators)')
+                    ->defaultValue(16)
+                    ->min(4)
+                    ->max(255)
+                ->end()
+                ->scalarNode('default_validity_period')
+                    ->info('A strtotime compatible interval (e.g. "3 years") added to the purchase date. Set to null to make gift cards valid forever')
+                    ->defaultValue('3 years')
+                    ->validate()
+                        ->ifTrue(static fn ($value): bool => null !== $value && (!is_string($value) || false === strtotime(sprintf('+%s', $value))))
+                        ->thenInvalid('The default_validity_period must be a valid strtotime interval, e.g. "3 years": %s')
+                    ->end()
+                ->end()
+                ->arrayNode('purchase')
+                    ->addDefaultsIfNotSet()
                     ->children()
-                        ->scalarNode('default_orientation')
-                            ->defaultValue(PdfRenderingOptionsProviderInterface::ORIENTATION_LANDSCAPE)
+                        ->integerNode('minimum_amount')
+                            ->info('The minimum purchasable gift card amount in minor units (e.g. cents)')
+                            ->defaultValue(100)
+                            ->min(1)
                         ->end()
-                        ->arrayNode('available_orientations')
-                            ->scalarPrototype()->end()
-                            ->defaultValue(PdfRenderingOptionsProviderInterface::AVAILABLE_ORIENTATIONS)
-                        ->end()
-                        ->scalarNode('default_page_size')
-                            ->defaultValue(PdfRenderingOptionsProviderInterface::PAGE_SIZE_A6)
-                        ->end()
-                        ->arrayNode('available_page_sizes')
-                            ->scalarPrototype()->end()
-                            ->defaultValue(PdfRenderingOptionsProviderInterface::AVAILABLE_PAGE_SIZES)
-                        ->end()
-                        ->arrayNode('preferred_page_sizes')
-                            ->scalarPrototype()->end()
-                            ->defaultValue(PdfRenderingOptionsProviderInterface::PREFERRED_PAGE_SIZES)
+                        ->integerNode('maximum_amount')
+                            ->info('The maximum purchasable gift card amount in minor units. Set to null for no maximum')
+                            ->defaultNull()
+                            ->min(1)
                         ->end()
                     ->end()
                 ->end()
-                ->scalarNode('driver')->defaultValue(SyliusResourceBundle::DRIVER_DOCTRINE_ORM)->end()
-                ->integerNode('code_length')
-                    ->defaultValue(20)
-                    ->info('The length of the generated gift card code')
-                    ->min(1)
-                    ->max(255)
+                ->arrayNode('redemption')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('payment_method_code')
+                            ->info('The code of the payment method a redeemed gift card is paid with')
+                            ->defaultValue('gift_card')
+                            ->cannotBeEmpty()
+                        ->end()
+                    ->end()
+                ->end()
+                ->arrayNode('pdf')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('page_size')
+                            ->info('The paper size used when rendering gift card PDFs (any size supported by dompdf, e.g. A4, A6, letter)')
+                            ->defaultValue('A6')
+                            ->cannotBeEmpty()
+                        ->end()
+                    ->end()
+                ->end()
         ;
 
         $this->addResourcesSection($rootNode);
@@ -84,14 +99,12 @@ final class Configuration implements ConfigurationInterface
         ;
 
         $this->addGiftCardSection($resourcesNode);
-        $this->addGiftCardConfigurationSection($resourcesNode);
-        $this->addGiftCardConfigurationImageSection($resourcesNode);
-        $this->addChannelConfigurationSection($resourcesNode);
+        $this->addGiftCardDesignSection($resourcesNode);
+        $this->addGiftCardTransactionSection($resourcesNode);
     }
 
     private function addGiftCardSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod,PossiblyUndefinedMethod */
         $nodeBuilder
             ->arrayNode('gift_card')
                 ->addDefaultsIfNotSet()
@@ -108,59 +121,66 @@ final class Configuration implements ConfigurationInterface
         ;
     }
 
-    private function addGiftCardConfigurationSection(NodeBuilder $nodeBuilder): void
+    private function addGiftCardDesignSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod,PossiblyUndefinedMethod */
         $nodeBuilder
-            ->arrayNode('gift_card_configuration')
+            ->arrayNode('gift_card_design')
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->variableNode('options')->end()
                     ->arrayNode('classes')
                         ->addDefaultsIfNotSet()
                         ->children()
-                            ->scalarNode('model')->defaultValue(GiftCardConfiguration::class)->cannotBeEmpty()->end()
+                            ->scalarNode('model')->defaultValue(GiftCardDesign::class)->cannotBeEmpty()->end()
                             ->scalarNode('controller')->defaultValue(ResourceController::class)->cannotBeEmpty()->end()
-                            ->scalarNode('repository')->defaultValue(GiftCardConfigurationRepository::class)->cannotBeEmpty()->end()
-                            ->scalarNode('form')->defaultValue(GiftCardConfigurationType::class)->end()
+                            ->scalarNode('repository')->defaultValue(GiftCardDesignRepository::class)->cannotBeEmpty()->end()
+                            ->scalarNode('form')->defaultValue(GiftCardDesignType::class)->end()
+                            ->scalarNode('factory')->defaultValue(TranslatableFactory::class)->end()
+                        ->end()
+                    ->end()
+                    ->arrayNode('translation')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->variableNode('options')->end()
+                            ->arrayNode('classes')
+                                ->addDefaultsIfNotSet()
+                                ->children()
+                                    ->scalarNode('model')->defaultValue(GiftCardDesignTranslation::class)->cannotBeEmpty()->end()
+                                    ->scalarNode('repository')->defaultValue(EntityRepository::class)->cannotBeEmpty()->end()
+                                    ->scalarNode('factory')->defaultValue(Factory::class)->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+            ->arrayNode('gift_card_design_image')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->variableNode('options')->end()
+                    ->arrayNode('classes')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode('model')->defaultValue(GiftCardDesignImage::class)->cannotBeEmpty()->end()
+                            ->scalarNode('controller')->defaultValue(ResourceController::class)->cannotBeEmpty()->end()
+                            ->scalarNode('repository')->defaultValue(EntityRepository::class)->cannotBeEmpty()->end()
                             ->scalarNode('factory')->defaultValue(Factory::class)->end()
         ;
     }
 
-    private function addGiftCardConfigurationImageSection(NodeBuilder $nodeBuilder): void
+    private function addGiftCardTransactionSection(NodeBuilder $nodeBuilder): void
     {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod,PossiblyUndefinedMethod */
         $nodeBuilder
-            ->arrayNode('gift_card_configuration_image')
+            ->arrayNode('gift_card_transaction')
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->variableNode('options')->end()
                     ->arrayNode('classes')
                         ->addDefaultsIfNotSet()
                         ->children()
-                            ->scalarNode('model')->defaultValue(GiftCardConfigurationImage::class)->cannotBeEmpty()->end()
+                            ->scalarNode('model')->defaultValue(GiftCardTransaction::class)->cannotBeEmpty()->end()
                             ->scalarNode('controller')->defaultValue(ResourceController::class)->cannotBeEmpty()->end()
                             ->scalarNode('repository')->defaultValue(EntityRepository::class)->cannotBeEmpty()->end()
-                            ->scalarNode('form')->defaultValue(GiftCardConfigurationImageType::class)->end()
-                            ->scalarNode('factory')->defaultValue(Factory::class)->end()
-        ;
-    }
-
-    private function addChannelConfigurationSection(NodeBuilder $nodeBuilder): void
-    {
-        /** @psalm-suppress MixedMethodCall,PossiblyNullReference,UndefinedInterfaceMethod,PossiblyUndefinedMethod */
-        $nodeBuilder
-            ->arrayNode('gift_card_channel_configuration')
-                ->addDefaultsIfNotSet()
-                ->children()
-                    ->variableNode('options')->end()
-                    ->arrayNode('classes')
-                        ->addDefaultsIfNotSet()
-                        ->children()
-                            ->scalarNode('model')->defaultValue(GiftCardChannelConfiguration::class)->cannotBeEmpty()->end()
-                            ->scalarNode('controller')->defaultValue(ResourceController::class)->cannotBeEmpty()->end()
-                            ->scalarNode('repository')->defaultValue(EntityRepository::class)->cannotBeEmpty()->end()
-                            ->scalarNode('form')->defaultValue(GiftCardChannelConfigurationType::class)->end()
                             ->scalarNode('factory')->defaultValue(Factory::class)->end()
         ;
     }

@@ -6,9 +6,9 @@ namespace Setono\SyliusGiftCardPlugin\Mailer;
 
 final class Emails
 {
-    public const GIFT_CARD_CUSTOMER = 'gift_card_customer';
+    public const GIFT_CARD = 'setono_sylius_gift_card__gift_card';
 
-    public const GIFT_CARD_ORDER = 'gift_card_order';
+    public const GIFT_CARDS_FROM_ORDER = 'setono_sylius_gift_card__gift_cards_from_order';
 
     private function __construct()
     {

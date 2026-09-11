@@ -1,0 +1,49 @@
+{% extends '@SyliusAdmin/layout.html.twig' %}
+
+{% import '@SyliusUi/Macro/headers.html.twig' as headers %}
+{% import '@SyliusAdmin/Macro/breadcrumb.html.twig' as breadcrumb %}
+
+{% form_theme form '@SyliusAdmin/Form/theme.html.twig' %}
+
+{% block title %}{{ 'setono_sylius_gift_card.ui.adjust_balance'|trans }} {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="ui stackable one column grid">
+        <div class="column">
+            {{ headers.default('setono_sylius_gift_card.ui.adjust_balance'|trans, 'balance scale', giftCard.code) }}
+
+            {% set breadcrumbs = [
+                { label: 'sylius.ui.administration'|trans, url: path('sylius_admin_dashboard') },
+                { label: 'setono_sylius_gift_card.ui.gift_cards'|trans, url: path('setono_sylius_gift_card_admin_gift_card_index') },
+                { label: giftCard.code, url: path('setono_sylius_gift_card_admin_gift_card_update', {'id': giftCard.id}) },
+                { label: 'setono_sylius_gift_card.ui.adjust_balance'|trans }
+            ] %}
+            {{ breadcrumb.crumble(breadcrumbs) }}
+        </div>
+    </div>
+
+    {# Semantic UI scopes its field styling under .ui.form, so without this class the theme's markup is inert #}
+    {{ form_start(form, {'attr': {'class': 'ui loadable form', 'novalidate': 'novalidate'}}) }}
+        <div class="ui segment">
+            {{ form_errors(form) }}
+
+            <div class="ui info message">
+                {{ 'setono_sylius_gift_card.ui.current_balance'|trans }}:
+                <strong>{{ giftCard.amount|sylius_format_money(giftCard.currencyCode, sylius.localeCode) }}</strong>
+            </div>
+
+            {{ form_row(form.amount) }}
+            {{ form_row(form.reason) }}
+        </div>
+
+        <div class="ui segment">
+            <button type="submit" class="ui labeled icon primary button">
+                <i class="save icon"></i>
+                {{ 'sylius.ui.save_changes'|trans }}
+            </button>
+            <a href="{{ path('setono_sylius_gift_card_admin_gift_card_update', {'id': giftCard.id}) }}" class="ui button">
+                {{ 'sylius.ui.cancel'|trans }}
+            </a>
+        </div>
+    {{ form_end(form) }}
+{% endblock %}

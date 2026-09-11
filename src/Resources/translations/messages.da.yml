@@ -1,87 +1,104 @@
 setono_sylius_gift_card:
     form:
-        add_to_cart:
-            gift_card_information:
-                amount: Beløb
-                custom_message: Personlig besked
-                custom_message_placeholder: Hvis du ønsker at tilføje en kort besked på gavekortet, så kan du skrive den her...
-        channel_configuration:
-            channel: Kanal
-            locale: Lokalitet
-        date_period:
-            unit: Enhed
-            unit_day: Dage
-            unit_hour: Timer
-            unit_month: Måneder
-            unit_week: Uger
-            unit_year: År
-            value: Værdi
+        product:
+            gift_card: Gavekort
         gift_card:
             channel: Kanal
             custom_message: Personlig besked
-            custom_message_placeholder: This message is printed on the gift card PDF...
+            custom_message_placeholder: Denne besked printes på gavekortet...
             expires_at: Udløber
             send_notification_email: Send email med gavekort til kunde
-        gift_card_configuration:
-            background_image: Baggrundsbillede 
-            channel_configurations: Kanalkonfigurationer
-            code: Kode
-            default: Standardkonfiguration
-            default_validity_period: Standard gyldighedsperiode
-            enabled: Aktiveret
-            orientation: Orientation
-            page_size: Page size
-        product:
-            gift_card: Gavekort
-            gift_card_amount_configurable: Valgfrit beløb på gavekort
+        gift_card_design:
+            position: Placering
+            images: Billeder
+            image_type: Billedtype
+            image_file_help: 'Brug et liggende billede på mindst 1050×740px (JPG eller PNG). Det bruges som gavekortets gennemgående baggrund, så hold vigtigt indhold væk fra kanterne.'
+            front_image: Forsidebillede
+            back_image: Bagsidebillede
+        gift_card_information:
+            amount: Beløb
+            custom_message: Besked
+            custom_message_placeholder: Skriv en kort besked til modtageren...
+            design: Design
+        adjust_balance:
+            amount: Beløb
+            amount_help: Et positivt beløb forøger saldoen, et negativt beløb reducerer den.
+            reason: Årsag
     ui:
-        active: Aktiv
-        add_gift_card_to_order: Tilføj gavekort
-        amount: Mængde
+        adjust_balance: Juster saldo
+        amount: Beløb
+        apply_gift_card: Anvend
         applied_gift_cards: Anvendte gavekort
-        average_amount: Gennemsnitligt beløb
+        average: Gennemsnit
+        back: Tilbage
         balance: Saldo
-        bought_at_order: Købt ved ordre
-        channel_configurations: Kanalkonfigurationer
-        configuration: Konfiguration
-        covered_by_gift_cards: Dækket af gavekort
-        count: Optælling
-        create_for_channel: Opret %channel%
-        customer_help_text: Når du opretter et gavekort og tilknytter en kunde kan Sylius automatisk sende en email til kunden
-        customer_email: Customer email
-        download_pdf: PDF
+        count: Antal
+        current_balance: Nuværende saldo
+        create_gift_card: Opret gavekort
+        create_gift_card_design: Opret gavekortdesign
+        create_gift_card_product: Opret gavekortprodukt
+        customer_help_text: Når en kunde er tilknyttet og notifikation er slået til, modtager kunden gavekortet på email
         edit_gift_card: Rediger gavekort
+        edit_gift_card_design: Rediger gavekortdesign
+        delivery_type: Leveringstype
+        delivery_type_virtual: Virtuelt
+        delivery_type_physical: Fysisk
+        download_pdf: Download PDF
+        initial_amount: Oprindeligt beløb
+        no_customer: Ingen kunde
+        outstanding_balance: Udestående gavekortsaldo
+        outstanding_balance_help: Den samlede saldo, der stadig er til rådighed på alle brugbare gavekort, grupperet efter valuta.
+        preview_message: 'Tillykke med fødselsdagen! Nyd denne gave fra os.'
+        preview_pdf: Forhåndsvis PDF
+        total: Total
+        your_message_here: Din besked her
+        design: Design
+        designs: Design
+        design_images: Designbilleder
+        design_images_help: 'Upload et forsidebillede (vises i vælgeren, forhåndsvisningen og på gavekortet) og eventuelt et bagsidebillede. Liggende format, mindst 1050×740px, JPG eller PNG.'
         enter_gift_card_code: Indtast gavekortskoden
-        edit_gift_card_configuration: Rediger konfiguration af gavekort
+        front: Forside
         gift_card: Gavekort
-        gift_card_configurations: Gavekortskonfigurationer
         gift_card_channel_does_not_match_channel: Gavekortet er købt på en anden kanal, brug venligst gavekortet på %channel%
         gift_card_code_is_invalid: Gavekortskoden er ugyldig
         gift_cards: Gavekort
-        gift_card_search: Søg efter gavekort
-        gift_cards_adjustment_total: Gavekortets total
+        gift_card_designs: Gavekortdesign
         has_no_gift_card: Har ikke noget gavekort
-        initial_amount: Oprindeligt beløb
-        in_cart: I kurven
-        list_orders: Ordreliste
+        image: Billede
         manage_gift_cards: Administrer gavekort
-        manage_gift_card_configurations: Administrer gavekortskonfigurationer
+        manage_gift_card_designs: Administrer gavekortdesign
         new_gift_card: Nyt gavekort
-        new_gift_card_configuration: Ny gavekortskonfiguration
-        manually_created: Oprettet manuelt
-        no_gift_card: Ingen gavekort tilføjet
-        no_customer: Ingen kunde
-        product_is_not_gift_card: Produkt er ikke et gavekort
-        resend_email: Gensend email
-        total: Total
-        update_preview: Opdater preview
-        your_gift_card_will_only_be_charged_if_you_complete_your_order: Dit gavekort hæves først når din ordre er gennemført
+        new_gift_card_design: Nyt gavekortdesign
+        no_image: Intet billede
+        no_transactions: Dette gavekort har endnu ingen transaktioner.
+        physical: 'Fysisk — sendes til dig'
+        position: Placering
+        remaining_to_pay: Resterende at betale
+        transactions: Transaktioner
+        transaction_type_issue: Udstedt
+        transaction_type_manual: Manuel justering
+        transaction_type_redeem: Indløst
+        transaction_type_restore: Gendannet
+        virtual: 'Virtuelt — leveres straks på email'
+    pdf:
+        valid_until: 'Gyldigt til'
+        how_to_use: Sådan bruger du dit gavekort
+        how_to_use_text: Indtast koden nedenfor ved betaling for at indløse dit gavekort.
+        gift_card: Gavekort
+        tagline: Gaven, man selv vælger
+        value: Værdi
+        number: 'Nr.'
+        how_to_redeem: Sådan indløser du
+        how_to_redeem_text: 'Indtast koden nedenfor ved betaling på vores hjemmeside, eller vis dette kort i butikken for at bruge saldoen på dit køb.'
+        redemption_code: Indløsningskode
+        terms: 'Vilkår og betingelser gælder. Kortet kan ikke ombyttes til kontanter og kan ikke erstattes ved tab eller tyveri.'
     email:
-        balance: Balance
+        balance: Saldo
         new_gift_card: Nyt gavekort
         new_gift_card_intro: Der er blevet oprettet et nyt gavekort til dig
+        pdf_attached: Dit gavekort er vedhæftet denne email som PDF.
         your_gift_card: Dit gavekort
-        your_gift_cards_you_bought_in_the_order: Dine købte gavekort på denne ordre 
+        your_gift_cards_you_bought_in_the_order: Dine købte gavekort på denne ordre
 
 # Missing from Sylius for some reason
 sylius:

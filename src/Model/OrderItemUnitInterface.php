@@ -10,5 +10,5 @@ interface OrderItemUnitInterface extends BaseOrderItemUnitInterface
 {
     public function getGiftCard(): ?GiftCardInterface;
 
-    public function setGiftCard(GiftCardInterface $giftCard): void;
+    public function setGiftCard(?GiftCardInterface $giftCard): void;
 }

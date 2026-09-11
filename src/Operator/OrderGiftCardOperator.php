@@ -4,84 +4,120 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Operator;
 
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManagerInterface;
-use Setono\SyliusGiftCardPlugin\EmailManager\GiftCardEmailManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Setono\Doctrine\ORMTrait;
+use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
+use Sylius\Component\Core\Model\ProductVariantInterface;
 use Webmozart\Assert\Assert;
 
-/**
- * This class' responsibility is to operate on gift cards bought on an order
- * It does NOT handle gift cards used to buy an order
- */
 final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
 {
-    private EntityManagerInterface $giftCardManager;
-
-    private GiftCardEmailManagerInterface $giftCardOrderEmailManager;
+    use ORMTrait;
 
     public function __construct(
-        EntityManagerInterface $giftCardManager,
-        GiftCardEmailManagerInterface $giftCardOrderEmailManager,
+        private readonly GiftCardFactoryInterface $giftCardFactory,
+        ManagerRegistry $managerRegistry,
+        private readonly GiftCardEmailManagerInterface $emailManager,
+        private readonly GiftCardBalanceOperatorInterface $balanceOperator,
     ) {
-        $this->giftCardManager = $giftCardManager;
-        $this->giftCardOrderEmailManager = $giftCardOrderEmailManager;
+        $this->managerRegistry = $managerRegistry;
     }
 
-    public function associateToCustomer(OrderInterface $order): void
+    public function reconcile(OrderInterface $order): void
     {
-        $items = self::getOrderItemsThatAreGiftCards($order);
-
-        if (count($items) === 0) {
+        $items = self::getGiftCardItems($order);
+        if (0 === count($items)) {
             return;
         }
 
+        $channel = $order->getChannel();
+        Assert::isInstanceOf($channel, ChannelInterface::class);
+
+        $currencyCode = $order->getCurrencyCode();
+        Assert::notNull($currencyCode);
+
         /** @var CustomerInterface|null $customer */
         $customer = $order->getCustomer();
-        Assert::isInstanceOf($customer, CustomerInterface::class);
+
+        $manager = null;
 
         foreach ($items as $item) {
+            $template = self::findTemplateGiftCard($item);
+            $deliveryType = self::resolveDeliveryType($item);
+
             /** @var OrderItemUnitInterface $unit */
             foreach ($item->getUnits() as $unit) {
                 $giftCard = $unit->getGiftCard();
-                Assert::notNull($giftCard);
 
-                $giftCard->setCustomer($customer);
+                if (null === $giftCard) {
+                    $giftCard = $this->giftCardFactory->createForChannel($channel);
+                    $giftCard->setCurrencyCode($currencyCode);
+                    $giftCard->setDeliveryType($deliveryType);
+                    $giftCard->setDesign($template?->getDesign());
+                    $giftCard->setCustomMessage($template?->getCustomMessage());
+                    $giftCard->setOrderItemUnit($unit);
+                    $giftCard->disable();
+
+                    $this->getManager($giftCard)->persist($giftCard);
+                }
+
+                $manager ??= $this->getManager($giftCard);
+
+                // Snapshot the final paid amount (after any promotions) as the initial and current balance
+                $total = $unit->getTotal();
+                $giftCard->setInitialAmount($total);
+                $giftCard->setAmount($total);
+
+                if (null !== $customer) {
+                    $giftCard->setCustomer($customer);
+                }
             }
         }
 
-        $this->giftCardManager->flush();
+        $manager?->flush();
     }
 
     public function enable(OrderInterface $order): void
     {
-        $giftCards = $this->getGiftCards($order);
-
-        if (count($giftCards) === 0) {
+        $giftCards = self::getGiftCards($order);
+        if (0 === count($giftCards)) {
             return;
         }
 
         foreach ($giftCards as $giftCard) {
             $giftCard->enable();
+
+            // Issuance is recorded here rather than when the card is created, because a pending card's amount
+            // is re-snapshotted during reconciliation; this is the first moment the balance is final
+            $this->balanceOperator->issue($giftCard);
         }
 
-        $this->giftCardManager->flush();
+        $this->getManager($giftCards[0])->flush();
     }
 
-    /**
-     * Calls when Order this GiftCardCode was bought at
-     * become cancelled
-     */
+    public function send(OrderInterface $order): void
+    {
+        $giftCards = self::getGiftCards($order);
+        if (0 === count($giftCards)) {
+            return;
+        }
+
+        $this->emailManager->sendGiftCardsFromOrder($order, $giftCards);
+    }
+
     public function disable(OrderInterface $order): void
     {
-        $giftCards = $this->getGiftCards($order);
-
-        if (count($giftCards) === 0) {
+        $giftCards = self::getGiftCards($order);
+        if (0 === count($giftCards)) {
             return;
         }
 
@@ -89,39 +125,23 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
             $giftCard->disable();
         }
 
-        $this->giftCardManager->flush();
-    }
-
-    public function send(OrderInterface $order): void
-    {
-        $giftCards = $this->getGiftCards($order);
-
-        if (count($giftCards) === 0) {
-            return;
-        }
-
-        $this->giftCardOrderEmailManager->sendEmailWithGiftCardsFromOrder($order, $giftCards);
+        $this->getManager($giftCards[0])->flush();
     }
 
     /**
-     * Returns all the gift cards that were bought on the given order
-     *
      * @return list<GiftCardInterface>
      */
-    private function getGiftCards(OrderInterface $order): array
+    private static function getGiftCards(OrderInterface $order): array
     {
         $giftCards = [];
 
-        $items = self::getOrderItemsThatAreGiftCards($order);
-        foreach ($items as $item) {
+        foreach (self::getGiftCardItems($order) as $item) {
             /** @var OrderItemUnitInterface $unit */
             foreach ($item->getUnits() as $unit) {
                 $giftCard = $unit->getGiftCard();
-                if (null === $giftCard) {
-                    continue;
+                if (null !== $giftCard) {
+                    $giftCards[] = $giftCard;
                 }
-
-                $giftCards[] = $giftCard;
             }
         }
 
@@ -129,17 +149,43 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
     }
 
     /**
-     * @return Collection<array-key, OrderItemInterface>
+     * @return list<OrderItemInterface>
      */
-    private static function getOrderItemsThatAreGiftCards(OrderInterface $order): Collection
+    private static function getGiftCardItems(OrderInterface $order): array
     {
-        return $order->getItems()->filter(static function (OrderItemInterface $item): bool {
-            /** @var ProductInterface|null $product */
+        $items = [];
+
+        foreach ($order->getItems() as $item) {
             $product = $item->getProduct();
+            if ($product instanceof ProductInterface && $product->isGiftCard()) {
+                $items[] = $item;
+            }
+        }
 
-            Assert::isInstanceOf($product, ProductInterface::class);
+        return $items;
+    }
 
-            return $product->isGiftCard();
-        });
+    private static function findTemplateGiftCard(OrderItemInterface $item): ?GiftCardInterface
+    {
+        /** @var OrderItemUnitInterface $unit */
+        foreach ($item->getUnits() as $unit) {
+            $giftCard = $unit->getGiftCard();
+            if (null !== $giftCard) {
+                return $giftCard;
+            }
+        }
+
+        return null;
+    }
+
+    private static function resolveDeliveryType(OrderItemInterface $item): GiftCardDeliveryType
+    {
+        $variant = $item->getVariant();
+
+        if ($variant instanceof ProductVariantInterface && $variant->isShippingRequired()) {
+            return GiftCardDeliveryType::Physical;
+        }
+
+        return GiftCardDeliveryType::Virtual;
     }
 }

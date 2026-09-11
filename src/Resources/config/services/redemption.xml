@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculator"
+                 class="Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculator"/>
+        <service id="Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculator"/>
+
+        <service id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculator"
+                 class="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculator">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculator"/>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculator"/>
+
+        <service id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator"
+                 class="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator">
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_transaction"/>
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_transaction"/>
+            <argument type="service" id="doctrine"/>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator"/>
+
+        <service id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"
+                 class="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer"/>
+            <argument type="service" id="setono_sylius_gift_card.redemption_method"/>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"/>
+
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsApplicableValidator"
+                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsApplicableValidator">
+            <argument type="service" id="sylius.context.cart"/>
+
+            <tag name="validator.constraint_validator"/>
+        </service>
+    </services>
+</container>

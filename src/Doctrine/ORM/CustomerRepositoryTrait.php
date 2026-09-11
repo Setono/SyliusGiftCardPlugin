@@ -6,12 +6,16 @@ namespace Setono\SyliusGiftCardPlugin\Doctrine\ORM;
 
 use function assert;
 use Doctrine\ORM\EntityRepository;
+use Sylius\Component\Customer\Model\CustomerInterface;
 
 /**
- * @mixin EntityRepository
+ * @mixin EntityRepository<CustomerInterface>
  */
 trait CustomerRepositoryTrait
 {
+    /**
+     * @return list<CustomerInterface>
+     */
     public function findByEmailPartForGiftCard(string $email, int $limit = 10): array
     {
         assert($this instanceof EntityRepository);

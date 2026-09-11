@@ -4,38 +4,45 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Generator;
 
-use function preg_replace;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Webmozart\Assert\Assert;
 
 final class GiftCardCodeGenerator implements GiftCardCodeGeneratorInterface
 {
-    private GiftCardRepositoryInterface $giftCardRepository;
+    /**
+     * Alphabet without visually ambiguous characters (no 0/O, 1/I/L) so codes are easy to read and dictate
+     */
+    private const ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 
     /** @var positive-int */
-    private int $codeLength;
+    private readonly int $codeLength;
 
     /**
      * @param positive-int $codeLength
      */
-    public function __construct(GiftCardRepositoryInterface $giftCardRepository, int $codeLength)
+    public function __construct(private readonly GiftCardRepositoryInterface $giftCardRepository, int $codeLength)
     {
         Assert::greaterThan($codeLength, 0);
-
-        $this->giftCardRepository = $giftCardRepository;
         $this->codeLength = $codeLength;
     }
 
     public function generate(): string
     {
         do {
-            // if we didn't remove the 'hard to read' characters we would only have to
-            // generate codeLength / 2 bytes because hex uses two characters to represent one byte
-            /** @psalm-suppress ArgumentTypeCoercion */
-            $code = bin2hex(random_bytes($this->codeLength));
-            $code = preg_replace('/[01]/', '', $code); // remove hard to read characters
-            $code = mb_strtoupper(mb_substr($code, 0, $this->codeLength));
-        } while (mb_strlen($code) !== $this->codeLength || $this->exists($code));
+            $code = $this->randomCode();
+        } while ($this->exists($code));
+
+        return $code;
+    }
+
+    private function randomCode(): string
+    {
+        $alphabetLength = strlen(self::ALPHABET);
+
+        $code = '';
+        for ($i = 0; $i < $this->codeLength; ++$i) {
+            $code .= self::ALPHABET[random_int(0, $alphabetLength - 1)];
+        }
 
         return $code;
     }

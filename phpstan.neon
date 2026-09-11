@@ -1,0 +1,54 @@
+parameters:
+    level: max
+
+    paths:
+        - src
+        - tests
+
+    excludePaths:
+        - tests/Application/*
+        # the Playwright suite is JavaScript
+        - tests/Playwright/*
+
+    bootstrapFiles:
+        - vendor/autoload.php
+
+    symfony:
+        consoleApplicationLoader: tests/PHPStan/console_application.php
+
+    doctrine:
+        repositoryClass: Doctrine\ORM\EntityRepository
+        objectManagerLoader: tests/PHPStan/object_manager.php
+        # Sylius resources are constructed empty and hydrated afterwards, so nullable PHP properties
+        # backing non-nullable columns are idiomatic, not bugs
+        allowNullablePropertyForRequiredField: true
+
+    reportUnmatchedIgnoredErrors: false
+    treatPhpDocTypesAsCertain: false
+
+    ignoreErrors:
+        # Twig runtime extensions are declared as [RuntimeClass::class, 'method']. Twig 3 types that form
+        # explicitly (callable|array{class-string, string}|null) but the Twig 2 we still support only says
+        # callable|null, so on the lowest supported version PHPStan cannot see it as valid.
+        -
+            message: '#\$callable of class Twig\\TwigFunction constructor expects#'
+            path: src/Twig/Extension/*
+
+        # These traits are the plugin's public API: host applications apply them to their own Product, Order,
+        # OrderItemUnit and repository classes. Nothing inside the plugin uses them, and tests/Application —
+        # which does — is excluded from analysis, so PHPStan can only ever see them as unused.
+        -
+            identifier: trait.unused
+            paths:
+                - src/Model/OrderItemUnitTrait.php
+                - src/Model/OrderTrait.php
+                - src/Model/ProductTrait.php
+                - src/Doctrine/ORM/CustomerRepositoryTrait.php
+                - src/Doctrine/ORM/OrderRepositoryTrait.php
+
+        # Plugin resources map associations to Sylius interfaces which the host application resolves to
+        # concrete classes via Doctrine's ResolveTargetEntityListener. phpstan-doctrine sees the resolved
+        # concrete class and reports a mismatch against the interface-typed property, which is expected.
+        -
+            message: '#type mapping mismatch: property can contain .* but database expects#'
+            path: src/Model/*

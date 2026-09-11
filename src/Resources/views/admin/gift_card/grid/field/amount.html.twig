@@ -1,0 +1,4 @@
+{{ data.amount|sylius_format_money(data.currencyCode, sylius.localeCode) }}
+{% if data.amount != data.initialAmount %}
+    <div class="ui small text">{{ 'setono_sylius_gift_card.ui.initial_amount'|trans }}: {{ data.initialAmount|sylius_format_money(data.currencyCode, sylius.localeCode) }}</div>
+{% endif %}

@@ -1,0 +1,54 @@
+{% if form.giftCardInformation is defined %}
+    {% set gift_card_form = form.giftCardInformation %}
+    {% set channel = sylius.channel %}
+    {% set brand_name = channel ? channel.name : ('setono_sylius_gift_card.pdf.gift_card'|trans) %}
+    {% set brand_initial = brand_name|slice(0, 1)|upper %}
+    {% set currency_code = channel and channel.baseCurrency ? channel.baseCurrency.code : 'USD' %}
+
+    {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig') }}
+
+    <div id="setono-gift-card-information"
+         class="ui segment"
+         data-preview-message-placeholder="{{ 'setono_sylius_gift_card.ui.your_message_here'|trans }}"
+         data-currency="{{ currency_code }}"
+         data-locale="{{ app.request.locale|replace({'_': '-'}) }}">
+        <h4 class="ui dividing header">{{ 'setono_sylius_gift_card.ui.gift_card'|trans }}</h4>
+
+        <div class="ssgc-preview">
+            <div class="ssgc-preview__frame">
+                {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card.html.twig', {
+                    brand_name: brand_name,
+                    brand_initial: brand_initial,
+                    formatted_amount: '',
+                    formatted_code: null,
+                    message: gift_card_form.customMessage.vars.value|default(''),
+                    front_image_url: null,
+                    preview: true,
+                }, false) }}
+            </div>
+        </div>
+
+        {{ form_row(gift_card_form.amount) }}
+
+        {{ form_label(gift_card_form.design) }}
+        <div class="ui small images" data-js-gift-card-design-picker>
+            {% for choice in gift_card_form.design %}
+                <label class="setono-gift-card-design-choice">
+                    {{ form_widget(choice) }}
+                    {% set image_path = choice.vars.attr['data-image-path']|default('') %}
+                    {% if image_path is not empty %}
+                        <img src="{{ image_path|imagine_filter('setono_sylius_gift_card_design_thumbnail') }}"
+                             alt="{{ choice.vars.label }}"
+                             data-design-image="{{ image_path|imagine_filter('setono_sylius_gift_card_design_preview') }}"/>
+                    {% endif %}
+                    <span>{{ choice.vars.label }}</span>
+                </label>
+            {% endfor %}
+        </div>
+
+        {{ form_row(gift_card_form.customMessage) }}
+    </div>
+
+    <script defer src="{{ asset('bundles/setonosyliusgiftcardplugin/js/product-gift-card.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('bundles/setonosyliusgiftcardplugin/css/product-gift-card.css') }}"/>
+{% endif %}

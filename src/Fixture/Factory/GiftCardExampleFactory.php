@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Fixture\Factory;
 
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use function sprintf;
 use Sylius\Bundle\CoreBundle\Fixture\Factory\AbstractExampleFactory;
@@ -22,39 +24,32 @@ use Webmozart\Assert\Assert;
 
 class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFactoryInterface
 {
-    protected GiftCardRepositoryInterface $giftCardRepository;
-
-    protected FactoryInterface $giftCardFactory;
-
-    protected GiftCardCodeGeneratorInterface $giftCardCodeGenerator;
-
-    protected ChannelRepositoryInterface $channelRepository;
-
-    protected RepositoryInterface $currencyRepository;
-
     protected \Faker\Generator $faker;
 
     protected OptionsResolver $optionsResolver;
 
+    /**
+     * @param FactoryInterface<GiftCardInterface> $giftCardFactory
+     * @param ChannelRepositoryInterface<ChannelInterface> $channelRepository
+     * @param RepositoryInterface<CurrencyInterface> $currencyRepository
+     */
     public function __construct(
-        GiftCardRepositoryInterface $giftCardRepository,
-        FactoryInterface $giftCardFactory,
-        GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
-        ChannelRepositoryInterface $channelRepository,
-        RepositoryInterface $currencyRepository,
+        protected GiftCardRepositoryInterface $giftCardRepository,
+        protected FactoryInterface $giftCardFactory,
+        protected GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
+        protected ChannelRepositoryInterface $channelRepository,
+        protected RepositoryInterface $currencyRepository,
+        protected GiftCardBalanceOperatorInterface $balanceOperator,
     ) {
-        $this->giftCardRepository = $giftCardRepository;
-        $this->giftCardFactory = $giftCardFactory;
-        $this->giftCardCodeGenerator = $giftCardCodeGenerator;
-        $this->channelRepository = $channelRepository;
-        $this->currencyRepository = $currencyRepository;
-
         $this->faker = \Faker\Factory::create();
         $this->optionsResolver = new OptionsResolver();
 
         $this->configureOptions($this->optionsResolver);
     }
 
+    /**
+     * @param array<array-key, mixed> $options
+     */
     public function create(array $options = []): GiftCardInterface
     {
         $options = $this->optionsResolver->resolve($options);
@@ -62,27 +57,44 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
         return $this->createGiftCard($options);
     }
 
+    /**
+     * @param array<array-key, mixed> $options
+     */
     protected function createGiftCard(array $options): GiftCardInterface
     {
         /** @var GiftCardInterface|null $giftCard */
         $giftCard = $this->giftCardRepository->findOneBy(['code' => $options['code']]);
-        if (null === $giftCard) {
-            /** @var GiftCardInterface $giftCard */
-            $giftCard = $this->giftCardFactory->createNew();
-        }
+        $giftCard ??= $this->giftCardFactory->createNew();
 
         /** @var CurrencyInterface $currency */
         $currency = $options['currency'];
 
-        $giftCard->setCode($options['code']);
-        $giftCard->setChannel($options['channel']);
+        /** @var ChannelInterface $channel */
+        $channel = $options['channel'];
+
+        /** @var GiftCardDeliveryType $deliveryType */
+        $deliveryType = $options['deliveryType'];
+
+        $code = $options['code'];
+        Assert::string($code);
+        $giftCard->setCode($code);
+
+        $giftCard->setChannel($channel);
         $giftCard->setCurrencyCode((string) $currency->getCode());
 
-        if (null !== $options['amount']) {
-            $giftCard->setAmount($options['amount']);
+        $amount = $options['amount'];
+        if (null !== $amount) {
+            Assert::integer($amount);
+            $giftCard->setInitialAmount($amount);
+            $giftCard->setAmount($amount);
         }
 
-        $giftCard->setEnabled($options['enabled']);
+        $giftCard->setDeliveryType($deliveryType);
+        $giftCard->setEnabled((bool) $options['enabled']);
+
+        // Seeded cards go through the balance operator too, so the demo data does not show cards holding
+        // money with an empty ledger behind them
+        $this->balanceOperator->issue($giftCard);
 
         return $giftCard;
     }
@@ -90,9 +102,7 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
     protected function configureOptions(OptionsResolver $resolver): void
     {
         $resolver
-            ->setDefault('code', function (Options $options): string {
-                return $this->giftCardCodeGenerator->generate();
-            })
+            ->setDefault('code', fn (Options $options): string => $this->giftCardCodeGenerator->generate())
 
             ->setDefault('channel', LazyOption::randomOne($this->channelRepository))
             ->setAllowedTypes('channel', ['null', 'string', ChannelInterface::class])
@@ -120,6 +130,8 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
 
                 /** @var ChannelInterface|mixed $channel */
                 $channel = $options['channel'];
+                Assert::isInstanceOf($channel, ChannelInterface::class);
+
                 $channelCurrenciesCodes = $channel->getCurrencies()->map(function (CurrencyInterface $currency): string {
                     $currencyCode = $currency->getCode();
                     Assert::notNull($currencyCode);
@@ -127,33 +139,46 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
                     return $currencyCode;
                 })->toArray();
 
+                Assert::nullOrString($currencyCode);
+
                 Assert::notNull($currency, sprintf(
                     'Currency %s was not found. Use one of: %s',
-                    $currencyCode,
+                    (string) $currencyCode,
                     implode(', ', $channelCurrenciesCodes),
                 ));
-
-                Assert::isInstanceOf($channel, ChannelInterface::class);
 
                 Assert::oneOf($currency, $channel->getCurrencies()->toArray(), sprintf(
                     'Expecting one of %s currencies, got: %s',
                     implode(', ', $channelCurrenciesCodes),
-                    $currencyCode,
+                    (string) $currencyCode,
                 ));
 
                 return $currency;
             })
 
             ->setDefault('amount', function (Options $options): int {
-                return $this->faker->randomElement([10, 20, 30, 40, 50, 75, 100, 150, 200, 250, 300, 400, 500]);
+                /** @var int $amount */
+                $amount = $this->faker->randomElement([10, 20, 30, 40, 50, 75, 100, 150, 200, 250, 300, 400, 500]);
+
+                return $amount;
             })
             ->setAllowedTypes('amount', ['float', 'int'])
-            ->setNormalizer('amount', function (Options $options, float $amount): int {
-                return (int) round($amount * 100);
-            })
+            ->setNormalizer('amount', fn (Options $options, float $amount): int => (int) round($amount * 100))
 
             ->setDefault('enabled', true)
             ->setAllowedTypes('enabled', 'bool')
+
+            ->setDefault('deliveryType', GiftCardDeliveryType::Virtual)
+            ->setAllowedTypes('deliveryType', ['string', GiftCardDeliveryType::class])
+            ->setNormalizer('deliveryType', static function (Options $options, $deliveryType): GiftCardDeliveryType {
+                if ($deliveryType instanceof GiftCardDeliveryType) {
+                    return $deliveryType;
+                }
+
+                Assert::string($deliveryType);
+
+                return GiftCardDeliveryType::from($deliveryType);
+            })
         ;
     }
 }

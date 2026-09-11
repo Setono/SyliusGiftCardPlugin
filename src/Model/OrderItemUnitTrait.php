@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 trait OrderItemUnitTrait
 {
-    /** @ORM\OneToOne (targetEntity="Setono\SyliusGiftCardPlugin\Model\GiftCardInterface", mappedBy="orderItemUnit") */
+    /** @ORM\OneToOne(targetEntity="Setono\SyliusGiftCardPlugin\Model\GiftCardInterface", mappedBy="orderItemUnit") */
     protected ?GiftCardInterface $giftCard = null;
 
     public function getGiftCard(): ?GiftCardInterface
@@ -16,7 +16,7 @@ trait OrderItemUnitTrait
         return $this->giftCard;
     }
 
-    public function setGiftCard(GiftCardInterface $giftCard): void
+    public function setGiftCard(?GiftCardInterface $giftCard): void
     {
         if ($this->giftCard === $giftCard) {
             return;
@@ -24,6 +24,6 @@ trait OrderItemUnitTrait
 
         $this->giftCard = $giftCard;
 
-        $giftCard->setOrderItemUnit($this);
+        $giftCard?->setOrderItemUnit($this);
     }
 }

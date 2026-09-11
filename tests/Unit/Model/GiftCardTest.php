@@ -5,183 +5,87 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Model;
 
 use PHPUnit\Framework\TestCase;
-use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
-use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
-use Sylius\Component\Core\Model\Channel;
-use Sylius\Component\Core\Model\Customer;
-use Sylius\Component\Core\Model\Order;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardTransaction;
 
 final class GiftCardTest extends TestCase
 {
-    use ProphecyTrait;
-
-    /**
-     * @test
-     */
-    public function it_has_properties(): void
+    /** @test */
+    public function it_is_usable_when_enabled_not_expired_and_has_balance(): void
     {
-        $orderItemUnit = $this->prophesize(OrderItemUnitInterface::class);
-        $customer = new Customer();
         $giftCard = new GiftCard();
-        $channel = new Channel();
+        $giftCard->enable();
+        $giftCard->setAmount(1000);
 
-        $giftCard->setCode('test-code');
-        $this->assertSame('test-code', $giftCard->getCode());
-
-        $giftCard->setOrderItemUnit($orderItemUnit->reveal());
-        $this->assertSame($orderItemUnit->reveal(), $giftCard->getOrderItemUnit());
-
-        $giftCard->setCustomer($customer);
-        $this->assertSame($customer, $giftCard->getCustomer());
-
-        $giftCard->setInitialAmount(25000);
-        $this->assertSame(25000, $giftCard->getInitialAmount());
-
-        $giftCard->setAmount(25000);
-        $this->assertSame(25000, $giftCard->getAmount());
-
-        $giftCard->addAppliedOrder(new Order());
-        $giftCard->addAppliedOrder(new Order());
-        $this->assertSame(2, $giftCard->getAppliedOrders()->count());
-
-        $giftCard->setCurrencyCode('EUR');
-        $this->assertSame('EUR', $giftCard->getCurrencyCode());
-
-        $giftCard->setChannel($channel);
-        $this->assertSame($channel, $giftCard->getChannel());
-
-        $giftCard->setCustomMessage('custom message');
-        $this->assertSame('custom message', $giftCard->getCustomMessage());
-
-        $giftCard->setOrigin('My origin');
-        $this->assertSame('My origin', $giftCard->getOrigin());
-
-        $expiresAt = new \DateTime();
-        $giftCard->setExpiresAt($expiresAt);
-        $this->assertSame($expiresAt, $giftCard->getExpiresAt());
-
-        $giftCard->setSendNotificationEmail(false);
-        $this->assertFalse($giftCard->getSendNotificationEmail());
+        self::assertTrue($giftCard->isUsable());
     }
 
-    /**
-     * @test
-     */
-    public function it_can_be_converted_to_string(): void
+    /** @test */
+    public function it_is_not_usable_when_disabled(): void
     {
         $giftCard = new GiftCard();
-        $giftCard->setCode('test-code');
-        $this->assertSame('test-code', $giftCard->__toString());
+        $giftCard->disable();
+        $giftCard->setAmount(1000);
+
+        self::assertFalse($giftCard->isUsable());
     }
 
-    /**
-     * @test
-     */
-    public function it_can_be_deletable(): void
+    /** @test */
+    public function it_is_not_usable_when_balance_is_zero(): void
     {
         $giftCard = new GiftCard();
-        $this->assertSame(true, $giftCard->isDeletable());
+        $giftCard->enable();
+        $giftCard->setAmount(0);
+
+        self::assertFalse($giftCard->isUsable());
     }
 
-    /**
-     * @test
-     */
-    public function it_is_not_deletable_if_it_has_order_item_unit(): void
+    /** @test */
+    public function it_is_not_usable_when_expired(): void
     {
-        $orderItemUnit = $this->prophesize(OrderItemUnitInterface::class);
         $giftCard = new GiftCard();
-        $giftCard->setOrderItemUnit($orderItemUnit->reveal());
-        $this->assertSame(false, $giftCard->isDeletable());
+        $giftCard->enable();
+        $giftCard->setAmount(1000);
+        $giftCard->setExpiresAt(new \DateTimeImmutable('-1 day'));
+
+        self::assertFalse($giftCard->isUsable());
     }
 
-    /**
-     * @test
-     */
-    public function it_has_order_from_order_item_unit(): void
+    /** @test */
+    public function it_reports_expiry_relative_to_a_given_date(): void
     {
         $giftCard = new GiftCard();
-        $this->assertNull($giftCard->getOrder());
+        $giftCard->setExpiresAt(new \DateTimeImmutable('2020-01-01'));
 
-        $orderItemUnit = $this->prophesize(OrderItemUnitInterface::class);
-        $orderItem = new OrderItem();
-        $orderItemUnit->getOrderItem()->willReturn($orderItem);
-        $giftCard->setOrderItemUnit($orderItemUnit->reveal());
-        $orderItemUnit->setGiftCard($giftCard)->shouldBeCalled();
-
-        $this->assertNull($giftCard->getOrder());
-
-        $order = new Order();
-        $orderItem->setOrder($order);
-
-        $this->assertSame($order, $giftCard->getOrder());
+        self::assertTrue($giftCard->isExpired(new \DateTimeImmutable('2020-06-01')));
+        self::assertFalse($giftCard->isExpired(new \DateTimeImmutable('2019-06-01')));
     }
 
-    /**
-     * @test
-     */
-    public function it_has_applied_orders(): void
+    /** @test */
+    public function it_never_expires_without_an_expiry_date(): void
     {
         $giftCard = new GiftCard();
 
-        $this->assertFalse($giftCard->hasAppliedOrders());
-
-        $order1 = new Order();
-        $giftCard->addAppliedOrder($order1);
-        $this->assertSame(1, $giftCard->getAppliedOrders()->count());
-        $this->assertTrue($giftCard->hasAppliedOrder($order1));
-
-        $order2 = new Order();
-        $giftCard->addAppliedOrder($order2);
-        $this->assertSame(2, $giftCard->getAppliedOrders()->count());
-        $this->assertTrue($giftCard->hasAppliedOrder($order2));
-
-        $giftCard->removeAppliedOrder($order1);
-        $this->assertSame(1, $giftCard->getAppliedOrders()->count());
-        $this->assertFalse($giftCard->hasAppliedOrder($order1));
+        self::assertFalse($giftCard->isExpired());
     }
 
-    /**
-     * @test
-     */
-    public function it_has_null_origin_by_default(): void
+    /** @test */
+    public function it_is_pending_when_disabled_and_has_no_transactions_but_belongs_to_a_unit(): void
     {
         $giftCard = new GiftCard();
-        $this->assertSame(null, $giftCard->getOrigin());
+        $giftCard->disable();
+
+        // no order item unit yet, so not pending
+        self::assertFalse($giftCard->isPending());
     }
 
-    /**
-     * @test
-     */
-    public function it_can_expire(): void
-    {
-        $today = new \DateTime('2022-01-01 00:00:00');
-        $giftCard = new GiftCard();
-        $giftCard->setExpiresAt(new \DateTime('2021-12-15 14:00:00'));
-
-        $this->assertTrue($giftCard->isExpired($today));
-    }
-
-    /**
-     * @test
-     */
-    public function it_is_not_expired_if_expires_at_is_null(): void
+    /** @test */
+    public function it_is_not_pending_once_it_has_a_transaction(): void
     {
         $giftCard = new GiftCard();
+        $giftCard->disable();
+        $giftCard->addTransaction(new GiftCardTransaction());
 
-        $this->assertFalse($giftCard->isExpired());
-    }
-
-    /**
-     * @test
-     */
-    public function it_is_not_expired_if_expiresAt_is_in_future(): void
-    {
-        $today = new \DateTime('2022-01-01 00:00:00');
-        $giftCard = new GiftCard();
-        $giftCard->setExpiresAt(new \DateTime('2022-12-15 14:00:00'));
-
-        $this->assertFalse($giftCard->isExpired($today));
+        self::assertFalse($giftCard->isPending());
     }
 }

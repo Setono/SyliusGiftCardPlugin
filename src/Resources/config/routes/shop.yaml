@@ -1,43 +1,11 @@
-setono_sylius_gift_card_shop_search_gift_card:
-    path: /gift-card/search
-    methods: [GET,POST]
+setono_sylius_gift_card_shop_add_gift_card_to_order:
+    path: /gift-cards
+    methods: [POST]
     defaults:
-        _controller: setono_sylius_gift_card.controller.action.search_gift_card
+        _controller: Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction
 
 setono_sylius_gift_card_shop_remove_gift_card_from_order:
-    path: /gift-card/{giftCard}/remove-from-order
-    methods: GET
+    path: /gift-cards/{giftCard}/remove
+    methods: [POST]
     defaults:
-        _controller: setono_sylius_gift_card.controller.action.remove_gift_card_from_order
-
-setono_sylius_gift_card_shop_partial_add_gift_card_to_order:
-    path: /_partial/gift-card/add-to-order
-    methods: [ GET, POST ]
-    defaults:
-        _controller: setono_sylius_gift_card.controller.action.add_gift_card_to_order
-
-setono_sylius_gift_card_shop_ajax_add_gift_card_to_order:
-    path: /ajax/gift-card/add-to-order
-    methods: [ GET, POST ]
-    defaults:
-        _controller: setono_sylius_gift_card.controller.action.add_gift_card_to_order
-
-setono_sylius_gift_card_shop_gift_card_index:
-    path: /account/gift-cards
-    methods: [ GET ]
-    defaults:
-        _controller: setono_sylius_gift_card.controller.gift_card::indexAction
-        _sylius:
-            section: shop
-            grid: setono_sylius_gift_card_shop_gift_card
-            template: '@SetonoSyliusGiftCardPlugin/Shop/Account/GiftCard/index.html.twig'
-
-setono_sylius_gift_card_shop_gift_card_pdf:
-    path: /gift-cards/{id}/pdf
-    requirements:
-        id: \d+
-    methods: [ GET ]
-    defaults:
-        _controller: setono_sylius_gift_card.controller.action.download_pdf
-        _sylius:
-            section: shop
+        _controller: Setono\SyliusGiftCardPlugin\Controller\Action\RemoveGiftCardFromOrderAction

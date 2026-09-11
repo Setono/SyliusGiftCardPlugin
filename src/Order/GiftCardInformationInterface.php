@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Order;
 
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
+
 interface GiftCardInformationInterface
 {
     public function getAmount(): int;
@@ -13,4 +15,8 @@ interface GiftCardInformationInterface
     public function getCustomMessage(): ?string;
 
     public function setCustomMessage(?string $customMessage): void;
+
+    public function getDesign(): ?GiftCardDesignInterface;
+
+    public function setDesign(?GiftCardDesignInterface $design): void;
 }

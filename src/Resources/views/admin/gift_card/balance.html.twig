@@ -1,0 +1,49 @@
+{% extends '@SyliusAdmin/layout.html.twig' %}
+
+{% import '@SyliusUi/Macro/headers.html.twig' as headers %}
+{% import '@SyliusAdmin/Macro/breadcrumb.html.twig' as breadcrumb %}
+
+{% block title %}{{ 'setono_sylius_gift_card.ui.outstanding_balance'|trans }} {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="ui stackable one column grid">
+        <div class="column">
+            {{ headers.default('setono_sylius_gift_card.ui.outstanding_balance'|trans, 'balance scale', 'setono_sylius_gift_card.ui.outstanding_balance_help'|trans) }}
+
+            {# This report is reached from the gift cards index rather than the admin menu, so the crumbs lead back there #}
+            {% set breadcrumbs = [
+                { label: 'sylius.ui.administration'|trans, url: path('sylius_admin_dashboard') },
+                { label: 'setono_sylius_gift_card.ui.gift_cards'|trans, url: path('setono_sylius_gift_card_admin_gift_card_index') },
+                { label: 'setono_sylius_gift_card.ui.outstanding_balance'|trans }
+            ] %}
+            {{ breadcrumb.crumble(breadcrumbs) }}
+        </div>
+    </div>
+
+    <div class="ui segment">
+        <table class="ui celled table">
+            <thead>
+                <tr>
+                    <th>{{ 'sylius.ui.currency'|trans }}</th>
+                    <th class="right aligned">{{ 'setono_sylius_gift_card.ui.count'|trans }}</th>
+                    <th class="right aligned">{{ 'setono_sylius_gift_card.ui.total'|trans }}</th>
+                    <th class="right aligned">{{ 'setono_sylius_gift_card.ui.average'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for balance in balances %}
+                    <tr>
+                        <td>{{ balance.currencyCode }}</td>
+                        <td class="right aligned">{{ balance.count }}</td>
+                        <td class="right aligned">{{ balance.amount|sylius_format_money(balance.currencyCode, sylius.localeCode) }}</td>
+                        <td class="right aligned">{{ (balance.count > 0 ? (balance.amount // balance.count) : 0)|sylius_format_money(balance.currencyCode, sylius.localeCode) }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="center aligned">{{ 'sylius.ui.no_results'|trans }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

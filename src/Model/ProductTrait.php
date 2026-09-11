@@ -11,26 +11,13 @@ trait ProductTrait
     /** @ORM\Column(type="boolean", options={"default": false}) */
     protected bool $giftCard = false;
 
-    /** @ORM\Column(type="boolean", options={"default": false}) */
-    protected bool $giftCardAmountConfigurable = false;
-
     public function isGiftCard(): bool
     {
         return $this->giftCard;
     }
 
-    public function setGiftCard(bool $isGiftCard): void
+    public function setGiftCard(bool $giftCard): void
     {
-        $this->giftCard = $isGiftCard;
-    }
-
-    public function isGiftCardAmountConfigurable(): bool
-    {
-        return $this->giftCardAmountConfigurable;
-    }
-
-    public function setGiftCardAmountConfigurable(bool $giftCardAmountConfigurable): void
-    {
-        $this->giftCardAmountConfigurable = $giftCardAmountConfigurable;
+        $this->giftCard = $giftCard;
     }
 }

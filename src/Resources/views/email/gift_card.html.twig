@@ -1,0 +1,17 @@
+{# @var giftCards \Setono\SyliusGiftCardPlugin\Model\GiftCardInterface[] #}
+{% extends '@SyliusShop/Email/layout.html.twig' %}
+
+{% block subject %}{{ 'setono_sylius_gift_card.email.new_gift_card'|trans }}{% endblock %}
+
+{% block content %}
+    <p>{{ 'setono_sylius_gift_card.email.new_gift_card_intro'|trans }}</p>
+
+    {% for giftCard in giftCards %}
+        <p>
+            <strong>{{ giftCard.code }}</strong>
+            ({{ 'setono_sylius_gift_card.email.balance'|trans }}: {{ giftCard.amount|sylius_format_money(giftCard.currencyCode, localeCode|default('en')) }})
+        </p>
+    {% endfor %}
+
+    <p>{{ 'setono_sylius_gift_card.email.pdf_attached'|trans }}</p>
+{% endblock %}

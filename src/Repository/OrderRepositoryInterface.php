@@ -6,9 +6,13 @@ namespace Setono\SyliusGiftCardPlugin\Repository;
 
 use Doctrine\ORM\QueryBuilder;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Sylius\Component\Core\Model\OrderInterface as CoreOrderInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface as BaseOrderRepositoryInterface;
 use Sylius\Component\Customer\Model\CustomerInterface;
 
+/**
+ * @extends BaseOrderRepositoryInterface<CoreOrderInterface>
+ */
 interface OrderRepositoryInterface extends BaseOrderRepositoryInterface
 {
     public function findLatestByCustomer(CustomerInterface $customer): ?OrderInterface;

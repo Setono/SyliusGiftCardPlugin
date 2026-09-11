@@ -1,0 +1,38 @@
+{% set order = cart %}
+{% set applyForm = setono_gift_card_apply_form() %}
+
+<div class="ui segment" {{ sylius_test_html_attribute('gift-card-redemption') }}>
+    <h4 class="ui dividing header">{{ 'setono_sylius_gift_card.ui.gift_card'|trans }}</h4>
+
+    {{ form_start(applyForm, {'action': path('setono_sylius_gift_card_shop_add_gift_card_to_order'), 'method': 'post', 'attr': {'novalidate': 'novalidate'}}) }}
+        <div class="ui action input">
+            {{ form_widget(applyForm.giftCard) }}
+            <button type="submit" class="ui teal button" {{ sylius_test_html_attribute('apply-gift-card-button') }}>
+                {{ 'setono_sylius_gift_card.ui.apply_gift_card'|trans }}
+            </button>
+        </div>
+    {{ form_end(applyForm) }}
+
+    {% if order.giftCards is not empty %}
+        <table class="ui very basic table" {{ sylius_test_html_attribute('applied-gift-cards') }}>
+            <tbody>
+                {% for giftCard in order.giftCards %}
+                    <tr {{ sylius_test_html_attribute('applied-gift-card', giftCard.code) }}>
+                        <td>{{ giftCard.code }}</td>
+                        <td class="right aligned">
+                            -{{ setono_gift_card_covered_amount_by_gift_card(order, giftCard)|sylius_format_money(order.currencyCode, sylius.localeCode) }}
+                        </td>
+                        <td class="right aligned collapsing">
+                            <form method="post" action="{{ path('setono_sylius_gift_card_shop_remove_gift_card_from_order', {'giftCard': giftCard.code}) }}">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('setono_remove_gift_card_' ~ giftCard.code) }}"/>
+                                <button type="submit" class="ui red tiny icon button" {{ sylius_test_html_attribute('remove-gift-card-button', giftCard.code) }}>
+                                    <i class="trash icon"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>

@@ -1,0 +1,13 @@
+{
+    "name": "setono-sylius-gift-card-plugin-e2e",
+    "private": true,
+    "description": "End to end tests for the gift card plugin, run against tests/Application",
+    "scripts": {
+        "test": "playwright test",
+        "test:headed": "playwright test --headed",
+        "report": "playwright show-report"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.49.0"
+    }
+}

@@ -4,78 +4,64 @@
 [![Software License][ico-license]](LICENSE)
 [![Build Status][ico-github-actions]][link-github-actions]
 
-Add gift card functionality to your store:
+Add gift card functionality to your Sylius store:
 
-- Buy gift cards
-- Use gift cards to purchase products
-- See the balance of a gift card by looking up the gift card code
+- **Buy gift cards** — customers choose the amount, a design and an optional message, and pick whether the gift card is **virtual** (delivered by email as a PDF) or **physical** (shipped like a normal product).
+- **Redeem gift cards** — customers apply a gift card code in the cart, and it becomes a **real payment** against the order rather than a discount on it.
+- **Admin management** — a gift card grid, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger), and an outstanding-balance dashboard.
 
-The administrator will have access to a dashboard showing the total outstanding balance of gift cards which
-can be used for auditing.
+> This is the `1.x` line, for **Sylius 1.13 and up**. It is a ground-up rewrite of the `0.12.x` plugin. There is **no API layer** in 1.x — see [`UPGRADE-1.0.md`](UPGRADE-1.0.md) if you are coming from `0.12.x`.
 
-## Screenshots
+## Table of contents
 
-▶▶ [Skip screenshots and go to installation](#Installation)
+- [How it works](#how-it-works)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Customization](#customization)
+- [Development](#development)
+- [License](#license)
 
-![Screenshot showing admin menu and index](docs/images/admin-menu.png)
+## How it works
 
-![Screenshot showing gift card admin create page](docs/images/admin-gift-card-create.png)
+### Virtual vs physical
 
-## Api platform support
+Whether a gift card is virtual or physical is derived from the chosen product variant's `shipping required` flag — there is no special product type. The recommended setup is a single gift card product with a "delivery" product option producing a non-shippable *Virtual* variant and a shippable *Physical* variant. Virtual-only stores work too: just create a single non-shippable variant and the delivery selector disappears. Use the **Create gift card product** button in the admin gift card list to scaffold this in one click.
 
-Everything related to Gift Card can be done via API. Whether it is admin or shop actions
+### Buying a gift card
+
+The customer chooses the amount, a design and an optional message on the product page (with a live preview). A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed (with a PDF attachment) to the customer.
+
+### Redeeming a gift card
+
+The customer enters a gift card code in the cart. The order total stays intact and each applied gift card becomes a completed [`Payment`](https://docs.sylius.com/the-book/carts-and-orders/payments) using a lazily-created *offline* gift card payment method; the remainder is charged through the normal gateway, and the payment step is skipped automatically when gift cards cover the whole order.
+
+A gift card is treated as a means of payment rather than a discount, because that is what it is: selling one takes money for a liability the shop settles later, so redeeming it settles that liability instead of reducing what the order is worth. It also keeps gift cards out of the way of promotions, and matches what order management and accounting systems expect to receive.
+
+Gift cards cannot be used to buy other gift cards, balances are committed when the order is placed and restored when it is cancelled/refunded, and every balance change is recorded in an append-only ledger.
+
+## Requirements
+
+| Requirement | Version                                    |
+|-------------|--------------------------------------------|
+| PHP         | >= 8.1                                      |
+| Sylius      | 1.13 and up (the `1.x` line)                |
+| Symfony     | ^6.4                                        |
+| ORM         | doctrine/orm (the only supported driver)   |
 
 ## Installation
 
-### Require plugin with composer:
+### Require the plugin with composer
 
 ```bash
-$ composer require setono/sylius-gift-card-plugin
+composer require setono/sylius-gift-card-plugin
 ```
 
-### Import configuration:
+### Register the plugin
 
-```yaml
-# config/packages/setono_sylius_gift_card.yaml
-imports:
-    # ...
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml" }
-```
-
-### (Optional) Import fixtures 
-
-If you wish to have some gift cards to play with in your application during development.
-
-```yaml
-# config/packages/setono_sylius_gift_card.yaml
-imports:
-    # ...
-    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
-```
-
-### Import routing:
-   
-```yaml
-# config/routes.yaml
-setono_sylius_gift_card:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml"
-```
-
-or if your app doesn't use locales:
-   
-```yaml
-# config/routes.yaml
-setono_sylius_gift_card:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes_no_locale.yaml"
-```
-
-### Add plugin class to your `bundles.php`:
-
-Make sure you add it before `SyliusGridBundle`, otherwise you'll get
-`You have requested a non-existent parameter "setono_sylius_gift_card.model.gift_card.class".` exception. 
+Add it to `config/bundles.php` **before** `SyliusGridBundle`:
 
 ```php
-<?php
 $bundles = [
     // ...
     Setono\SyliusGiftCardPlugin\SetonoSyliusGiftCardPlugin::class => ['all' => true],
@@ -84,286 +70,166 @@ $bundles = [
 ];
 ```
 
-### Copy templates
+The plugin auto-configures the state machine, grids, UI events, email templates and image filters for you — you do **not** need to import any bundle configuration manually.
 
-You will find the templates you need to override in the [test application](https://github.com/Setono/SyliusGiftCardPlugin/tree/master/tests/Application/templates).
+Both state machine adapters Sylius supports are covered: the plugin registers winzou callbacks *and* the
+equivalent Symfony Workflow subscribers, so it behaves the same whichever adapter
+`sylius_core.state_machine.default_adapter` is set to. Only the adapter actually applying a transition emits
+its events, so the work is never done twice.
 
-### Extend entities
+### Import routing
 
-**Extend `Product`**
+```yaml
+# config/routes/setono_sylius_gift_card.yaml
+setono_sylius_gift_card:
+    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml"
+```
+
+### Apply the traits/interfaces to your entities
+
+Apply the plugin traits to your `Product`, `Order`, `OrderItem` and `OrderItemUnit` entities:
+
 ```php
-<?php
-
-# src/Entity/Product/Product.php
-
-declare(strict_types=1);
-
-namespace App\Entity\Product;
-
-use Doctrine\ORM\Mapping as ORM;
+// src/Entity/Product/Product.php
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface as SetonoSyliusGiftCardProductInterface;
 use Setono\SyliusGiftCardPlugin\Model\ProductTrait as SetonoSyliusGiftCardProductTrait;
-use Sylius\Component\Core\Model\Product as BaseProduct;
 
-/**
- * @ORM\Entity
- * @ORM\Table(name="sylius_product")
- */
 class Product extends BaseProduct implements SetonoSyliusGiftCardProductInterface
 {
     use SetonoSyliusGiftCardProductTrait;
 }
 ```
 
-**Extend `Order`**
-
 ```php
-<?php
+// src/Entity/Order/Order.php
+use Setono\SyliusGiftCardPlugin\Model\OrderInterface as SetonoSyliusGiftCardOrderInterface;
+use Setono\SyliusGiftCardPlugin\Model\OrderTrait as SetonoSyliusGiftCardOrderTrait;
 
-# src/Entity/Order/Order.php
-
-declare(strict_types=1);
-
-namespace App\Entity\Order;
-
-use Setono\SyliusGiftCardPlugin\Model\OrderInterface as SetonoSyliusGiftCardPluginOrderInterface;
-use Setono\SyliusGiftCardPlugin\Model\OrderTrait as SetonoSyliusGiftCardPluginOrderTrait;
-use Sylius\Component\Core\Model\Order as BaseOrder;
-use Doctrine\ORM\Mapping as ORM;
-
-/**
- * @ORM\Entity
- * @ORM\Table(name="sylius_order")
- */
-class Order extends BaseOrder implements SetonoSyliusGiftCardPluginOrderInterface
+class Order extends BaseOrder implements SetonoSyliusGiftCardOrderInterface
 {
-    use SetonoSyliusGiftCardPluginOrderTrait {
-        SetonoSyliusGiftCardPluginOrderTrait::__construct as private __giftCardTraitConstruct;
+    use SetonoSyliusGiftCardOrderTrait {
+        SetonoSyliusGiftCardOrderTrait::__construct as private __giftCardTraitConstruct;
     }
-    
+
     public function __construct()
     {
         $this->__giftCardTraitConstruct();
-
         parent::__construct();
     }
 }
 ```
 
-**Extend `OrderItem`**
-
 ```php
-<?php
-
-# src/Entity/Order/OrderItem.php
-
-declare(strict_types=1);
-
-namespace App\Entity\Order;
-
-use Doctrine\ORM\Mapping as ORM;
+// src/Entity/Order/OrderItem.php
 use Setono\SyliusGiftCardPlugin\Model\OrderItemTrait as SetonoSyliusGiftCardOrderItemTrait;
-use Sylius\Component\Core\Model\OrderItem as BaseOrderItem;
 
-/**
- * @ORM\Entity
- * @ORM\Table(name="sylius_order_item")
- */
 class OrderItem extends BaseOrderItem
 {
     use SetonoSyliusGiftCardOrderItemTrait;
 }
 ```
 
-**Extend `OrderItemUnit`**
-
 ```php
-<?php
-
-# src/Entity/Order/OrderItemUnit.php
-
-declare(strict_types=1);
-
-namespace App\Entity\Order;
-
-use Doctrine\ORM\Mapping as ORM;
+// src/Entity/Order/OrderItemUnit.php
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface as SetonoSyliusGiftCardOrderItemUnitInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitTrait as SetonoSyliusGiftCardOrderItemUnitTrait;
-use Sylius\Component\Core\Model\OrderItemUnit as BaseOrderItemUnit;
 
-/**
- * @ORM\Entity
- * @ORM\Table(name="sylius_order_item_unit")
- */
 class OrderItemUnit extends BaseOrderItemUnit implements SetonoSyliusGiftCardOrderItemUnitInterface
 {
     use SetonoSyliusGiftCardOrderItemUnitTrait;
 }
 ```
-    
-**Extend `OrderRepository`:**
 
-```php
-<?php
+Register the entity overrides in `config/packages/_sylius.yaml` (see `tests/Application` for a complete working example).
 
-# src/Doctrine/ORM/OrderRepository.php
+### Update the database
 
-declare(strict_types=1);
-
-namespace App\Doctrine\ORM;
-
-use Setono\SyliusGiftCardPlugin\Repository\OrderRepositoryInterface as SetonoSyliusGiftCardPluginOrderRepositoryInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\OrderRepositoryTrait as SetonoSyliusGiftCardPluginOrderRepositoryTrait;
-use Sylius\Bundle\CoreBundle\Doctrine\ORM\OrderRepository as BaseOrderRepository;
-
-class OrderRepository extends BaseOrderRepository implements SetonoSyliusGiftCardPluginOrderRepositoryInterface
-{
-    use SetonoSyliusGiftCardPluginOrderRepositoryTrait;
-}
+```bash
+bin/console doctrine:migrations:diff
+bin/console doctrine:migrations:migrate
 ```
 
-**Extend `CustomerRepository`:**
+### Install assets
 
-```php
-<?php
-
-# src/Doctrine/ORM/CustomerRepository.php
-
-declare(strict_types=1);
-
-namespace App\Doctrine\ORM;
-
-use Setono\SyliusGiftCardPlugin\Repository\CustomerRepositoryInterface as SetonoSyliusGiftCardPluginCustomerRepositoryInterface;
-use Setono\SyliusGiftCardPlugin\Doctrine\ORM\CustomerRepositoryTrait as SetonoSyliusGiftCardPluginCustomerRepositoryTrait;
-use Sylius\Bundle\CoreBundle\Doctrine\ORM\CustomerRepository as BaseCustomerRepository;
-
-class CustomerRepository extends BaseCustomerRepository implements SetonoSyliusGiftCardPluginCustomerRepositoryInterface
-{
-    use SetonoSyliusGiftCardPluginCustomerRepositoryTrait;
-}
+```bash
+bin/console assets:install
 ```
 
-- Add configuration:
+## Configuration
+
+All settings are optional and shown here with their defaults:
+
+```yaml
+# config/packages/setono_sylius_gift_card.yaml
+setono_sylius_gift_card:
+    code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…)
+    default_validity_period: '3 years'   # any strtotime-compatible interval, or null to never expire
+    purchase:
+        minimum_amount: 100              # minor units (e.g. cents)
+        maximum_amount: ~                # null = no maximum
+    redemption:
+        payment_method_code: gift_card   # code of the (auto-created) payment method a redeemed gift card is paid with
+    pdf:
+        page_size: A6                    # any page size supported by dompdf
+```
+
+## Customization
+
+Every extension point below is a plain service or template you replace — no configuration flags required.
+
+### Customizing the PDF
+
+Gift cards render to PDF with [dompdf](https://github.com/dompdf/dompdf). Override `@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig` to change the layout, or replace/decorate `Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface` to use a different engine.
+
+### Customizing the emails
+
+The plugin sends two emails: `setono_sylius_gift_card__gift_card` (a single gift card, sent when one is created in the admin panel) and `setono_sylius_gift_card__gift_cards_from_order` (all gift cards from a paid order, sent to the buyer). Override their templates at `@SetonoSyliusGiftCardPlugin/email/gift_card.html.twig` and `@SetonoSyliusGiftCardPlugin/email/gift_cards_from_order.html.twig`, or redefine the emails under the `sylius_mailer` key to change the sender or subject.
+
+### Changing what gift cards may pay for
+
+By default gift cards may pay for everything except gift-card line items. Decorate `Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface` to change this.
+
+### Customizing the add-to-cart command
+
+To capture the amount, message and design the customer picks, the plugin decorates Sylius' `sylius.factory.add_to_cart_command` so it produces a `Setono\SyliusGiftCardPlugin\Order\AddToCartCommand` — which implements `Setono\SyliusGiftCardPlugin\Order\AddToCartCommandInterface` and carries the gift card information — and the add-to-cart form binds to that class.
+
+If your application needs its own add-to-cart command, make it extend `AddToCartCommand` (or implement `AddToCartCommandInterface`) and point the command class parameter at it:
 
 ```yaml
 # config/services.yaml
-sylius_customer:
-    resources:
-        customer:
-            classes:
-                repository: App\Doctrine\ORM\CustomerRepository
-
-sylius_order:
-    resources:
-        order:
-            classes:
-                model: App\Entity\Order\Order
-                repository: App\Doctrine\ORM\OrderRepository
-        order_item:
-            classes:
-                model: App\Entity\Order\OrderItem
-        order_item_unit:
-            classes:
-                model: App\Entity\Order\OrderItemUnit
-                
-sylius_product:
-    resources:
-        product:
-            classes:
-                model: App\Entity\Product\Product
+parameters:
+    setono_sylius_gift_card.order.model.add_to_cart_command.class: App\Order\AddToCartCommand
 ```
 
-### Copy Api Resources
+The plugin verifies this at container compile time and fails with an actionable message if the configured class does not implement the interface. Its factory decorator is idempotent and applied outermost, so it also composes cleanly with a decorator of your own on `sylius.factory.add_to_cart_command`.
 
-Resources declaration that need to be copied are:
-* [Order.xml](src/Resources/config/api_resources/Order.xml)
+### Overriding models, repositories and factories
 
-If you already have them overriden, just change the following routes:
-
-**[Order.xml](src/Resources/config/api_resources/Order.xml)**
-```xml
-<itemOperation name="shop_add_item">
-    <attribute name="method">PATCH</attribute>
-    <attribute name="path">/shop/orders/{tokenValue}/items</attribute>
-    <attribute name="messenger">input</attribute>
-    <attribute name="input">Setono\SyliusGiftCardPlugin\Api\Command\AddItemToCart</attribute> <!-- This has been changed compared to the core -->
-    <attribute name="normalization_context">
-        <attribute name="groups">shop:cart:read</attribute>
-    </attribute>
-    <attribute name="denormalization_context">
-        <attribute name="groups">shop:cart:add_item</attribute>
-    </attribute>
-    <attribute name="openapi_context">
-        <attribute name="summary">Adds Item to cart</attribute>
-    </attribute>
-</itemOperation>
-```
-
-### Update your database:
-
-```bash
-$ bin/console doctrine:migrations:diff
-$ bin/console doctrine:migrations:migrate
-```
-
-### Install assets:
-
-```bash
-$ php bin/console assets:install
-```
-
-### Clear cache:
-
-```bash
-$ php bin/console cache:clear
-```
-
-# Configuration
-
-## Change redirect routes on add/remove gift card to/from order
-
-You can customize where you will be redirected after adding or removing a gift card. To do so, you can simply change the route configuration :
+The `gift_card`, `gift_card_design` and `gift_card_transaction` resources follow the standard Sylius resource configuration, so you can swap any model, repository, controller or factory for your own class:
 
 ```yaml
-setono_sylius_gift_card_shop_remove_gift_card_from_order:
-    path: /gift-card/{giftCard}/remove-from-order
-    methods: GET
-    defaults:
-        _controller: setono_sylius_gift_card.controller.action.remove_gift_card_from_order
-        redirect:
-            route: sylius_shop_cart_summary
-            parameters: []
+setono_sylius_gift_card:
+    resources:
+        gift_card:
+            classes:
+                model: App\Entity\GiftCard\GiftCard
 ```
 
-The same applies for the `setono_sylius_gift_card_shop_partial_add_gift_card_to_order` route
-
-You can also override or decorate the service `setono_sylius_gift_card.resolver.redirect_url` to define a more custom way of redirecting
-
-# Usage
-
-In order to find out how to use the GiftCard plugin, please refer to the [usage](docs/usage.md).
-
-# Development
-
-## Testing
+## Development
 
 ```bash
-$ composer tests
+composer install
+(cd tests/Application && yarn install && yarn build)
+composer phpunit        # unit + functional tests
+composer analyse        # PHPStan (max level)
+composer check-style    # ECS
 ```
 
-## Playing
+See [`CLAUDE.md`](CLAUDE.md) for the full development workflow, including Playwright-based UI verification against the bundled `tests/Application`.
 
-To run built-in application showing plugin at work, just run:  
+## License
 
-```bash
-$ composer try
-```
-
-## Contribution
-
-Learn more about our contribution workflow on http://docs.sylius.org/en/latest/contributing/.
-
-Please, run `composer all` to run all checks and tests before making pull request.
+This plugin is released under the [MIT License](LICENSE).
 
 [ico-version]: https://img.shields.io/packagist/v/setono/sylius-gift-card-plugin.svg
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg

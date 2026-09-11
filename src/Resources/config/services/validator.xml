@@ -4,40 +4,25 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\HasBackgroundImage">
-            <tag name="validator.constraint_validator" />
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator"
+                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator">
+            <argument type="service" id="sylius.context.channel"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider"/>
+            <argument type="service" id="sylius.money_formatter"/>
+
+            <tag name="validator.constraint_validator"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsNotExpired">
-            <tag name="validator.constraint_validator" />
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\BalanceAdjustmentIsApplicableValidator"
+                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\BalanceAdjustmentIsApplicableValidator">
+            <argument type="service" id="sylius.money_formatter"/>
+
+            <tag name="validator.constraint_validator"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\DatePeriod">
-            <tag name="validator.constraint_validator" />
-        </service>
-
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\DatePeriodValidator">
-            <argument type="service" id="setono_sylius_gift_card.provider.date_period_unit"/>
-
-            <tag name="validator.constraint_validator" />
-        </service>
-
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidOrientationValidator">
-            <argument>%setono_sylius_gift_card.pdf_rendering.available_orientations%</argument>
-
-            <tag name="validator.constraint_validator" />
-        </service>
-
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\Pdf\ValidPageSizeValidator">
-            <argument>%setono_sylius_gift_card.pdf_rendering.available_page_sizes%</argument>
-
-            <tag name="validator.constraint_validator" />
-        </service>
-
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\DefaultGiftCardConfigurationMustExistValidator">
-            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_configuration"/>
-
-            <tag name="validator.constraint_validator" />
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\UniqueDesignImageTypesValidator"
+                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\UniqueDesignImageTypesValidator">
+            <tag name="validator.constraint_validator"/>
         </service>
     </services>
 </container>

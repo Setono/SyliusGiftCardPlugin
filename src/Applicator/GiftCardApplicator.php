@@ -4,86 +4,87 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Applicator;
 
-use RuntimeException;
 use Setono\SyliusGiftCardPlugin\Exception\ChannelMismatchException;
+use Setono\SyliusGiftCardPlugin\Exception\GiftCardCurrencyMismatchException;
 use Setono\SyliusGiftCardPlugin\Exception\GiftCardNotFoundException;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
-use Sylius\Component\Order\Processor\OrderProcessorInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\OrderCheckoutStates;
+use Webmozart\Assert\Assert;
 
 final class GiftCardApplicator implements GiftCardApplicatorInterface
 {
-    private GiftCardRepositoryInterface $giftCardRepository;
-
-    private OrderProcessorInterface $orderProcessor;
-
     public function __construct(
-        GiftCardRepositoryInterface $giftCardRepository,
-        OrderProcessorInterface $orderProcessor,
+        private readonly GiftCardRepositoryInterface $giftCardRepository,
+        private readonly GiftCardCodeNormalizerInterface $codeNormalizer,
+        private readonly GiftCardRedemptionMethodInterface $redemptionMethod,
     ) {
-        $this->giftCardRepository = $giftCardRepository;
-        $this->orderProcessor = $orderProcessor;
     }
 
-    /**
-     * @param string|GiftCardInterface $giftCard
-     */
     public function apply(OrderInterface $order, $giftCard): void
     {
-        if (is_string($giftCard)) {
-            $giftCard = $this->getGiftCard($giftCard);
+        $giftCard = $this->resolveGiftCard($giftCard);
+
+        if ($order->hasGiftCard($giftCard)) {
+            return;
         }
 
-        if (!$giftCard->isEnabled()) {
-            throw new RuntimeException('The gift card is not enabled');
-        }
-
-        if ($giftCard->isExpired()) {
-            throw new RuntimeException('The gift card is expired');
-        }
+        Assert::true($giftCard->isUsable(), 'The gift card is not usable');
+        Assert::notEq(
+            $order->getCheckoutState(),
+            OrderCheckoutStates::STATE_COMPLETED,
+            'A gift card cannot be applied to a completed order',
+        );
 
         $orderChannel = $order->getChannel();
-        if (null === $orderChannel) {
-            throw new RuntimeException('The channel on the order cannot be null');
-        }
+        Assert::isInstanceOf($orderChannel, ChannelInterface::class);
 
         $giftCardChannel = $giftCard->getChannel();
-        if (null === $giftCardChannel) {
-            throw new RuntimeException('The channel on the gift card cannot be null');
-        }
+        Assert::isInstanceOf($giftCardChannel, ChannelInterface::class);
 
         if ($orderChannel->getCode() !== $giftCardChannel->getCode()) {
             throw new ChannelMismatchException($giftCardChannel, $orderChannel);
         }
 
-        $order->addGiftCard($giftCard);
+        $orderCurrencyCode = $order->getCurrencyCode();
+        if (null !== $orderCurrencyCode && $giftCard->getCurrencyCode() !== $orderCurrencyCode) {
+            throw new GiftCardCurrencyMismatchException($giftCard, $orderCurrencyCode);
+        }
 
-        $this->orderProcessor->process($order);
+        $this->redemptionMethod->apply($order, $giftCard);
+    }
+
+    public function remove(OrderInterface $order, $giftCard): void
+    {
+        $giftCard = $this->resolveGiftCard($giftCard);
+
+        if (!$order->hasGiftCard($giftCard)) {
+            return;
+        }
+
+        $this->redemptionMethod->remove($order, $giftCard);
     }
 
     /**
      * @param string|GiftCardInterface $giftCard
      */
-    public function remove(OrderInterface $order, $giftCard): void
+    private function resolveGiftCard($giftCard): GiftCardInterface
     {
-        if (is_string($giftCard)) {
-            $giftCard = $this->getGiftCard($giftCard);
+        if ($giftCard instanceof GiftCardInterface) {
+            return $giftCard;
         }
 
-        $order->removeGiftCard($giftCard);
+        $code = $this->codeNormalizer->normalize($giftCard);
 
-        $this->orderProcessor->process($order);
-    }
-
-    private function getGiftCard(string $giftCardCode): GiftCardInterface
-    {
-        $giftCard = $this->giftCardRepository->findOneByCode($giftCardCode);
-
-        if (null === $giftCard) {
-            throw new GiftCardNotFoundException($giftCardCode);
+        $resolved = $this->giftCardRepository->findOneByCode($code);
+        if (null === $resolved) {
+            throw new GiftCardNotFoundException($code);
         }
 
-        return $giftCard;
+        return $resolved;
     }
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator"
+                 class="Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator">
+            <argument type="service" id="twig"/>
+            <argument>@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig</argument>
+            <argument>%setono_sylius_gift_card.pdf.page_size%</argument>
+            <argument>%sylius_core.public_dir%</argument>
+        </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator"/>
+    </services>
+</container>

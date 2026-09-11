@@ -14,6 +14,9 @@ final class HasNoGiftCardRuleChecker implements RuleCheckerInterface
 {
     public const TYPE = 'has_no_gift_card';
 
+    /**
+     * @param array<array-key, mixed> $configuration
+     */
     public function isEligible(PromotionSubjectInterface $subject, array $configuration): bool
     {
         Assert::isInstanceOf($subject, OrderInterface::class);
