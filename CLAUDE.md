@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`setono/sylius-gift-card-plugin` — a Sylius plugin adding gift card functionality. Version 1.x (branch `1.x`) is a full rewrite targeting Sylius 1.13/1.14, PHP >= 8.1, Symfony ^6.4. See `REWRITE.md` for the complete architecture plan, decisions, and progress log of the rewrite.
+`setono/sylius-gift-card-plugin` — a Sylius plugin adding gift card functionality. Version 1.x (branch `1.x`) is a full rewrite targeting Sylius 1.13 and up, PHP >= 8.1, Symfony ^6.4.
 
 Key feature set: customers buy gift cards choosing the amount themselves (virtual = email delivery, physical = shipped + design chosen by the customer); redeeming a gift card creates a real Payment entity against the order, leaving the order total intact — a gift card settles a liability the shop already took money for, so it is a means of payment rather than a discount. No API layer.
 

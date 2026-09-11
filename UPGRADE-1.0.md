@@ -4,7 +4,7 @@ Version `1.0` is a ground-up rewrite. It is a **clean break**: there is no autom
 
 ## Requirements
 
-- Sylius `1.13` or `1.14` (was `^1.11`)
+- Sylius `1.13` and up (was `^1.11`) — `1.13` is the floor because the plugin uses `Sylius\Abstraction\StateMachine`, which Sylius introduced in `1.13`
 - PHP `>= 8.1`, Symfony `^6.4` only (Symfony 5.4 support dropped)
 
 ## Removed: the API layer

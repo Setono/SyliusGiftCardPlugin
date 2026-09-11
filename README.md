@@ -10,7 +10,7 @@ Add gift card functionality to your Sylius store:
 - **Redeem gift cards** — customers apply a gift card code in the cart, and it becomes a **real payment** against the order rather than a discount on it.
 - **Admin management** — a gift card grid, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger), and an outstanding-balance dashboard.
 
-> This is the `1.x` line for **Sylius 1.13 / 1.14**. It is a ground-up rewrite of the `0.12.x` plugin. There is **no API layer** in 1.x — see [`UPGRADE-1.0.md`](UPGRADE-1.0.md) if you are coming from `0.12.x`.
+> This is the `1.x` line, for **Sylius 1.13 and up**. It is a ground-up rewrite of the `0.12.x` plugin. There is **no API layer** in 1.x — see [`UPGRADE-1.0.md`](UPGRADE-1.0.md) if you are coming from `0.12.x`.
 
 ## Table of contents
 
@@ -45,7 +45,7 @@ Gift cards cannot be used to buy other gift cards, balances are committed when t
 | Requirement | Version                                    |
 |-------------|--------------------------------------------|
 | PHP         | >= 8.1                                      |
-| Sylius      | 1.13 / 1.14                                 |
+| Sylius      | 1.13 and up (the `1.x` line)                |
 | Symfony     | ^6.4                                        |
 | ORM         | doctrine/orm (the only supported driver)   |
 
