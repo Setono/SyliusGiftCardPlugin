@@ -9,11 +9,8 @@ use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface as SetonoSyliusGift
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitTrait as SetonoSyliusGiftCardOrderItemUnitTrait;
 use Sylius\Component\Core\Model\OrderItemUnit as BaseOrderItemUnit;
 
-/**
- * @ORM\Entity
- *
- * @ORM\Table(name="sylius_order_item_unit")
- */
+#[ORM\Entity]
+#[ORM\Table(name: 'sylius_order_item_unit')]
 class OrderItemUnit extends BaseOrderItemUnit implements SetonoSyliusGiftCardOrderItemUnitInterface
 {
     use SetonoSyliusGiftCardOrderItemUnitTrait;

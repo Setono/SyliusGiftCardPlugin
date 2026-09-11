@@ -87,13 +87,20 @@ setono_sylius_gift_card:
 
 ### Apply the traits/interfaces to your entities
 
-Apply the plugin traits to your `Product`, `Order`, `OrderItem` and `OrderItemUnit` entities:
+Apply the plugin traits to your `Product`, `Order`, `OrderItem` and `OrderItemUnit` entities. The traits carry their
+Doctrine mapping as PHP 8 attributes *and* as annotations, so they work whether your application maps its entities
+with `type: attribute` (the Sylius-Standard default in `config/packages/doctrine.yaml`) or `type: annotation`. The
+samples below are attribute-mapped:
 
 ```php
 // src/Entity/Product/Product.php
+use Doctrine\ORM\Mapping as ORM;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface as SetonoSyliusGiftCardProductInterface;
 use Setono\SyliusGiftCardPlugin\Model\ProductTrait as SetonoSyliusGiftCardProductTrait;
+use Sylius\Component\Core\Model\Product as BaseProduct;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'sylius_product')]
 class Product extends BaseProduct implements SetonoSyliusGiftCardProductInterface
 {
     use SetonoSyliusGiftCardProductTrait;
@@ -102,9 +109,13 @@ class Product extends BaseProduct implements SetonoSyliusGiftCardProductInterfac
 
 ```php
 // src/Entity/Order/Order.php
+use Doctrine\ORM\Mapping as ORM;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface as SetonoSyliusGiftCardOrderInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderTrait as SetonoSyliusGiftCardOrderTrait;
+use Sylius\Component\Core\Model\Order as BaseOrder;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'sylius_order')]
 class Order extends BaseOrder implements SetonoSyliusGiftCardOrderInterface
 {
     use SetonoSyliusGiftCardOrderTrait {
@@ -121,8 +132,12 @@ class Order extends BaseOrder implements SetonoSyliusGiftCardOrderInterface
 
 ```php
 // src/Entity/Order/OrderItem.php
+use Doctrine\ORM\Mapping as ORM;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemTrait as SetonoSyliusGiftCardOrderItemTrait;
+use Sylius\Component\Core\Model\OrderItem as BaseOrderItem;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'sylius_order_item')]
 class OrderItem extends BaseOrderItem
 {
     use SetonoSyliusGiftCardOrderItemTrait;
@@ -131,16 +146,20 @@ class OrderItem extends BaseOrderItem
 
 ```php
 // src/Entity/Order/OrderItemUnit.php
+use Doctrine\ORM\Mapping as ORM;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface as SetonoSyliusGiftCardOrderItemUnitInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitTrait as SetonoSyliusGiftCardOrderItemUnitTrait;
+use Sylius\Component\Core\Model\OrderItemUnit as BaseOrderItemUnit;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'sylius_order_item_unit')]
 class OrderItemUnit extends BaseOrderItemUnit implements SetonoSyliusGiftCardOrderItemUnitInterface
 {
     use SetonoSyliusGiftCardOrderItemUnitTrait;
 }
 ```
 
-Register the entity overrides in `config/packages/_sylius.yaml` (see `tests/Application` for a complete working example).
+Register the entity overrides in `config/packages/_sylius.yaml` (see `tests/Application` for a complete, attribute-mapped working example).
 
 ### Update the database
 
