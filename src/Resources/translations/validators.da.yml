@@ -15,6 +15,10 @@ setono_sylius_gift_card:
             integer: Beløbet skal være et heltal
             min: Beløbet kan ikke være mindre end 1
             greater_than_or_equal: Beløbet skal være større end eller lig med 1
+        currency_code:
+            not_blank: Vælg venligst en valuta
+            invalid: Dette er ikke en gyldig valuta
+            not_base_currency: 'Valutaen {{ currency }} er ikke basisvalutaen for kanalen {{ channel }} ({{ base_currency }}). Gavekortsaldi føres i kanalens basisvaluta, så et gavekort kan kun udstedes i den.'
         send_notification_email:
             boolean: Send notifikationsmail skal være en boolsk værdi
         not_enabled: Dette gavekort er ikke aktivt.
