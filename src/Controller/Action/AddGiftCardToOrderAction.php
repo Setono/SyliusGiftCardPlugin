@@ -106,7 +106,14 @@ final class AddGiftCardToOrderAction
      */
     private function rateLimiterKeys(Request $request): array
     {
-        $keys = [sprintf('ip-%s', $request->getClientIp() ?? 'unknown')];
+        $keys = [];
+
+        // Only known addresses get a bucket; one shared by every request without an address would throttle
+        // strangers together
+        $clientIp = $request->getClientIp();
+        if (null !== $clientIp) {
+            $keys[] = sprintf('ip-%s', $clientIp);
+        }
 
         $sessionId = $this->sessionId($request);
         if (null !== $sessionId) {
