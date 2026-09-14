@@ -10,6 +10,7 @@
             <argument>@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig</argument>
             <argument>%setono_sylius_gift_card.pdf.page_size%</argument>
             <argument>%sylius_core.public_dir%</argument>
+            <argument key="$mediaDir">media/image</argument>
             <argument key="$remoteEnabled">false</argument>
         </service>
 
