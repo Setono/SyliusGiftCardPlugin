@@ -1,15 +1,32 @@
+{% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
+
 {% set order = cart %}
 
+{#
+    Sylius fires no template event inside its totals table, so these figures cannot become rows of it without the
+    host application overriding `@SyliusShop/Cart/Summary/_totals.html.twig`. They are instead rendered as a segment
+    of their own, built like the one they follow, and registered on `sylius.shop.cart.summary` with a priority that
+    places it right below the totals (see SetonoSyliusGiftCardExtension::prepend()).
+
+    Amounts go through the `money` macro, like every other figure in the summary, so they follow the display currency
+    the shopper picked rather than the currency the order is stored in.
+#}
 {% if order.giftCards is not empty %}
     {% set covered = setono_gift_card_covered_amount(order) %}
     {% if covered > 0 %}
-        <div class="row" {{ sylius_test_html_attribute('gift-cards-total') }}>
-            <div class="right aligned column">{{ 'setono_sylius_gift_card.ui.gift_cards'|trans }}</div>
-            <div class="right aligned column">-{{ covered|sylius_format_money(order.currencyCode, sylius.localeCode) }}</div>
-        </div>
-        <div class="row" {{ sylius_test_html_attribute('gift-cards-remaining-total') }}>
-            <div class="right aligned column">{{ 'setono_sylius_gift_card.ui.remaining_to_pay'|trans }}</div>
-            <div class="right aligned column">{{ setono_gift_card_remaining_total(order)|sylius_format_money(order.currencyCode, sylius.localeCode) }}</div>
+        <div class="ui segment" {{ sylius_test_html_attribute('gift-card-totals') }}>
+            <table class="ui very basic table">
+                <tbody>
+                    <tr {{ sylius_test_html_attribute('gift-cards-total') }}>
+                        <td>{{ 'setono_sylius_gift_card.ui.gift_cards'|trans }}:</td>
+                        <td class="right aligned">{{ money.convertAndFormat(-covered) }}</td>
+                    </tr>
+                    <tr {{ sylius_test_html_attribute('gift-cards-remaining-total') }}>
+                        <td>{{ 'setono_sylius_gift_card.ui.remaining_to_pay'|trans }}:</td>
+                        <td class="right aligned">{{ money.convertAndFormat(setono_gift_card_remaining_total(order)) }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     {% endif %}
 {% endif %}

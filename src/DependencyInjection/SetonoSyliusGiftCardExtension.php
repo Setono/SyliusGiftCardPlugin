@@ -172,19 +172,19 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                             ],
                         ],
                     ],
+                    // Sylius' own blocks on this event are the totals (priority 20), the legacy after totals event
+                    // (15) and the checkout button (10). The gift card figures belong right below the order total,
+                    // and the redemption form between them and the checkout button, so both get a priority of their
+                    // own instead of sharing one with the checkout button and leaving the order to registration
                     'sylius.shop.cart.summary' => [
-                        'blocks' => [
-                            'setono_gift_cards' => [
-                                'template' => '@SetonoSyliusGiftCardPlugin/shop/cart/_gift_cards.html.twig',
-                                'priority' => 10,
-                            ],
-                        ],
-                    ],
-                    'sylius.shop.cart.summary.totals' => [
                         'blocks' => [
                             'setono_gift_card_totals' => [
                                 'template' => '@SetonoSyliusGiftCardPlugin/shop/cart/_gift_card_totals.html.twig',
-                                'priority' => 10,
+                                'priority' => 18,
+                            ],
+                            'setono_gift_cards' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/cart/_gift_cards.html.twig',
+                                'priority' => 12,
                             ],
                         ],
                     ],
