@@ -19,4 +19,8 @@ return (new Configuration())
     // Provides the translator that loads src/Resources/translations/*.yml and backs the
     // `trans` filter used in this plugin's templates. Again, no class reference.
     ->ignoreErrorsOnPackage('symfony/translation', [ErrorType::UNUSED_DEPENDENCY])
+
+    // Provides the `format_date` filter the gift card PDF and email templates use to localize the expiry
+    // date. Twig templates are not scanned, so the analyser cannot see the usage.
+    ->ignoreErrorsOnPackage('twig/intl-extra', [ErrorType::UNUSED_DEPENDENCY])
 ;

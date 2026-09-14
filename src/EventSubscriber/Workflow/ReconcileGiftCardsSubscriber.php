@@ -26,7 +26,10 @@ final class ReconcileGiftCardsSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'workflow.sylius_order_checkout.completed.complete' => '__invoke',
+            // Before Sylius' ApplyCreateTransitionOnOrderListener (400) cascades the order into existence and before
+            // its ResolveOrderPaymentStateListener (200) can pay it on the spot, so every unit has its card before
+            // anything can enable and email them. Mirrors the winzou priority -500
+            'workflow.sylius_order_checkout.completed.complete' => ['__invoke', 500],
         ];
     }
 

@@ -26,7 +26,9 @@ final class SendGiftCardsSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'workflow.sylius_order_payment.completed.pay' => '__invoke',
+            // After EnableGiftCardsSubscriber (50), so a card is never emailed before it is enabled. Mirrors the
+            // winzou priority -40
+            'workflow.sylius_order_payment.completed.pay' => ['__invoke', 40],
         ];
     }
 
