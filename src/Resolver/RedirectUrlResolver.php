@@ -8,7 +8,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Sends the customer back to the page the apply/remove form was submitted from, i.e. the Referer.
+ * Decides where the customer lands after applying or removing a gift card.
+ *
+ * A host application can pin the destination by giving the route a "redirect" default, either as
+ * ['route_name'] or as ['route' => 'route_name', 'parameters' => [...]]. Otherwise the customer is sent back
+ * to the page the form was submitted from, i.e. the Referer.
  *
  * The Referer is supplied by the client, so it is only followed when it stays on this host: a relative path,
  * or an absolute URL on the request's own scheme, host and port. Anything else (another host, a protocol
@@ -22,6 +26,18 @@ final class RedirectUrlResolver implements RedirectUrlResolverInterface
 
     public function getUrlToRedirectTo(Request $request, string $defaultRoute): string
     {
+        /** @var mixed $redirect */
+        $redirect = $request->attributes->get('redirect');
+        if (is_array($redirect)) {
+            if (isset($redirect[0]) && is_string($redirect[0])) {
+                return $this->router->generate($redirect[0]);
+            }
+
+            if (isset($redirect['route'], $redirect['parameters']) && is_string($redirect['route']) && is_array($redirect['parameters'])) {
+                return $this->router->generate($redirect['route'], $redirect['parameters']);
+            }
+        }
+
         $referer = $request->headers->get('referer');
         if (is_string($referer) && self::isOnThisHost($referer, $request)) {
             return $referer;

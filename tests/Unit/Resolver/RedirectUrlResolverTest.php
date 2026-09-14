@@ -99,6 +99,58 @@ final class RedirectUrlResolverTest extends TestCase
         yield 'an empty referer header' => [''];
     }
 
+    /**
+     * A host can pin the destination through a "redirect" route default; that wins over the Referer
+     *
+     * @test
+     *
+     * @dataProvider redirectAttributes
+     *
+     * @param array<array-key, mixed> $redirect
+     * @param array<string, mixed> $expectedParameters
+     */
+    public function it_prefers_a_redirect_configured_on_the_route(array $redirect, string $expectedRoute, array $expectedParameters): void
+    {
+        $router = $this->prophesize(UrlGeneratorInterface::class);
+        if ([] === $expectedParameters) {
+            $router->generate($expectedRoute)->willReturn('/en_US/thank-you');
+        } else {
+            $router->generate($expectedRoute, $expectedParameters)->willReturn('/en_US/thank-you');
+        }
+
+        $request = $this->request('https://shop.example.com', 'https://shop.example.com/en_US/cart/');
+        $request->attributes->set('redirect', $redirect);
+
+        $resolver = new RedirectUrlResolver($router->reveal());
+
+        self::assertSame('/en_US/thank-you', $resolver->getUrlToRedirectTo($request, self::DEFAULT_ROUTE));
+    }
+
+    /**
+     * @return iterable<string, array{array<array-key, mixed>, string, array<string, mixed>}>
+     */
+    public static function redirectAttributes(): iterable
+    {
+        yield 'a route name' => [['sylius_shop_order_thank_you'], 'sylius_shop_order_thank_you', []];
+        yield 'a route with parameters' => [['route' => 'sylius_shop_product_show', 'parameters' => ['slug' => 'gift-card']], 'sylius_shop_product_show', ['slug' => 'gift-card']];
+    }
+
+    /**
+     * @test
+     */
+    public function it_ignores_a_malformed_redirect_attribute_and_follows_the_referer(): void
+    {
+        $router = $this->prophesize(UrlGeneratorInterface::class);
+        $router->generate(Argument::cetera())->shouldNotBeCalled();
+
+        $request = $this->request('https://shop.example.com', 'https://shop.example.com/en_US/cart/');
+        $request->attributes->set('redirect', ['parameters' => ['slug' => 'gift-card']]);
+
+        $resolver = new RedirectUrlResolver($router->reveal());
+
+        self::assertSame('https://shop.example.com/en_US/cart/', $resolver->getUrlToRedirectTo($request, self::DEFAULT_ROUTE));
+    }
+
     private function routerGeneratingTheDefaultRoute(): UrlGeneratorInterface
     {
         $router = $this->prophesize(UrlGeneratorInterface::class);
