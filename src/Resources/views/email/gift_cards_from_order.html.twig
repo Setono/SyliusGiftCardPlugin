@@ -8,7 +8,7 @@
 
     {% for giftCard in giftCards %}
         <p>
-            <strong>{{ giftCard.code }}</strong>
+            <strong>{{ giftCard.code|setono_gift_card_format_code }}</strong>
             ({{ 'setono_sylius_gift_card.email.balance'|trans }}: {{ giftCard.amount|sylius_format_money(giftCard.currencyCode, localeCode|default('en')) }})
         </p>
     {% endfor %}

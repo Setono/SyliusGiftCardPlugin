@@ -15,7 +15,7 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
 {
     private GiftCardEmailManagerInterface $emailManager;
 
-    /** @var list<array{to: string, attachments: list<array{type: string, filename: ?string, body: string}>}> */
+    /** @var list<array{to: string, html: string, attachments: list<array{type: string, filename: ?string, body: string}>}> */
     private array $sentEmails = [];
 
     protected function setUp(): void
@@ -58,6 +58,7 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
 
                 $this->sentEmails[] = [
                     'to' => $message->getTo()[0]->getAddress(),
+                    'html' => (string) $message->getHtmlBody(),
                     'attachments' => $attachments,
                 ];
             },
@@ -75,6 +76,8 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
 
         $email = $this->sentEmails[0];
         self::assertSame('customer@example.com', $email['to']);
+        // the code is grouped for reading, by the normalizer rather than by 4-4-4-4 slicing that assumes 16 characters
+        self::assertStringContainsString('EMAI-LTES-T000-0000-1', $email['html']);
 
         self::assertCount(1, $email['attachments'], 'the gift card PDF should be attached');
 
