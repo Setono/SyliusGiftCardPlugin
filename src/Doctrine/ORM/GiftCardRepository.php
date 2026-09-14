@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Doctrine\ORM;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
@@ -14,6 +18,20 @@ use Webmozart\Assert\Assert;
 
 class GiftCardRepository extends EntityRepository implements GiftCardRepositoryInterface
 {
+    /**
+     * The normalizer defaults so the repository can still be built by Doctrine itself from the manager and
+     * the metadata alone; the container passes the configured one
+     *
+     * @param ClassMetadata<GiftCardInterface> $class
+     */
+    public function __construct(
+        EntityManagerInterface $em,
+        ClassMetadata $class,
+        private readonly GiftCardCodeNormalizerInterface $codeNormalizer = new GiftCardCodeNormalizer(),
+    ) {
+        parent::__construct($em, $class);
+    }
+
     public function createListQueryBuilder(): QueryBuilder
     {
         return $this->createQueryBuilder('o')
@@ -26,7 +44,7 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
 
     public function findOneByCode(string $code): ?GiftCardInterface
     {
-        $giftCard = $this->findOneBy(['code' => $code]);
+        $giftCard = $this->findOneBy(['code' => $this->codeNormalizer->normalize($code)]);
         Assert::nullOrIsInstanceOf($giftCard, GiftCardInterface::class);
 
         return $giftCard;
@@ -35,7 +53,7 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
     public function findOneEnabledByCodeAndChannel(string $code, ChannelInterface $channel): ?GiftCardInterface
     {
         $giftCard = $this->findOneBy([
-            'code' => $code,
+            'code' => $this->codeNormalizer->normalize($code),
             'channel' => $channel,
             'enabled' => true,
         ]);
