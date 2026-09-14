@@ -7,8 +7,6 @@
             <generator strategy="AUTO"/>
         </id>
 
-        <!-- Every column is named explicitly: an implicit name is resolved by the *application's* naming strategy, so
-             two host applications would end up with different physical schemas for the same plugin -->
         <field name="code" column="code" unique="true"/>
         <field name="enabled" column="enabled" type="boolean"/>
         <field name="amount" column="amount" type="integer"/>
