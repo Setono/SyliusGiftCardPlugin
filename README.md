@@ -30,7 +30,7 @@ Whether a gift card is virtual or physical is derived from the chosen product va
 
 ### Buying a gift card
 
-The customer chooses the amount, a design and an optional message on the product page (with a live preview). A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed (with a PDF attachment) to the customer.
+The customer chooses the amount, a design and an optional message on the product page (with a live preview). A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed (with a PDF attachment) to the customer. Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
 
 ### Redeeming a gift card
 
@@ -38,7 +38,7 @@ The customer enters a gift card code in the cart. The order total stays intact a
 
 A gift card is treated as a means of payment rather than a discount, because that is what it is: selling one takes money for a liability the shop settles later, so redeeming it settles that liability instead of reducing what the order is worth. It also keeps gift cards out of the way of promotions, and matches what order management and accounting systems expect to receive.
 
-Gift cards cannot be used to buy other gift cards, balances are committed when the order is placed and restored when it is cancelled/refunded, and every balance change is recorded in an append-only ledger.
+Gift cards cannot be used to buy other gift cards, balances are committed when the order is placed and restored, once per payment, when the gift card payment is refunded (cancelling the order refunds it), and every balance change is recorded in an append-only ledger.
 
 ## Requirements
 
