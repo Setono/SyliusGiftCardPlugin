@@ -118,6 +118,31 @@ test.describe('shop redemption', () => {
         await expect(page.getByText('NOSUCHCARD000000', { exact: false })).toHaveCount(0);
     });
 
+    /**
+     * The code field carries no visible label and the remove button is an icon, so both are addressed here the
+     * way assistive technology addresses them — by accessible name — rather than by CSS selector.
+     */
+    test('the redemption controls have accessible names', async ({ page }) => {
+        await addSomethingToCart(page);
+        await page.goto('/en_US/cart/');
+
+        const codeField = page.getByLabel('Gift card code');
+        await expect(codeField).toHaveCount(1);
+        await codeField.fill(GIFT_CARD_CODE);
+
+        const giftCardForm = page.locator('form').filter({ has: page.locator(GIFT_CARD_FIELD) });
+        await giftCardForm.locator('button[type="submit"]').first().click();
+        await page.waitForLoadState('networkidle');
+
+        // Naming it after the card keeps the buttons apart when several cards are applied
+        const remove = page.getByRole('button', { name: `Remove gift card ${GIFT_CARD_CODE}` });
+        await expect(remove).toHaveCount(1);
+
+        await remove.click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByText(GIFT_CARD_CODE, { exact: false })).toHaveCount(0);
+    });
+
     test('the cart shows what is left to pay after the gift cards', async ({ page }) => {
         await addSomethingToCart(page);
         await applyGiftCard(page, GIFT_CARD_CODE);

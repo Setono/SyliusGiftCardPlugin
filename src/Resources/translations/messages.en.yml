@@ -60,6 +60,7 @@ setono_sylius_gift_card:
         front: Front
         gift_card: Gift card
         gift_card_channel_does_not_match_channel: The gift card was bought on another channel, please use the gift card on %channel%
+        gift_card_code: Gift card code
         gift_card_code_is_invalid: Gift card code is invalid
         gift_cards: Gift cards
         gift_card_designs: Gift card designs
@@ -71,9 +72,11 @@ setono_sylius_gift_card:
         new_gift_card_design: New gift card design
         no_image: No image
         no_transactions: This gift card has no transactions yet.
+        open_customer: 'Open customer %customer% in a new tab'
         physical: 'Physical — shipped to you'
         position: Position
         remaining_to_pay: Remaining to pay
+        remove_gift_card: 'Remove gift card %code%'
         transactions: Transactions
         transaction_type_issue: Issued
         transaction_type_manual: Manual adjustment

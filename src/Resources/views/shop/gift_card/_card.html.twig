@@ -40,7 +40,8 @@
 
     {% if preview or is_image %}
         {# Merchant image variant #}
-        <img class="ssgc-card__bg" src="{{ image_url }}" alt=""{% if preview %} data-js-gc-image{% endif %}/>
+        {# In preview mode the src is filled in by the design picker, and an empty src would re-request the page itself #}
+        <img class="ssgc-card__bg"{% if is_image %} src="{{ image_url }}"{% endif %} alt=""{% if preview %} data-js-gc-image{% endif %}/>
         <div class="ssgc-card__scrim">
             <div class="ssgc-card__scrim-amount"{% if preview %} data-js-gc-amount{% endif %}>{{ formatted_amount }}</div>
             <div class="ssgc-card__scrim-message"{% if preview %} data-js-gc-message{% endif %}>{{ message }}</div>

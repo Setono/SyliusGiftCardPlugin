@@ -60,6 +60,7 @@ setono_sylius_gift_card:
         front: Recto
         gift_card: Chèque-cadeau
         gift_card_channel_does_not_match_channel: Ce chèque-cadeau a été acheté sur un autre canal, veuillez l'utiliser sur %channel%
+        gift_card_code: Numéro de chèque-cadeau
         gift_card_code_is_invalid: Numéro de chèque-cadeau invalide
         gift_cards: Chèques-cadeaux
         gift_card_designs: Modèles de chèques-cadeaux
@@ -71,9 +72,11 @@ setono_sylius_gift_card:
         new_gift_card_design: Nouveau modèle de chèque-cadeau
         no_image: Pas d'image
         no_transactions: Ce chèque-cadeau n'a encore aucune transaction.
+        open_customer: 'Ouvrir le client %customer% dans un nouvel onglet'
         physical: 'Physique — expédié chez vous'
         position: Position
         remaining_to_pay: Reste à payer
+        remove_gift_card: 'Retirer le chèque-cadeau %code%'
         transactions: Transactions
         transaction_type_issue: Émis
         transaction_type_manual: Ajustement manuel
