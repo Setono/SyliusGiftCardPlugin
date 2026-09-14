@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
 use Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderCommand;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -17,7 +18,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 final class AddGiftCardToOrderType extends AbstractType
 {
     /**
-     * @param DataTransformerInterface<mixed, mixed> $giftCardToCodeDataTransformer
+     * @param DataTransformerInterface<GiftCardInterface, string> $giftCardToCodeDataTransformer
      * @param list<string> $validationGroups
      */
     public function __construct(private readonly DataTransformerInterface $giftCardToCodeDataTransformer, private readonly array $validationGroups)
@@ -32,7 +33,10 @@ final class AddGiftCardToOrderType extends AbstractType
                 'attr' => [
                     'placeholder' => 'setono_sylius_gift_card.ui.enter_gift_card_code',
                 ],
-                'invalid_message' => 'setono_sylius_gift_card.add_gift_card_to_order_command.gift_card.does_not_exist',
+                // Deliberately the same message the GiftCardIsApplicable constraint adds: a customer who
+                // enters a code that does not exist must not be able to tell that apart from a code that
+                // exists but cannot be used, or the form becomes an oracle for guessing codes
+                'invalid_message' => 'setono_sylius_gift_card.gift_card.could_not_be_applied',
             ])
         ;
 

@@ -34,9 +34,12 @@ final class Configuration implements ConfigurationInterface
             ->addDefaultsIfNotSet()
             ->children()
                 ->integerNode('code_length')
+                    // A gift card code is a bearer token: anyone who knows it can spend the balance. The
+                    // minimum keeps the search space out of reach of guessing (31^12 combinations), even
+                    // though applying a code is rate limited as well
                     ->info('The number of significant characters in a generated gift card code (excluding group separators)')
                     ->defaultValue(16)
-                    ->min(4)
+                    ->min(12)
                     ->max(255)
                 ->end()
                 ->scalarNode('default_validity_period')
@@ -69,6 +72,14 @@ final class Configuration implements ConfigurationInterface
                             ->info('The code of the payment method a redeemed gift card is paid with')
                             ->defaultValue('gift_card')
                             ->cannotBeEmpty()
+                        ->end()
+                        ->scalarNode('rate_limiter')
+                            ->info('The rate limiter factory, as a service id, that throttles how often a single visitor may try to apply a gift card code, so codes cannot be guessed by brute force. Defaults to the limiter the plugin registers under framework.rate_limiter (10 attempts per minute, per client IP and session); point it at a limiter of your own, or set it to null to turn throttling off')
+                            ->defaultValue('limiter.' . SetonoSyliusGiftCardExtension::RATE_LIMITER_NAME)
+                            ->validate()
+                                ->ifTrue(static fn ($value): bool => null !== $value && (!is_string($value) || '' === $value))
+                                ->thenInvalid('The rate limiter must be the id of a rate limiter factory service, or null to turn throttling off: %s')
+                            ->end()
                         ->end()
                     ->end()
                 ->end()

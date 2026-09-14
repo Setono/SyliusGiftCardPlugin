@@ -37,6 +37,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsApplicableValidator"
                  class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsApplicableValidator">
             <argument type="service" id="sylius.context.cart"/>
+            <argument type="service" id="logger" on-invalid="null"/>
 
             <tag name="validator.constraint_validator"/>
         </service>

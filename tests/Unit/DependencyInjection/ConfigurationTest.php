@@ -17,8 +17,62 @@ final class ConfigurationTest extends TestCase
     public function it_has_sensible_redemption_defaults(): void
     {
         $this->assertProcessedConfigurationEquals([[]], [
-            'redemption' => ['payment_method_code' => 'gift_card'],
+            'redemption' => [
+                'payment_method_code' => 'gift_card',
+                'rate_limiter' => 'limiter.setono_sylius_gift_card_apply',
+            ],
         ], 'redemption');
+    }
+
+    /**
+     * Rate limiting is what keeps a gift card code from being guessed, so it has to be on unless the shop
+     * owner deliberately turns it off
+     *
+     * @test
+     */
+    public function it_allows_the_rate_limiter_to_be_turned_off(): void
+    {
+        $this->assertProcessedConfigurationEquals([['redemption' => ['rate_limiter' => null]]], [
+            'redemption' => [
+                'payment_method_code' => 'gift_card',
+                'rate_limiter' => null,
+            ],
+        ], 'redemption');
+    }
+
+    /** @test */
+    public function it_lets_the_application_name_its_own_rate_limiter(): void
+    {
+        $this->assertProcessedConfigurationEquals([['redemption' => ['rate_limiter' => 'limiter.shop_forms']]], [
+            'redemption' => [
+                'payment_method_code' => 'gift_card',
+                'rate_limiter' => 'limiter.shop_forms',
+            ],
+        ], 'redemption');
+    }
+
+    /** @test */
+    public function it_rejects_a_rate_limiter_that_is_not_a_service_id(): void
+    {
+        $this->assertConfigurationIsInvalid(
+            [['redemption' => ['rate_limiter' => '']]],
+            'The rate limiter must be the id of a rate limiter factory service',
+        );
+    }
+
+    /**
+     * A gift card code is a bearer token, so a code short enough to be guessed is a configuration error
+     * rather than a choice
+     *
+     * @test
+     */
+    public function it_rejects_a_guessable_code_length(): void
+    {
+        $this->assertConfigurationIsInvalid([['code_length' => 4]], 'code_length');
+
+        $this->assertProcessedConfigurationEquals([['code_length' => 12]], [
+            'code_length' => 12,
+        ], 'code_length');
     }
 
     /** @test */

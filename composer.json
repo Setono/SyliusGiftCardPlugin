@@ -47,6 +47,7 @@
         "symfony/http-foundation": "^6.4",
         "symfony/http-kernel": "^6.4",
         "symfony/options-resolver": "^6.4",
+        "symfony/rate-limiter": "^6.4",
         "symfony/routing": "^6.4",
         "symfony/security-csrf": "^6.4",
         "symfony/translation": "^6.4",

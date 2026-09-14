@@ -16,6 +16,12 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
 final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension implements PrependExtensionInterface
 {
+    /**
+     * The name of the rate limiter prepended onto framework.rate_limiter, i.e. the limiter factory
+     * is available as the "limiter.setono_sylius_gift_card_apply" service
+     */
+    public const RATE_LIMITER_NAME = 'setono_sylius_gift_card_apply';
+
     public function load(array $configs, ContainerBuilder $container): void
     {
         /**
@@ -23,7 +29,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
          *     code_length: int,
          *     default_validity_period: string|null,
          *     purchase: array{minimum_amount: int, maximum_amount: int|null},
-         *     redemption: array{payment_method_code: string},
+         *     redemption: array{payment_method_code: string, rate_limiter: string|null},
          *     pdf: array{page_size: string},
          *     resources: array<string, mixed>,
          * } $config
@@ -51,6 +57,12 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
 
         $loader->load('services.xml');
         $loader->load('services/redemption/payment.xml');
+
+        // AddGiftCardToOrderAction asks for this alias with on-invalid="null", so leaving it out is what turns
+        // throttling off. Pointing it at a service that does not exist fails at compile time, as it should
+        if (null !== $config['redemption']['rate_limiter']) {
+            $container->setAlias('setono_sylius_gift_card.redemption.rate_limiter', $config['redemption']['rate_limiter']);
+        }
     }
 
     /**
@@ -456,6 +468,25 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                 ],
                             ],
                         ],
+                    ],
+                ],
+            ],
+        ];
+
+        // The limiter the redemption.rate_limiter option points at unless the application names another one. It
+        // is registered whether or not it is used, because the plugin's own configuration is not processed yet
+        // when prepending, and its values can be overridden under framework.rate_limiter like any other limiter's
+        $configuration['framework'] = [
+            'rate_limiter' => [
+                'limiters' => [
+                    self::RATE_LIMITER_NAME => [
+                        'policy' => 'sliding_window',
+                        'limit' => 10,
+                        'interval' => '1 minute',
+                        // Locking would require symfony/lock, which a Sylius application does not
+                        // necessarily have, and the race it prevents only ever lets a handful of extra
+                        // attempts through, which does not matter for throttling code guesses
+                        'lock_factory' => null,
                     ],
                 ],
             ],
