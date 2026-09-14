@@ -10,6 +10,9 @@ sylius_fixtures:
                                 name: Classic
                                 enabled: true
                                 position: 0
+                                # a design with artwork on both sides, so the demo shows - and the test suite
+                                # covers - the back the customer gets when the merchant uploads one
+                                back_image: '@SetonoSyliusGiftCardPlugin/Resources/fixtures/default_background.png'
 
                 setono_gift_card_product:
                     options:
