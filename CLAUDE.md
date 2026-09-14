@@ -78,8 +78,8 @@ Only doctrine/orm is supported. Resources: `gift_card`, `gift_card_design` (tran
 ### Domain rules
 
 - `GiftCard.amount`/`initialAmount` are integers in minor units (Sylius money convention). `initialAmount` is set explicitly — no implicit seeding.
-- A disabled, "pending" GiftCard is created at add-to-cart (one per OrderItemUnit) carrying amount/message/design/deliveryType; a reconciliation pass at checkout complete creates cards for quantity-bumped units, removes stale ones, and re-snapshots final amounts from unit totals. Cards are enabled on payment and emailed (all delivery types); disabled on order cancel.
+- A disabled, "pending" GiftCard is created at add-to-cart (one per OrderItemUnit) carrying amount/message/design/deliveryType; a reconciliation pass at checkout complete creates cards for quantity-bumped units, removes stale ones, and re-snapshots final amounts from unit totals. Cards are enabled on payment and emailed (all delivery types); disabled on order cancel and on a full refund of the order (`sylius_order_payment.refund`) — a partial refund leaves them alone, since it does not say which items it covers.
 - `deliveryType` (virtual|physical) is derived from `variant->isShippingRequired()` — never from product structure assumptions.
 - Balance mutations go through the balance operator exclusively, which writes `GiftCardTransaction` ledger rows (idempotency via nullable-unique `idempotencyKey`). Nothing below controllers flushes.
-- Redeeming a gift card creates one Payment per card against the order (offline gateway payment method, lazily created), leaving the order total intact. Balance is committed at order placement, restored on cancel/refund.
+- Redeeming a gift card creates one Payment per card against the order (offline gateway payment method, lazily created), leaving the order total intact. Balance is committed at order placement and restored, once per payment, when the gift card payment is refunded (`sylius_payment.refund`; cancelling the order refunds its gift card payments through `rollback()`, which restores nothing itself).
 - Gift cards cannot pay for gift-card line items (EligibleTotalCalculator default).
