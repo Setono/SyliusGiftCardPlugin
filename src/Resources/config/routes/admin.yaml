@@ -57,6 +57,17 @@ setono_sylius_gift_card_admin_gift_card_pdf:
             section: admin
             permission: true
 
+setono_sylius_gift_card_admin_gift_card_send_email:
+    path: /gift-cards/{id}/send-email
+    methods: [POST]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: Setono\SyliusGiftCardPlugin\Controller\Action\Admin\SendGiftCardEmailAction
+        _sylius:
+            section: admin
+            permission: true
+
 setono_sylius_gift_card_admin_gift_card_adjust_balance:
     path: /gift-cards/{id}/adjust-balance
     methods: [GET, POST]

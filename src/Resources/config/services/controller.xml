@@ -56,6 +56,14 @@
             <argument type="service" id="doctrine"/>
         </service>
 
+        <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\SendGiftCardEmailAction"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\SendGiftCardEmailAction">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface"/>
+            <argument type="service" id="router"/>
+            <argument type="service" id="security.csrf.token_manager"/>
+        </service>
+
         <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface"/>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction;
+use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\SendGiftCardEmailAction;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
@@ -338,6 +339,23 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                         ],
                                     ],
                                     'icon' => 'download',
+                                ],
+                                // Sending reaches the customer, so it is a POST form with a CSRF token rather
+                                // than a link, and only the icon is shown to keep the row of actions short
+                                'send_email' => [
+                                    'type' => 'setono_sylius_gift_card_post_link',
+                                    'label' => 'setono_sylius_gift_card.ui.send_email',
+                                    'options' => [
+                                        'link' => [
+                                            'route' => 'setono_sylius_gift_card_admin_gift_card_send_email',
+                                            'parameters' => [
+                                                'id' => 'resource.id',
+                                            ],
+                                        ],
+                                        'csrf_token_id' => SendGiftCardEmailAction::CSRF_TOKEN_ID,
+                                        'confirmation' => true,
+                                    ],
+                                    'icon' => 'envelope',
                                 ],
                                 'adjust_balance' => [
                                     'type' => 'default',

@@ -8,6 +8,7 @@ setono_sylius_gift_card:
             custom_message_placeholder: This message is printed on the gift card...
             expires_at: Expires at
             send_notification_email: Send notification email
+            send_notification_email_help: 'Only sent when the gift card is usable: enabled, not expired and with a balance left. Otherwise send it from the gift card page once it is.'
         gift_card_design:
             position: Position
             images: Images
@@ -50,6 +51,7 @@ setono_sylius_gift_card:
         outstanding_balance_help: The total balance still available on all usable gift cards, grouped by currency.
         preview_message: 'Happy birthday! Enjoy this gift on us.'
         preview_pdf: Preview PDF
+        send_email: Send email
         total: Total
         your_message_here: Your message here
         design: Design
