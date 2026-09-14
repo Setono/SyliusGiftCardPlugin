@@ -3,6 +3,7 @@ setono_sylius_gift_card:
         delete_error: Gavekortet kan ikke fjernes.
         could_not_be_applied: Gavekortet kunne ikke tilføjes til din ordre.
         balance_adjusted: Gavekortets saldo blev justeret
+        changed_during_checkout: Et af dine gavekort blev ændret, mens du gennemførte dit køb. Gennemgå din kurv, og prøv igen.
         product_created: Der blev oprettet et gavekortprodukt. Gennemgå og aktiver det nedenfor.
     gift_card_added: Gavekortet er blevet tilføjet til din ordre
     gift_card_removed: Gavekortet er blevet fjernet fra din ordre
