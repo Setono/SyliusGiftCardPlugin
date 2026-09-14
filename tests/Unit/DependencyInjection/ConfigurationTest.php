@@ -29,6 +29,27 @@ final class ConfigurationTest extends TestCase
         ], 'purchase');
     }
 
+    /**
+     * A physical gift card is shipped with its code printed on it, so the code is not emailed unless the
+     * merchant asks for it
+     *
+     * @test
+     */
+    public function it_does_not_email_physical_gift_cards_by_default(): void
+    {
+        $this->assertProcessedConfigurationEquals([[]], [
+            'delivery' => ['email_physical_cards' => false],
+        ], 'delivery');
+    }
+
+    /** @test */
+    public function it_allows_emailing_physical_gift_cards(): void
+    {
+        $this->assertProcessedConfigurationEquals([['delivery' => ['email_physical_cards' => true]]], [
+            'delivery' => ['email_physical_cards' => true],
+        ], 'delivery');
+    }
+
     /** @test */
     public function it_has_sensible_scalar_defaults(): void
     {

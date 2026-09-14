@@ -28,9 +28,11 @@ Add gift card functionality to your Sylius store:
 
 Whether a gift card is virtual or physical is derived from the chosen product variant's `shipping required` flag — there is no special product type. The recommended setup is a single gift card product with a "delivery" product option producing a non-shippable *Virtual* variant and a shippable *Physical* variant. Virtual-only stores work too: just create a single non-shippable variant and the delivery selector disappears. Use the **Create gift card product** button in the admin gift card list to scaffold this in one click.
 
+The delivery type also decides what the buyer is emailed. A virtual card *is* delivered by the email: the code is in the body and the card is attached as a PDF. A physical card is shipped with the code printed on it, so its email only announces that the card is on its way — emailing the code would make the card spendable before it arrives, and duplicate what is in the envelope. Set `delivery.email_physical_cards: true` if you want the code and the PDF emailed for physical cards anyway, as a digital backup.
+
 ### Buying a gift card
 
-The customer chooses the amount, a design and an optional message on the product page (with a live preview). A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed (with a PDF attachment) to the customer.
+The customer chooses the amount, a design and an optional message on the product page (with a live preview). A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)).
 
 ### Redeeming a gift card
 
@@ -167,6 +169,8 @@ setono_sylius_gift_card:
     purchase:
         minimum_amount: 100              # minor units (e.g. cents)
         maximum_amount: ~                # null = no maximum
+    delivery:
+        email_physical_cards: false      # true also emails the code and the PDF of a *physical* card, as a backup
     redemption:
         payment_method_code: gift_card   # code of the (auto-created) payment method a redeemed gift card is paid with
     pdf:
@@ -187,7 +191,7 @@ The back prints a Code 128 barcode of the code. It comes from `Setono\SyliusGift
 
 ### Customizing the emails
 
-The plugin sends two emails: `setono_sylius_gift_card__gift_card` (a single gift card, sent when one is created in the admin panel) and `setono_sylius_gift_card__gift_cards_from_order` (all gift cards from a paid order, sent to the buyer). Override their templates at `@SetonoSyliusGiftCardPlugin/email/gift_card.html.twig` and `@SetonoSyliusGiftCardPlugin/email/gift_cards_from_order.html.twig`, or redefine the emails under the `sylius_mailer` key to change the sender or subject.
+The plugin sends two emails: `setono_sylius_gift_card__gift_card` (a single gift card, sent when one is created in the admin panel) and `setono_sylius_gift_card__gift_cards_from_order` (all gift cards from a paid order, sent to the buyer). Override their templates at `@SetonoSyliusGiftCardPlugin/email/gift_card.html.twig` and `@SetonoSyliusGiftCardPlugin/email/gift_cards_from_order.html.twig`, or redefine the emails under the `sylius_mailer` key to change the sender or subject. Both include `@SetonoSyliusGiftCardPlugin/email/_gift_cards.html.twig`, which renders the cards themselves — override that one to change how a card is presented in both emails at once.
 
 ### Changing what gift cards may pay for
 
