@@ -4,5 +4,7 @@ setono_sylius_gift_card:
         could_not_be_applied: Le chèque-cadeau n'a pas pu être appliqué à votre commande.
         balance_adjusted: Le solde du chèque-cadeau a été ajusté
         product_created: Un produit chèque-cadeau a été créé. Vérifiez-le et activez-le ci-dessous.
+        email_sent: Le chèque-cadeau a été envoyé au client par email
+        email_not_sent_no_customer: Le chèque-cadeau n'a pas d'adresse email client, il n'a donc pas pu être envoyé.
     gift_card_added: Le chèque-cadeau a été ajouté à votre commande
     gift_card_removed: Le chèque-cadeau a été supprimé de votre commande

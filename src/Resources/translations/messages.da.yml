@@ -8,6 +8,7 @@ setono_sylius_gift_card:
             custom_message_placeholder: Denne besked printes på gavekortet...
             expires_at: Udløber
             send_notification_email: Send email med gavekort til kunde
+            send_notification_email_help: 'Sendes kun, når gavekortet kan bruges: aktiveret, ikke udløbet og med saldo tilbage. Ellers send det fra gavekortsiden, når det kan.'
         gift_card_design:
             position: Placering
             images: Billeder
@@ -50,6 +51,7 @@ setono_sylius_gift_card:
         outstanding_balance_help: Den samlede saldo, der stadig er til rådighed på alle brugbare gavekort, grupperet efter valuta.
         preview_message: 'Tillykke med fødselsdagen! Nyd denne gave fra os.'
         preview_pdf: Forhåndsvis PDF
+        send_email: Send email
         total: Total
         your_message_here: Din besked her
         design: Design

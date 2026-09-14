@@ -89,6 +89,14 @@
                 <a href="{{ path('setono_sylius_gift_card_admin_gift_card_pdf', {'id': giftCard.id}) }}" class="ui labeled icon button" target="_blank">
                     <i class="download icon"></i>{{ 'setono_sylius_gift_card.ui.download_pdf'|trans }}
                 </a>
+                {# Sending reaches the customer, so it is a POST carrying a CSRF token rather than a link:
+                   a browser prefetch would otherwise send the card behind the admin's back #}
+                <form action="{{ path('setono_sylius_gift_card_admin_gift_card_send_email', {'id': giftCard.id}) }}" method="post" style="display: contents;">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token(constant('Setono\\SyliusGiftCardPlugin\\Controller\\Action\\Admin\\SendGiftCardEmailAction::CSRF_TOKEN_ID')) }}">
+                    <button type="submit" class="ui labeled icon button">
+                        <i class="envelope icon"></i>{{ 'setono_sylius_gift_card.ui.send_email'|trans }}
+                    </button>
+                </form>
             </div>
         </div>
 

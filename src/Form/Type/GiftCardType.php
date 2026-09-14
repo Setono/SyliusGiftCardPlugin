@@ -55,6 +55,9 @@ final class GiftCardType extends AbstractResourceType
                 $event->getForm()->add('sendNotificationEmail', CheckboxType::class, [
                     'required' => false,
                     'label' => 'setono_sylius_gift_card.form.gift_card.send_notification_email',
+                    // A card created disabled or already expired is not emailed: the customer would receive a
+                    // gift that does not work. It can be sent from the gift card page once it is usable
+                    'help' => 'setono_sylius_gift_card.form.gift_card.send_notification_email_help',
                 ]);
             } else {
                 // The balance is only settable while the card is being issued. Afterwards it belongs to the
