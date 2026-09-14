@@ -14,6 +14,15 @@ const GIFT_CARD_CODE_AS_DISPLAYED = GIFT_CARD_CODE.match(/.{1,4}/g).join('-');
 const GIFT_CARD_FIELD = '[name="setono_sylius_gift_card_add_gift_card_to_order[giftCard]"]';
 
 /**
+ * The code the way the PDF prints it, in groups of four separated by dashes, e.g. E2ER-EDEM-PTIO-N01
+ *
+ * @param {string} code
+ */
+function asPrintedOnTheCard(code) {
+    return code.match(/.{1,4}/g).join('-');
+}
+
+/**
  * @param {import('@playwright/test').Page} page
  */
 async function addSomethingToCart(page) {
@@ -161,6 +170,20 @@ test.describe('shop redemption', () => {
         await expect(appliedGiftCardRow(page)).toHaveCount(0);
         await expect(page.getByText(GIFT_CARD_CODE_AS_DISPLAYED, { exact: false })).toHaveCount(0);
         expect(await orderTotalInCents(page), 'removing the gift card should restore the total').toBe(before);
+    });
+
+    test('a code typed the way it is printed on the card is accepted', async ({ page }) => {
+        await addSomethingToCart(page);
+
+        // Customers copy the code off the card, dashes included, in whatever case they like
+        await applyGiftCard(page, asPrintedOnTheCard(GIFT_CARD_CODE).toLowerCase());
+
+        // Applied is judged by the card's own remove form, whose action carries the stored code whichever
+        // way the cart chooses to display it
+        await expect(
+            page.locator(`form[action*="/gift-cards/${GIFT_CARD_CODE}/remove"] button[type="submit"]`).first(),
+        ).toBeVisible();
+        expect(await remainingToPayInCents(page), 'the gift card should cover the whole order').toBe(0);
     });
 
     test('an unknown gift card code is rejected', async ({ page }) => {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Form\DataTransformer;
 
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
@@ -16,8 +17,11 @@ use Webmozart\Assert\Assert;
  */
 final class GiftCardToCodeDataTransformer implements DataTransformerInterface
 {
-    public function __construct(private readonly GiftCardRepositoryInterface $giftCardRepository, private readonly ChannelContextInterface $channelContext)
-    {
+    public function __construct(
+        private readonly GiftCardRepositoryInterface $giftCardRepository,
+        private readonly ChannelContextInterface $channelContext,
+        private readonly GiftCardCodeNormalizerInterface $codeNormalizer,
+    ) {
     }
 
     /**
@@ -44,8 +48,10 @@ final class GiftCardToCodeDataTransformer implements DataTransformerInterface
             throw new TransformationFailedException('Expected the value to be a string');
         }
 
+        // Customers type the code as it is printed on the card, grouped by dashes and in whatever case they
+        // like, while the stored code is the canonical form
         $giftCard = $this->giftCardRepository->findOneEnabledByCodeAndChannel(
-            $value,
+            $this->codeNormalizer->normalize($value),
             $this->channelContext->getChannel(),
         );
 
