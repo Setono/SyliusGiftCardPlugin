@@ -59,6 +59,10 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
     {
         $operator = '@' . OrderGiftCardOperator::class;
 
+        // winzou runs callbacks in ascending priority order and Sylius' own sit at -800..-100, so a callback
+        // without a priority (0) always runs after everything Sylius does. Every callback below states where
+        // it belongs relative to Sylius', and its Symfony Workflow twin in EventSubscriber/Workflow carries
+        // the negated priority (Symfony dispatches descending); StateMachineCallbackParityTest keeps them equal
         $configuration = [
             'winzou_state_machine' => [
                 'sylius_order_checkout' => [
@@ -68,6 +72,11 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                 'on' => ['complete'],
                                 'do' => [$operator, 'reconcile'],
                                 'args' => ['object'],
+                                // Before sylius_create_order (-400) cascades the order into existence and before
+                                // sylius_control_payment_state (-200) can pay it on the spot (an order with nothing
+                                // left to pay is paid right here), so every unit has its card before anything can
+                                // enable and email them
+                                'priority' => -500,
                             ],
                         ],
                     ],
@@ -79,11 +88,16 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                 'on' => ['pay'],
                                 'do' => [$operator, 'enable'],
                                 'args' => ['object'],
+                                // After Sylius' own pay callbacks (sylius_order_paid -200, sylius_resolve_state -100),
+                                // so the cards go live only once Sylius has settled the paid order
+                                'priority' => -50,
                             ],
                             'setono_sylius_gift_card__send_gift_cards' => [
                                 'on' => ['pay'],
                                 'do' => [$operator, 'send'],
                                 'args' => ['object'],
+                                // After enable, so a card is never emailed before it is enabled
+                                'priority' => -40,
                             ],
                         ],
                     ],
@@ -95,16 +109,26 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                 'on' => ['create'],
                                 'do' => ['@setono_sylius_gift_card.redemption_method', 'commit'],
                                 'args' => ['object'],
+                                // After sylius_request_payment (-700) has put the order in awaiting_payment and
+                                // sylius_create_payment (-600) has created the gateway payments, so the gift card
+                                // payments join a complete set the payment state resolver can settle the order from
+                                'priority' => -50,
                             ],
                             'setono_sylius_gift_card__rollback_redemption' => [
                                 'on' => ['cancel'],
                                 'do' => ['@setono_sylius_gift_card.redemption_method', 'rollback'],
                                 'args' => ['object'],
+                                // Before sylius_cancel_payment (-600) walks the order's payments, so the gift card
+                                // payments are already refunded and their balance restored by then
+                                'priority' => -650,
                             ],
                             'setono_sylius_gift_card__disable_gift_cards' => [
                                 'on' => ['cancel'],
                                 'do' => [$operator, 'disable'],
                                 'args' => ['object'],
+                                // Right after rollback: nothing Sylius does on cancel depends on it, so the plugin's
+                                // cancel work is done before Sylius' cascades start
+                                'priority' => -640,
                             ],
                         ],
                     ],

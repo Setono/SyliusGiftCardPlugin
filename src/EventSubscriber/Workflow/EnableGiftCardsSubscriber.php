@@ -26,7 +26,9 @@ final class EnableGiftCardsSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'workflow.sylius_order_payment.completed.pay' => ['__invoke', 100],
+            // After Sylius' own pay listeners (SellOrderInventoryListener 200, ResolveOrderStateListener 100), so the
+            // cards go live only once Sylius has settled the paid order. Mirrors the winzou priority -50
+            'workflow.sylius_order_payment.completed.pay' => ['__invoke', 50],
         ];
     }
 
