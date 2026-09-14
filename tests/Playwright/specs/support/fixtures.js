@@ -79,7 +79,9 @@ async function productIdsByKind(page) {
     for (const id of [...new Set(ids)]) {
         await page.goto(`/admin/products/${id}/edit`);
 
-        const isGiftCard = 0 < await page.locator('input[name*="[giftCard]"]').count();
+        // The checkbox is rendered on every product's edit page now, so only a ticked one is a gift card
+        const giftCardCheckbox = page.locator('input[name*="[giftCard]"]').first();
+        const isGiftCard = 0 < (await giftCardCheckbox.count()) && (await giftCardCheckbox.isChecked());
         // The variant shipping toggle only exists for simple products, so its presence is what distinguishes
         // the two branches of the details tab
         const isSimple = 0 < await page.locator('input[name*="[variant]"][name*="[shippingRequired]"]').count();

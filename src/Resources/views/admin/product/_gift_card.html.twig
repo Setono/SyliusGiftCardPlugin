@@ -1,0 +1,9 @@
+{# Sylius ends the product form with render_rest: false, so a field nothing renders never reaches the request
+   and Symfony submits the checkbox as unchecked, un-flagging the product on every save. The guard keeps the
+   block harmless if a host application removes the form extension. #}
+{% if form.giftCard is defined %}
+    <div class="ui hidden divider"></div>
+    <div class="ui segment">
+        {{ form_row(form.giftCard) }}
+    </div>
+{% endif %}

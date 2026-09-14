@@ -164,6 +164,16 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
             ],
             'sylius_ui' => [
                 'events' => [
+                    // Sylius renders the product form with render_rest: false, so the checkbox the form extension adds
+                    // has to be rendered explicitly or every save submits it as unchecked
+                    'sylius.admin.product.tab_details' => [
+                        'blocks' => [
+                            'setono_gift_card' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/admin/product/_gift_card.html.twig',
+                                'priority' => 10,
+                            ],
+                        ],
+                    ],
                     'sylius.shop.product.show.add_to_cart_form' => [
                         'blocks' => [
                             'setono_gift_card_information' => [
