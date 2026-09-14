@@ -18,7 +18,7 @@
             <tbody>
                 {% for giftCard in order.giftCards %}
                     <tr {{ sylius_test_html_attribute('applied-gift-card', giftCard.code) }}>
-                        <td>{{ giftCard.code }}</td>
+                        <td>{{ giftCard.code|setono_gift_card_format_code }}</td>
                         <td class="right aligned">
                             -{{ setono_gift_card_covered_amount_by_gift_card(order, giftCard)|sylius_format_money(order.currencyCode, sylius.localeCode) }}
                         </td>
