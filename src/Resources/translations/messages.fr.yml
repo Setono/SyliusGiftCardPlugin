@@ -89,7 +89,7 @@ setono_sylius_gift_card:
         value: Valeur
         number: 'N°'
         how_to_redeem: Comment l'utiliser
-        how_to_redeem_text: "Saisissez le code ci-dessous lors du paiement sur notre site, ou présentez cette carte en magasin pour déduire le solde de votre achat."
+        how_to_redeem_text: "Saisissez le code lors du paiement sur %hostname% pour payer avec votre chèque-cadeau. Le solde restant reste sur la carte pour la prochaine fois."
         redemption_code: Code d'utilisation
         terms: "Conditions générales applicables. Cette carte n'est ni échangeable contre des espèces ni remplaçable en cas de perte ou de vol."
     email:

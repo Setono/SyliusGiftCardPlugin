@@ -4,10 +4,14 @@
 {% set localeCode = localeCode|default(null) %}
 {% set formatted_amount = giftCard.amount|sylius_format_money(giftCard.currencyCode, localeCode|default('en')) %}
 {% set formatted_code = giftCard.code|setono_gift_card_format_code %}
+{# A real Code 128 of the stored code, as an image data URI: dompdf does not render inline svg, and a data URI
+   keeps it from needing remote or file system access. Null when the code cannot be encoded. #}
+{% set barcode = giftCard.code|setono_gift_card_barcode %}
 {% set brand_name = giftCard.channel ? giftCard.channel.name : ('setono_sylius_gift_card.pdf.gift_card'|trans({}, 'messages', localeCode)) %}
 {% set brand_initial = brand_name|slice(0, 1)|upper %}
 {% set brand_url = giftCard.channel ? giftCard.channel.hostname : null %}
-{% set barcode = [2,1,1,3,1,2,1,1,2,3,1,1,2,1,3,1,1,2,1,1,3,2,1,1,2,1,1,3,1,2,1,1,2,3,1,1,2,1,3,1] %}
+{% set redemption_host = brand_url ?: brand_name %}
+{% set has_back_image = backImagePath is not null %}
 <!DOCTYPE html>
 <html lang="{{ localeCode|default('en')|replace({'_': '-'}) }}">
 <head>
@@ -23,17 +27,25 @@
         .card--back { background: #f2f0ea; color: #1c1b18; }
         .stripe { position: absolute; top: 54px; left: 0; right: 0; height: 44px; background: #1c1b18; }
         .k { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #8b8577; margin-bottom: 10px; }
-        .redeem { position: absolute; top: 150px; left: 42px; width: 250px; }
-        .redeem p { margin: 0; font-size: 12px; line-height: 1.6; }
-        .codebox { position: absolute; top: 150px; right: 42px; width: 190px; }
-        .code-frame { border: 1px dashed #b9b3a5; border-radius: 6px; padding: 14px 6px; text-align: center; font-size: 15px; font-weight: bold; letter-spacing: 2px; }
-        .barcode { margin-top: 18px; white-space: nowrap; }
-        .barcode span { display: inline-block; height: 42px; background: #1c1b18; margin-right: 2px; vertical-align: top; }
-        .barcode-code { font-size: 10px; letter-spacing: 2px; margin-top: 5px; color: #4a463d; }
+        /* The two columns and the barcode have to hold the longest translation of the copy and a code of any
+           length without running into each other, so the type is kept small and the rows well apart */
+        .redeem { position: absolute; top: 126px; left: 42px; width: 240px; }
+        .redeem p { margin: 0; font-size: 11px; line-height: 1.55; }
+        .codebox { position: absolute; top: 126px; right: 42px; width: 210px; }
+        .code-frame { border: 1px dashed #b9b3a5; border-radius: 6px; padding: 12px 6px; text-align: center; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; }
+        /* The barcode spans the card so its narrowest bar stays wide enough to scan, whatever the code's length */
+        .barcode { position: absolute; left: 42px; right: 42px; top: 248px; }
+        .barcode img { width: 100%; height: 46px; }
         .divider { position: absolute; left: 42px; right: 42px; bottom: 66px; border-top: 1px solid #ddd8cc; }
         .terms { position: absolute; left: 42px; right: 220px; bottom: 34px; font-size: 8.5px; line-height: 1.5; color: #8b8577; }
         .foot-brand { position: absolute; right: 42px; bottom: 34px; font-size: 9px; color: #4a463d; }
         .foot-brand .ssgc-card__mark { border-color: #1c1b18; color: #1c1b18; }
+
+        /* A design's back artwork used to be the whole back, which left the card without the one thing its back
+           is for. The artwork keeps the band above the copy and the rest of it sits under a panel, so the code,
+           the barcode and the terms read the same way whether or not a design brings an image. */
+        .back-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .back-panel { position: absolute; left: 0; right: 0; top: 112px; bottom: 0; background: #f2f0ea; }
     </style>
 </head>
 <body>
@@ -49,37 +61,38 @@
     }, false) }}
 
     <div class="card card--back">
-        {% if backImagePath is not null %}
-            <img class="ssgc-card__bg" src="{{ backImagePath }}" alt=""/>
+        {% if has_back_image %}
+            <img class="back-image" src="{{ backImagePath }}" alt=""/>
+            <div class="back-panel"></div>
         {% else %}
             <div class="stripe"></div>
-
-            <div class="redeem">
-                <div class="k">{{ 'setono_sylius_gift_card.pdf.how_to_redeem'|trans({}, 'messages', localeCode)|upper }}</div>
-                <p>{{ 'setono_sylius_gift_card.pdf.how_to_redeem_text'|trans({}, 'messages', localeCode) }}</p>
-            </div>
-
-            <div class="codebox">
-                <div class="k">{{ 'setono_sylius_gift_card.pdf.redemption_code'|trans({}, 'messages', localeCode)|upper }}</div>
-                <div class="code-frame">{{ formatted_code }}</div>
-                <div class="barcode">
-                    {% for width in barcode %}<span style="width: {{ width }}px;"></span>{% endfor %}
-                </div>
-                <div class="barcode-code">{{ formatted_code }}</div>
-            </div>
-
-            <div class="divider"></div>
-            <div class="terms">
-                {{ 'setono_sylius_gift_card.pdf.terms'|trans({}, 'messages', localeCode) }}
-                {% if giftCard.expiresAt is not null %}
-                    {{ 'setono_sylius_gift_card.pdf.valid_until'|trans({}, 'messages', localeCode) }} {{ giftCard.expiresAt|format_date('long', locale=localeCode) }}.
-                {% endif %}
-            </div>
-            <div class="foot-brand">
-                <span class="ssgc-card__mark">{{ brand_initial }}</span>
-                {{ brand_url ?: brand_name }}
-            </div>
         {% endif %}
+
+        <div class="redeem">
+            <div class="k">{{ 'setono_sylius_gift_card.pdf.how_to_redeem'|trans({}, 'messages', localeCode)|upper }}</div>
+            <p>{{ 'setono_sylius_gift_card.pdf.how_to_redeem_text'|trans({'%hostname%': redemption_host}, 'messages', localeCode) }}</p>
+        </div>
+
+        <div class="codebox">
+            <div class="k">{{ 'setono_sylius_gift_card.pdf.redemption_code'|trans({}, 'messages', localeCode)|upper }}</div>
+            <div class="code-frame">{{ formatted_code }}</div>
+        </div>
+
+        {% if barcode is not null %}
+            <div class="barcode"><img src="{{ barcode }}" alt="{{ formatted_code }}"/></div>
+        {% endif %}
+
+        <div class="divider"></div>
+        <div class="terms">
+            {{ 'setono_sylius_gift_card.pdf.terms'|trans({}, 'messages', localeCode) }}
+            {% if giftCard.expiresAt is not null %}
+                {{ 'setono_sylius_gift_card.pdf.valid_until'|trans({}, 'messages', localeCode) }} {{ giftCard.expiresAt|format_date('long', locale=localeCode) }}.
+            {% endif %}
+        </div>
+        <div class="foot-brand">
+            <span class="ssgc-card__mark">{{ brand_initial }}</span>
+            {{ brand_url ?: brand_name }}
+        </div>
     </div>
 </body>
 </html>

@@ -15,8 +15,17 @@ final class GiftCardCodeExtensionTest extends TestCase
     {
         $filters = (new GiftCardCodeExtension())->getFilters();
 
-        self::assertCount(1, $filters);
+        self::assertCount(2, $filters);
         self::assertSame('setono_gift_card_format_code', $filters[0]->getName());
         self::assertSame([GiftCardCodeRuntime::class, 'format'], $filters[0]->getCallable());
+    }
+
+    /** @test */
+    public function it_exposes_the_barcode_filter_backed_by_the_runtime(): void
+    {
+        $filters = (new GiftCardCodeExtension())->getFilters();
+
+        self::assertSame('setono_gift_card_barcode', $filters[1]->getName());
+        self::assertSame([GiftCardCodeRuntime::class, 'barcode'], $filters[1]->getCallable());
     }
 }
