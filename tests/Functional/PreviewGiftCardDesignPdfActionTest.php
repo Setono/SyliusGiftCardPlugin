@@ -13,8 +13,6 @@ use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Locale\Model\Locale;
 use Sylius\Component\Locale\Model\LocaleInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * The plugin does not depend on symfony/browser-kit, so this exercises the real, container-wired action
@@ -49,7 +47,7 @@ final class PreviewGiftCardDesignPdfActionTest extends GiftCardFunctionalTestCas
 
         $this->manager->flush();
 
-        $response = ($this->action)(new Request(), (int) $design->getId());
+        $response = ($this->action)((int) $design->getId());
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/pdf', $response->headers->get('Content-Type'));
@@ -67,41 +65,9 @@ final class PreviewGiftCardDesignPdfActionTest extends GiftCardFunctionalTestCas
 
         $this->manager->flush();
 
-        $response = ($this->action)(new Request(), (int) $design->getId());
+        $response = ($this->action)((int) $design->getId());
 
         self::assertSame(200, $response->getStatusCode());
-    }
-
-    /** @test */
-    public function it_renders_the_requested_channel_from_the_query_parameter(): void
-    {
-        $currency = $this->createCurrency('USD');
-        $locale = $this->createLocale('en_US');
-        $first = $this->createChannel('FIRST', $currency, $locale);
-        $second = $this->createChannel('SECOND', $currency, $locale);
-        $design = $this->createDesign($first, $second);
-
-        $this->manager->flush();
-
-        $response = ($this->action)(new Request(['channel' => 'SECOND']), (int) $design->getId());
-
-        self::assertSame(200, $response->getStatusCode());
-    }
-
-    /** @test */
-    public function it_rejects_a_channel_the_design_is_not_assigned_to(): void
-    {
-        $currency = $this->createCurrency('USD');
-        $locale = $this->createLocale('en_US');
-        $first = $this->createChannel('FIRST', $currency, $locale);
-        $this->createChannel('OTHER', $currency, $locale);
-        $design = $this->createDesign($first);
-
-        $this->manager->flush();
-
-        $this->expectException(NotFoundHttpException::class);
-
-        ($this->action)(new Request(['channel' => 'OTHER']), (int) $design->getId());
     }
 
     private function createCurrency(string $code): CurrencyInterface

@@ -15,10 +15,9 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardDesignRepositoryInterface;
+use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\ChannelInterface;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -48,7 +47,7 @@ final class PreviewGiftCardDesignPdfActionTest extends TestCase
         $first = $this->channel('FIRST');
         $design = $this->design($first, $this->channel('SECOND'));
 
-        $response = $this->action($design)(new Request(), self::DESIGN_ID);
+        $response = $this->action($design)(self::DESIGN_ID);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/pdf', $response->headers->get('Content-Type'));
@@ -63,49 +62,11 @@ final class PreviewGiftCardDesignPdfActionTest extends TestCase
     }
 
     /** @test */
-    public function it_renders_the_preview_for_the_requested_channel(): void
-    {
-        $second = $this->channel('SECOND');
-        $design = $this->design($this->channel('FIRST'), $second);
-
-        $this->action($design)(new Request(['channel' => 'SECOND']), self::DESIGN_ID);
-
-        self::assertSame($second, $this->giftCard->getChannel());
-    }
-
-    /** @test */
-    public function it_treats_an_empty_channel_parameter_as_absent(): void
-    {
-        $first = $this->channel('FIRST');
-        $design = $this->design($first, $this->channel('SECOND'));
-
-        $this->action($design)(new Request(['channel' => '']), self::DESIGN_ID);
-
-        self::assertSame($first, $this->giftCard->getChannel());
-    }
-
-    /**
-     * Answering with a different channel would show the wrong currency, which is what previewing through the
-     * shop channel context did, so an unknown channel is refused rather than silently substituted
-     *
-     * @test
-     */
-    public function it_rejects_a_requested_channel_the_design_is_not_assigned_to(): void
-    {
-        $design = $this->design($this->channel('FIRST'));
-        $action = $this->action($design, $this->channel('OTHER'));
-
-        $this->expectException(NotFoundHttpException::class);
-
-        $action(new Request(['channel' => 'OTHER']), self::DESIGN_ID);
-    }
-
-    /** @test */
     public function it_falls_back_to_the_first_channel_of_the_shop_when_the_design_has_no_channels(): void
     {
         $fallback = $this->channel('FALLBACK');
 
-        $this->action($this->design(), $fallback)(new Request(), self::DESIGN_ID);
+        $this->action($this->design(), $fallback)(self::DESIGN_ID);
 
         self::assertSame($fallback, $this->giftCard->getChannel());
     }
@@ -117,7 +78,7 @@ final class PreviewGiftCardDesignPdfActionTest extends TestCase
 
         $this->expectException(NotFoundHttpException::class);
 
-        $action(new Request(), self::DESIGN_ID);
+        $action(self::DESIGN_ID);
     }
 
     /** @test */
@@ -127,7 +88,7 @@ final class PreviewGiftCardDesignPdfActionTest extends TestCase
 
         $this->expectException(NotFoundHttpException::class);
 
-        $action(new Request(), self::DESIGN_ID);
+        $action(self::DESIGN_ID);
     }
 
     private function channel(string $code): ChannelInterface
@@ -181,7 +142,7 @@ final class PreviewGiftCardDesignPdfActionTest extends TestCase
 
         $channelRepositoryConsulted = &$this->channelRepositoryConsulted;
 
-        $channelRepository = $this->prophesize(RepositoryInterface::class);
+        $channelRepository = $this->prophesize(ChannelRepositoryInterface::class);
         $channelRepository->findOneBy([])->will(static function () use ($fallbackChannel, &$channelRepositoryConsulted): ?ChannelInterface {
             $channelRepositoryConsulted = true;
 
