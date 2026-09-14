@@ -4,5 +4,7 @@ setono_sylius_gift_card:
         could_not_be_applied: The gift card could not be applied to your order.
         balance_adjusted: The gift card balance was adjusted
         product_created: A gift card product was created. Review and enable it below.
+        no_longer_usable: The gift card %code% can no longer be used and has been removed from your order.
+        coverage_changed: The amount your gift cards cover has changed. Please review your order and choose how to pay the rest.
     gift_card_added: Gift card was added to your order
     gift_card_removed: Gift card removed from your order

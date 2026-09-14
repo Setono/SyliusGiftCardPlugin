@@ -4,5 +4,7 @@ setono_sylius_gift_card:
         could_not_be_applied: Gavekortet kunne ikke tilføjes til din ordre.
         balance_adjusted: Gavekortets saldo blev justeret
         product_created: Der blev oprettet et gavekortprodukt. Gennemgå og aktiver det nedenfor.
+        no_longer_usable: Gavekortet %code% kan ikke længere bruges og er blevet fjernet fra din ordre.
+        coverage_changed: Det beløb, dine gavekort dækker, har ændret sig. Gennemgå venligst din ordre, og vælg hvordan resten skal betales.
     gift_card_added: Gavekortet er blevet tilføjet til din ordre
     gift_card_removed: Gavekortet er blevet fjernet fra din ordre
