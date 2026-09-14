@@ -50,12 +50,7 @@
             </constraint>
         </property>
         <property name="customMessage">
-            <!-- The card clamps the message to four lines, so the admin form is held to the same budget as the shop
-                 form. This mirrors the default of setono_sylius_gift_card.purchase.maximum_message_length: a
-                 validation mapping cannot read a container parameter, so a shop that raises that setting overrides
-                 this mapping with the same value -->
-            <constraint name="Length">
-                <option name="max">200</option>
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLength">
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>

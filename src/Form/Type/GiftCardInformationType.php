@@ -6,7 +6,6 @@ namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
-use Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmount;
 use Sylius\Bundle\MoneyBundle\Form\Type\MoneyType;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -15,7 +14,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
@@ -46,10 +44,6 @@ final class GiftCardInformationType extends AbstractType
             ->add('amount', MoneyType::class, [
                 'label' => 'setono_sylius_gift_card.form.gift_card_information.amount',
                 'currency' => $currencyCode,
-                'constraints' => [
-                    new NotBlank(['groups' => self::VALIDATION_GROUPS]),
-                    new ValidGiftCardAmount(['groups' => self::VALIDATION_GROUPS]),
-                ],
             ])
             ->add('customMessage', TextareaType::class, [
                 'label' => 'setono_sylius_gift_card.form.gift_card_information.custom_message',
@@ -59,9 +53,6 @@ final class GiftCardInformationType extends AbstractType
                 'attr' => [
                     'maxlength' => $this->maximumMessageLength,
                     'placeholder' => 'setono_sylius_gift_card.form.gift_card_information.custom_message_placeholder',
-                ],
-                'constraints' => [
-                    new Length(['max' => $this->maximumMessageLength, 'groups' => self::VALIDATION_GROUPS]),
                 ],
             ])
             ->add('design', EntityType::class, [

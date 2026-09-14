@@ -47,6 +47,15 @@ final class ConfigurationTest extends TestCase
     }
 
     /** @test */
+    public function it_rejects_a_maximum_message_length_the_column_cannot_hold(): void
+    {
+        $this->assertPartialConfigurationIsInvalid(
+            [['purchase' => ['maximum_message_length' => 65536]]],
+            'purchase.maximum_message_length',
+        );
+    }
+
+    /** @test */
     public function it_has_sensible_scalar_defaults(): void
     {
         $this->assertProcessedConfigurationEquals([[]], [

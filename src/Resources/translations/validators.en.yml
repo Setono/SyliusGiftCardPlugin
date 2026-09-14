@@ -7,6 +7,8 @@ setono_sylius_gift_card:
     channel_configuration:
         unique_channel_locale: This combination of channel and locale are already used
     gift_card:
+        custom_message:
+            too_long: 'The message may be at most {{ limit }} characters long.'
         code:
             not_blank: Please enter code
             unique: Code must be unique

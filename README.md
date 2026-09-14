@@ -195,13 +195,11 @@ setono_sylius_gift_card:
         page_size: A6                    # any page size supported by dompdf; the card scales to fill it
 ```
 
-`maximum_message_length` is what the shop form allows: it sets the textarea's `maxlength`, the remaining-characters
-counter and the validation constraint. The card shows the message with its line breaks intact and clamps it to four
-lines, so a message much longer than the default will be cut off on the gift card and in its PDF. The admin form
-validates the same property through the `Length` constraint in
-`src/Resources/config/validation/GiftCard.xml` — a validation mapping cannot read a container parameter, so if you
-raise the limit, [override that mapping](https://symfony.com/doc/current/bundles/override.html#validation-metadata)
-with the same value.
+`maximum_message_length` is what both forms allow: it sets the shop textarea's `maxlength` and remaining-characters
+counter, and it is the limit enforced by the `GiftCardMessageLength` constraint on the gift card and on the shop's
+gift card information, so raising the setting raises the limit everywhere. The card shows the message with its line
+breaks intact and clamps it to four lines, so a message much longer than the default will be cut off on the gift
+card and in its PDF.
 
 ## Customization
 
