@@ -9,12 +9,5 @@
 {% block content %}
     <p>{{ 'setono_sylius_gift_card.email.new_gift_card_intro'|trans({}, 'messages', localeCode) }}</p>
 
-    {% for giftCard in giftCards %}
-        <p>
-            <strong>{{ giftCard.code|setono_gift_card_format_code }}</strong>
-            ({{ 'setono_sylius_gift_card.email.balance'|trans({}, 'messages', localeCode) }}: {{ giftCard.amount|sylius_format_money(giftCard.currencyCode, localeCode|default('en')) }})
-        </p>
-    {% endfor %}
-
-    <p>{{ 'setono_sylius_gift_card.email.pdf_attached'|trans({}, 'messages', localeCode) }}</p>
+    {{ include('@SetonoSyliusGiftCardPlugin/email/_gift_cards.html.twig') }}
 {% endblock %}

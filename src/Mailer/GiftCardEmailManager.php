@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Mailer;
 
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
@@ -15,6 +16,7 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
     public function __construct(
         private readonly SenderInterface $sender,
         private readonly GiftCardPdfGeneratorInterface $pdfGenerator,
+        private readonly bool $emailPhysicalCards = false,
     ) {
     }
 
@@ -72,6 +74,10 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
 
         try {
             foreach ($giftCards as $giftCard) {
+                if (!$this->disclosesCode($giftCard)) {
+                    continue;
+                }
+
                 $path = sprintf('%s/gift-card-%s.pdf', $directory, (string) $giftCard->getCode());
                 file_put_contents($path, $this->pdfGenerator->generate($giftCard));
                 $attachments[] = $path;
@@ -80,7 +86,11 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
             $this->sender->send(
                 $code,
                 [$email],
-                array_merge($data, ['giftCards' => $giftCards]),
+                array_merge($data, [
+                    'giftCards' => $giftCards,
+                    // The templates apply the same rule to the body as this class applies to the attachments
+                    'emailPhysicalCards' => $this->emailPhysicalCards,
+                ]),
                 $attachments,
             );
         } finally {
@@ -94,6 +104,17 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
                 rmdir($directory);
             }
         }
+    }
+
+    /**
+     * A physical gift card is shipped with its code printed on it, so neither the code nor the PDF it is printed
+     * on belongs in the email: that would make the card spendable before it arrives, and duplicates what the
+     * customer is about to receive. Merchants who want the digital backup anyway turn on
+     * setono_sylius_gift_card.delivery.email_physical_cards
+     */
+    private function disclosesCode(GiftCardInterface $giftCard): bool
+    {
+        return $this->emailPhysicalCards || GiftCardDeliveryType::Physical !== $giftCard->getDeliveryType();
     }
 
     private function createTemporaryDirectory(): string
