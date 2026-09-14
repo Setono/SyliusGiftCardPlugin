@@ -10,6 +10,7 @@ use Setono\SyliusGiftCardPlugin\Form\Type\CustomerAutocompleteChoiceType;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
 use Sylius\Bundle\ResourceBundle\Form\Type\ResourceAutocompleteChoiceType;
 use Sylius\Component\Core\Model\Channel;
@@ -182,6 +183,8 @@ final class GiftCardTypeTest extends TypeTestCase
             ->addXmlMapping(__DIR__ . '/../../../../src/Resources/config/validation/GiftCard.xml')
             ->setConstraintValidatorFactory(new ConstraintValidatorFactory([
                 'doctrine.orm.validator.unique' => $uniqueEntityValidator,
+                // built by the container with the configured limit; the mapping's default of 200 is used here
+                GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
             ]))
             ->getValidator()
         ;
