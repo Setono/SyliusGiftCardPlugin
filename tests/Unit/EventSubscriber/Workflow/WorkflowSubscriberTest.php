@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\EventSubscriber\Workflow;
 
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\MethodProphecy;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\CommitRedemptionSubscriber;
@@ -12,12 +13,14 @@ use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\DisableGiftCardsSubscri
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\EnableGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\GuardCheckoutCompletionSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\ReconcileGiftCardsSubscriber;
+use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\RollbackPaymentSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\RollbackRedemptionSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\SendGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\Guard\GiftCardCoverageGuardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
+use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\Workflow\Event\CompletedEvent;
 use Symfony\Component\Workflow\Event\GuardEvent;
 use Symfony\Component\Workflow\Marking;
@@ -76,13 +79,57 @@ final class WorkflowSubscriberTest extends TestCase
     public function it_rejects_a_subject_that_is_not_an_order(): void
     {
         $operator = $this->prophesize(OrderGiftCardOperatorInterface::class);
-        $operator->enable(\Prophecy\Argument::cetera())->shouldNotBeCalled();
+        $operator->enable(Argument::cetera())->shouldNotBeCalled();
 
         $subscriber = new EnableGiftCardsSubscriber($operator->reveal());
 
         $this->expectException(\InvalidArgumentException::class);
 
         $subscriber($this->completedEvent(new \stdClass()));
+    }
+
+    /** @test */
+    public function it_forwards_the_refunded_payment_to_the_redemption_method(): void
+    {
+        $payment = $this->prophesize(PaymentInterface::class)->reveal();
+
+        $redemptionMethod = $this->prophesize(GiftCardRedemptionMethodInterface::class);
+        $redemptionMethod->rollbackPayment($payment)->shouldBeCalledOnce();
+
+        (new RollbackPaymentSubscriber($redemptionMethod->reveal()))($this->completedEvent($payment));
+    }
+
+    /**
+     * The payment graph transitions payments, so an order arriving here means the subscriber is listening to the
+     * wrong graph and must say so rather than quietly do nothing
+     *
+     * @test
+     */
+    public function it_rejects_a_subject_that_is_not_a_payment(): void
+    {
+        $redemptionMethod = $this->prophesize(GiftCardRedemptionMethodInterface::class);
+        $redemptionMethod->rollbackPayment(Argument::cetera())->shouldNotBeCalled();
+
+        $subscriber = new RollbackPaymentSubscriber($redemptionMethod->reveal());
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $subscriber($this->completedEvent($this->prophesize(OrderInterface::class)->reveal()));
+    }
+
+    /**
+     * Disabling is hooked to a cancelled order and to one refunded in full, and deliberately not to a partial refund,
+     * which does not say what it was for
+     *
+     * @test
+     */
+    public function it_disables_the_gift_cards_on_cancel_and_full_refund_but_not_on_a_partial_refund(): void
+    {
+        $events = array_keys(DisableGiftCardsSubscriber::getSubscribedEvents());
+
+        self::assertContains('workflow.sylius_order.completed.cancel', $events);
+        self::assertContains('workflow.sylius_order_payment.completed.refund', $events);
+        self::assertNotContains('workflow.sylius_order_payment.completed.partially_refund', $events);
     }
 
     /**
