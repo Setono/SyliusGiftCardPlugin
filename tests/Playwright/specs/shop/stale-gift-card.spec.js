@@ -19,6 +19,26 @@ const GIFT_CARD_FIELD = '[name="setono_sylius_gift_card_add_gift_card_to_order[g
 const grouped = (code) => code.match(/.{1,4}/g).join('-');
 
 /**
+ * Semantic UI lays its own label over a checkbox and toggles the input itself when that label is clicked, so a forced
+ * click on the input races the label's handler and can land as no change at all. The state is set on the input instead
+ *
+ * @param {import('@playwright/test').Locator} checkbox
+ * @param {boolean} checked
+ */
+async function setChecked(checkbox, checked) {
+    await checkbox.evaluate((input, value) => {
+        input.checked = value;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }, checked);
+
+    if (checked) {
+        await expect(checkbox).toBeChecked();
+    } else {
+        await expect(checkbox).not.toBeChecked();
+    }
+}
+
+/**
  * Issues a card through the admin form and returns its code and edit url. Big enough to cover any cart, so the
  * checkout skips the payment step.
  *
@@ -38,12 +58,11 @@ async function issueGiftCard(browser) {
     if (0 < await currencies.locator('option[value="USD"]').count()) {
         await currencies.selectOption('USD');
     }
-    // Semantic UI lays its label over the checkbox, hence the forced clicks
-    await form.locator('[name$="[enabled]"]').check({ force: true });
+    await setChecked(form.locator('[name$="[enabled]"]'), true);
     // there is no customer to notify
     const notification = form.locator('[name$="[sendNotificationEmail]"]');
     if (0 < await notification.count()) {
-        await notification.uncheck({ force: true });
+        await setChecked(notification, false);
     }
     await form.locator('button[type="submit"]').first().click();
     await page.waitForLoadState('networkidle');
@@ -74,7 +93,7 @@ async function disableGiftCard(browser, editHref) {
 
     await page.goto(editHref);
     const form = page.locator('form').filter({ has: page.locator('[name$="[enabled]"]') });
-    await form.locator('[name$="[enabled]"]').uncheck({ force: true });
+    await setChecked(form.locator('[name$="[enabled]"]'), false);
     await form.locator('button[type="submit"]').first().click();
     await page.waitForLoadState('networkidle');
 
