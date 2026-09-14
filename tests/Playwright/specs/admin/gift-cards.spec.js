@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { firstGiftCardId, firstDesignId, channelCurrencyCodes } = require('../support/fixtures');
+const { firstGiftCardId, firstDesignId, channelBaseCurrencyCode, currencyOtherThan } = require('../support/fixtures');
 
 test.describe('admin gift cards', () => {
     test('the index renders and offers the plugin actions', async ({ page }) => {
@@ -79,25 +79,23 @@ test.describe('admin gift cards', () => {
      * currency, so a card issued in any other currency would carry a balance in the wrong unit. The form is the only
      * place where an admin can find that out before the customer does.
      */
-    test('a currency the channel does not offer is rejected when issuing a card', async ({ page }) => {
+    test('a currency other than the channel base currency is rejected when issuing a card', async ({ page }) => {
         await page.goto('/admin/gift-cards/new');
-
         const channelCode = await page.locator('select[name*="[channel]"]').inputValue();
-        const offered = await channelCurrencyCodes(page, channelCode);
+
+        const base = await channelBaseCurrencyCode(page, channelCode);
+        // the fixtures may seed nothing but the channel's own currency, so make sure there is another one to pick
+        const other = await currencyOtherThan(page, base);
 
         await page.goto('/admin/gift-cards/new');
         const currency = page.locator('select[name*="[currencyCode]"]');
-        const codes = await currency.locator('option').evaluateAll((options) => options.map((o) => o.value));
-        const foreign = codes.find((code) => '' !== code && !offered.includes(code));
-        expect(foreign, `every currency on the form is one of ${channelCode}'s`).toBeTruthy();
-
-        await currency.selectOption(foreign);
+        await currency.selectOption(other);
         await page.locator('input[name*="[amount]"]').fill('100');
         await page.getByRole('button', { name: /create/i }).first().click();
 
         // The message has to be translated, not a raw key: constraint messages resolve in the validators domain
         await expect(page.locator('.sylius-validation-error').first())
-            .toContainText(/is not available in the channel/i);
+            .toContainText(/is not the base currency of the channel/i);
     });
 
     /**

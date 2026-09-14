@@ -1,56 +1,12 @@
 /**
- * Helpers for finding the seeded records the specs act on.
- *
- * The fixtures generate codes and ids, so nothing here may hardcode them; every spec looks its subject up
- * through the admin grids instead. That keeps the suite working against a freshly seeded database.
- */
-
-/**
- * Returns the id of the first row in an admin grid, taken from its show/edit link.
+ * The base currency of the channel with the given code, read off the channel's edit form. Sylius keeps every order
+ * amount in it, which is why a gift card can only be issued in it.
  *
  * @param {import('@playwright/test').Page} page
- * @param {string} indexUrl
- * @param {RegExp} hrefPattern must capture the id in group 1
- */
-async function firstIdFromGrid(page, indexUrl, hrefPattern) {
-    await page.goto(indexUrl);
-
-    const hrefs = await page.locator('table a').evaluateAll((links) => links.map((l) => l.getAttribute('href') ?? ''));
-
-    for (const href of hrefs) {
-        const match = hrefPattern.exec(href);
-        if (null !== match) {
-            return match[1];
-        }
-    }
-
-    throw new Error(`No link matching ${hrefPattern} found in the grid at ${indexUrl}`);
-}
-
-/**
- * @param {import('@playwright/test').Page} page
- */
-function firstGiftCardId(page) {
-    return firstIdFromGrid(page, '/admin/gift-cards/', /\/admin\/gift-cards\/(\d+)$/);
-}
-
-/**
- * @param {import('@playwright/test').Page} page
- */
-function firstDesignId(page) {
-    return firstIdFromGrid(page, '/admin/gift-card-designs/', /\/admin\/gift-card-designs\/(\d+)\/edit$/);
-}
-
-/**
- * The currencies an order in this channel can be priced in: the channel's currency list plus its base
- * currency, which the currency context falls back to. Read off the channel's own edit form so nothing here
- * has to know which currencies the fixtures seeded.
- *
- * @param {import('@playwright/test').Page} page an authenticated admin page
  * @param {string} channelCode
- * @returns {Promise<string[]>}
+ * @returns {Promise<string>}
  */
-async function channelCurrencyCodes(page, channelCode) {
+async function channelBaseCurrencyCode(page, channelCode) {
     await page.goto('/admin/channels/');
 
     const editUrl = await page
@@ -65,11 +21,43 @@ async function channelCurrencyCodes(page, channelCode) {
 
     await page.goto(editUrl);
 
-    const codes = await page
-        .locator('select[name*="[baseCurrency]"], select[name*="[currencies]"]')
-        .evaluateAll((selects) => selects.flatMap((s) => Array.from(s.selectedOptions).map((o) => o.value)));
+    const code = await page.locator('select[name*="[baseCurrency]"]').inputValue();
+    if ('' === code) {
+        throw new Error(`The channel ${channelCode} has no base currency`);
+    }
 
-    return [...new Set(codes.filter((code) => '' !== code))];
+    return code;
+}
+
+/**
+ * Makes sure the shop knows at least one currency other than the given one, creating it through the admin when the
+ * fixtures seeded only the channel's own, and returns its code.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} except
+ * @returns {Promise<string>}
+ */
+async function currencyOtherThan(page, except) {
+    await page.goto('/admin/currencies/');
+    const listed = await page.locator('table tbody tr td:first-child').allInnerTexts();
+    const existing = listed.map((text) => text.trim()).find((code) => '' !== code && code !== except);
+    if (undefined !== existing) {
+        return existing;
+    }
+
+    await page.goto('/admin/currencies/new');
+    const select = page.locator('select[name="sylius_currency[code]"]');
+    const options = await select.locator('option').evaluateAll((all) => all.map((o) => o.value));
+    const pick = options.find((code) => '' !== code && code !== except);
+    if (undefined === pick) {
+        throw new Error('No currency other than the base currency can be created');
+    }
+
+    await select.selectOption(pick);
+    await page.getByRole('button', { name: /create/i }).first().click();
+    await page.waitForURL('**/admin/currencies/**');
+
+    return pick;
 }
 
 /** @type {{simple: string|null, configurable: string|null, giftCard: string|null}|null} */
@@ -135,4 +123,6 @@ async function productIdsByKind(page) {
     return result;
 }
 
-module.exports = { firstGiftCardId, firstDesignId, channelCurrencyCodes, productIdsByKind };
+module.exports = {
+    channelBaseCurrencyCode,
+    currencyOtherThan, firstGiftCardId, firstDesignId, productIdsByKind };
