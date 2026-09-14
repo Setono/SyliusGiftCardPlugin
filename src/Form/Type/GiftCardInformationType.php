@@ -25,13 +25,12 @@ final class GiftCardInformationType extends AbstractType
 {
     private const VALIDATION_GROUPS = ['setono_sylius_gift_card'];
 
-    private const MAX_MESSAGE_LENGTH = 500;
-
     public function __construct(
         private readonly string $dataClass,
         private readonly string $designClass,
         private readonly ChannelContextInterface $channelContext,
         private readonly GiftCardDesignProviderInterface $designProvider,
+        private readonly int $maximumMessageLength,
     ) {
     }
 
@@ -54,13 +53,15 @@ final class GiftCardInformationType extends AbstractType
             ])
             ->add('customMessage', TextareaType::class, [
                 'label' => 'setono_sylius_gift_card.form.gift_card_information.custom_message',
+                'help' => 'setono_sylius_gift_card.form.gift_card_information.custom_message_help',
+                'help_translation_parameters' => ['%limit%' => $this->maximumMessageLength],
                 'required' => false,
                 'attr' => [
-                    'maxlength' => self::MAX_MESSAGE_LENGTH,
+                    'maxlength' => $this->maximumMessageLength,
                     'placeholder' => 'setono_sylius_gift_card.form.gift_card_information.custom_message_placeholder',
                 ],
                 'constraints' => [
-                    new Length(['max' => self::MAX_MESSAGE_LENGTH, 'groups' => self::VALIDATION_GROUPS]),
+                    new Length(['max' => $this->maximumMessageLength, 'groups' => self::VALIDATION_GROUPS]),
                 ],
             ])
             ->add('design', EntityType::class, [

@@ -21,6 +21,12 @@
         var messageInput = container.querySelector('textarea');
         var designInputs = container.querySelectorAll('[data-js-gift-card-design-picker] input[type="radio"]');
 
+        // The counter is rendered by the template so it is correct before this script runs; it counts the
+        // same characters the maxlength attribute does, so the two can never disagree
+        var messageCounter = container.querySelector('[data-js-gc-message-counter]');
+        var messageCounterTemplate = messageCounter ? messageCounter.getAttribute('data-template') || '' : '';
+        var messageLimit = messageInput ? parseInt(messageInput.getAttribute('maxlength'), 10) : NaN;
+
         var formatter = null;
         try {
             formatter = new Intl.NumberFormat(locale, { style: 'currency', currency: currency });
@@ -49,8 +55,14 @@
         }
 
         function updateMessage() {
-            var value = messageInput ? messageInput.value.trim() : '';
-            setAll(messageTargets, value !== '' ? value : messagePlaceholder);
+            var value = messageInput ? messageInput.value : '';
+            var message = value.trim();
+            setAll(messageTargets, message !== '' ? message : messagePlaceholder);
+
+            if (messageCounter && messageCounterTemplate !== '' && !isNaN(messageLimit)) {
+                var remaining = Math.max(messageLimit - value.length, 0);
+                messageCounter.textContent = messageCounterTemplate.replace('%remaining%', String(remaining));
+            }
         }
 
         function updateDesign() {

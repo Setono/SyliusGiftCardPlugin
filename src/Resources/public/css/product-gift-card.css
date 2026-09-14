@@ -25,6 +25,14 @@
     border-radius: 4px;
 }
 
+#setono-gift-card-information .ssgc-message-counter {
+    display: block;
+    margin-top: 0.35em;
+    font-size: 0.85em;
+    color: #6c757d;
+    text-align: right;
+}
+
 /* Live preview: the shared .ssgc-card is a fixed 560x396 box scaled to fit this frame */
 #setono-gift-card-information .ssgc-preview {
     width: 100%;

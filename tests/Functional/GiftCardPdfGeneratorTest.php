@@ -305,6 +305,48 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
         self::assertGreaterThanOrEqual(2, preg_match_all('#/Subtype\s*/Image#', $pdf));
     }
 
+    /** @test */
+    public function it_keeps_the_line_breaks_the_customer_typed(): void
+    {
+        $pdf = $this->getGenerator()->generate($this->createGiftCard(customMessage: "Happy birthday!\nEnjoy your gift."));
+
+        // Both sentences fit on one line together, so they are drawn as a single run unless the card really
+        // does honour the newline between them
+        $texts = array_column($this->textRuns($pdf), 'text');
+
+        self::assertContains('Happy birthday!', $texts);
+        self::assertContains('Enjoy your gift.', $texts);
+    }
+
+    /** @test */
+    public function it_does_not_let_a_message_of_many_lines_push_the_title_off_the_card(): void
+    {
+        // 67 two character lines separated by newlines is exactly the 200 character default limit, and the
+        // worst case for a card whose hero block grows upwards from a bottom anchor
+        $message = implode("\n", array_fill(0, 67, 'ab'));
+        self::assertSame(200, mb_strlen($message));
+
+        $pdf = $this->getGenerator()->generate($this->createGiftCard(customMessage: $message));
+
+        self::assertSame(2, preg_match_all('#/Type\s*/Page(?![s])#', $pdf));
+
+        $runs = array_values(array_filter($this->textRuns($pdf), static fn (array $run): bool => 1 === $run['page']));
+        self::assertNotEmpty($runs);
+
+        // The brand row is the topmost thing printed on the front of the card and the title is the largest.
+        // A message the card cannot hold lifts the title into the brand row, which is what the clamp in
+        // _card_style.html.twig prevents: the title has to stay a full line below the top of the card
+        $brandRow = max(array_column($runs, 'y'));
+        usort($runs, static fn (array $a, array $b): int => $b['size'] <=> $a['size']);
+        $title = $runs[0];
+
+        self::assertLessThan(
+            $brandRow - $title['size'],
+            $title['y'],
+            'the gift card title has climbed into the brand row',
+        );
+    }
+
     private function getGenerator(): GiftCardPdfGeneratorInterface
     {
         /** @var GiftCardPdfGeneratorInterface $generator */
@@ -321,7 +363,58 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
         return $uploader;
     }
 
-    private function createGiftCard(string $code = 'PDFTEST0000000001'): GiftCardInterface
+    /**
+     * Every piece of text dompdf drew, with the baseline it was drawn at. A page is a deflated content stream
+     * of `BT <x> <y> Td /<font> <size> Tf [(<text>)] TJ ET` blocks whose strings are two byte encoded, so the
+     * padding bytes are stripped to get readable text back. The PDF origin is the bottom left corner of the
+     * page, so a larger y is further up the card.
+     *
+     * @return list<array{page: int, x: float, y: float, size: float, text: string}>
+     */
+    private function textRuns(string $pdf): array
+    {
+        $runs = [];
+        $page = 0;
+
+        preg_match_all('#stream\r?\n(.*?)\r?\nendstream#s', $pdf, $streams);
+
+        foreach ($streams[1] as $stream) {
+            $content = @gzuncompress($stream);
+            if (false === $content || !str_contains($content, 'BT')) {
+                continue;
+            }
+
+            ++$page;
+
+            preg_match_all(
+                '#BT\s+([\d.\-]+)\s+([\d.\-]+)\s+Td\s+/\S+\s+([\d.]+)\s+Tf\s+\[(.*?)]\s*TJ\s+ET#s',
+                $content,
+                $matches,
+                \PREG_SET_ORDER,
+            );
+
+            foreach ($matches as $match) {
+                preg_match_all('#\(((?:[^()\\\\]|\\\\.)*)\)#s', $match[4], $chunks);
+
+                $text = '';
+                foreach ($chunks[1] as $chunk) {
+                    $text .= str_replace("\0", '', stripcslashes($chunk));
+                }
+
+                $runs[] = [
+                    'page' => $page,
+                    'x' => (float) $match[1],
+                    'y' => (float) $match[2],
+                    'size' => (float) $match[3],
+                    'text' => $text,
+                ];
+            }
+        }
+
+        return $runs;
+    }
+
+    private function createGiftCard(string $code = 'PDFTEST0000000001', string $customMessage = 'Enjoy!'): GiftCardInterface
     {
         /** @var \Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface $factory */
         $factory = self::getContainer()->get('setono_sylius_gift_card.factory.gift_card');
@@ -332,7 +425,7 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
         $giftCard->setCurrencyCode('USD');
         $giftCard->setInitialAmount(5000);
         $giftCard->setAmount(5000);
-        $giftCard->setCustomMessage('Enjoy!');
+        $giftCard->setCustomMessage($customMessage);
         $giftCard->enable();
 
         $this->manager->persist($giftCard);

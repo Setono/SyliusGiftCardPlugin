@@ -19,6 +19,7 @@ setono_sylius_gift_card:
         gift_card_information:
             amount: Montant
             custom_message: Message
+            custom_message_help: "Jusqu'à %limit% caractères. Les sauts de ligne sont conservés sur le chèque-cadeau."
             custom_message_placeholder: Écrivez un court message au destinataire...
             design: Modèle
         adjust_balance:
@@ -33,6 +34,7 @@ setono_sylius_gift_card:
         average: Moyenne
         back: Retour
         balance: Solde
+        characters_left: 'Il reste %remaining% caractères'
         count: Nombre
         current_balance: Solde actuel
         create_gift_card: Créer un chèque-cadeau

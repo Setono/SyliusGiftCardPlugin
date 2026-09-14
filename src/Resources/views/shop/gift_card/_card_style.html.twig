@@ -39,4 +39,11 @@
     .ssgc-card__scrim-amount { font-size: 27px; font-weight: bold; color: #ffffff; }
     .ssgc-card__scrim-message { font-size: 12px; font-style: italic; color: #f2f0ea; margin-top: 5px; }
     .ssgc-card__scrim-code { font-size: 12px; letter-spacing: 2px; color: #e8e5dc; margin-top: 7px; }
+
+    /* The customer's message keeps the line breaks it was typed with — dompdf implements white-space: pre-line, so
+       the PDF and the live preview break the same way. Both message blocks sit in a container anchored to the
+       bottom of the card, so every extra line pushes the 52px title upwards into the brand row: the message is
+       therefore clamped to four lines (4 x 1.4em). dompdf turns overflow: hidden into a PDF clipping rectangle,
+       so the clamp holds on the printed card too, where there is nothing to scroll. */
+    .ssgc-card__message, .ssgc-card__scrim-message { white-space: pre-line; overflow-wrap: break-word; line-height: 1.4; max-height: 5.6em; overflow: hidden; }
 </style>

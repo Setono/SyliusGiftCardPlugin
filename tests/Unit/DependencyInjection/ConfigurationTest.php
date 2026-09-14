@@ -25,8 +25,25 @@ final class ConfigurationTest extends TestCase
     public function it_has_sensible_purchase_defaults(): void
     {
         $this->assertProcessedConfigurationEquals([[]], [
-            'purchase' => ['minimum_amount' => 100, 'maximum_amount' => null],
+            'purchase' => ['minimum_amount' => 100, 'maximum_amount' => null, 'maximum_message_length' => 200],
         ], 'purchase');
+    }
+
+    /** @test */
+    public function it_allows_the_maximum_message_length_to_be_changed(): void
+    {
+        $this->assertProcessedConfigurationEquals([['purchase' => ['maximum_message_length' => 80]]], [
+            'purchase' => ['minimum_amount' => 100, 'maximum_amount' => null, 'maximum_message_length' => 80],
+        ], 'purchase');
+    }
+
+    /** @test */
+    public function it_rejects_a_maximum_message_length_below_one(): void
+    {
+        $this->assertPartialConfigurationIsInvalid(
+            [['purchase' => ['maximum_message_length' => 0]]],
+            'purchase.maximum_message_length',
+        );
     }
 
     /** @test */

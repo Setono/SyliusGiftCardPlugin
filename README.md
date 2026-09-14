@@ -188,11 +188,20 @@ setono_sylius_gift_card:
     purchase:
         minimum_amount: 100              # minor units (e.g. cents)
         maximum_amount: ~                # null = no maximum
+        maximum_message_length: 200      # characters a customer may write on the card
     redemption:
         payment_method_code: gift_card   # code of the (auto-created) payment method a redeemed gift card is paid with
     pdf:
         page_size: A6                    # any page size supported by dompdf; the card scales to fill it
 ```
+
+`maximum_message_length` is what the shop form allows: it sets the textarea's `maxlength`, the remaining-characters
+counter and the validation constraint. The card shows the message with its line breaks intact and clamps it to four
+lines, so a message much longer than the default will be cut off on the gift card and in its PDF. The admin form
+validates the same property through the `Length` constraint in
+`src/Resources/config/validation/GiftCard.xml` — a validation mapping cannot read a container parameter, so if you
+raise the limit, [override that mapping](https://symfony.com/doc/current/bundles/override.html#validation-metadata)
+with the same value.
 
 ## Customization
 
