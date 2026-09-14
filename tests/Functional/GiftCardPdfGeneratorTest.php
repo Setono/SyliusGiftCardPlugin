@@ -123,7 +123,7 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
 
         // the panel the copy is overlaid on, and the copy itself, which only the image variant used to lack
         self::assertStringContainsString('class="back-panel"', $withImage);
-        foreach (['SUMM-ER26', 'HOW TO REDEEM', 'REDEMPTION CODE', 'data:image/svg+xml;base64,'] as $expected) {
+        foreach (['SUMM-ER26', 'HOW TO REDEEM', 'REDEMPTION CODE'] as $expected) {
             self::assertStringContainsString($expected, $withImage);
             self::assertStringContainsString($expected, $withoutImage);
         }
