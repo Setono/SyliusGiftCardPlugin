@@ -1,17 +1,20 @@
 {# @var giftCards \Setono\SyliusGiftCardPlugin\Model\GiftCardInterface[] #}
+{# Emails are rendered outside of a request, so every translation takes localeCode explicitly, the way
+   Sylius' own email templates do. Without it the translator's current locale wins: the admin's UI locale
+   when a card is resent from the admin, the default locale from the CLI or a webhook. #}
 {% extends '@SyliusShop/Email/layout.html.twig' %}
 
-{% block subject %}{{ 'setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order'|trans }}{% endblock %}
+{% block subject %}{{ 'setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order'|trans({}, 'messages', localeCode) }}{% endblock %}
 
 {% block content %}
-    <p>{{ 'setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order'|trans }} {{ order.number }}:</p>
+    <p>{{ 'setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order'|trans({}, 'messages', localeCode) }} {{ order.number }}:</p>
 
     {% for giftCard in giftCards %}
         <p>
             <strong>{{ giftCard.code|setono_gift_card_format_code }}</strong>
-            ({{ 'setono_sylius_gift_card.email.balance'|trans }}: {{ giftCard.amount|sylius_format_money(giftCard.currencyCode, localeCode|default('en')) }})
+            ({{ 'setono_sylius_gift_card.email.balance'|trans({}, 'messages', localeCode) }}: {{ giftCard.amount|sylius_format_money(giftCard.currencyCode, localeCode|default('en')) }})
         </p>
     {% endfor %}
 
-    <p>{{ 'setono_sylius_gift_card.email.pdf_attached'|trans }}</p>
+    <p>{{ 'setono_sylius_gift_card.email.pdf_attached'|trans({}, 'messages', localeCode) }}</p>
 {% endblock %}
