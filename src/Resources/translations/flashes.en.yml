@@ -2,6 +2,7 @@ setono_sylius_gift_card:
     gift_card:
         delete_error: The gift card cannot be removed.
         could_not_be_applied: The gift card could not be applied to your order.
+        too_many_attempts: Too many gift card attempts. Please wait a moment before trying again.
         balance_adjusted: The gift card balance was adjusted
         product_created: A gift card product was created. Review and enable it below.
         email_sent: The gift card was emailed to the customer

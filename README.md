@@ -198,7 +198,7 @@ All settings are optional and shown here with their defaults:
 ```yaml
 # config/packages/setono_sylius_gift_card.yaml
 setono_sylius_gift_card:
-    code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…)
+    code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…); minimum 12, because a code is a bearer token and must not be guessable
     default_validity_period: '3 years'   # any strtotime-compatible interval, or null to never expire
     purchase:
         minimum_amount: 100              # minor units (e.g. cents)
@@ -208,6 +208,10 @@ setono_sylius_gift_card:
         email_physical_cards: false      # true also emails the code and the PDF of a *physical* card when the order is paid, as a backup
     redemption:
         payment_method_code: gift_card   # code of the (auto-created) payment method a redeemed gift card is paid with
+        rate_limit:
+            enabled: true                # throttles how often one visitor may try to apply a code, so codes cannot be brute forced
+            limit: 10                    # attempts allowed per interval, per client IP and session
+            interval: '1 minute'         # a number followed by second, minute, hour, day, week or month
     pdf:
         page_size: A6                    # any page size supported by dompdf; the card scales to fill it
 ```
@@ -217,6 +221,10 @@ counter, and it is the limit enforced by the `GiftCardMessageLength` constraint 
 gift card information, so raising the setting raises the limit everywhere. The card shows the message with its line
 breaks intact and clamps it to four lines, so a message much longer than the default will be cut off on the gift
 card and in its PDF.
+
+Every rejected code gives the customer the same message, whatever the reason (unknown, disabled, expired,
+empty, wrong channel or currency), so the form cannot be used to find out which codes exist. The actual
+reason is written to the log at info level.
 
 ## Customization
 

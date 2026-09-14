@@ -12,6 +12,10 @@ const GIFT_CARD_CODE = 'E2EREDEMPTION01';
 // Codes are shown grouped in fours for reading (GiftCardCodeNormalizer::format()); the raw code only appears in form actions
 const GIFT_CARD_CODE_AS_DISPLAYED = GIFT_CARD_CODE.match(/.{1,4}/g).join('-');
 
+// Also seeded: codes that exist and still cannot be used, one disabled and one without a balance left
+const DISABLED_GIFT_CARD_CODE = 'E2EDISABLED0001';
+const SPENT_GIFT_CARD_CODE = 'E2ENOBALANCE01';
+
 /**
  * The code the way the PDF prints it, in groups of four separated by dashes, e.g. E2ER-EDEM-PTIO-N01
  *
@@ -49,6 +53,20 @@ async function labelledAmountInCents(page, label, description) {
     const sign = match[1] === '-' || match[2] === '-' ? -1 : 1;
 
     return sign * Math.round(parseFloat(match[3].replace(/,/g, '')) * 100);
+}
+
+/**
+ * The error the shop answered the last gift card submission with.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function giftCardError(page) {
+    const messages = page.locator('.sylius-flash-message.negative p');
+    await expect(messages.first(), 'the shop did not report an error at all').toBeVisible();
+
+    const texts = await messages.allInnerTexts();
+
+    return texts.map((text) => text.trim()).join(' | ');
 }
 
 /**
@@ -158,6 +176,33 @@ test.describe('shop redemption', () => {
         await applyGiftCard(page, 'NOSUCHCARD000000');
 
         await expect(page.getByText('NOSUCHCARD000000', { exact: false })).toHaveCount(0);
+        expect(await giftCardError(page), 'the rejection should not name the code or the reason')
+            .not.toContain('NOSUCHCARD000000');
+    });
+
+    /**
+     * A code that exists must not be distinguishable from one that does not: a different answer for a gift
+     * card that is merely unusable turns this form into a way of finding out which codes are real.
+     */
+    test('an unusable gift card code gets the same answer as an unknown one', async ({ page }) => {
+        await addSomethingToCart(page);
+
+        await applyGiftCard(page, 'NOSUCHCARD000000');
+        const unknown = await giftCardError(page);
+
+        await applyGiftCard(page, DISABLED_GIFT_CARD_CODE);
+        const disabled = await giftCardError(page);
+
+        await applyGiftCard(page, SPENT_GIFT_CARD_CODE);
+        const spent = await giftCardError(page);
+
+        expect(unknown, 'the shop should say something when a code is rejected').not.toBe('');
+        expect(disabled, 'a disabled code must be answered exactly like an unknown one').toBe(unknown);
+        expect(spent, 'a spent code must be answered exactly like an unknown one').toBe(unknown);
+
+        // none of them end up on the order
+        await expect(page.getByText(DISABLED_GIFT_CARD_CODE, { exact: false })).toHaveCount(0);
+        await expect(page.getByText(SPENT_GIFT_CARD_CODE, { exact: false })).toHaveCount(0);
     });
 
     /**

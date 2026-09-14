@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Validator\Constraints;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface;
-use Setono\SyliusGiftCardPlugin\Checker\GiftCardIneligibilityReason;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
@@ -19,6 +20,7 @@ final class GiftCardIsEligibleValidator extends ConstraintValidator
     public function __construct(
         private readonly CartContextInterface $cartContext,
         private readonly GiftCardEligibilityCheckerInterface $eligibilityChecker,
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {
     }
 
@@ -40,13 +42,16 @@ final class GiftCardIsEligibleValidator extends ConstraintValidator
 
         $reason = $this->eligibilityChecker->getIneligibilityReason($value, $order);
         if (null !== $reason) {
-            $this->context->addViolation(match ($reason) {
-                GiftCardIneligibilityReason::NotEnabled => $constraint->notEnabledMessage,
-                GiftCardIneligibilityReason::Expired => $constraint->expiredMessage,
-                GiftCardIneligibilityReason::NoBalance => $constraint->emptyMessage,
-                GiftCardIneligibilityReason::ChannelMismatch => $constraint->channelMismatchMessage,
-                GiftCardIneligibilityReason::CurrencyMismatch => $constraint->currencyMismatchMessage,
-            });
+            // The customer gets the one generic message whatever the reason, because telling the reasons apart
+            // would tell a code guesser that the code exists. The reason goes to the log instead, where it helps
+            // the shop owner answer "why does my gift card not work"
+            $this->logger->info(sprintf(
+                'The gift card "%s" was not applied to the order: %s',
+                (string) $value->getCode(),
+                $reason->value,
+            ));
+
+            $this->context->addViolation($constraint->message);
 
             return;
         }
