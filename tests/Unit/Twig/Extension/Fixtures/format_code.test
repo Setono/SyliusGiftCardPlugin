@@ -1,0 +1,16 @@
+--TEST--
+"setono_gift_card_format_code" groups a code for reading and leaves short or missing codes alone
+--TEMPLATE--
+{{ 'ABCDEFGHJKMNPQRS'|setono_gift_card_format_code }}
+{{ 'SUMMER26'|setono_gift_card_format_code }}
+{{ 'ABC'|setono_gift_card_format_code }}
+{{ 'ABCDEFGHJKMNPQRS'|setono_gift_card_format_code(2, ' ') }}
+[{{ null|setono_gift_card_format_code }}]
+--DATA--
+return []
+--EXPECT--
+ABCD-EFGH-JKMN-PQRS
+SUMM-ER26
+ABC
+AB CD EF GH JK MN PQ RS
+[]
