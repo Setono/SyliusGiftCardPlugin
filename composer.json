@@ -54,6 +54,7 @@
         "symfony/translation-contracts": "^2.4 || ^3.0",
         "symfony/validator": "^6.4",
         "symfony/workflow": "^6.4",
+        "twig/intl-extra": "^2.12 || ^3.4",
         "twig/twig": "^2.15 || ^3.5",
         "webmozart/assert": "^1.11"
     },
