@@ -15,6 +15,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Valid;
 
 /**
  * @extends AbstractType<\Setono\SyliusGiftCardPlugin\Order\GiftCardInformationInterface>
@@ -81,6 +82,10 @@ final class GiftCardInformationType extends AbstractType
         $resolver->setDefaults([
             'data_class' => $this->dataClass,
             'validation_groups' => self::VALIDATION_GROUPS,
+            // The rules live in the validation mapping of the data class. A form that is not the root of its tree
+            // (this one sits inside Sylius' add to cart form) only validates its data object when told to cascade
+            // into it, so without this the mapping would apply on its own and never in the shop
+            'constraints' => [new Valid()],
         ]);
     }
 
