@@ -49,6 +49,9 @@
             <argument>%setono_sylius_gift_card.model.gift_card_design.class%</argument>
             <argument type="service" id="sylius.context.channel"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProvider"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider"/>
+            <argument type="service" id="sylius.money_formatter"/>
+            <argument type="service" id="sylius.context.locale"/>
             <tag name="form.type"/>
         </service>
 

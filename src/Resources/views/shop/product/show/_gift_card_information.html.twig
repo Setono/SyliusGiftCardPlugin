@@ -3,7 +3,8 @@
     {% set channel = sylius.channel %}
     {% set brand_name = channel ? channel.name : ('setono_sylius_gift_card.pdf.gift_card'|trans) %}
     {% set brand_initial = brand_name|slice(0, 1)|upper %}
-    {% set currency_code = channel and channel.baseCurrency ? channel.baseCurrency.code : 'USD' %}
+    {# an empty currency makes the preview format a plain number rather than pretend the shop sells in dollars #}
+    {% set currency_code = channel and channel.baseCurrency ? channel.baseCurrency.code : '' %}
 
     {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig') }}
 
