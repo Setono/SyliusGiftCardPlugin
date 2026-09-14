@@ -14,6 +14,8 @@
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver"/>
             <argument type="service" id="doctrine"/>
+            <!-- Only registered when setono_sylius_gift_card.redemption.rate_limit is enabled -->
+            <argument type="service" id="limiter.setono_sylius_gift_card_apply" on-invalid="null"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Controller\Action\RemoveGiftCardFromOrderAction"

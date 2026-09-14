@@ -2,6 +2,7 @@ setono_sylius_gift_card:
     gift_card:
         delete_error: Gavekortet kan ikke fjernes.
         could_not_be_applied: Gavekortet kunne ikke tilføjes til din ordre.
+        too_many_attempts: For mange forsøg med gavekort. Vent et øjeblik, og prøv igen.
         balance_adjusted: Gavekortets saldo blev justeret
         product_created: Der blev oprettet et gavekortprodukt. Gennemgå og aktiver det nedenfor.
         email_sent: Gavekortet blev sendt til kunden på email

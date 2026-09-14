@@ -1,6 +1,14 @@
 imports:
     - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
 
+setono_sylius_gift_card:
+    redemption:
+        rate_limit:
+            # The end to end suite applies gift cards from a single address, so the shipped default of 10 per
+            # minute would throttle the suite itself (and any re-run within the window) rather than a guesser.
+            # The throttling itself is covered by tests/Unit/Controller/Action/AddGiftCardToOrderActionTest.php
+            limit: 100
+
 sylius_fixtures:
     suites:
         default:
@@ -13,4 +21,14 @@ sylius_fixtures:
                             e2e:
                                 code: E2EREDEMPTION01
                                 amount: 1000
+                                enabled: true
+                            # Cards that exist but cannot be used, so the specs can check that the shop answers
+                            # exactly as it does for a code that does not exist at all
+                            e2e_disabled:
+                                code: E2EDISABLED0001
+                                amount: 1000
+                                enabled: false
+                            e2e_spent:
+                                code: E2ENOBALANCE01
+                                amount: 0
                                 enabled: true

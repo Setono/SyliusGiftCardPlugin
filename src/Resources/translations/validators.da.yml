@@ -21,6 +21,7 @@ setono_sylius_gift_card:
             not_base_currency: 'Valutaen {{ currency }} er ikke basisvalutaen for kanalen {{ channel }} ({{ base_currency }}). Gavekortsaldi føres i kanalens basisvaluta, så et gavekort kan kun udstedes i den.'
         send_notification_email:
             boolean: Send notifikationsmail skal være en boolsk værdi
+        could_not_be_applied: Gavekortet kunne ikke tilføjes til din ordre.
         not_enabled: Dette gavekort er ikke aktivt.
         expired: Dette gavekort er udløbet.
         no_balance: Der er ingen saldo tilbage på dette gavekort.
