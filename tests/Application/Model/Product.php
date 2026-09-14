@@ -9,11 +9,8 @@ use Setono\SyliusGiftCardPlugin\Model\ProductInterface as SetonoSyliusGiftCardPr
 use Setono\SyliusGiftCardPlugin\Model\ProductTrait as SetonoSyliusGiftCardProductTrait;
 use Sylius\Component\Core\Model\Product as BaseProduct;
 
-/**
- * @ORM\Entity
- *
- * @ORM\Table(name="sylius_product")
- */
+#[ORM\Entity]
+#[ORM\Table(name: 'sylius_product')]
 class Product extends BaseProduct implements SetonoSyliusGiftCardProductInterface
 {
     use SetonoSyliusGiftCardProductTrait;

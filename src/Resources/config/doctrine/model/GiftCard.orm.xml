@@ -7,15 +7,16 @@
             <generator strategy="AUTO"/>
         </id>
 
-        <field name="code" unique="true"/>
-        <field name="enabled" type="boolean"/>
-        <field name="amount" type="integer"/>
-        <field name="initialAmount" type="integer"/>
-        <field name="currencyCode" length="3"/>
-        <field name="deliveryType" type="string" enum-type="Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType"/>
-        <field name="customMessage" type="text" nullable="true"/>
-        <field name="expiresAt" type="datetime" nullable="true"/>
-        <field name="version" type="integer" version="true"/>
+        <field name="code" column="code" unique="true"/>
+        <field name="enabled" column="enabled" type="boolean"/>
+        <field name="amount" column="amount" type="integer"/>
+        <field name="initialAmount" column="initial_amount" type="integer"/>
+        <field name="currencyCode" column="currency_code" length="3"/>
+        <field name="deliveryType" column="delivery_type" type="string"
+               enum-type="Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType"/>
+        <field name="customMessage" column="custom_message" type="text" nullable="true"/>
+        <field name="expiresAt" column="expires_at" type="datetime" nullable="true"/>
+        <field name="version" column="version" type="integer" version="true"/>
 
         <field name="createdAt" column="created_at" type="datetime">
             <gedmo:timestampable on="create"/>

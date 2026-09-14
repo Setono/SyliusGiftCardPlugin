@@ -66,7 +66,18 @@ test.describe('admin product edit', () => {
      */
     test('a gift card product can be scaffolded from the gift cards index', async ({ page }) => {
         await page.goto('/admin/gift-cards/');
-        await page.getByRole('link', { name: /gift card product/i }).click();
+
+        // A POST form carrying a CSRF token rather than a link: a link could be hit by a browser prefetch or
+        // an <img src> on any page the admin visits, and every hit creates another product
+        const button = page.getByRole('button', { name: /gift card product/i });
+        const form = page.locator('form', { has: button });
+        await expect(form).toHaveAttribute('method', /post/i);
+        await expect(form.locator('input[name="_csrf_token"]')).not.toHaveValue('');
+
+        // The button asks for confirmation before anything is created
+        await button.click();
+        await expect(page.locator('#confirmation-modal')).toBeVisible();
+        await page.locator('#confirmation-button').click();
 
         await expect(page).toHaveURL(/\/admin\/products\/\d+\/edit/);
         await expect(page).toHaveTitle(/Edit product/);
@@ -79,5 +90,20 @@ test.describe('admin product edit', () => {
         const productId = /\/admin\/products\/(\d+)\/edit/.exec(page.url())[1];
         await page.goto(`/admin/products/${productId}/variants/`);
         await expect(page.locator('table tbody tr')).toHaveCount(2);
+    });
+
+    /**
+     * Scaffolding changes state, so it must not be reachable by a GET (which any page the admin visits could
+     * trigger through an <img src> or a prefetch) nor by a POST that does not carry the CSRF token
+     */
+    test('a gift card product is not scaffolded by a GET or without a CSRF token', async ({ page }) => {
+        const get = await page.request.get('/admin/gift-cards/create-product', { maxRedirects: 0 });
+        expect(get.status()).toBe(405);
+
+        const post = await page.request.post('/admin/gift-cards/create-product', {
+            form: { _csrf_token: 'forged' },
+            maxRedirects: 0,
+        });
+        expect(post.status()).toBe(403);
     });
 });

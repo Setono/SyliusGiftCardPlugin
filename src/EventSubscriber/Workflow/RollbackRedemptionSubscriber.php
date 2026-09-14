@@ -26,7 +26,9 @@ final class RollbackRedemptionSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'workflow.sylius_order.completed.cancel' => ['__invoke', 100],
+            // Before Sylius' CancelPaymentListener (600) walks the order's payments, so the gift card payments are
+            // already refunded and their balance restored by then. Mirrors the winzou priority -650
+            'workflow.sylius_order.completed.cancel' => ['__invoke', 650],
         ];
     }
 
