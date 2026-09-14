@@ -75,8 +75,8 @@ test.describe('admin gift cards', () => {
     });
 
     /**
-     * The list offers every currency the shop knows, but an order is only ever priced in one of its
-     * channel's currencies, so a card issued outside them can never be redeemed. The form is the only
+     * The list offers every currency the shop knows, but Sylius keeps order amounts in the channel's base
+     * currency, so a card issued in any other currency would carry a balance in the wrong unit. The form is the only
      * place where an admin can find that out before the customer does.
      */
     test('a currency the channel does not offer is rejected when issuing a card', async ({ page }) => {

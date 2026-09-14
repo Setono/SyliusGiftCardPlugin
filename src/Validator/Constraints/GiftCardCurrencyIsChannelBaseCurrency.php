@@ -7,9 +7,9 @@ namespace Setono\SyliusGiftCardPlugin\Validator\Constraints;
 use Symfony\Component\Validator\Constraint;
 
 #[\Attribute(\Attribute::TARGET_CLASS)]
-final class GiftCardCurrencyBelongsToChannel extends Constraint
+final class GiftCardCurrencyIsChannelBaseCurrency extends Constraint
 {
-    public string $message = 'setono_sylius_gift_card.gift_card.currency_code.not_in_channel';
+    public string $message = 'setono_sylius_gift_card.gift_card.currency_code.not_base_currency';
 
     public function getTargets(): string
     {

@@ -20,8 +20,8 @@
             <tag name="validator.constraint_validator"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyBelongsToChannelValidator"
-                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyBelongsToChannelValidator">
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsChannelBaseCurrencyValidator"
+                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsChannelBaseCurrencyValidator">
             <tag name="validator.constraint_validator"/>
         </service>
 

@@ -10,15 +10,16 @@ use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
- * A gift card can only be redeemed on an order in its own currency, and an order is always in one of its channel's
- * currencies, so a card whose currency the channel does not offer could never be spent.
+ * Sylius keeps every order amount in the channel's base currency; the other currencies a channel offers only
+ * change how amounts are displayed. A gift card's balance is compared one to one with those order amounts, so
+ * the only currency in which a card can be issued correctly is the base currency of its channel.
  */
-final class GiftCardCurrencyBelongsToChannelValidator extends ConstraintValidator
+final class GiftCardCurrencyIsChannelBaseCurrencyValidator extends ConstraintValidator
 {
     public function validate(mixed $value, Constraint $constraint): void
     {
-        if (!$constraint instanceof GiftCardCurrencyBelongsToChannel) {
-            throw new UnexpectedTypeException($constraint, GiftCardCurrencyBelongsToChannel::class);
+        if (!$constraint instanceof GiftCardCurrencyIsChannelBaseCurrency) {
+            throw new UnexpectedTypeException($constraint, GiftCardCurrencyIsChannelBaseCurrency::class);
         }
 
         if (null === $value) {
@@ -37,18 +38,14 @@ final class GiftCardCurrencyBelongsToChannelValidator extends ConstraintValidato
             return;
         }
 
-        if ($channel->getBaseCurrency()?->getCode() === $currencyCode) {
+        $baseCurrencyCode = $channel->getBaseCurrency()?->getCode();
+        if (null === $baseCurrencyCode || $baseCurrencyCode === $currencyCode) {
             return;
-        }
-
-        foreach ($channel->getCurrencies() as $currency) {
-            if ($currency->getCode() === $currencyCode) {
-                return;
-            }
         }
 
         $this->context->buildViolation($constraint->message)
             ->setParameter('{{ currency }}', $currencyCode)
+            ->setParameter('{{ base_currency }}', $baseCurrencyCode)
             ->setParameter('{{ channel }}', (string) ($channel->getName() ?? $channel->getCode()))
             ->atPath('currencyCode')
             ->addViolation();
