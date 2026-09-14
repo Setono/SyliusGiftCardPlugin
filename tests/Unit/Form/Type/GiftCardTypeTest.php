@@ -49,8 +49,9 @@ final class GiftCardTypeTest extends TypeTestCase
     }
 
     /**
-     * The data mapper writes the submitted amount into the non-nullable setter during submit(), before the
-     * POST_SUBMIT validation listener runs, so a blank amount used to end the request in a 500
+     * The data mapper writes the submitted amount into the setter during submit(), before the POST_SUBMIT
+     * validation listener runs, so a blank amount used to end the request in a 500. The setter now accepts null and
+     * the NotBlank constraint reports it
      *
      * @test
      */
@@ -66,8 +67,9 @@ final class GiftCardTypeTest extends TypeTestCase
 
         self::assertTrue($form->isSynchronized());
         self::assertFalse($form->isValid());
-        self::assertSame(0, $giftCard->getAmount());
-        self::assertGreaterThan(0, $form->get('amount')->getErrors()->count());
+        self::assertSame(0, $giftCard->getAmount(), 'a card without an amount reports an empty balance');
+        self::assertCount(1, $form->get('amount')->getErrors());
+        self::assertSame('setono_sylius_gift_card.gift_card.amount.not_blank', $form->get('amount')->getErrors()[0]->getMessage());
     }
 
     /**

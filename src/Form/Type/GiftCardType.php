@@ -69,10 +69,6 @@ final class GiftCardType extends AbstractResourceType
         });
         $builder->add('amount', NumberType::class, [
             'label' => 'sylius.ui.amount',
-            // The data mapper writes the submitted value into the non-nullable setter before validation runs,
-            // so a blank amount has to reach the model as a number the constraints in validation/GiftCard.xml
-            // reject rather than as null
-            'empty_data' => '0',
         ]);
 
         // A card issued from the admin starts its life at the amount it was created with

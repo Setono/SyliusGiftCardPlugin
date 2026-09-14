@@ -64,7 +64,11 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
      */
     public function getAmount(): int;
 
-    public function setAmount(int $amount): void;
+    /**
+     * Accepts null so a blank form submission reaches validation instead of failing in the data mapper; the getter
+     * reports such a card as empty
+     */
+    public function setAmount(?int $amount): void;
 
     /**
      * This is the original value of the gift card in minor units (e.g. cents)

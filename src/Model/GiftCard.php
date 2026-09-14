@@ -21,7 +21,8 @@ class GiftCard implements GiftCardInterface
 
     protected ?string $code = null;
 
-    protected int $amount = 0;
+    /** Null only while a blank submission is being validated; a persisted card always holds an amount */
+    protected ?int $amount = 0;
 
     protected int $initialAmount = 0;
 
@@ -82,7 +83,7 @@ class GiftCard implements GiftCardInterface
 
     public function isUsable(): bool
     {
-        return $this->enabled && !$this->isExpired() && $this->amount > 0;
+        return $this->enabled && !$this->isExpired() && $this->getAmount() > 0;
     }
 
     public function isPending(): bool
@@ -140,10 +141,10 @@ class GiftCard implements GiftCardInterface
 
     public function getAmount(): int
     {
-        return $this->amount;
+        return $this->amount ?? 0;
     }
 
-    public function setAmount(int $amount): void
+    public function setAmount(?int $amount): void
     {
         $this->amount = $amount;
     }
