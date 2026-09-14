@@ -26,6 +26,13 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardRaceConditionSubscriber"
+                 class="Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardRaceConditionSubscriber">
+            <argument type="service" id="router"/>
+
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <service id="Setono\SyliusGiftCardPlugin\EventListener\PendingGiftCardCleanupListener"
                  class="Setono\SyliusGiftCardPlugin\EventListener\PendingGiftCardCleanupListener">
             <tag name="doctrine.event_listener" event="onFlush"/>
