@@ -15,11 +15,25 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class GiftCardRaceConditionSubscriberTest extends TestCase
 {
     use ProphecyTrait;
+
+    /**
+     * Symfony's error listener logs at priority 0 and renders the error page at -128
+     *
+     * @test
+     */
+    public function it_runs_between_logging_and_rendering_the_error_page(): void
+    {
+        self::assertSame(
+            [KernelEvents::EXCEPTION => ['onKernelException', -64]],
+            GiftCardRaceConditionSubscriber::getSubscribedEvents(),
+        );
+    }
 
     /** @test */
     public function it_sends_the_customer_back_to_the_cart_with_an_explanation(): void
