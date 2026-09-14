@@ -10,16 +10,16 @@ class GiftCardInformation implements GiftCardInformationInterface
 {
     protected ?GiftCardDesignInterface $design = null;
 
-    public function __construct(protected int $amount, protected ?string $customMessage = null)
+    public function __construct(protected ?int $amount = null, protected ?string $customMessage = null)
     {
     }
 
-    public function getAmount(): int
+    public function getAmount(): ?int
     {
         return $this->amount;
     }
 
-    public function setAmount(int $amount): void
+    public function setAmount(?int $amount): void
     {
         $this->amount = $amount;
     }

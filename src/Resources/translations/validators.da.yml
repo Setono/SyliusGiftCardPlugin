@@ -29,6 +29,8 @@ setono_sylius_gift_card:
             too_low: 'Gavekortets beløb skal være mindst {{ minimum }}.'
             too_high: 'Gavekortets beløb må ikke være mere end {{ maximum }}.'
     gift_card_design:
+        position:
+            not_null: Angiv en position
         name:
             not_blank: Indtast venligst et navn
         images:

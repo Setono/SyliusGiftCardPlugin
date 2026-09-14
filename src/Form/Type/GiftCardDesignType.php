@@ -27,7 +27,6 @@ final class GiftCardDesignType extends AbstractResourceType
             ])
             ->add('position', IntegerType::class, [
                 'label' => 'setono_sylius_gift_card.form.gift_card_design.position',
-                'required' => false,
             ])
             ->add('channels', ChannelChoiceType::class, [
                 'label' => 'sylius.ui.channels',

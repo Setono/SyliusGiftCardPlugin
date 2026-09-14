@@ -78,4 +78,32 @@ test.describe('shop gift card product', () => {
         // The cart holds a line for the gift card product itself, not merely some row
         await expect(page.locator(`table a[href*="${GIFT_CARD_SLUG}"]`).first()).toBeVisible();
     });
+
+    /**
+     * The chosen amount is written into the gift card information object while the form is submitted, which
+     * happens before validation runs. A blank amount used to reach a non nullable setter and end the request
+     * in a 500, and because add to cart posts over AJAX the button simply kept spinning with no message.
+     */
+    test('a blank amount is reported instead of failing the request', async ({ page }) => {
+        const serverErrors = [];
+        page.on('response', (response) => {
+            if (response.status() >= 500) {
+                serverErrors.push(`${response.status()} ${response.url()}`);
+            }
+        });
+
+        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+
+        const amount = page.locator('[name*="giftCardInformation"][name*="[amount]"]').first();
+        await amount.fill('');
+
+        await page.locator('form[name="sylius_add_to_cart"] button[type="submit"]').first().click();
+
+        // Sylius' add to cart script renders the 400 payload into this element
+        const validationError = page.locator('#sylius-cart-validation-error');
+        await expect(validationError).toBeVisible();
+        await expect(validationError).toContainText(/blank/i);
+
+        expect(serverErrors, 'adding to the cart must not fail with a server error').toEqual([]);
+    });
 });

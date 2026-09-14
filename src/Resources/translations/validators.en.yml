@@ -29,6 +29,8 @@ setono_sylius_gift_card:
             too_low: 'The gift card amount must be at least {{ minimum }}.'
             too_high: 'The gift card amount may not be more than {{ maximum }}.'
     gift_card_design:
+        position:
+            not_null: Please enter a position
         name:
             not_blank: Please enter a name
         images:
