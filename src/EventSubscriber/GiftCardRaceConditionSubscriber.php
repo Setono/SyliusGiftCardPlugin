@@ -41,8 +41,10 @@ final class GiftCardRaceConditionSubscriber implements EventSubscriberInterface
 
     public static function getSubscribedEvents(): array
     {
+        // Symfony's error listener logs at priority 0 and renders the error page at -128, so this sits in
+        // between: the lost race is still logged, but the error page is never reached
         return [
-            KernelEvents::EXCEPTION => 'onKernelException',
+            KernelEvents::EXCEPTION => ['onKernelException', -64],
         ];
     }
 
