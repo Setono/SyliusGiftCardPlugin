@@ -7,7 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Checker;
 /**
  * Why a gift card cannot pay for an order. The cases mirror the messages the GiftCardIsApplicable constraint renders
  */
-enum GiftCardInapplicabilityReason: string
+enum GiftCardIneligibilityReason: string
 {
     case NotEnabled = 'not_enabled';
     case Expired = 'expired';

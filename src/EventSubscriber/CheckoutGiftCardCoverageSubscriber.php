@@ -7,8 +7,9 @@ namespace Setono\SyliusGiftCardPlugin\EventSubscriber;
 use Doctrine\Persistence\ManagerRegistry;
 use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
-use Setono\SyliusGiftCardPlugin\Guard\GiftCardCoverageGuardInterface;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
 use Sylius\Component\Core\OrderCheckoutTransitions;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Sylius\Component\Order\Context\CartNotFoundException;
@@ -41,6 +42,7 @@ final class CheckoutGiftCardCoverageSubscriber implements EventSubscriberInterfa
         private readonly CartContextInterface $cartContext,
         private readonly GiftCardCoverageGuardInterface $guard,
         private readonly GiftCardApplicatorInterface $giftCardApplicator,
+        private readonly GiftCardCodeNormalizerInterface $codeNormalizer,
         private readonly OrderProcessorInterface $orderProcessor,
         private readonly UrlGeneratorInterface $urlGenerator,
         ManagerRegistry $managerRegistry,
@@ -75,14 +77,15 @@ final class CheckoutGiftCardCoverageSubscriber implements EventSubscriberInterfa
 
         $flashes = [];
 
-        $removed = $this->guard->getInapplicableGiftCards($cart);
+        $removed = $this->guard->getIneligibleGiftCards($cart);
         foreach ($removed as $giftCard) {
             // detaches the card and re-processes the cart, so the gateway payment is sized to what is left to pay
             $this->giftCardApplicator->remove($cart, $giftCard);
 
             $flashes[] = [
                 'message' => 'setono_sylius_gift_card.gift_card.no_longer_usable',
-                'parameters' => ['%code%' => (string) $giftCard->getCode()],
+                // grouped the way the cart lists it, so the customer can match the message to the row that is gone
+                'parameters' => ['%code%' => $this->codeNormalizer->format((string) $giftCard->getCode())],
             ];
         }
 

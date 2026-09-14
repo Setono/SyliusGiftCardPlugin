@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Guard;
+namespace Setono\SyliusGiftCardPlugin\Tests\Unit\StateMachine;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
@@ -10,12 +10,12 @@ use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverage;
 use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
-use Setono\SyliusGiftCardPlugin\Checker\GiftCardApplicabilityCheckerInterface;
-use Setono\SyliusGiftCardPlugin\Checker\GiftCardInapplicabilityReason;
-use Setono\SyliusGiftCardPlugin\Guard\GiftCardCoverageGuard;
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface;
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardIneligibilityReason;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
+use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuard;
 use Sylius\Component\Core\Model\OrderInterface as CoreOrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 
@@ -53,13 +53,13 @@ final class GiftCardCoverageGuardTest extends TestCase
         $spent = $this->prophesize(GiftCardInterface::class)->reveal();
         $order = $this->orderWith([$usable, $spent], [$this->payment(5000)], 5000);
 
-        $checker = $this->prophesize(GiftCardApplicabilityCheckerInterface::class);
-        $checker->getInapplicabilityReason($usable, $order)->willReturn(null);
-        $checker->getInapplicabilityReason($spent, $order)->willReturn(GiftCardInapplicabilityReason::NoBalance);
+        $checker = $this->prophesize(GiftCardEligibilityCheckerInterface::class);
+        $checker->getIneligibilityReason($usable, $order)->willReturn(null);
+        $checker->getIneligibilityReason($spent, $order)->willReturn(GiftCardIneligibilityReason::NoBalance);
 
         $guard = $this->guard($checker->reveal(), 0);
 
-        self::assertSame([$spent], $guard->getInapplicableGiftCards($order));
+        self::assertSame([$spent], $guard->getIneligibleGiftCards($order));
         // the gateway payment happens to cover the total, but a card that cannot be used has no business on the order
         self::assertTrue($guard->isTotalCovered($order));
         self::assertFalse($guard->isSatisfiedBy($order));
@@ -106,23 +106,23 @@ final class GiftCardCoverageGuardTest extends TestCase
         $paymentChecker = $this->prophesize(GiftCardPaymentCheckerInterface::class);
         $paymentChecker->isGiftCardPayment($giftCardPayment)->willReturn(true);
 
-        $guard = new GiftCardCoverageGuard($this->applicable(), $this->coverageOf(0), $paymentChecker->reveal());
+        $guard = new GiftCardCoverageGuard($this->eligible(), $this->coverageOf(0), $paymentChecker->reveal());
 
         self::assertFalse($guard->isTotalCovered($order));
     }
 
-    private function guard(?GiftCardApplicabilityCheckerInterface $checker = null, int $coverage = 0): GiftCardCoverageGuard
+    private function guard(?GiftCardEligibilityCheckerInterface $checker = null, int $coverage = 0): GiftCardCoverageGuard
     {
         $paymentChecker = $this->prophesize(GiftCardPaymentCheckerInterface::class);
         $paymentChecker->isGiftCardPayment(Argument::any())->willReturn(false);
 
-        return new GiftCardCoverageGuard($checker ?? $this->applicable(), $this->coverageOf($coverage), $paymentChecker->reveal());
+        return new GiftCardCoverageGuard($checker ?? $this->eligible(), $this->coverageOf($coverage), $paymentChecker->reveal());
     }
 
-    private function applicable(): GiftCardApplicabilityCheckerInterface
+    private function eligible(): GiftCardEligibilityCheckerInterface
     {
-        $checker = $this->prophesize(GiftCardApplicabilityCheckerInterface::class);
-        $checker->getInapplicabilityReason(Argument::cetera())->willReturn(null);
+        $checker = $this->prophesize(GiftCardEligibilityCheckerInterface::class);
+        $checker->getIneligibilityReason(Argument::cetera())->willReturn(null);
 
         return $checker->reveal();
     }

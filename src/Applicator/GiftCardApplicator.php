@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Applicator;
 
-use Setono\SyliusGiftCardPlugin\Checker\GiftCardApplicabilityCheckerInterface;
-use Setono\SyliusGiftCardPlugin\Checker\GiftCardInapplicabilityReason;
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface;
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardIneligibilityReason;
 use Setono\SyliusGiftCardPlugin\Exception\ChannelMismatchException;
 use Setono\SyliusGiftCardPlugin\Exception\GiftCardCurrencyMismatchException;
 use Setono\SyliusGiftCardPlugin\Exception\GiftCardNotFoundException;
@@ -24,7 +24,7 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
         private readonly GiftCardRepositoryInterface $giftCardRepository,
         private readonly GiftCardCodeNormalizerInterface $codeNormalizer,
         private readonly GiftCardRedemptionMethodInterface $redemptionMethod,
-        private readonly GiftCardApplicabilityCheckerInterface $applicabilityChecker,
+        private readonly GiftCardEligibilityCheckerInterface $eligibilityChecker,
     ) {
     }
 
@@ -42,9 +42,9 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
             'A gift card cannot be applied to a completed order',
         );
 
-        $reason = $this->applicabilityChecker->getInapplicabilityReason($giftCard, $order);
+        $reason = $this->eligibilityChecker->getIneligibilityReason($giftCard, $order);
 
-        if (GiftCardInapplicabilityReason::ChannelMismatch === $reason) {
+        if (GiftCardIneligibilityReason::ChannelMismatch === $reason) {
             $orderChannel = $order->getChannel();
             Assert::isInstanceOf($orderChannel, ChannelInterface::class);
 
@@ -54,7 +54,7 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
             throw new ChannelMismatchException($giftCardChannel, $orderChannel);
         }
 
-        if (GiftCardInapplicabilityReason::CurrencyMismatch === $reason) {
+        if (GiftCardIneligibilityReason::CurrencyMismatch === $reason) {
             throw new GiftCardCurrencyMismatchException($giftCard, (string) $order->getCurrencyCode());
         }
 

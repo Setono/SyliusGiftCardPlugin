@@ -12,9 +12,10 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\CheckoutGiftCardCoverageSubscriber;
-use Setono\SyliusGiftCardPlugin\Guard\GiftCardCoverageGuardInterface;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
 use Sylius\Component\Core\OrderCheckoutTransitions;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
@@ -99,7 +100,7 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
 
         $cart = $this->cartWithGiftCards();
         $this->guard->isSatisfiedBy($cart)->willReturn(false);
-        $this->guard->getInapplicableGiftCards($cart)->willReturn([$giftCard->reveal()]);
+        $this->guard->getIneligibleGiftCards($cart)->willReturn([$giftCard->reveal()]);
 
         $this->applicator->remove($cart, $giftCard->reveal())->shouldBeCalledOnce();
         $this->orderProcessor->process(Argument::any())->shouldNotBeCalled();
@@ -115,7 +116,7 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
 
         self::assertSame([[
             'message' => 'setono_sylius_gift_card.gift_card.no_longer_usable',
-            'parameters' => ['%code%' => 'STALE00000000001'],
+            'parameters' => ['%code%' => 'STAL-E000-0000-0001'],
         ]], $this->flashes($request));
     }
 
@@ -124,7 +125,7 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
     {
         $cart = $this->cartWithGiftCards();
         $this->guard->isSatisfiedBy($cart)->willReturn(false);
-        $this->guard->getInapplicableGiftCards($cart)->willReturn([]);
+        $this->guard->getIneligibleGiftCards($cart)->willReturn([]);
 
         $this->applicator->remove(Argument::cetera())->shouldNotBeCalled();
         $this->orderProcessor->process($cart)->shouldBeCalledOnce();
@@ -153,6 +154,7 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
             $this->cartContext->reveal(),
             $this->guard->reveal(),
             $this->applicator->reveal(),
+            new GiftCardCodeNormalizer(),
             $this->orderProcessor->reveal(),
             $urlGenerator->reveal(),
             $managerRegistry->reveal(),

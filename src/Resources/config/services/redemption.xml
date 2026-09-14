@@ -25,28 +25,28 @@
         <service id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface"
                  alias="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator"/>
 
-        <service id="Setono\SyliusGiftCardPlugin\Checker\GiftCardApplicabilityChecker"
-                 class="Setono\SyliusGiftCardPlugin\Checker\GiftCardApplicabilityChecker"/>
-        <service id="Setono\SyliusGiftCardPlugin\Checker\GiftCardApplicabilityCheckerInterface"
-                 alias="Setono\SyliusGiftCardPlugin\Checker\GiftCardApplicabilityChecker"/>
+        <service id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityChecker"
+                 class="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityChecker"/>
+        <service id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityChecker"/>
 
-        <service id="Setono\SyliusGiftCardPlugin\Guard\GiftCardCoverageGuard"
-                 class="Setono\SyliusGiftCardPlugin\Guard\GiftCardCoverageGuard">
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardApplicabilityCheckerInterface"/>
+        <service id="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuard"
+                 class="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuard">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface"/>
         </service>
         <!-- public because it is the guard the winzou state machine asks before completing a checkout. The guard
              callback names this interface rather than the class, so a decorator of the interface runs there too -->
-        <service id="Setono\SyliusGiftCardPlugin\Guard\GiftCardCoverageGuardInterface"
-                 alias="Setono\SyliusGiftCardPlugin\Guard\GiftCardCoverageGuard" public="true"/>
+        <service id="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface"
+                 alias="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuard" public="true"/>
 
         <service id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"
                  class="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
             <argument type="service" id="setono_sylius_gift_card.redemption_method"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardApplicabilityCheckerInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface"
                  alias="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"/>
@@ -54,7 +54,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsApplicableValidator"
                  class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsApplicableValidator">
             <argument type="service" id="sylius.context.cart"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardApplicabilityCheckerInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface"/>
 
             <tag name="validator.constraint_validator"/>
         </service>

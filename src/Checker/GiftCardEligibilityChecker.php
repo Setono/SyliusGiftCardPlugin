@@ -7,20 +7,20 @@ namespace Setono\SyliusGiftCardPlugin\Checker;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 
-final class GiftCardApplicabilityChecker implements GiftCardApplicabilityCheckerInterface
+final class GiftCardEligibilityChecker implements GiftCardEligibilityCheckerInterface
 {
-    public function getInapplicabilityReason(GiftCardInterface $giftCard, ?OrderInterface $order = null): ?GiftCardInapplicabilityReason
+    public function getIneligibilityReason(GiftCardInterface $giftCard, ?OrderInterface $order = null): ?GiftCardIneligibilityReason
     {
         if (!$giftCard->isEnabled()) {
-            return GiftCardInapplicabilityReason::NotEnabled;
+            return GiftCardIneligibilityReason::NotEnabled;
         }
 
         if ($giftCard->isExpired()) {
-            return GiftCardInapplicabilityReason::Expired;
+            return GiftCardIneligibilityReason::Expired;
         }
 
         if ($giftCard->getAmount() <= 0) {
-            return GiftCardInapplicabilityReason::NoBalance;
+            return GiftCardIneligibilityReason::NoBalance;
         }
 
         if (null === $order) {
@@ -29,12 +29,12 @@ final class GiftCardApplicabilityChecker implements GiftCardApplicabilityChecker
 
         $orderChannel = $order->getChannel();
         if (null !== $orderChannel && $giftCard->getChannel()?->getCode() !== $orderChannel->getCode()) {
-            return GiftCardInapplicabilityReason::ChannelMismatch;
+            return GiftCardIneligibilityReason::ChannelMismatch;
         }
 
         $orderCurrencyCode = $order->getCurrencyCode();
         if (null !== $orderCurrencyCode && $giftCard->getCurrencyCode() !== $orderCurrencyCode) {
-            return GiftCardInapplicabilityReason::CurrencyMismatch;
+            return GiftCardIneligibilityReason::CurrencyMismatch;
         }
 
         return null;

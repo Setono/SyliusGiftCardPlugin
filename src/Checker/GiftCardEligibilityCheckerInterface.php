@@ -7,7 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Checker;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 
-interface GiftCardApplicabilityCheckerInterface
+interface GiftCardEligibilityCheckerInterface
 {
     /**
      * Why the gift card cannot pay for the order, or null when it can. The same rules decide whether a card may be
@@ -16,5 +16,5 @@ interface GiftCardApplicabilityCheckerInterface
      *
      * Without an order only the card itself is judged: whether it is enabled, unexpired and holds a balance
      */
-    public function getInapplicabilityReason(GiftCardInterface $giftCard, ?OrderInterface $order = null): ?GiftCardInapplicabilityReason;
+    public function getIneligibilityReason(GiftCardInterface $giftCard, ?OrderInterface $order = null): ?GiftCardIneligibilityReason;
 }

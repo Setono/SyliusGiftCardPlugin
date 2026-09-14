@@ -14,7 +14,7 @@
         -->
 
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\GuardCheckoutCompletionSubscriber">
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Guard\GiftCardCoverageGuardInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 

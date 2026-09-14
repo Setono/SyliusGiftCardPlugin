@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\Guard;
+namespace Setono\SyliusGiftCardPlugin\StateMachine;
 
 use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
-use Setono\SyliusGiftCardPlugin\Checker\GiftCardApplicabilityCheckerInterface;
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
 use Sylius\Component\Core\Model\OrderInterface as CoreOrderInterface;
@@ -14,7 +14,7 @@ use Sylius\Component\Core\Model\PaymentInterface;
 final class GiftCardCoverageGuard implements GiftCardCoverageGuardInterface
 {
     public function __construct(
-        private readonly GiftCardApplicabilityCheckerInterface $applicabilityChecker,
+        private readonly GiftCardEligibilityCheckerInterface $eligibilityChecker,
         private readonly GiftCardCoverageCalculatorInterface $coverageCalculator,
         private readonly GiftCardPaymentCheckerInterface $paymentChecker,
     ) {
@@ -26,15 +26,15 @@ final class GiftCardCoverageGuard implements GiftCardCoverageGuardInterface
             return true;
         }
 
-        return [] === $this->getInapplicableGiftCards($order) && $this->isTotalCovered($order);
+        return [] === $this->getIneligibleGiftCards($order) && $this->isTotalCovered($order);
     }
 
-    public function getInapplicableGiftCards(OrderInterface $order): array
+    public function getIneligibleGiftCards(OrderInterface $order): array
     {
         $giftCards = [];
 
         foreach ($order->getGiftCards() as $giftCard) {
-            if (null !== $this->applicabilityChecker->getInapplicabilityReason($giftCard, $order)) {
+            if (null !== $this->eligibilityChecker->getIneligibilityReason($giftCard, $order)) {
                 $giftCards[] = $giftCard;
             }
         }
