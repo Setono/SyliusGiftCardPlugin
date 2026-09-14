@@ -26,7 +26,7 @@ class GiftCardDesign implements GiftCardDesignInterface, \Stringable
 
     protected ?string $code = null;
 
-    protected int $position = 0;
+    protected ?int $position = 0;
 
     /** @var Collection<array-key, ImageInterface> */
     protected Collection $images;
@@ -72,12 +72,12 @@ class GiftCardDesign implements GiftCardDesignInterface, \Stringable
         $this->getTranslation()->setName($name);
     }
 
-    public function getPosition(): int
+    public function getPosition(): ?int
     {
         return $this->position;
     }
 
-    public function setPosition(int $position): void
+    public function setPosition(?int $position): void
     {
         $this->position = $position;
     }

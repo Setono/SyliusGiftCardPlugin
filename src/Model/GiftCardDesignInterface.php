@@ -28,9 +28,9 @@ interface GiftCardDesignInterface extends
 
     public function setName(?string $name): void;
 
-    public function getPosition(): int;
+    public function getPosition(): ?int;
 
-    public function setPosition(int $position): void;
+    public function setPosition(?int $position): void;
 
     /**
      * The image shown to the customer in the design picker, in the live preview and on the front page of the PDF

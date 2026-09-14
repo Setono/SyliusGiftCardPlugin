@@ -220,10 +220,10 @@ test.describe('admin gift card designs', () => {
     });
 
     /**
-     * The position field is optional, but it too was written into a non nullable setter while the form was
-     * submitted, so saving a design without a position ended in a 500. Blank now means the default position.
+     * The position too was written into a non nullable setter while the form was submitted, so saving a design
+     * without a position ended in a 500. The setter now accepts null and validation reports the blank field
      */
-    test('a design saves without a position', async ({ page }) => {
+    test('a design without a position is a validation error, not a crash', async ({ page }) => {
         const id = await firstDesignId(page);
 
         await page.goto(`/admin/gift-card-designs/${id}/edit`);
@@ -238,9 +238,7 @@ test.describe('admin gift card designs', () => {
         ]);
 
         expect(response.status()).toBeLessThan(500);
-
-        await page.goto(`/admin/gift-card-designs/${id}/edit`);
-        await expect(page.locator('input[name$="[position]"]')).toHaveValue('0');
+        await expect(page.locator('.sylius-validation-error').first()).toBeVisible();
     });
 
     test('a design preview PDF is generated', async ({ page }) => {

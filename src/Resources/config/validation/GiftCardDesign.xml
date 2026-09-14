@@ -8,5 +8,11 @@
         <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\UniqueDesignImageTypes">
             <option name="groups">setono_sylius_gift_card</option>
         </constraint>
+        <property name="position">
+            <constraint name="NotNull">
+                <option name="message">setono_sylius_gift_card.gift_card_design.position.not_null</option>
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
     </class>
 </constraint-mapping>

@@ -41,12 +41,12 @@ final class GiftCardDesignTypeTest extends TypeTestCase
     }
 
     /**
-     * The position field is optional, but the data mapper writes the submitted value into the non-nullable
-     * setter during submit(), so a blank position used to end the request in a 500
+     * The data mapper writes the submitted value into the setter during submit(), before validation runs, so a
+     * blank position used to end the request in a 500. The setter accepts null and the NotNull constraint reports it
      *
      * @test
      */
-    public function it_treats_a_blank_position_as_the_default_position(): void
+    public function it_reports_a_blank_position_instead_of_crashing(): void
     {
         $design = new GiftCardDesign();
 
@@ -54,8 +54,9 @@ final class GiftCardDesignTypeTest extends TypeTestCase
         $form->submit($this->submission(''));
 
         self::assertTrue($form->isSynchronized());
-        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
-        self::assertSame(0, $design->getPosition());
+        self::assertFalse($form->isValid());
+        self::assertCount(1, $form->get('position')->getErrors());
+        self::assertNull($design->getPosition());
     }
 
     /**
