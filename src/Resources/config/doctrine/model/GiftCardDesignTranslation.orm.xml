@@ -7,6 +7,6 @@
             <generator strategy="AUTO"/>
         </id>
 
-        <field name="name"/>
+        <field name="name" column="name"/>
     </mapped-superclass>
 </doctrine-mapping>
