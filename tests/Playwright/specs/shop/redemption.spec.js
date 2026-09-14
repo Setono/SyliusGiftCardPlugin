@@ -58,8 +58,26 @@ function appliedGiftCardRow(page) {
 }
 
 /**
- * The order total as shown in the cart summary, in cents, so amounts can be compared without caring about how
- * the channel formats money.
+ * The amount printed after a label in the cart summary, in cents, so amounts can be compared without caring about
+ * how the channel formats money. A negative amount is formatted by the money macro, which puts the minus sign
+ * before the currency symbol in some locales and after it in others, so both placements are accepted.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} label
+ * @param {string} description
+ */
+async function labelledAmountInCents(page, label, description) {
+    const text = await page.locator('body').innerText();
+    const match = new RegExp(`${label}:?\\s*(-?)[^\\d-]*(-?)([\\d.,]+)`, 'i').exec(text);
+    expect(match, description).not.toBeNull();
+
+    const sign = match[1] === '-' || match[2] === '-' ? -1 : 1;
+
+    return sign * Math.round(parseFloat(match[3].replace(/,/g, '')) * 100);
+}
+
+/**
+ * The order total as shown in the cart summary.
  *
  * Deliberately not `.sylius-total`: that is the *items* total, which a gift card never changes. What
  * redemption moves is the order total, the figure the customer would actually pay.
@@ -67,11 +85,16 @@ function appliedGiftCardRow(page) {
  * @param {import('@playwright/test').Page} page
  */
 async function orderTotalInCents(page) {
-    const text = await page.locator('body').innerText();
-    const match = /Order total:?\s*[^\d-]*(-?[\d.,]+)/i.exec(text);
-    expect(match, 'could not find an order total in the cart summary').not.toBeNull();
+    return labelledAmountInCents(page, 'Order total', 'could not find an order total in the cart summary');
+}
 
-    return Math.round(parseFloat(match[1].replace(/,/g, '')) * 100);
+/**
+ * What the applied gift cards take off what is owed, as a negative amount.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function giftCardsTotalInCents(page) {
+    return labelledAmountInCents(page, 'Gift cards', 'could not find a gift cards total in the cart summary');
 }
 
 /**
@@ -80,11 +103,28 @@ async function orderTotalInCents(page) {
  * @param {import('@playwright/test').Page} page
  */
 async function remainingToPayInCents(page) {
-    const text = await page.locator('body').innerText();
-    const match = /Remaining to pay:?\s*[^\d-]*(-?[\d.,]+)/i.exec(text);
-    expect(match, 'could not find a remaining to pay figure in the cart summary').not.toBeNull();
+    return labelledAmountInCents(page, 'Remaining to pay', 'could not find a remaining to pay figure in the cart summary');
+}
 
-    return Math.round(parseFloat(match[1].replace(/,/g, '')) * 100);
+/**
+ * Document order of the summary figures, as indexes into every table row on the page. The gift card figures used to
+ * be emitted as bare `div`s above "Items total", so this pins both that they are rows of a totals table and that
+ * they follow the order total rather than preceding the items total.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function summaryRowPositions(page) {
+    return page.evaluate(() => {
+        const rows = Array.from(document.querySelectorAll('tr'));
+        const position = (pattern) => rows.findIndex((row) => new RegExp(pattern, 'i').test(row.innerText));
+
+        return {
+            itemsTotal: position('items total'),
+            orderTotal: position('order total'),
+            giftCards: position('gift cards'),
+            remaining: position('remaining to pay'),
+        };
+    });
 }
 
 test.describe('shop redemption', () => {
@@ -136,5 +176,23 @@ test.describe('shop redemption', () => {
         await applyGiftCard(page, GIFT_CARD_CODE);
 
         await expect(page.getByText('Remaining to pay', { exact: false }).first()).toBeVisible();
+    });
+
+    test('the gift card figures are laid out as totals rows below the order total', async ({ page }) => {
+        await addSomethingToCart(page);
+        await applyGiftCard(page, GIFT_CARD_CODE);
+
+        const positions = await summaryRowPositions(page);
+        expect(positions.itemsTotal, 'no items total row in the cart summary').toBeGreaterThanOrEqual(0);
+        expect(positions.orderTotal, 'the order total should follow the items total').toBeGreaterThan(positions.itemsTotal);
+        expect(positions.giftCards, 'the gift cards figure should be a totals row below the order total').toBeGreaterThan(positions.orderTotal);
+        expect(positions.remaining, 'the remaining to pay figure should follow the gift cards one').toBeGreaterThan(positions.giftCards);
+
+        // and the figures still read as money, with the deduction expressed as a negative amount
+        const total = await orderTotalInCents(page);
+        const giftCards = await giftCardsTotalInCents(page);
+        expect(total, 'the cart should cost something').toBeGreaterThan(0);
+        expect(giftCards, 'the gift cards figure should be a deduction').toBeLessThan(0);
+        expect(await remainingToPayInCents(page), 'the remaining total should be the order total less the gift cards').toBe(total + giftCards);
     });
 });

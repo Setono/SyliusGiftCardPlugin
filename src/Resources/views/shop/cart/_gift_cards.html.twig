@@ -1,3 +1,5 @@
+{% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
+
 {% set order = cart %}
 {% set applyForm = setono_gift_card_apply_form() %}
 
@@ -20,7 +22,7 @@
                     <tr {{ sylius_test_html_attribute('applied-gift-card', giftCard.code) }}>
                         <td>{{ giftCard.code|setono_gift_card_format_code }}</td>
                         <td class="right aligned">
-                            -{{ setono_gift_card_covered_amount_by_gift_card(order, giftCard)|sylius_format_money(order.currencyCode, sylius.localeCode) }}
+                            {{ money.convertAndFormat(-setono_gift_card_covered_amount_by_gift_card(order, giftCard)) }}
                         </td>
                         <td class="right aligned collapsing">
                             <form method="post" action="{{ path('setono_sylius_gift_card_shop_remove_gift_card_from_order', {'giftCard': giftCard.code}) }}">
