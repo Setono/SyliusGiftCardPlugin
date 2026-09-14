@@ -134,4 +134,26 @@ test.describe('admin gift card designs', () => {
         expect(response.headers()['content-type']).toContain('application/pdf');
         expect((await response.body()).subarray(0, 5).toString()).toBe('%PDF-');
     });
+
+    test('a design preview PDF can be requested for one of the design\'s channels', async ({ page }) => {
+        const id = await firstDesignId(page);
+
+        // The edit form lists the design's channels by code, so none has to be hardcoded
+        await page.goto(`/admin/gift-card-designs/${id}/edit`);
+        const code = await page.locator('input[name$="[channels][]"]:checked').first().getAttribute('value');
+        expect(code).toBeTruthy();
+
+        const response = await page.request.get(
+            `/admin/gift-card-designs/${id}/preview-pdf?channel=${encodeURIComponent(code ?? '')}`,
+        );
+
+        expect(response.status()).toBe(200);
+        expect(response.headers()['content-type']).toContain('application/pdf');
+        expect((await response.body()).subarray(0, 5).toString()).toBe('%PDF-');
+
+        // A channel the design is not sold in is a bad URL, not something to answer with another channel
+        const unknown = await page.request.get(`/admin/gift-card-designs/${id}/preview-pdf?channel=no-such-channel`);
+
+        expect(unknown.status()).toBe(404);
+    });
 });
