@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
-const { firstGiftCardId, firstDesignId, channelBaseCurrencyCode, currencyOtherThan } = require('../support/fixtures');
+const { firstGiftCardId, firstDesignId, giftCardCode, channelBaseCurrencyCode, currencyOtherThan } = require('../support/fixtures');
+const { pdfPageCount, pdfText } = require('../support/pdf');
 
 test.describe('admin gift cards', () => {
     test('the index renders and offers the plugin actions', async ({ page }) => {
@@ -235,14 +236,31 @@ test.describe('admin gift cards', () => {
         await expect(page.locator('.sylius-validation-error').first()).toBeVisible();
     });
 
+    /**
+     * The back of the card is the only place the customer finds the code again, so it is not enough that the
+     * endpoint answers with a valid PDF: the code and the redemption copy have to be drawn on it
+     */
     test('a gift card PDF can be downloaded', async ({ page }) => {
         const id = await firstGiftCardId(page);
+        const code = await giftCardCode(page, id);
 
         const response = await page.request.get(`/admin/gift-cards/${id}/pdf`);
 
         expect(response.status()).toBe(200);
         expect(response.headers()['content-type']).toContain('application/pdf');
-        expect((await response.body()).subarray(0, 5).toString()).toBe('%PDF-');
+
+        const body = await response.body();
+        expect(body.subarray(0, 5).toString()).toBe('%PDF-');
+
+        // front and back, drawn on the configured page size (A6 landscape by default)
+        expect(pdfPageCount(body)).toBe(2);
+        expect(body.toString('latin1')).toContain('/MediaBox [0.000 0.000 419.530 297.640]');
+
+        const text = pdfText(body);
+        expect(text).toContain('REDEMPTION CODE');
+        expect(text).toContain(code);
+        // the card is redeemed in this shop's checkout, nowhere else
+        expect(text).not.toContain('in store');
     });
 });
 
@@ -284,6 +302,10 @@ test.describe('admin gift card designs', () => {
         await expect(page.locator('.sylius-validation-error').first()).toBeVisible();
     });
 
+    /**
+     * The seeded design brings a back image, which used to be the whole back of the card: no code, no
+     * redemption copy, no terms. The preview has to show the same back a customer would get
+     */
     test('a design preview PDF is generated', async ({ page }) => {
         const id = await firstDesignId(page);
 
@@ -291,6 +313,15 @@ test.describe('admin gift card designs', () => {
 
         expect(response.status()).toBe(200);
         expect(response.headers()['content-type']).toContain('application/pdf');
-        expect((await response.body()).subarray(0, 5).toString()).toBe('%PDF-');
+
+        const body = await response.body();
+        expect(body.subarray(0, 5).toString()).toBe('%PDF-');
+        expect(pdfPageCount(body)).toBe(2);
+
+        const text = pdfText(body);
+        expect(text).toContain('REDEMPTION CODE');
+        expect(text).toContain('HOW TO REDEEM');
+        // the preview card's code is generated, so only its shape is known
+        expect(text).toMatch(/[A-Z0-9]{4}-[A-Z0-9]{4}/);
     });
 });

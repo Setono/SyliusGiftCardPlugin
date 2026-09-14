@@ -12,7 +12,6 @@
         <service id="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardCodeRuntime"
                  class="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardCodeRuntime">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\BarcodeGeneratorInterface"/>
 
             <tag name="twig.runtime"/>
         </service>

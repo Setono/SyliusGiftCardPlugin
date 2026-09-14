@@ -14,7 +14,6 @@ final class GiftCardCodeExtension extends AbstractExtension
     {
         return [
             new TwigFilter('setono_gift_card_format_code', [GiftCardCodeRuntime::class, 'format']),
-            new TwigFilter('setono_gift_card_barcode', [GiftCardCodeRuntime::class, 'barcode']),
         ];
     }
 }

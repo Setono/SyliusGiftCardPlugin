@@ -106,29 +106,6 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * The back used to print a hardcoded array of bar widths: the same drawing on every card, encoding nothing,
-     * next to copy telling the customer to have it scanned in a store
-     *
-     * @test
-     */
-    public function it_pictures_the_code_as_a_real_barcode(): void
-    {
-        $html = $this->renderPdfHtml($this->createGiftCard('PDFTEST0000000001'), 'en_US');
-        $other = $this->renderPdfHtml($this->createGiftCard('PDFTEST0000000002'), 'en_US');
-
-        self::assertSame(1, preg_match('#<img src="data:image/svg\+xml;base64,([^"]+)"#', $html, $matches));
-        self::assertSame(1, preg_match('#<img src="data:image/svg\+xml;base64,([^"]+)"#', $other, $otherMatches));
-
-        $barcode = base64_decode($matches[1], true);
-        self::assertIsString($barcode);
-        self::assertStringStartsWith('<svg', $barcode);
-        self::assertStringContainsString('<rect', $barcode);
-
-        // a barcode that pictures the code differs from card to card; the hardcoded one never did
-        self::assertNotSame($matches[1], $otherMatches[1]);
-    }
-
-    /**
      * A design's back image used to be the whole back: no code, no redemption copy, no terms. The one thing the
      * back of a gift card is for cannot depend on whether the merchant uploaded artwork
      *

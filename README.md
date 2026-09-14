@@ -204,8 +204,6 @@ Gift cards render to PDF with [dompdf](https://github.com/dompdf/dompdf). Overri
 
 The card is laid out on a fixed 560×396 pixel grid — A6 landscape — and is scaled onto whatever `pdf.page_size` is configured, so the layout is defined in one place and works on any paper.
 
-The back prints a Code 128 barcode of the code. It comes from `Setono\SyliusGiftCardPlugin\Generator\BarcodeGeneratorInterface`, which returns an image data URI: replace it to picture the code differently, for example as a QR code.
-
 ### Customizing the emails
 
 The plugin sends two emails: `setono_sylius_gift_card__gift_card` (a single gift card, sent when one is created in the admin panel) and `setono_sylius_gift_card__gift_cards_from_order` (all gift cards from a paid order, sent to the buyer). Override their templates at `@SetonoSyliusGiftCardPlugin/email/gift_card.html.twig` and `@SetonoSyliusGiftCardPlugin/email/gift_cards_from_order.html.twig`, or redefine the emails under the `sylius_mailer` key to change the sender or subject.
