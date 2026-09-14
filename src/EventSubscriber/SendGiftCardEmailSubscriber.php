@@ -11,6 +11,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Emails a gift card to its customer right after an admin creates it, if the admin asked for a notification
+ * and the card is usable
  */
 final class SendGiftCardEmailSubscriber implements EventSubscriberInterface
 {
@@ -34,6 +35,13 @@ final class SendGiftCardEmailSubscriber implements EventSubscriberInterface
         }
 
         if (null === $giftCard->getCustomer() || !$giftCard->getSendNotificationEmail()) {
+            return;
+        }
+
+        // A card the customer cannot use yet (created disabled, already expired or without a balance) would
+        // arrive as a gift that does not work, so it is not sent. The admin sends it themselves, from the show
+        // page, once the card is usable
+        if (!$giftCard->isUsable()) {
             return;
         }
 

@@ -8,6 +8,7 @@ setono_sylius_gift_card:
             custom_message_placeholder: Ce message sera imprimé sur le chèque-cadeau...
             expires_at: Expire le
             send_notification_email: Envoyer un email de notification
+            send_notification_email_help: "Envoyé uniquement lorsque le chèque-cadeau est utilisable : activé, non expiré et avec un solde restant. Sinon, envoyez-le depuis la page du chèque-cadeau une fois qu'il l'est."
         gift_card_design:
             position: Position
             images: Images
@@ -50,6 +51,7 @@ setono_sylius_gift_card:
         outstanding_balance_help: Le solde total encore disponible sur tous les chèques-cadeaux utilisables, groupé par devise.
         preview_message: 'Joyeux anniversaire ! Profitez bien de ce cadeau.'
         preview_pdf: Aperçu du PDF
+        send_email: Envoyer un email
         total: Total
         your_message_here: Votre message ici
         design: Modèle

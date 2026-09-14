@@ -114,6 +114,66 @@ test.describe('admin gift cards', () => {
         expect(displayed).toMatch(/^([A-Z0-9]{4}-)*[A-Z0-9]{1,4}$/);
     });
 
+    /**
+     * A card created disabled or expired is not emailed on creation, so the admin needs a way to send it once
+     * it is usable — and a way to resend one the customer lost. Sending reaches the customer, so it may only
+     * happen through a POST carrying a CSRF token: a link would be followed by a browser prefetch.
+     */
+    test('a gift card can be emailed from the show page', async ({ page }) => {
+        const id = await firstGiftCardId(page);
+
+        await page.goto(`/admin/gift-cards/${id}`);
+
+        const form = page.locator(`form[action="/admin/gift-cards/${id}/send-email"]`);
+        await expect(form).toHaveCount(1);
+        await expect(form.locator('input[name="_csrf_token"]')).toHaveCount(1);
+
+        // Whether the card reaches anybody depends on the card, so read the answer off the page rather than
+        // assuming what the fixtures seeded
+        const hasCustomer = 0 === await page.getByText('No customer', { exact: true }).count();
+
+        await form.locator('button[type="submit"]').click();
+
+        await expect(page).toHaveURL(new RegExp(`/admin/gift-cards/${id}$`));
+        const flash = page.locator('.sylius-flash-message').first();
+        await expect(flash).toBeVisible();
+        await expect(flash).toContainText(hasCustomer ? /emailed to the customer/i : /no customer email address/i);
+    });
+
+    test('the grid offers sending as a POST, not a link', async ({ page }) => {
+        await page.goto('/admin/gift-cards/');
+
+        const forms = page.locator('form[action$="/send-email"]');
+        await expect(forms.first()).toBeVisible();
+        await expect(forms.first().locator('input[name="_csrf_token"]')).toHaveCount(1);
+        // A link would let a prefetch send the card behind the admin's back
+        await expect(page.locator('a[href$="/send-email"]')).toHaveCount(0);
+    });
+
+    test('a gift card is not emailed by a GET or without a CSRF token', async ({ page }) => {
+        const id = await firstGiftCardId(page);
+
+        const get = await page.request.get(`/admin/gift-cards/${id}/send-email`, { maxRedirects: 0 });
+        expect(get.status()).toBe(405);
+
+        const post = await page.request.post(`/admin/gift-cards/${id}/send-email`, {
+            form: { _csrf_token: 'forged' },
+            maxRedirects: 0,
+        });
+        expect(post.status()).toBe(403);
+    });
+
+    /**
+     * The checkbox promises an email that a disabled or expired card never gets, so the form has to say when
+     * the notification is actually sent
+     */
+    test('the notification checkbox explains when nothing is sent', async ({ page }) => {
+        await page.goto('/admin/gift-cards/new');
+
+        await expect(page.locator('[name*="[sendNotificationEmail]"]')).toHaveCount(1);
+        await expect(page.getByText(/only sent when the gift card is usable/i)).toBeVisible();
+    });
+
     test('a gift card PDF can be downloaded', async ({ page }) => {
         const id = await firstGiftCardId(page);
 

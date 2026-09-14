@@ -4,5 +4,7 @@ setono_sylius_gift_card:
         could_not_be_applied: The gift card could not be applied to your order.
         balance_adjusted: The gift card balance was adjusted
         product_created: A gift card product was created. Review and enable it below.
+        email_sent: The gift card was emailed to the customer
+        email_not_sent_no_customer: The gift card has no customer email address, so it could not be sent.
     gift_card_added: Gift card was added to your order
     gift_card_removed: Gift card removed from your order
