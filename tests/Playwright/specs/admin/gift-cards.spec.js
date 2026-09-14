@@ -174,6 +174,24 @@ test.describe('admin gift cards', () => {
         await expect(page.getByText(/only sent when the gift card is usable/i)).toBeVisible();
     });
 
+    /**
+     * The amount is written into the gift card while the form is submitted, before validation runs, so a
+     * blank amount used to reach the non nullable setter and end the request in a 500
+     */
+    test('issuing a card without an amount is a validation error, not a crash', async ({ page }) => {
+        await page.goto('/admin/gift-cards/new');
+
+        await page.locator('input[name$="[amount]"]').fill('');
+
+        const [response] = await Promise.all([
+            page.waitForResponse((r) => r.request().method() === 'POST'),
+            page.locator('form[name="setono_sylius_gift_card_gift_card"] button[type="submit"]').first().click(),
+        ]);
+
+        expect(response.status()).toBeLessThan(500);
+        await expect(page.locator('.sylius-validation-error').first()).toBeVisible();
+    });
+
     test('a gift card PDF can be downloaded', async ({ page }) => {
         const id = await firstGiftCardId(page);
 
@@ -199,6 +217,30 @@ test.describe('admin gift card designs', () => {
         const response = await page.goto(`/admin/gift-card-designs/${id}/edit`);
 
         expect(response?.status()).toBe(200);
+    });
+
+    /**
+     * The position field is optional, but it too was written into a non nullable setter while the form was
+     * submitted, so saving a design without a position ended in a 500. Blank now means the default position.
+     */
+    test('a design saves without a position', async ({ page }) => {
+        const id = await firstDesignId(page);
+
+        await page.goto(`/admin/gift-card-designs/${id}/edit`);
+        await page.locator('input[name$="[position]"]').fill('');
+
+        const [response] = await Promise.all([
+            page.waitForResponse((r) => r.request().method() === 'POST'),
+            page
+                .locator('form[name="setono_sylius_gift_card_gift_card_design"] button[type="submit"]')
+                .first()
+                .click(),
+        ]);
+
+        expect(response.status()).toBeLessThan(500);
+
+        await page.goto(`/admin/gift-card-designs/${id}/edit`);
+        await expect(page.locator('input[name$="[position]"]')).toHaveValue('0');
     });
 
     test('a design preview PDF is generated', async ({ page }) => {

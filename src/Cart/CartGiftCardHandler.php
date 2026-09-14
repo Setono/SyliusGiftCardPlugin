@@ -34,6 +34,10 @@ final class CartGiftCardHandler implements CartGiftCardHandlerInterface
 
         $amount = $information->getAmount();
 
+        // The information object carries a blank amount until validation has passed, and this handler only
+        // ever runs on a valid form
+        Assert::notNull($amount);
+
         // Fix the price to the customer chosen amount and prevent Sylius from recalculating it
         $cartItem->setUnitPrice($amount);
         $cartItem->setImmutable(true);

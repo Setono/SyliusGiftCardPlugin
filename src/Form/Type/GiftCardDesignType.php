@@ -28,6 +28,9 @@ final class GiftCardDesignType extends AbstractResourceType
             ->add('position', IntegerType::class, [
                 'label' => 'setono_sylius_gift_card.form.gift_card_design.position',
                 'required' => false,
+                // The field is optional, and the data mapper writes the submitted value into the non-nullable
+                // setter before validation runs, so a blank position means the default position, not null
+                'empty_data' => '0',
             ])
             ->add('channels', ChannelChoiceType::class, [
                 'label' => 'sylius.ui.channels',
