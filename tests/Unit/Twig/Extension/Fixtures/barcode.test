@@ -1,0 +1,14 @@
+--TEST--
+"setono_gift_card_barcode" renders the normalized code as an SVG data URI and yields null without a code
+--TEMPLATE--
+{{ ('abcd-efgh'|setono_gift_card_barcode) starts with 'data:image/svg+xml' ? 'svg' : 'other' }}
+{{ ('abcd-efgh'|setono_gift_card_barcode) == ('ABCDEFGH'|setono_gift_card_barcode) ? 'same' : 'different' }}
+{{ null|setono_gift_card_barcode is null ? 'null' : 'other' }}
+{{ '--'|setono_gift_card_barcode is null ? 'null' : 'other' }}
+--DATA--
+return []
+--EXPECT--
+svg
+same
+null
+null
