@@ -191,7 +191,7 @@ setono_sylius_gift_card:
     redemption:
         payment_method_code: gift_card   # code of the (auto-created) payment method a redeemed gift card is paid with
     pdf:
-        page_size: A6                    # any page size supported by dompdf
+        page_size: A6                    # any page size supported by dompdf; the card scales to fill it
 ```
 
 ## Customization
@@ -201,6 +201,10 @@ Every extension point below is a plain service or template you replace — no co
 ### Customizing the PDF
 
 Gift cards render to PDF with [dompdf](https://github.com/dompdf/dompdf). Override `@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig` to change the layout, or replace/decorate `Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface` to use a different engine.
+
+The card is laid out on a fixed 560×396 pixel grid — A6 landscape — and is scaled onto whatever `pdf.page_size` is configured, so the layout is defined in one place and works on any paper.
+
+The back prints a Code 128 barcode of the code. It comes from `Setono\SyliusGiftCardPlugin\Generator\BarcodeGeneratorInterface`, which returns an image data URI: replace it to picture the code differently, for example as a QR code.
 
 ### Customizing the emails
 

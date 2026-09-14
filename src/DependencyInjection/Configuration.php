@@ -76,7 +76,7 @@ final class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('page_size')
-                            ->info('The paper size used when rendering gift card PDFs (any size supported by dompdf, e.g. A4, A6, letter)')
+                            ->info('The paper size used when rendering gift card PDFs (any size supported by dompdf, e.g. A4, A6, letter). The card is scaled to fill it')
                             ->defaultValue('A6')
                             ->cannotBeEmpty()
                         ->end()
