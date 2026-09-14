@@ -15,6 +15,9 @@ const { ADMIN_STORAGE_STATE } = require('../support/paths');
 
 const GIFT_CARD_FIELD = '[name="setono_sylius_gift_card_add_gift_card_to_order[giftCard]"]';
 
+// Codes are shown grouped in fours for reading (GiftCardCodeNormalizer::format()); the raw code only appears in form actions
+const grouped = (code) => code.match(/.{1,4}/g).join('-');
+
 /**
  * Issues a card through the admin form and returns its code and edit url. Big enough to cover any cart, so the
  * checkout skips the payment step.
@@ -113,7 +116,8 @@ async function applyGiftCard(page, code) {
     await giftCardForm.locator('button[type="submit"]').first().click();
     await page.waitForLoadState('networkidle');
 
-    await expect(page.getByText(code, { exact: false }).first()).toBeVisible();
+    // the cart lists the code grouped in fours, so the row is found through its remove form, which carries the raw code
+    await expect(page.locator(`form[action*="/gift-cards/${code}/remove"]`)).toBeVisible();
 }
 
 /**
@@ -163,7 +167,7 @@ test.describe('a gift card going stale during checkout', () => {
         await page.waitForLoadState('networkidle');
 
         await expect(page).toHaveURL(/\/en_US\/cart\/?$/);
-        await expect(page.locator('.sylius-flash-message').filter({ hasText: code })).toBeVisible();
+        await expect(page.locator('.sylius-flash-message').filter({ hasText: grouped(code) })).toBeVisible();
         await expect(page.locator('.sylius-flash-message').filter({ hasText: 'can no longer be used' })).toBeVisible();
         // the card is gone from the cart and the order costs what it did, now to be paid by other means
         await expect(page.locator(`form[action*="/gift-cards/${code}/remove"]`)).toHaveCount(0);
@@ -183,6 +187,6 @@ test.describe('a gift card going stale during checkout', () => {
         const response = await page.goto('/en_US/checkout/complete');
         expect(response?.status()).toBe(200);
         await expect(page).toHaveURL(/\/en_US\/cart\/?$/);
-        await expect(page.locator('.sylius-flash-message').filter({ hasText: code })).toBeVisible();
+        await expect(page.locator('.sylius-flash-message').filter({ hasText: grouped(code) })).toBeVisible();
     });
 });

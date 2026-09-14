@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Setono\SyliusGiftCardPlugin\Guard;
+namespace Setono\SyliusGiftCardPlugin\StateMachine;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
@@ -27,7 +27,7 @@ interface GiftCardCoverageGuardInterface
      *
      * @return list<GiftCardInterface>
      */
-    public function getInapplicableGiftCards(OrderInterface $order): array;
+    public function getIneligibleGiftCards(OrderInterface $order): array;
 
     /**
      * Whether what the gift cards cover and what the order's other payments collect add up to the order total

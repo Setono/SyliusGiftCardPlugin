@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Validator\Constraints;
 
-use Setono\SyliusGiftCardPlugin\Checker\GiftCardApplicabilityCheckerInterface;
-use Setono\SyliusGiftCardPlugin\Checker\GiftCardInapplicabilityReason;
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface;
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardIneligibilityReason;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
@@ -18,7 +18,7 @@ final class GiftCardIsApplicableValidator extends ConstraintValidator
 {
     public function __construct(
         private readonly CartContextInterface $cartContext,
-        private readonly GiftCardApplicabilityCheckerInterface $applicabilityChecker,
+        private readonly GiftCardEligibilityCheckerInterface $eligibilityChecker,
     ) {
     }
 
@@ -38,14 +38,14 @@ final class GiftCardIsApplicableValidator extends ConstraintValidator
 
         $order = $this->getCart();
 
-        $reason = $this->applicabilityChecker->getInapplicabilityReason($value, $order);
+        $reason = $this->eligibilityChecker->getIneligibilityReason($value, $order);
         if (null !== $reason) {
             $this->context->addViolation(match ($reason) {
-                GiftCardInapplicabilityReason::NotEnabled => $constraint->notEnabledMessage,
-                GiftCardInapplicabilityReason::Expired => $constraint->expiredMessage,
-                GiftCardInapplicabilityReason::NoBalance => $constraint->emptyMessage,
-                GiftCardInapplicabilityReason::ChannelMismatch => $constraint->channelMismatchMessage,
-                GiftCardInapplicabilityReason::CurrencyMismatch => $constraint->currencyMismatchMessage,
+                GiftCardIneligibilityReason::NotEnabled => $constraint->notEnabledMessage,
+                GiftCardIneligibilityReason::Expired => $constraint->expiredMessage,
+                GiftCardIneligibilityReason::NoBalance => $constraint->emptyMessage,
+                GiftCardIneligibilityReason::ChannelMismatch => $constraint->channelMismatchMessage,
+                GiftCardIneligibilityReason::CurrencyMismatch => $constraint->currencyMismatchMessage,
             });
 
             return;
