@@ -13,15 +13,26 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 /**
  * Scaffolds a ready-to-edit gift card product (with a delivery option and virtual + physical variants) so the
- * merchant does not have to assemble it by hand. It is created disabled so the merchant can review it first
+ * merchant does not have to assemble it by hand. It is created disabled so the merchant can review it first.
+ *
+ * Every request creates another product, so the route only takes a POST carrying a CSRF token: a plain link
+ * could be hit by a browser prefetch or an <img src> on any page the admin visits
  */
 final class CreateGiftCardProductAction
 {
     use ORMTrait;
+
+    /**
+     * The id of the CSRF token the request must carry; the grid action rendering the form uses the same id
+     */
+    public const CSRF_TOKEN_ID = 'setono_create_gift_card_product';
 
     private const CODE = 'gift_card';
 
@@ -33,12 +44,18 @@ final class CreateGiftCardProductAction
         private readonly RepositoryInterface $productRepository,
         ManagerRegistry $managerRegistry,
         private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly CsrfTokenManagerInterface $csrfTokenManager,
     ) {
         $this->managerRegistry = $managerRegistry;
     }
 
     public function __invoke(Request $request): Response
     {
+        $token = (string) $request->request->get('_csrf_token');
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken(self::CSRF_TOKEN_ID, $token))) {
+            throw new AccessDeniedHttpException('Invalid CSRF token.');
+        }
+
         $product = $this->productFactory->create($this->provideCode(), 'Gift card', enabled: false);
 
         $manager = $this->getManager($product);
