@@ -11,7 +11,6 @@
     ],
     "require": {
         "php": ">=8.1",
-        "ext-filter": "*",
         "ext-mbstring": "*",
         "doctrine/collections": "^1.8 || ^2.0",
         "doctrine/orm": "^2.14",
