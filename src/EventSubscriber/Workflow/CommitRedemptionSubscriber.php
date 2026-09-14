@@ -26,7 +26,10 @@ final class CommitRedemptionSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'workflow.sylius_order.completed.create' => '__invoke',
+            // After Sylius' RequestOrderPaymentListener (700) has put the order in awaiting_payment and its
+            // CreatePaymentListener (600) has created the gateway payments, so the gift card payments join a complete
+            // set the payment state resolver can settle the order from. Mirrors the winzou priority -50
+            'workflow.sylius_order.completed.create' => ['__invoke', 50],
         ];
     }
 
