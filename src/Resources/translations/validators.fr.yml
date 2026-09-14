@@ -15,6 +15,10 @@ setono_sylius_gift_card:
             integer: Le montant doit être un entier
             min: Le montant ne doit pas être inférieur à 1
             greater_than_or_equal: Le montant doit être supérieur ou égal à 1
+        currency_code:
+            not_blank: Veuillez choisir une devise
+            invalid: Cette devise n'est pas valide
+            not_in_channel: 'La devise {{ currency }} n''est pas disponible sur le canal {{ channel }}. Un chèque-cadeau ne peut être utilisé que dans l''une des devises de son canal.'
         send_notification_email:
             boolean: L'envoi de l'email de notification doit être un booléen
         not_enabled: Ce chèque-cadeau n'est pas actif.

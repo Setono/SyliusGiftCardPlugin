@@ -41,6 +41,37 @@ function firstDesignId(page) {
     return firstIdFromGrid(page, '/admin/gift-card-designs/', /\/admin\/gift-card-designs\/(\d+)\/edit$/);
 }
 
+/**
+ * The currencies an order in this channel can be priced in: the channel's currency list plus its base
+ * currency, which the currency context falls back to. Read off the channel's own edit form so nothing here
+ * has to know which currencies the fixtures seeded.
+ *
+ * @param {import('@playwright/test').Page} page an authenticated admin page
+ * @param {string} channelCode
+ * @returns {Promise<string[]>}
+ */
+async function channelCurrencyCodes(page, channelCode) {
+    await page.goto('/admin/channels/');
+
+    const editUrl = await page
+        .locator('table tbody tr', { hasText: channelCode })
+        .locator('a[href$="/edit"]')
+        .first()
+        .getAttribute('href');
+
+    if (null === editUrl) {
+        throw new Error(`No channel with code ${channelCode} in the channels grid`);
+    }
+
+    await page.goto(editUrl);
+
+    const codes = await page
+        .locator('select[name*="[baseCurrency]"], select[name*="[currencies]"]')
+        .evaluateAll((selects) => selects.flatMap((s) => Array.from(s.selectedOptions).map((o) => o.value)));
+
+    return [...new Set(codes.filter((code) => '' !== code))];
+}
+
 /** @type {{simple: string|null, configurable: string|null, giftCard: string|null}|null} */
 let productCache = null;
 
@@ -104,4 +135,4 @@ async function productIdsByKind(page) {
     return result;
 }
 
-module.exports = { firstGiftCardId, firstDesignId, productIdsByKind };
+module.exports = { firstGiftCardId, firstDesignId, channelCurrencyCodes, productIdsByKind };

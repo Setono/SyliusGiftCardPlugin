@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Form\Type;
 
 use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Form\Type\CustomerAutocompleteChoiceType;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
 use Sylius\Bundle\ResourceBundle\Form\Type\ResourceAutocompleteChoiceType;
+use Sylius\Component\Core\Model\Channel;
+use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Registry\ServiceRegistryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
@@ -29,6 +33,8 @@ final class GiftCardTypeTest extends TypeTestCase
 {
     use ProphecyTrait;
 
+    private ChannelInterface $channel;
+
     /** @test */
     public function it_maps_a_valid_submission_and_seeds_the_initial_amount(): void
     {
@@ -37,6 +43,8 @@ final class GiftCardTypeTest extends TypeTestCase
         $form = $this->factory->create(GiftCardType::class, $giftCard);
         $form->submit([
             'code' => 'GIFTCARDCODE',
+            'channel' => 'WEB',
+            'currencyCode' => 'DKK',
             'amount' => '50',
         ]);
 
@@ -72,13 +80,66 @@ final class GiftCardTypeTest extends TypeTestCase
         self::assertSame('setono_sylius_gift_card.gift_card.amount.not_blank', $form->get('amount')->getErrors()[0]->getMessage());
     }
 
+    /** @test */
+    public function it_lets_the_currency_be_chosen_while_the_card_is_new(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setChannel($this->channel);
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+
+        self::assertTrue($form->has('channel'));
+        self::assertTrue($form->has('currencyCode'));
+        self::assertFalse($form->get('currencyCode')->isDisabled());
+        // The channel's base currency is offered first
+        self::assertSame(['DKK'], $form->get('currencyCode')->getConfig()->getOption('preferred_choices'));
+
+        $form->submit([
+            'code' => 'NEWCARD',
+            'channel' => 'WEB',
+            'currencyCode' => 'EUR',
+            'amount' => '100',
+        ]);
+
+        self::assertTrue($form->isSynchronized());
+        self::assertSame('EUR', $giftCard->getCurrencyCode());
+    }
+
+    /** @test */
+    public function it_shows_the_currency_but_locks_it_once_the_card_exists(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setChannel($this->channel);
+        $giftCard->setCurrencyCode('DKK');
+        $giftCard->setCode('EXISTING');
+        (new \ReflectionProperty(GiftCard::class, 'id'))->setValue($giftCard, 1);
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+
+        self::assertFalse($form->has('channel'));
+        self::assertTrue($form->has('currencyCode'));
+        self::assertTrue($form->get('currencyCode')->isDisabled());
+
+        // A disabled field ignores whatever is submitted for it, so the card keeps the currency it was issued in
+        $form->submit([
+            'currencyCode' => 'EUR',
+        ]);
+
+        self::assertTrue($form->isSynchronized());
+        self::assertSame('DKK', $giftCard->getCurrencyCode());
+    }
+
     /**
      * @return list<FormExtensionInterface>
      */
     protected function getExtensions(): array
     {
-        /** @var RepositoryInterface<CurrencyInterface> $currencyRepository */
-        $currencyRepository = $this->prophesize(RepositoryInterface::class)->reveal();
+        $this->channel = $this->channel();
+
+        /** @var ObjectProphecy<RepositoryInterface<CurrencyInterface>> $currencyRepositoryProphecy */
+        $currencyRepositoryProphecy = $this->prophesize(RepositoryInterface::class);
+        $currencyRepositoryProphecy->findAll()->willReturn([$this->currency('DKK'), $this->currency('EUR')]);
+        $currencyRepository = $currencyRepositoryProphecy->reveal();
 
         $codeGenerator = $this->prophesize(GiftCardCodeGeneratorInterface::class);
         $codeGenerator->generate()->willReturn('GENERATEDCODE');
@@ -91,7 +152,7 @@ final class GiftCardTypeTest extends TypeTestCase
         );
 
         $channelRepository = $this->prophesize(RepositoryInterface::class);
-        $channelRepository->findAll()->willReturn([]);
+        $channelRepository->findAll()->willReturn([$this->channel]);
 
         $customerRepository = $this->prophesize(RepositoryInterface::class);
 
@@ -124,5 +185,23 @@ final class GiftCardTypeTest extends TypeTestCase
             ]))
             ->getValidator()
         ;
+    }
+
+    private function channel(): ChannelInterface
+    {
+        $channel = new Channel();
+        $channel->setCode('WEB');
+        $channel->setName('Web store');
+        $channel->setBaseCurrency($this->currency('DKK'));
+
+        return $channel;
+    }
+
+    private function currency(string $code): CurrencyInterface
+    {
+        $currency = new Currency();
+        $currency->setCode($code);
+
+        return $currency;
     }
 }

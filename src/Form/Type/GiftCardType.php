@@ -122,12 +122,16 @@ final class GiftCardType extends AbstractResourceType
             $preferredCurrency = $channel instanceof ChannelInterface ? $channel->getBaseCurrency() : null;
             $preferredChoices = $preferredCurrency instanceof CurrencyInterface ? [$preferredCurrency->getCode()] : [];
 
+            // The currency is part of the card's value: the balance and every ledger row are integers in its minor
+            // units, so changing it after issuance would silently revalue the card. Like the channel it is chosen
+            // while the card is new; afterwards it is shown, but locked
             $event->getForm()->add('currencyCode', ChoiceType::class, [
                 'label' => 'sylius.ui.currency',
                 'choices' => $this->currencyRepository->findAll(),
                 'choice_label' => 'code',
                 'choice_value' => 'code',
                 'preferred_choices' => $preferredChoices,
+                'disabled' => null !== $giftCard->getId(),
             ]);
         });
 

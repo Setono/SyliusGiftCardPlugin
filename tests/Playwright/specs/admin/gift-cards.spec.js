@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { firstGiftCardId, firstDesignId } = require('../support/fixtures');
+const { firstGiftCardId, firstDesignId, channelCurrencyCodes } = require('../support/fixtures');
 
 test.describe('admin gift cards', () => {
     test('the index renders and offers the plugin actions', async ({ page }) => {
@@ -53,6 +53,51 @@ test.describe('admin gift cards', () => {
 
         await page.goto('/admin/gift-cards/new');
         await expect(page.locator('[name*="[amount]"]')).toHaveCount(1);
+    });
+
+    /**
+     * The currency denominates the balance and every ledger row, none of which carry a currency of their
+     * own, so switching it on a live card silently revalues it. Like the channel it is chosen while the
+     * card is being issued; afterwards it is shown, because the amounts mean nothing without it, but locked.
+     */
+    test('the currency can only be chosen while issuing a card', async ({ page }) => {
+        const id = await firstGiftCardId(page);
+
+        await page.goto(`/admin/gift-cards/${id}/edit`);
+        const onEdit = page.locator('select[name*="[currencyCode]"]');
+        await expect(onEdit).toHaveCount(1);
+        await expect(onEdit).toBeDisabled();
+
+        await page.goto('/admin/gift-cards/new');
+        const onNew = page.locator('select[name*="[currencyCode]"]');
+        await expect(onNew).toHaveCount(1);
+        await expect(onNew).toBeEnabled();
+    });
+
+    /**
+     * The list offers every currency the shop knows, but an order is only ever priced in one of its
+     * channel's currencies, so a card issued outside them can never be redeemed. The form is the only
+     * place where an admin can find that out before the customer does.
+     */
+    test('a currency the channel does not offer is rejected when issuing a card', async ({ page }) => {
+        await page.goto('/admin/gift-cards/new');
+
+        const channelCode = await page.locator('select[name*="[channel]"]').inputValue();
+        const offered = await channelCurrencyCodes(page, channelCode);
+
+        await page.goto('/admin/gift-cards/new');
+        const currency = page.locator('select[name*="[currencyCode]"]');
+        const codes = await currency.locator('option').evaluateAll((options) => options.map((o) => o.value));
+        const foreign = codes.find((code) => '' !== code && !offered.includes(code));
+        expect(foreign, `every currency on the form is one of ${channelCode}'s`).toBeTruthy();
+
+        await currency.selectOption(foreign);
+        await page.locator('input[name*="[amount]"]').fill('100');
+        await page.getByRole('button', { name: /create/i }).first().click();
+
+        // The message has to be translated, not a raw key: constraint messages resolve in the validators domain
+        await expect(page.locator('.sylius-validation-error').first())
+            .toContainText(/is not available in the channel/i);
     });
 
     /**
