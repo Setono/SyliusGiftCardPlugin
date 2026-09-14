@@ -18,6 +18,11 @@ final class DompdfGiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
         private readonly string $pageSize,
         private readonly string $publicDir,
         private readonly string $mediaDir = 'media/image',
+        /**
+         * Dompdf only ever receives absolute paths below the chrooted public dir, so remote resource loading is
+         * off unless a host explicitly opts in (for example to render design images served from a CDN).
+         */
+        private readonly bool $remoteEnabled = false,
     ) {
     }
 
@@ -31,7 +36,7 @@ final class DompdfGiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
         ]);
 
         $options = new Options();
-        $options->set('isRemoteEnabled', true);
+        $options->set('isRemoteEnabled', $this->remoteEnabled);
         $options->set('defaultFont', 'DejaVu Sans');
         $options->set('chroot', $this->publicDir);
 
