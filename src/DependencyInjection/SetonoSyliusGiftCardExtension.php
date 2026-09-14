@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
+use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
@@ -189,6 +190,13 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                 ],
             ],
             'sylius_grid' => [
+                'templates' => [
+                    'action' => [
+                        // A form that POSTs with a CSRF token, for actions that change state and so must not
+                        // be reachable through a plain link
+                        'setono_sylius_gift_card_post_link' => '@SetonoSyliusGiftCardPlugin/admin/grid/action/post_link.html.twig',
+                    ],
+                ],
                 'grids' => [
                     'setono_sylius_gift_card_admin_gift_card' => [
                         'driver' => [
@@ -266,13 +274,17 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                 'create' => [
                                     'type' => 'create',
                                 ],
+                                // Every hit creates another product, so this is a POST form with a CSRF token
+                                // rather than a link, and it asks for confirmation first
                                 'create_product' => [
-                                    'type' => 'default',
+                                    'type' => 'setono_sylius_gift_card_post_link',
                                     'label' => 'setono_sylius_gift_card.ui.create_gift_card_product',
                                     'options' => [
                                         'link' => [
                                             'route' => 'setono_sylius_gift_card_admin_create_gift_card_product',
                                         ],
+                                        'csrf_token_id' => CreateGiftCardProductAction::CSRF_TOKEN_ID,
+                                        'confirmation' => true,
                                     ],
                                     'icon' => 'shopping bag',
                                 ],
