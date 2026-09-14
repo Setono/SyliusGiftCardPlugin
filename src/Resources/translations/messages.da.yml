@@ -91,7 +91,7 @@ setono_sylius_gift_card:
         value: Værdi
         number: 'Nr.'
         how_to_redeem: Sådan indløser du
-        how_to_redeem_text: 'Indtast koden nedenfor ved betaling på vores hjemmeside, eller vis dette kort i butikken for at bruge saldoen på dit køb.'
+        how_to_redeem_text: 'Indtast koden ved betaling på %hostname% for at betale med dit gavekort. Resten bliver stående på kortet til næste gang.'
         redemption_code: Indløsningskode
         terms: 'Vilkår og betingelser gælder. Kortet kan ikke ombyttes til kontanter og kan ikke erstattes ved tab eller tyveri.'
     email:

@@ -41,6 +41,21 @@ function firstDesignId(page) {
     return firstIdFromGrid(page, '/admin/gift-card-designs/', /\/admin\/gift-card-designs\/(\d+)\/edit$/);
 }
 
+/**
+ * The code of a gift card, as the admin shows it - grouped for reading. The fixtures generate codes, so it is
+ * read off the show page rather than known up front.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} id
+ */
+async function giftCardCode(page, id) {
+    await page.goto(`/admin/gift-cards/${id}`);
+
+    const row = page.locator('table tr').filter({ has: page.locator('td strong', { hasText: /^Code$/ }) });
+
+    return (await row.locator('td').nth(1).innerText()).trim();
+}
+
 /** @type {{simple: string|null, configurable: string|null, giftCard: string|null}|null} */
 let productCache = null;
 
@@ -168,6 +183,4 @@ async function currencyOtherThan(page, except) {
     return pick;
 }
 
-module.exports = {
-    channelBaseCurrencyCode,
-    currencyOtherThan, firstGiftCardId, firstDesignId, productIdsByKind };
+module.exports = { channelBaseCurrencyCode, currencyOtherThan, firstDesignId, firstGiftCardId, giftCardCode, productIdsByKind };

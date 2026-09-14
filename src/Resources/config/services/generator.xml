@@ -15,5 +15,6 @@
                  class="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer"/>
         <service id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"
                  alias="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer"/>
+
     </services>
 </container>

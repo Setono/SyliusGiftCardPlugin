@@ -7,6 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImageInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator;
 use Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface;
 use Sylius\Component\Core\Uploader\ImageUploaderInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
@@ -104,7 +105,171 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
         self::assertNotSame($englishMatch[1], $danishMatch[1]);
     }
 
-    private function renderPdfHtml(GiftCardInterface $giftCard, string $localeCode): string
+    /**
+     * A design's back image used to be the whole back: no code, no redemption copy, no terms. The one thing the
+     * back of a gift card is for cannot depend on whether the merchant uploaded artwork
+     *
+     * @test
+     */
+    public function it_overlays_the_code_on_a_back_image(): void
+    {
+        $giftCard = $this->createGiftCard('SUMMER26');
+
+        $withImage = $this->renderPdfHtml($giftCard, 'en_US', '/tmp/back-artwork.png');
+        $withoutImage = $this->renderPdfHtml($giftCard, 'en_US');
+
+        self::assertStringContainsString('/tmp/back-artwork.png', $withImage);
+        self::assertStringNotContainsString('/tmp/back-artwork.png', $withoutImage);
+
+        // the panel the copy is overlaid on, and the copy itself, which only the image variant used to lack
+        self::assertStringContainsString('class="back-panel"', $withImage);
+        foreach (['SUMM-ER26', 'HOW TO REDEEM', 'REDEMPTION CODE'] as $expected) {
+            self::assertStringContainsString($expected, $withImage);
+            self::assertStringContainsString($expected, $withoutImage);
+        }
+    }
+
+    /**
+     * Nothing in the plugin redeems a gift card anywhere but in the shop's own checkout, where it becomes a
+     * payment on the order, so the back may not promise that a shop assistant can scan the card
+     *
+     * @test
+     */
+    public function it_directs_the_customer_to_the_online_checkout(): void
+    {
+        $channel = $this->getChannel();
+        $channel->setHostname('gifts.example.com');
+        $this->manager->flush();
+
+        $html = $this->renderPdfHtml($this->createGiftCard(), 'en_US');
+
+        self::assertStringContainsString('Enter the code at checkout on gifts.example.com', $html);
+        self::assertStringNotContainsString('in store', $html);
+    }
+
+    /**
+     * The card is laid out on a fixed pixel grid that is A6 landscape. Told to render on anything bigger it used
+     * to draw that grid at its literal size into a corner of a mostly empty sheet; it now scales to the page
+     *
+     * @test
+     */
+    public function it_scales_the_card_onto_the_configured_page_size(): void
+    {
+        $giftCard = $this->createGiftCard();
+
+        $a6 = $this->generatePdf($giftCard, 'A6');
+        $a4 = $this->generatePdf($giftCard, 'A4');
+
+        self::assertStringContainsString('/MediaBox [0.000 0.000 419.530 297.640]', $a6);
+        self::assertStringContainsString('/MediaBox [0.000 0.000 841.890 595.280]', $a4);
+
+        // the layout's 42px gutter on its 560px wide grid, i.e. 7.5% of the page - on both page sizes
+        self::assertEqualsWithDelta(0.075, $this->leftmostTextOffset($a6) / 419.53, 0.005);
+        self::assertEqualsWithDelta(0.075, $this->leftmostTextOffset($a4) / 841.89, 0.005);
+    }
+
+    /**
+     * The horizontal offset in points of the leftmost piece of text in the PDF, as it lands on the page. Text
+     * positions are the only part of the layout that survives into the content stream in a form that is cheap to
+     * read back, but the card is drawn under a transformation, so the operators that move things about are
+     * followed: q and Q push and pop the graphics state, cm multiplies the current transformation matrix and the
+     * first Td after BT places the text. What is measured is where the text ends up, however it got there
+     */
+    private function leftmostTextOffset(string $pdf): float
+    {
+        /** @var list<float> $offsets */
+        $offsets = [];
+
+        preg_match_all('#stream(.*?)endstream#s', $pdf, $streams);
+        foreach ($streams[1] as $stream) {
+            $content = @gzuncompress(ltrim($stream, "\r\n"));
+            if (!is_string($content)) {
+                continue;
+            }
+
+            $identity = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
+            $matrix = $identity;
+            $stack = [];
+
+            preg_match_all(
+                '#(?:^|\s)(q|Q)(?=\s)|(-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) cm|BT (-?[\d.]+) (-?[\d.]+) Td#',
+                $content,
+                $operators,
+                \PREG_SET_ORDER | \PREG_UNMATCHED_AS_NULL,
+            );
+
+            foreach ($operators as $operator) {
+                $state = $operator[1] ?? null;
+                $cm = $operator[2] ?? null;
+                $x = $operator[8] ?? null;
+                $y = $operator[9] ?? null;
+
+                if ('q' === $state) {
+                    $stack[] = $matrix;
+                } elseif ('Q' === $state) {
+                    $matrix = array_pop($stack) ?? $identity;
+                } elseif (null !== $cm) {
+                    $matrix = self::multiply([
+                        (float) $cm,
+                        (float) ($operator[3] ?? 0),
+                        (float) ($operator[4] ?? 0),
+                        (float) ($operator[5] ?? 0),
+                        (float) ($operator[6] ?? 0),
+                        (float) ($operator[7] ?? 0),
+                    ], $matrix);
+                } elseif (null !== $x && null !== $y) {
+                    $offsets[] = $matrix[0] * (float) $x + $matrix[2] * (float) $y + $matrix[4];
+                }
+            }
+        }
+
+        self::assertNotEmpty($offsets, 'The PDF contains no text to measure the layout by');
+
+        return min($offsets);
+    }
+
+    /**
+     * The product of two PDF transformation matrices [a b c d e f], the way cm concatenates them
+     *
+     * @param list<float> $left
+     * @param list<float> $right
+     *
+     * @return list<float>
+     */
+    private static function multiply(array $left, array $right): array
+    {
+        [$a1, $b1, $c1, $d1, $e1, $f1] = $left;
+        [$a2, $b2, $c2, $d2, $e2, $f2] = $right;
+
+        return [
+            $a1 * $a2 + $b1 * $c2,
+            $a1 * $b2 + $b1 * $d2,
+            $c1 * $a2 + $d1 * $c2,
+            $c1 * $b2 + $d1 * $d2,
+            $e1 * $a2 + $f1 * $c2 + $e2,
+            $e1 * $b2 + $f1 * $d2 + $f2,
+        ];
+    }
+
+    private function generatePdf(GiftCardInterface $giftCard, string $pageSize): string
+    {
+        /** @var Environment $twig */
+        $twig = self::getContainer()->get('twig');
+
+        $publicDir = self::getContainer()->getParameter('sylius_core.public_dir');
+        self::assertIsString($publicDir);
+
+        $generator = new DompdfGiftCardPdfGenerator(
+            $twig,
+            '@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig',
+            $pageSize,
+            $publicDir,
+        );
+
+        return $generator->generate($giftCard);
+    }
+
+    private function renderPdfHtml(GiftCardInterface $giftCard, string $localeCode, ?string $backImagePath = null): string
     {
         /** @var Environment $twig */
         $twig = self::getContainer()->get('twig');
@@ -113,7 +278,7 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
             'giftCard' => $giftCard,
             'localeCode' => $localeCode,
             'frontImagePath' => null,
-            'backImagePath' => null,
+            'backImagePath' => $backImagePath,
         ]);
     }
 

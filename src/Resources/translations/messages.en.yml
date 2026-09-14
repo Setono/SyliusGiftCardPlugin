@@ -91,7 +91,7 @@ setono_sylius_gift_card:
         value: Value
         number: 'No.'
         how_to_redeem: How to redeem
-        how_to_redeem_text: 'Enter the code below at checkout on our website, or present this card in store to apply the balance to your purchase.'
+        how_to_redeem_text: 'Enter the code at checkout on %hostname% to pay with your gift card. Whatever is left stays on the card for next time.'
         redemption_code: Redemption code
         terms: 'Terms & conditions apply. This card is not redeemable for cash and cannot be replaced if lost or stolen.'
     email:
