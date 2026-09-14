@@ -64,6 +64,34 @@ abstract class GiftCardFunctionalTestCase extends KernelTestCase
         return $channel;
     }
 
+    /**
+     * Creates and persists another enabled channel sharing the currency and locale of the test channel
+     */
+    protected function createChannel(string $code, ?string $hostname = null): ChannelInterface
+    {
+        $base = $this->getChannel();
+
+        /** @var ChannelFactoryInterface<ChannelInterface> $channelFactory */
+        $channelFactory = self::getContainer()->get('sylius.factory.channel');
+        /** @var ChannelInterface $channel */
+        $channel = $channelFactory->createNamed($code);
+        $channel->setCode($code);
+        $channel->setHostname($hostname);
+        $channel->setBaseCurrency($base->getBaseCurrency());
+        $channel->setDefaultLocale($base->getDefaultLocale());
+        foreach ($base->getCurrencies() as $currency) {
+            $channel->addCurrency($currency);
+        }
+        foreach ($base->getLocales() as $locale) {
+            $channel->addLocale($locale);
+        }
+
+        $this->manager->persist($channel);
+        $this->manager->flush();
+
+        return $channel;
+    }
+
     private function createSchema(): void
     {
         $metadata = array_values($this->manager->getMetadataFactory()->getAllMetadata());

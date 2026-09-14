@@ -12,8 +12,9 @@ interface GiftCardDesignProviderInterface
     /**
      * Returns the enabled designs available in the given channel, ordered by position.
      *
-     * If the channel has no enabled designs a default "Classic" design is created on the fly so the
-     * gift card design picker is never empty and physical gift cards always have artwork to render.
+     * This is called while rendering the product page, so it only reads: a channel without designs gets an empty
+     * list and the design picker is skipped. The default design is seeded by the fixture or by running the
+     * setono:gift-card:create-default-design command.
      *
      * @return list<GiftCardDesignInterface>
      */
