@@ -149,6 +149,17 @@ bin/console doctrine:migrations:diff
 bin/console doctrine:migrations:migrate
 ```
 
+### Create the default gift card design
+
+Customers pick a design on the gift card product page, and a channel without any enabled designs simply skips
+the picker. To make the bundled "Classic" design available in every channel, run the command below. It is
+idempotent — it creates the design when it is missing and adds it to the channels it is not in yet — so run it
+again after you add a channel.
+
+```bash
+bin/console setono:gift-card:create-default-design
+```
+
 ### Install assets
 
 ```bash

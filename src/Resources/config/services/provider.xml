@@ -7,12 +7,6 @@
         <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProvider"
                  class="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProvider">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_design"/>
-            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_design"/>
-            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_design_image"/>
-            <argument type="service" id="sylius.image_uploader"/>
-            <argument type="service" id="doctrine"/>
-            <argument>%setono_sylius_gift_card.default_design_image_path%</argument>
-            <argument type="service" id="logger" on-invalid="null"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface"
                  alias="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProvider"/>

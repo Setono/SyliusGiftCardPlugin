@@ -30,21 +30,24 @@
 
         {{ form_row(gift_card_form.amount) }}
 
-        {{ form_label(gift_card_form.design) }}
-        <div class="ui small images" data-js-gift-card-design-picker>
-            {% for choice in gift_card_form.design %}
-                <label class="setono-gift-card-design-choice">
-                    {{ form_widget(choice) }}
-                    {% set image_path = choice.vars.attr['data-image-path']|default('') %}
-                    {% if image_path is not empty %}
-                        <img src="{{ image_path|imagine_filter('setono_sylius_gift_card_design_thumbnail') }}"
-                             alt="{{ choice.vars.label }}"
-                             data-design-image="{{ image_path|imagine_filter('setono_sylius_gift_card_design_preview') }}"/>
-                    {% endif %}
-                    <span>{{ choice.vars.label }}</span>
-                </label>
-            {% endfor %}
-        </div>
+        {# A channel without enabled designs has nothing to pick, so the picker is skipped and the card keeps its framed default #}
+        {% if gift_card_form.design is defined and gift_card_form.design.vars.choices is not empty %}
+            {{ form_label(gift_card_form.design) }}
+            <div class="ui small images" data-js-gift-card-design-picker>
+                {% for choice in gift_card_form.design %}
+                    <label class="setono-gift-card-design-choice">
+                        {{ form_widget(choice) }}
+                        {% set image_path = choice.vars.attr['data-image-path']|default('') %}
+                        {% if image_path is not empty %}
+                            <img src="{{ image_path|imagine_filter('setono_sylius_gift_card_design_thumbnail') }}"
+                                 alt="{{ choice.vars.label }}"
+                                 data-design-image="{{ image_path|imagine_filter('setono_sylius_gift_card_design_preview') }}"/>
+                        {% endif %}
+                        <span>{{ choice.vars.label }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+        {% endif %}
 
         {{ form_row(gift_card_form.customMessage) }}
     </div>

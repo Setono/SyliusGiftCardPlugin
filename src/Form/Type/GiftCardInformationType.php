@@ -77,7 +77,8 @@ final class GiftCardInformationType extends AbstractType
 
                     return ['data-image-path' => $front?->getPath() ?? ''];
                 },
-                'constraints' => [
+                // A channel without designs skips the picker, so a design is only mandatory when there is one to pick
+                'constraints' => [] === $designs ? [] : [
                     new NotBlank(['groups' => self::VALIDATION_GROUPS]),
                 ],
             ])
