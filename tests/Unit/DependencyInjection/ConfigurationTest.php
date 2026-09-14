@@ -19,7 +19,7 @@ final class ConfigurationTest extends TestCase
         $this->assertProcessedConfigurationEquals([[]], [
             'redemption' => [
                 'payment_method_code' => 'gift_card',
-                'rate_limit' => ['enabled' => true, 'limit' => 10, 'interval' => '1 minute'],
+                'rate_limiter' => 'limiter.setono_sylius_gift_card_apply',
             ],
         ], 'redemption');
     }
@@ -30,22 +30,33 @@ final class ConfigurationTest extends TestCase
      *
      * @test
      */
-    public function it_allows_the_rate_limit_to_be_turned_off(): void
+    public function it_allows_the_rate_limiter_to_be_turned_off(): void
     {
-        $this->assertProcessedConfigurationEquals([['redemption' => ['rate_limit' => false]]], [
+        $this->assertProcessedConfigurationEquals([['redemption' => ['rate_limiter' => null]]], [
             'redemption' => [
                 'payment_method_code' => 'gift_card',
-                'rate_limit' => ['enabled' => false, 'limit' => 10, 'interval' => '1 minute'],
+                'rate_limiter' => null,
             ],
         ], 'redemption');
     }
 
     /** @test */
-    public function it_rejects_an_interval_the_rate_limiter_cannot_read(): void
+    public function it_lets_the_application_name_its_own_rate_limiter(): void
+    {
+        $this->assertProcessedConfigurationEquals([['redemption' => ['rate_limiter' => 'limiter.shop_forms']]], [
+            'redemption' => [
+                'payment_method_code' => 'gift_card',
+                'rate_limiter' => 'limiter.shop_forms',
+            ],
+        ], 'redemption');
+    }
+
+    /** @test */
+    public function it_rejects_a_rate_limiter_that_is_not_a_service_id(): void
     {
         $this->assertConfigurationIsInvalid(
-            [['redemption' => ['rate_limit' => ['interval' => '3 fortnights']]]],
-            'The interval must be a number followed by second, minute, hour, day, week or month',
+            [['redemption' => ['rate_limiter' => '']]],
+            'The rate limiter must be the id of a rate limiter factory service',
         );
     }
 

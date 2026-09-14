@@ -27,9 +27,8 @@ final class AddGiftCardToOrderAction
     use ORMTrait;
 
     /**
-     * @param RateLimiterFactory|null $rateLimiterFactory Null when rate limiting is turned off, i.e. when
-     *                                                    setono_sylius_gift_card.redemption.rate_limit.enabled
-     *                                                    is false and no limiter was registered
+     * @param RateLimiterFactory|null $rateLimiterFactory Null when throttling is turned off, i.e. when
+     *                                                    setono_sylius_gift_card.redemption.rate_limiter is null
      */
     public function __construct(
         private readonly FormFactoryInterface $formFactory,

@@ -14,6 +14,7 @@ use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction;
 use Setono\SyliusGiftCardPlugin\Form\DataTransformer\GiftCardToCodeDataTransformer;
 use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
@@ -256,7 +257,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
             ])))
             ->getValidator();
 
-        $transformer = new GiftCardToCodeDataTransformer($repository->reveal(), $channelContext->reveal());
+        $transformer = new GiftCardToCodeDataTransformer($repository->reveal(), $channelContext->reveal(), new GiftCardCodeNormalizer());
 
         return Forms::createFormFactoryBuilder()
             ->addExtension(new HttpFoundationExtension())

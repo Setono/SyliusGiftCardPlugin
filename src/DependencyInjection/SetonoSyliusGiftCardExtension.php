@@ -29,7 +29,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
          *     code_length: int,
          *     default_validity_period: string|null,
          *     purchase: array{minimum_amount: int, maximum_amount: int|null},
-         *     redemption: array{payment_method_code: string, rate_limit: array{enabled: bool, limit: int, interval: string}},
+         *     redemption: array{payment_method_code: string, rate_limiter: string|null},
          *     pdf: array{page_size: string},
          *     resources: array<string, mixed>,
          * } $config
@@ -57,6 +57,12 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
 
         $loader->load('services.xml');
         $loader->load('services/redemption/payment.xml');
+
+        // AddGiftCardToOrderAction asks for this alias with on-invalid="null", so leaving it out is what turns
+        // throttling off. Pointing it at a service that does not exist fails at compile time, as it should
+        if (null !== $config['redemption']['rate_limiter']) {
+            $container->setAlias('setono_sylius_gift_card.redemption.rate_limiter', $config['redemption']['rate_limiter']);
+        }
     }
 
     /**
@@ -467,47 +473,28 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
             ],
         ];
 
-        $rateLimit = $this->resolveRateLimitConfiguration($container);
-        if ($rateLimit['enabled']) {
-            $configuration['framework'] = [
-                'rate_limiter' => [
-                    'enabled' => true,
-                    'limiters' => [
-                        self::RATE_LIMITER_NAME => [
-                            'policy' => 'sliding_window',
-                            'limit' => $rateLimit['limit'],
-                            'interval' => $rateLimit['interval'],
-                            // Locking would require symfony/lock, which a Sylius application does not
-                            // necessarily have, and the race it prevents only ever lets a handful of extra
-                            // attempts through, which does not matter for throttling code guesses
-                            'lock_factory' => null,
-                        ],
+        // The limiter the redemption.rate_limiter option points at unless the application names another one. It
+        // is registered whether or not it is used, because the plugin's own configuration is not processed yet
+        // when prepending, and its values can be overridden under framework.rate_limiter like any other limiter's
+        $configuration['framework'] = [
+            'rate_limiter' => [
+                'enabled' => true,
+                'limiters' => [
+                    self::RATE_LIMITER_NAME => [
+                        'policy' => 'sliding_window',
+                        'limit' => 10,
+                        'interval' => '1 minute',
+                        // Locking would require symfony/lock, which a Sylius application does not
+                        // necessarily have, and the race it prevents only ever lets a handful of extra
+                        // attempts through, which does not matter for throttling code guesses
+                        'lock_factory' => null,
                     ],
                 ],
-            ];
-        }
+            ],
+        ];
 
         foreach ($configuration as $extension => $config) {
             $container->prependExtensionConfig($extension, $config);
         }
-    }
-
-    /**
-     * The rate limiter is built from this plugin's own configuration, which is not processed yet when
-     * prepending, so process it here
-     *
-     * @return array{enabled: bool, limit: int, interval: string}
-     */
-    private function resolveRateLimitConfiguration(ContainerBuilder $container): array
-    {
-        /**
-         * @var array{redemption: array{rate_limit: array{enabled: bool, limit: int, interval: string}}} $config
-         */
-        $config = $this->processConfiguration(
-            $this->getConfiguration([], $container) ?? new Configuration(),
-            $container->getExtensionConfig($this->getAlias()),
-        );
-
-        return $config['redemption']['rate_limit'];
     }
 }
