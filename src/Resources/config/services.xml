@@ -6,6 +6,7 @@
         <import resource="services/cart.xml"/>
         <import resource="services/controller.xml"/>
         <import resource="services/event_listener.xml"/>
+        <import resource="services/event_subscriber.xml"/>
         <import resource="services/factory.xml"/>
         <import resource="services/fixture.xml"/>
         <import resource="services/form.xml"/>

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Applicator;
 
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface;
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardIneligibilityReason;
 use Setono\SyliusGiftCardPlugin\Exception\ChannelMismatchException;
 use Setono\SyliusGiftCardPlugin\Exception\GiftCardCurrencyMismatchException;
 use Setono\SyliusGiftCardPlugin\Exception\GiftCardNotFoundException;
@@ -22,6 +24,7 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
         private readonly GiftCardRepositoryInterface $giftCardRepository,
         private readonly GiftCardCodeNormalizerInterface $codeNormalizer,
         private readonly GiftCardRedemptionMethodInterface $redemptionMethod,
+        private readonly GiftCardEligibilityCheckerInterface $eligibilityChecker,
     ) {
     }
 
@@ -33,27 +36,29 @@ final class GiftCardApplicator implements GiftCardApplicatorInterface
             return;
         }
 
-        Assert::true($giftCard->isUsable(), 'The gift card is not usable');
         Assert::notEq(
             $order->getCheckoutState(),
             OrderCheckoutStates::STATE_COMPLETED,
             'A gift card cannot be applied to a completed order',
         );
 
-        $orderChannel = $order->getChannel();
-        Assert::isInstanceOf($orderChannel, ChannelInterface::class);
+        $reason = $this->eligibilityChecker->getIneligibilityReason($giftCard, $order);
 
-        $giftCardChannel = $giftCard->getChannel();
-        Assert::isInstanceOf($giftCardChannel, ChannelInterface::class);
+        if (GiftCardIneligibilityReason::ChannelMismatch === $reason) {
+            $orderChannel = $order->getChannel();
+            Assert::isInstanceOf($orderChannel, ChannelInterface::class);
 
-        if ($orderChannel->getCode() !== $giftCardChannel->getCode()) {
+            $giftCardChannel = $giftCard->getChannel();
+            Assert::isInstanceOf($giftCardChannel, ChannelInterface::class);
+
             throw new ChannelMismatchException($giftCardChannel, $orderChannel);
         }
 
-        $orderCurrencyCode = $order->getCurrencyCode();
-        if (null !== $orderCurrencyCode && $giftCard->getCurrencyCode() !== $orderCurrencyCode) {
-            throw new GiftCardCurrencyMismatchException($giftCard, $orderCurrencyCode);
+        if (GiftCardIneligibilityReason::CurrencyMismatch === $reason) {
+            throw new GiftCardCurrencyMismatchException($giftCard, (string) $order->getCurrencyCode());
         }
+
+        Assert::null($reason, 'The gift card is not usable');
 
         $this->redemptionMethod->apply($order, $giftCard);
     }

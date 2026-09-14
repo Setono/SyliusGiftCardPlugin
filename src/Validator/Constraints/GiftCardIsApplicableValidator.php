@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Validator\Constraints;
 
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface;
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardIneligibilityReason;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
@@ -16,6 +18,7 @@ final class GiftCardIsApplicableValidator extends ConstraintValidator
 {
     public function __construct(
         private readonly CartContextInterface $cartContext,
+        private readonly GiftCardEligibilityCheckerInterface $eligibilityChecker,
     ) {
     }
 
@@ -33,45 +36,23 @@ final class GiftCardIsApplicableValidator extends ConstraintValidator
             throw new UnexpectedTypeException($value, GiftCardInterface::class);
         }
 
-        if (!$value->isEnabled()) {
-            $this->context->addViolation($constraint->notEnabledMessage);
-
-            return;
-        }
-
-        if ($value->isExpired()) {
-            $this->context->addViolation($constraint->expiredMessage);
-
-            return;
-        }
-
-        if ($value->getAmount() <= 0) {
-            $this->context->addViolation($constraint->emptyMessage);
-
-            return;
-        }
-
         $order = $this->getCart();
-        if (!$order instanceof OrderInterface) {
+
+        $reason = $this->eligibilityChecker->getIneligibilityReason($value, $order);
+        if (null !== $reason) {
+            $this->context->addViolation(match ($reason) {
+                GiftCardIneligibilityReason::NotEnabled => $constraint->notEnabledMessage,
+                GiftCardIneligibilityReason::Expired => $constraint->expiredMessage,
+                GiftCardIneligibilityReason::NoBalance => $constraint->emptyMessage,
+                GiftCardIneligibilityReason::ChannelMismatch => $constraint->channelMismatchMessage,
+                GiftCardIneligibilityReason::CurrencyMismatch => $constraint->currencyMismatchMessage,
+            });
+
             return;
         }
 
-        if ($order->hasGiftCard($value)) {
+        if (null !== $order && $order->hasGiftCard($value)) {
             $this->context->addViolation($constraint->alreadyAppliedMessage);
-
-            return;
-        }
-
-        $orderChannel = $order->getChannel();
-        if (null !== $orderChannel && $value->getChannel()?->getCode() !== $orderChannel->getCode()) {
-            $this->context->addViolation($constraint->channelMismatchMessage);
-
-            return;
-        }
-
-        $orderCurrencyCode = $order->getCurrencyCode();
-        if (null !== $orderCurrencyCode && $value->getCurrencyCode() !== $orderCurrencyCode) {
-            $this->context->addViolation($constraint->currencyMismatchMessage);
         }
     }
 

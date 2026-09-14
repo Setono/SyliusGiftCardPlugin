@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\CheckoutGiftCardCoverageSubscriber"
+                 class="Setono\SyliusGiftCardPlugin\EventSubscriber\CheckoutGiftCardCoverageSubscriber">
+            <argument type="service" id="sylius.context.cart"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuard"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer"/>
+            <argument type="service" id="sylius.order_processing.order_processor"/>
+            <argument type="service" id="router"/>
+            <argument type="service" id="doctrine"/>
+
+            <tag name="kernel.event_subscriber"/>
+        </service>
+    </services>
+</container>
