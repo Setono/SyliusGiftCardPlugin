@@ -72,6 +72,8 @@ $bundles = [
 
 The plugin auto-configures the state machine, grids, UI events, email templates and image filters for you — you do **not** need to import any bundle configuration manually.
 
+The "Gift card" checkbox on the admin product form is rendered by the `setono_gift_card` block on the `sylius.admin.product.tab_details` UI event, so you can move or disable it through your own `sylius_ui` configuration.
+
 Both state machine adapters Sylius supports are covered: the plugin registers winzou callbacks *and* the
 equivalent Symfony Workflow subscribers, so it behaves the same whichever adapter
 `sylius_core.state_machine.default_adapter` is set to. Only the adapter actually applying a transition emits
