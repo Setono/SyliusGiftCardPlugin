@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Resolver;
 
-use const FILTER_SANITIZE_URL;
-use function filter_var;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+/**
+ * Sends the customer back to the page the apply/remove form was submitted from, i.e. the Referer.
+ *
+ * The Referer is supplied by the client, so it is only followed when it stays on this host: a relative path,
+ * or an absolute URL on the request's own scheme, host and port. Anything else (another host, a protocol
+ * relative "//evil" form, a "javascript:" URL) falls back to the default route
+ */
 final class RedirectUrlResolver implements RedirectUrlResolverInterface
 {
     public function __construct(private readonly UrlGeneratorInterface $router)
@@ -17,27 +22,30 @@ final class RedirectUrlResolver implements RedirectUrlResolverInterface
 
     public function getUrlToRedirectTo(Request $request, string $defaultRoute): string
     {
-        /** @var mixed $redirect */
-        $redirect = $request->attributes->get('redirect');
-        if (is_array($redirect)) {
-            if (isset($redirect[0]) && is_string($redirect[0])) {
-                return $this->router->generate($redirect[0]);
-            }
-
-            if (isset($redirect['route'], $redirect['parameters']) && is_string($redirect['route']) && is_array($redirect['parameters'])) {
-                return $this->router->generate($redirect['route'], $redirect['parameters']);
-            }
-        }
-
-        $referrer = $request->headers->get('referer');
-        if (is_string($referrer)) {
-            $redirectTo = filter_var($referrer, FILTER_SANITIZE_URL);
-
-            if (is_string($redirectTo)) {
-                return $redirectTo;
-            }
+        $referer = $request->headers->get('referer');
+        if (is_string($referer) && self::isOnThisHost($referer, $request)) {
+            return $referer;
         }
 
         return $this->router->generate($defaultRoute);
+    }
+
+    private static function isOnThisHost(string $url, Request $request): bool
+    {
+        if (str_starts_with($url, '/')) {
+            // "//evil" is protocol relative, and browsers treat "/\evil" the same way
+            return !str_starts_with($url, '//') && !str_starts_with($url, '/\\');
+        }
+
+        $origin = $request->getSchemeAndHttpHost();
+        if (!str_starts_with($url, $origin)) {
+            return false;
+        }
+
+        // "https://shop.example.com.evil.com" and "https://shop.example.com@evil.com" also start with the origin,
+        // so the origin has to be followed by the end of the URL or by a path, query or fragment
+        $next = substr($url, strlen($origin), 1);
+
+        return '' === $next || '/' === $next || '?' === $next || '#' === $next;
     }
 }
