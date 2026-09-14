@@ -10,6 +10,8 @@
             <argument>@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig</argument>
             <argument>%setono_sylius_gift_card.pdf.page_size%</argument>
             <argument>%sylius_core.public_dir%</argument>
+            <argument>media/image</argument>
+            <argument>false</argument>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface"

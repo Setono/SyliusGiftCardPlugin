@@ -39,7 +39,7 @@ setono_sylius_gift_card_admin_gift_card_show:
 
 setono_sylius_gift_card_admin_create_gift_card_product:
     path: /gift-cards/create-product
-    methods: [GET, POST]
+    methods: [POST]
     defaults:
         _controller: Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction
         _sylius:

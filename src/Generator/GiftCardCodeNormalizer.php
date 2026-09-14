@@ -19,8 +19,8 @@ final class GiftCardCodeNormalizer implements GiftCardCodeNormalizerInterface
             return $code;
         }
 
-        $groups = str_split($code, $groupSize);
-
-        return implode($separator, $groups);
+        // mb_str_split rather than str_split: a code shorter than one group comes back as that single group, an
+        // empty code as nothing, and a multibyte character is never cut in two, which would hand Twig invalid UTF-8
+        return implode($separator, mb_str_split($code, $groupSize));
     }
 }

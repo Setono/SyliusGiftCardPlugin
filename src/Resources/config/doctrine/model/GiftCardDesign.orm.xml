@@ -8,9 +8,9 @@
             <generator strategy="AUTO"/>
         </id>
 
-        <field name="code" unique="true"/>
-        <field name="position" type="integer"/>
-        <field name="enabled" type="boolean"/>
+        <field name="code" column="code" unique="true"/>
+        <field name="position" column="position" type="integer"/>
+        <field name="enabled" column="enabled" type="boolean"/>
 
         <field name="createdAt" column="created_at" type="datetime">
             <gedmo:timestampable on="create"/>
