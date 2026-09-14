@@ -276,12 +276,18 @@ jobs:
                     bin/console doctrine:schema:create
                     bin/console sylius:fixtures:load -n
                     bin/console assets:install public --symlink --relative
+                    bin/console cache:warmup
 
             -   name: "Serve the test application"
                 run: |
                     cd tests/Application
                     symfony serve --no-tls --daemon --port=8080
                     symfony server:status
+            -   name: "Wait for the test application"
+                # The first requests to a freshly built application are slow and, when several arrive at once,
+                # can race each other while the dev container and templates are compiled; the login the
+                # Playwright setup performs has failed that way. Hit the app once and wait until it answers
+                run: "curl --silent --show-error --fail --retry 30 --retry-delay 2 --retry-all-errors --output /dev/null http://127.0.0.1:8080/admin/login"
 
             -   name: "Install Playwright"
                 run: |

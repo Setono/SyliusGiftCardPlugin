@@ -26,7 +26,9 @@ final class DisableGiftCardsSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'workflow.sylius_order.completed.cancel' => '__invoke',
+            // Right after RollbackRedemptionSubscriber (650): nothing Sylius does on cancel depends on it, so the
+            // plugin's cancel work is done before Sylius' cascades start. Mirrors the winzou priority -640
+            'workflow.sylius_order.completed.cancel' => ['__invoke', 640],
         ];
     }
 

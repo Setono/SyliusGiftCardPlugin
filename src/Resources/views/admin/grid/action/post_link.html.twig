@@ -1,0 +1,28 @@
+{#
+    A grid action rendered as a form that POSTs a CSRF token, for actions that change state and so must not be
+    reachable through a plain link: a browser prefetch or an <img src> on any page the admin visits follows
+    links, and the action runs with the admin's session. Registered as the action type
+    `setono_sylius_gift_card_post_link`.
+
+    Options:
+        link.url, or link.route with link.parameters   where to POST; parameters take the usual grid
+                                                       expressions, e.g. {id: 'resource.id'}
+        csrf_token_id                                  id of the token the receiving controller validates
+        confirmation                                   true to ask through the admin's confirmation modal first
+        class                                          extra classes for the button
+        labeled                                        false to render the icon only
+
+    The form lays out as `display: contents` so the button, not the form, is the child that the surrounding
+    button group lays out, which keeps the action aligned with the plain link actions next to it.
+#}
+{% set path = options.link.url|default('') is not empty ? options.link.url : path(options.link.route, options.link.parameters|default({})) %}
+{% set labeled = options.labeled is defined ? options.labeled : true %}
+{% set confirmation = options.confirmation is defined ? options.confirmation : false %}
+
+<form action="{{ path }}" method="post" style="display: contents;">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token(options.csrf_token_id) }}">
+    <button class="ui {% if labeled %}labeled {% endif %}icon button {{ options.class|default('') }}" type="submit"{% if confirmation %} data-requires-confirmation{% endif %}>
+        {% if action.icon is not empty %}<i class="icon {{ action.icon }}"></i>{% endif %}
+        {% if labeled %}{{ action.label|trans }}{% endif %}
+    </button>
+</form>
