@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Redemption;
 
 use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
+use Setono\SyliusGiftCardPlugin\Exception\UnderpaidOrderException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
@@ -89,6 +90,8 @@ final class PaymentRedemptionMethod extends RedemptionMethod
                 sprintf('redeem:order:%s:gift_card:%s', (string) $order->getId(), (string) $giftCard->getId()),
             );
         }
+
+        $this->assertPaidInFull($order);
     }
 
     public function rollback(OrderInterface $order): void
@@ -116,6 +119,41 @@ final class PaymentRedemptionMethod extends RedemptionMethod
             );
 
             $this->transition($payment, PaymentTransitions::TRANSITION_REFUND);
+        }
+    }
+
+    /**
+     * A placed order must never carry less payment than its total. Coverage is computed from the cards' live
+     * balances, so a card spent elsewhere, disabled or adjusted since it was applied pays less here than the gateway
+     * payment was sized (or the payment step skipped) for, and quietly carrying on would place the order underpaid,
+     * which Sylius then marks paid if it finds no payments at all. The checkout guard catches this before the
+     * transition; this is the last line of defence for whatever reaches commit another way. Idempotent: on a repeat
+     * call the gift card payments created the first time round count instead of the balances they consumed
+     *
+     * @throws UnderpaidOrderException
+     */
+    private function assertPaidInFull(OrderInterface $order): void
+    {
+        // an order that never involved a gift card is Sylius' business
+        if (!$order->hasGiftCards()) {
+            return;
+        }
+
+        $paid = 0;
+        foreach ($order->getPayments() as $payment) {
+            if (in_array($payment->getState(), [
+                BasePaymentInterface::STATE_CANCELLED,
+                BasePaymentInterface::STATE_FAILED,
+                BasePaymentInterface::STATE_REFUNDED,
+            ], true)) {
+                continue;
+            }
+
+            $paid += (int) $payment->getAmount();
+        }
+
+        if ($paid < $order->getTotal()) {
+            throw new UnderpaidOrderException($order, $paid);
         }
     }
 

@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction;
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\SendGiftCardEmailAction;
+use Setono\SyliusGiftCardPlugin\Guard\GiftCardCoverageGuardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
@@ -63,6 +64,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
     public function prepend(ContainerBuilder $container): void
     {
         $operator = '@' . OrderGiftCardOperatorInterface::class;
+        $guard = '@' . GiftCardCoverageGuardInterface::class;
 
         // winzou runs callbacks in ascending priority order and Sylius' own sit at -800..-100, so a callback
         // without a priority (0) always runs after everything Sylius does. Every callback below states where
@@ -72,6 +74,18 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
             'winzou_state_machine' => [
                 'sylius_order_checkout' => [
                     'callbacks' => [
+                        'guard' => [
+                            'setono_sylius_gift_card__guard_gift_card_coverage' => [
+                                'on' => ['complete'],
+                                'do' => [$guard, 'isSatisfiedBy'],
+                                'args' => ['object'],
+                                // A cart whose applied gift cards no longer pay what they did when they were applied (spent
+                                // from another cart, disabled, adjusted) must not be placed: nothing below re-checks them,
+                                // and an order with no payments at all is paid on the spot. Sylius registers no guard on
+                                // complete, so there is nothing to order against
+                                'priority' => 0,
+                            ],
+                        ],
                         'after' => [
                             'setono_sylius_gift_card__reconcile_gift_cards' => [
                                 'on' => ['complete'],
