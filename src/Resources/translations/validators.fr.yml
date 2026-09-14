@@ -18,7 +18,7 @@ setono_sylius_gift_card:
         currency_code:
             not_blank: Veuillez choisir une devise
             invalid: Cette devise n'est pas valide
-            not_in_channel: 'La devise {{ currency }} n''est pas disponible sur le canal {{ channel }}. Un chèque-cadeau ne peut être utilisé que dans l''une des devises de son canal.'
+            not_base_currency: 'La devise {{ currency }} n''est pas la devise de base du canal {{ channel }} ({{ base_currency }}). Le solde d''un chèque-cadeau est tenu dans la devise de base du canal, il ne peut donc être émis que dans celle-ci.'
         send_notification_email:
             boolean: L'envoi de l'email de notification doit être un booléen
         not_enabled: Ce chèque-cadeau n'est pas actif.

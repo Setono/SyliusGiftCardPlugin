@@ -18,7 +18,7 @@ setono_sylius_gift_card:
         currency_code:
             not_blank: Vælg venligst en valuta
             invalid: Dette er ikke en gyldig valuta
-            not_in_channel: 'Valutaen {{ currency }} er ikke tilgængelig i kanalen {{ channel }}. Et gavekort kan kun indløses i en af kanalens valutaer.'
+            not_base_currency: 'Valutaen {{ currency }} er ikke basisvalutaen for kanalen {{ channel }} ({{ base_currency }}). Gavekortsaldi føres i kanalens basisvaluta, så et gavekort kan kun udstedes i den.'
         send_notification_email:
             boolean: Send notifikationsmail skal være en boolsk værdi
         not_enabled: Dette gavekort er ikke aktivt.

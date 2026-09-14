@@ -41,7 +41,7 @@ final class GiftCardCurrencyIsChannelBaseCurrencyValidatorTest extends Constrain
     /** @test */
     public function it_accepts_the_base_currency_of_the_channel(): void
     {
-                $giftCard = $this->giftCard('DKK', $this->channel('DKK', ['EUR']));
+        $giftCard = $this->giftCard('DKK', $this->channel('DKK', ['EUR']));
 
         $this->validator->validate($giftCard, new GiftCardCurrencyIsChannelBaseCurrency());
 
