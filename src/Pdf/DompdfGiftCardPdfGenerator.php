@@ -19,6 +19,11 @@ final class DompdfGiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
      */
     private const DESIGN_WIDTH = 560.0;
 
+    /**
+     * Dompdf lays CSS pixels out at 96 to the inch and the paper sizes are in points, 72 to the inch
+     */
+    private const PIXELS_PER_POINT = 96 / 72;
+
     public function __construct(
         private readonly Environment $twig,
         private readonly string $template,
@@ -35,26 +40,33 @@ final class DompdfGiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
 
     public function generate(GiftCardInterface $giftCard): string
     {
+        $paper = $this->resolvePaper();
+
+        // The card is laid out on a fixed pixel grid, so on its own it would sit in a corner of anything bigger
+        // than the size it was drawn for. The template scales the whole card onto the page with a CSS transform,
+        // so the page size decides the scale and nothing else in the layout has to know about it. Sizes with
+        // another aspect ratio than the design's gain or lose height, which the layout absorbs: the blocks are
+        // anchored to the top and the bottom of the card, never sized against each other
+        $pageWidth = ($paper[2] - $paper[0]) * self::PIXELS_PER_POINT;
+        $pageHeight = ($paper[3] - $paper[1]) * self::PIXELS_PER_POINT;
+        $scale = $pageWidth / self::DESIGN_WIDTH;
+
         $html = $this->twig->render($this->template, [
             'giftCard' => $giftCard,
             'localeCode' => $this->resolveLocaleCode($giftCard),
             'frontImagePath' => $this->resolveImagePath($giftCard->getDesign()?->getFrontImage()),
             'backImagePath' => $this->resolveImagePath($giftCard->getDesign()?->getBackImage()),
+            'pageWidth' => $pageWidth,
+            'pageHeight' => $pageHeight,
+            'cardWidth' => self::DESIGN_WIDTH,
+            'cardHeight' => $pageHeight / $scale,
+            'scale' => $scale,
         ]);
-
-        $paper = $this->resolvePaper();
 
         $options = new Options();
         $options->set('isRemoteEnabled', $this->remoteEnabled);
         $options->set('defaultFont', 'DejaVu Sans');
         $options->set('chroot', $this->publicDir);
-
-        // The card is laid out in fixed pixels, so on its own it would sit in a corner of anything bigger than
-        // the size it was drawn for. Dompdf converts px to points through the dpi option, so declaring a dpi at
-        // which the design grid is exactly as wide as the paper scales the whole card onto any configured page
-        // size. Sizes with another aspect ratio than the design's gain or lose height, which the layout absorbs:
-        // the blocks are anchored to the top and the bottom of the card, never sized against each other
-        $options->set('dpi', self::DESIGN_WIDTH * 72 / ($paper[2] - $paper[0]));
 
         $dompdf = new Dompdf($options);
         $dompdf->setPaper($paper);
@@ -66,7 +78,7 @@ final class DompdfGiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
 
     /**
      * Resolves the configured page size to its dimensions in points, in landscape. Dompdf itself falls back to
-     * letter for a size it does not know, and the dpi has to be derived from the same dimensions it draws on
+     * letter for a size it does not know, and the scale has to be derived from the same dimensions it draws on
      *
      * @return array{float, float, float, float}
      */

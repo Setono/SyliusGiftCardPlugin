@@ -2,9 +2,9 @@
     /* Shared gift card front styling used by both the PDF (dompdf) and the on-site live preview.
        Only dompdf-safe features are used (absolute positioning, px, border-radius, gradients).
        The card box size (width/height) is set by the including context; internal positions are laid out on a fixed
-       560x396 px grid, which is A6 landscape as a browser sees it. The PDF fills any configured page size with that
-       grid by deriving dompdf's dpi from the paper width (DompdfGiftCardPdfGenerator), so the pixel values here are
-       the one definition of the layout and must not be turned into percentages. */
+       560x396 px grid, which is A6 landscape as a browser sees it. The PDF fills any configured page size by scaling
+       the whole card onto it with a CSS transform (DompdfGiftCardPdfGenerator works out the factor), so the pixel
+       values here are the one definition of the layout and must not be turned into percentages. */
     .ssgc-card { position: relative; overflow: hidden; font-family: 'DejaVu Sans', 'Helvetica Neue', Arial, sans-serif; }
     .ssgc-card__bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 

@@ -169,11 +169,15 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * The horizontal offset in points of the leftmost piece of text in the PDF. Text positions are the only part
-     * of the layout that survives into the content stream in a form that is cheap to read back
+     * The horizontal offset in points of the leftmost piece of text in the PDF, as it lands on the page. Text
+     * positions are the only part of the layout that survives into the content stream in a form that is cheap to
+     * read back, but the card is drawn under a transformation, so the operators that move things about are
+     * followed: q and Q push and pop the graphics state, cm multiplies the current transformation matrix and the
+     * first Td after BT places the text. What is measured is where the text ends up, however it got there
      */
     private function leftmostTextOffset(string $pdf): float
     {
+        /** @var list<float> $offsets */
         $offsets = [];
 
         preg_match_all('#stream(.*?)endstream#s', $pdf, $streams);
@@ -183,9 +187,38 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
                 continue;
             }
 
-            if (preg_match_all('#BT ([0-9.]+) [0-9.]+ Td#', $content, $matches) > 0) {
-                foreach ($matches[1] as $offset) {
-                    $offsets[] = (float) $offset;
+            $identity = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
+            $matrix = $identity;
+            $stack = [];
+
+            preg_match_all(
+                '#(?:^|\s)(q|Q)(?=\s)|(-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) cm|BT (-?[\d.]+) (-?[\d.]+) Td#',
+                $content,
+                $operators,
+                \PREG_SET_ORDER | \PREG_UNMATCHED_AS_NULL,
+            );
+
+            foreach ($operators as $operator) {
+                $state = $operator[1] ?? null;
+                $cm = $operator[2] ?? null;
+                $x = $operator[8] ?? null;
+                $y = $operator[9] ?? null;
+
+                if ('q' === $state) {
+                    $stack[] = $matrix;
+                } elseif ('Q' === $state) {
+                    $matrix = array_pop($stack) ?? $identity;
+                } elseif (null !== $cm) {
+                    $matrix = self::multiply([
+                        (float) $cm,
+                        (float) ($operator[3] ?? 0),
+                        (float) ($operator[4] ?? 0),
+                        (float) ($operator[5] ?? 0),
+                        (float) ($operator[6] ?? 0),
+                        (float) ($operator[7] ?? 0),
+                    ], $matrix);
+                } elseif (null !== $x && null !== $y) {
+                    $offsets[] = $matrix[0] * (float) $x + $matrix[2] * (float) $y + $matrix[4];
                 }
             }
         }
@@ -193,6 +226,29 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
         self::assertNotEmpty($offsets, 'The PDF contains no text to measure the layout by');
 
         return min($offsets);
+    }
+
+    /**
+     * The product of two PDF transformation matrices [a b c d e f], the way cm concatenates them
+     *
+     * @param list<float> $left
+     * @param list<float> $right
+     *
+     * @return list<float>
+     */
+    private static function multiply(array $left, array $right): array
+    {
+        [$a1, $b1, $c1, $d1, $e1, $f1] = $left;
+        [$a2, $b2, $c2, $d2, $e2, $f2] = $right;
+
+        return [
+            $a1 * $a2 + $b1 * $c2,
+            $a1 * $b2 + $b1 * $d2,
+            $c1 * $a2 + $d1 * $c2,
+            $c1 * $b2 + $d1 * $d2,
+            $e1 * $a2 + $f1 * $c2 + $e2,
+            $e1 * $b2 + $f1 * $d2 + $f2,
+        ];
     }
 
     private function generatePdf(GiftCardInterface $giftCard, string $pageSize): string

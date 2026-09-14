@@ -9,6 +9,12 @@
 {% set brand_url = giftCard.channel ? giftCard.channel.hostname : null %}
 {% set redemption_host = brand_url ?: brand_name %}
 {% set has_back_image = backImagePath is not null %}
+{# The page geometry comes from DompdfGiftCardPdfGenerator; rendered on its own the template shows the design at its natural size #}
+{% set cardWidth = cardWidth|default(560) %}
+{% set cardHeight = cardHeight|default(396) %}
+{% set pageWidth = pageWidth|default(cardWidth) %}
+{% set pageHeight = pageHeight|default(cardHeight) %}
+{% set scale = scale|default(1) %}
 <!DOCTYPE html>
 <html lang="{{ localeCode|default('en')|replace({'_': '-'}) }}">
 <head>
@@ -17,8 +23,16 @@
     <style>
         @page { margin: 0; }
         html, body { margin: 0; padding: 0; height: 100%; font-family: 'DejaVu Sans', sans-serif; }
-        .card { position: relative; width: 100%; height: 100%; overflow: hidden; }
-        /* In the PDF the shared card fills the whole page */
+        /* Each side is laid out on the design grid and then scaled onto the page as a whole, so the page size
+           decides how big the card is printed and the pixel values below never change with it. Scaling through
+           a transform rather than dompdf's dpi option keeps the layout independent of what else was rendered in
+           the same process (dompdf 2 caches pixel-to-point conversions without the dpi in the key). The scaled
+           card is taken out of the flow: a box taller than the page, which it is on pages narrower than the
+           design, would otherwise be split over two pages before the transform shrinks it */
+        .page { position: relative; width: {{ pageWidth|number_format(2, '.', '') }}px; height: {{ (pageHeight - 1)|number_format(2, '.', '') }}px; }
+        .page--back { page-break-before: always; }
+        .card { position: absolute; top: 0; left: 0; width: {{ cardWidth|number_format(2, '.', '') }}px; height: {{ cardHeight|number_format(2, '.', '') }}px; overflow: hidden; transform: scale({{ scale|number_format(6, '.', '') }}); transform-origin: 0 0; }
+        /* In the PDF the shared card fills the whole side */
         .ssgc-card { width: 100%; height: 100%; }
 
         .card--back { background: #f2f0ea; color: #1c1b18; }
@@ -43,18 +57,20 @@
     </style>
 </head>
 <body>
-    {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card.html.twig', {
-        brand_name: brand_name,
-        brand_initial: brand_initial,
-        formatted_amount: formatted_amount,
-        formatted_code: formatted_code,
-        message: giftCard.customMessage,
-        front_image_url: frontImagePath,
-        preview: false,
-        locale_code: localeCode,
-    }, false) }}
+    <div class="page page--front"><div class="card card--front">
+        {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card.html.twig', {
+            brand_name: brand_name,
+            brand_initial: brand_initial,
+            formatted_amount: formatted_amount,
+            formatted_code: formatted_code,
+            message: giftCard.customMessage,
+            front_image_url: frontImagePath,
+            preview: false,
+            locale_code: localeCode,
+        }, false) }}
+    </div></div>
 
-    <div class="card card--back">
+    <div class="page page--back"><div class="card card--back">
         {% if has_back_image %}
             <img class="back-image" src="{{ backImagePath }}" alt=""/>
             <div class="back-panel"></div>
@@ -83,6 +99,6 @@
             <span class="ssgc-card__mark">{{ brand_initial }}</span>
             {{ brand_url ?: brand_name }}
         </div>
-    </div>
+    </div></div>
 </body>
 </html>
