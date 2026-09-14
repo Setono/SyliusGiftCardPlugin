@@ -51,6 +51,9 @@
             <argument type="service" id="sylius.context.channel"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface"/>
             <argument>%setono_sylius_gift_card.purchase.maximum_message_length%</argument>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface"/>
+            <argument type="service" id="sylius.money_formatter"/>
+            <argument type="service" id="sylius.context.locale"/>
             <tag name="form.type"/>
         </service>
 

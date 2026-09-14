@@ -18,6 +18,8 @@ setono_sylius_gift_card:
             back_image: Image verso
         gift_card_information:
             amount: Montant
+            amount_help_minimum: "Choisissez un montant d'au moins %minimum%."
+            amount_help_range: 'Choisissez un montant compris entre %minimum% et %maximum%.'
             custom_message: Message
             custom_message_help: "Jusqu'à %limit% caractères. Les sauts de ligne sont conservés sur le chèque-cadeau."
             custom_message_placeholder: Écrivez un court message au destinataire...

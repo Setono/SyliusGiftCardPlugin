@@ -22,6 +22,7 @@ use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Currency\Model\CurrencyInterface;
+use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormExtensionInterface;
@@ -81,6 +82,26 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     }
 
     /**
+     * The customer should learn the purchasable range from the field, not from the error after submitting, and the
+     * money in it is formatted in the locale being browsed
+     *
+     * @test
+     */
+    public function it_quotes_the_amount_limits_and_asks_for_a_numeric_keypad(): void
+    {
+        $form = $this->factory->create(GiftCardInformationType::class, $this->createInformation());
+        $amount = $form->get('amount')->getConfig();
+
+        self::assertSame('setono_sylius_gift_card.form.gift_card_information.amount_help_minimum', $amount->getOption('help'));
+        self::assertSame(['%minimum%' => '1,00 $US'], $amount->getOption('help_translation_parameters'));
+
+        $attr = $amount->getOption('attr');
+        self::assertIsArray($attr);
+        self::assertSame('decimal', $attr['inputmode'] ?? null);
+        self::assertArrayHasKey('data-js-gc-amount-input', $attr);
+    }
+
+    /**
      * Mirrors GiftCardInformationFactory, which seeds the information object with the order item's unit price
      */
     private function createInformation(): GiftCardInformation
@@ -114,12 +135,21 @@ final class GiftCardInformationTypeTest extends TypeTestCase
         $amountLimitsProvider = $this->prophesize(GiftCardAmountLimitsProviderInterface::class);
         $amountLimitsProvider->getLimits($channel->reveal())->willReturn(new GiftCardAmountLimits(100, null));
 
+        $moneyFormatter = $this->prophesize(MoneyFormatterInterface::class);
+        $moneyFormatter->format(100, 'USD', 'fr_FR')->willReturn('1,00 $US');
+
+        $localeContext = $this->prophesize(LocaleContextInterface::class);
+        $localeContext->getLocaleCode()->willReturn('fr_FR');
+
         $type = new GiftCardInformationType(
             GiftCardInformation::class,
             GiftCardDesign::class,
             $channelContext->reveal(),
             $designProvider->reveal(),
             200,
+            $amountLimitsProvider->reveal(),
+            $moneyFormatter->reveal(),
+            $localeContext->reveal(),
         );
 
         // The design picker is an EntityType, but the choices are handed to it explicitly, so only the

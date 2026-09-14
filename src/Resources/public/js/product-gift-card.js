@@ -14,10 +14,12 @@
         var frame = container.querySelector('.ssgc-preview__frame');
 
         var messagePlaceholder = container.getAttribute('data-preview-message-placeholder') || '';
-        var currency = container.getAttribute('data-currency') || 'USD';
+        var currency = container.getAttribute('data-currency') || '';
         var locale = container.getAttribute('data-locale') || 'en-US';
 
-        var amountInput = container.querySelector('input[type="text"], input[type="number"]');
+        // The form type marks the amount field, so the preview does not have to guess which input it is
+        var amountInput = container.querySelector('[data-js-gc-amount-input]') ||
+            container.querySelector('input[type="text"], input[type="number"]');
         var messageInput = container.querySelector('textarea');
         var designInputs = container.querySelectorAll('[data-js-gift-card-design-picker] input[type="radio"]');
 
@@ -29,13 +31,52 @@
 
         var formatter = null;
         try {
-            formatter = new Intl.NumberFormat(locale, { style: 'currency', currency: currency });
+            formatter = currency !== ''
+                ? new Intl.NumberFormat(locale, { style: 'currency', currency: currency })
+                : new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         } catch (e) {
             formatter = null;
         }
 
+        // The customer types the amount the way the page is localised, so "50,50" is fifty and a half in da or fr
+        var decimalSeparator = '.';
+        try {
+            new Intl.NumberFormat(locale).formatToParts(1.1).forEach(function (part) {
+                if (part.type === 'decimal') {
+                    decimalSeparator = part.value;
+                }
+            });
+        } catch (e) {
+            decimalSeparator = '.';
+        }
+
+        function parseAmount(raw) {
+            var input = String(raw === null || raw === undefined ? '' : raw).trim();
+            if (input === '') {
+                return NaN;
+            }
+
+            // Everything that is not a digit or the locale's decimal separator (grouping separators, currency
+            // symbols, spaces) is noise as far as the value goes
+            var normalized = '';
+            for (var i = 0; i < input.length; i++) {
+                var character = input.charAt(i);
+                if (character >= '0' && character <= '9') {
+                    normalized += character;
+                } else if (character === decimalSeparator) {
+                    normalized += '.';
+                }
+            }
+
+            if (normalized === '') {
+                return NaN;
+            }
+
+            return parseFloat(input.charAt(0) === '-' ? '-' + normalized : normalized);
+        }
+
         function formatAmount(raw) {
-            var value = parseFloat(raw);
+            var value = parseAmount(raw);
             if (isNaN(value)) {
                 return '';
             }

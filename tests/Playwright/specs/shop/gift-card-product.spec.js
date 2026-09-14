@@ -7,6 +7,25 @@ const { test, expect } = require('@playwright/test');
 test.describe('shop gift card product', () => {
     const GIFT_CARD_SLUG = 'gift-card';
 
+    /**
+     * Discovered from the locale switcher rather than hardcoded, because which locales a channel has
+     * depends on how the application was seeded. The switcher links to the locale to switch to, while every
+     * other link carries the locale currently being browsed
+     */
+    const localesOnPage = (page) =>
+        page.locator('a[href^="/"]').evaluateAll((links) => {
+            const found = [];
+            links.forEach((l) => {
+                const href = l.getAttribute('href') ?? '';
+                const match = /\/switch-locale\/([a-z]{2}_[A-Z]{2})$/.exec(href) ??
+                    /^\/([a-z]{2}_[A-Z]{2})\//.exec(href);
+                if (null !== match) {
+                    found.push(match[1]);
+                }
+            });
+            return [...new Set(found)];
+        });
+
     test('the product page renders the gift card form', async ({ page }) => {
         const response = await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
 
@@ -76,18 +95,49 @@ test.describe('shop gift card product', () => {
         await expect(page.locator('[name*="giftCardInformation"]')).toHaveCount(0);
     });
 
+    test('the amount field tells the customer the limits and asks for a numeric keypad', async ({ page }) => {
+        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+
+        const amount = page.locator('[name*="giftCardInformation"][name*="[amount]"]').first();
+        await expect(amount).toHaveAttribute('inputmode', 'decimal');
+
+        // The help the form theme renders next to the field carries the formatted limits, so the customer
+        // does not have to submit the form to find out what they are
+        const amountId = await amount.getAttribute('id');
+        const help = page.locator(`#${amountId}_help`);
+        await expect(help).toBeVisible();
+        // The limits are configurable, so this asserts a money figure is quoted rather than a particular one
+        await expect(help).toHaveText(/\d/);
+    });
+
+    test('the preview reads the amount with the decimal separator of the locale', async ({ page }) => {
+        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+
+        // A locale writing decimals with a comma is the one a naive parseFloat truncates to whole units
+        const locales = await localesOnPage(page);
+        const commaLocale = locales.find(
+            (locale) => new Intl.NumberFormat(locale.replace('_', '-')).format(1.1).indexOf(',') !== -1,
+        );
+        test.skip(undefined === commaLocale, 'the shop offers no locale that uses a decimal comma');
+
+        await page.goto(`/${commaLocale}/products/${GIFT_CARD_SLUG}`);
+
+        const amount = page.locator('[name*="giftCardInformation"][name*="[amount]"]').first();
+        await amount.fill('50,50');
+
+        // Both the framed and the image layout of the card carry the amount; whichever is on screen has to
+        // show the halves the customer typed, not a truncated 50
+        const previews = page.locator('#setono-gift-card-information [data-js-gc-amount]');
+        expect(await previews.count(), 'the preview does not render an amount').toBeGreaterThan(0);
+        for (let i = 0; i < await previews.count(); i++) {
+            await expect(previews.nth(i)).toHaveText(/50,50/);
+        }
+    });
+
     test('the page renders in every locale the channel offers', async ({ page }) => {
         await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
 
-        // Discovered from the locale switcher rather than hardcoded, because which locales a channel has
-        // depends on how the application was seeded
-        const locales = await page.locator('a[href^="/"]').evaluateAll((links) => {
-            const found = links
-                .map((l) => /^\/([a-z]{2}_[A-Z]{2})\//.exec(l.getAttribute('href') ?? ''))
-                .filter((m) => null !== m)
-                .map((m) => m[1]);
-            return [...new Set(found)];
-        });
+        const locales = await localesOnPage(page);
 
         expect(locales.length, 'no locales found in the shop').toBeGreaterThan(0);
 
