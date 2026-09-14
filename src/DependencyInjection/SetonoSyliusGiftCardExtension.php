@@ -550,7 +550,6 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
         // when prepending, and its values can be overridden under framework.rate_limiter like any other limiter's
         $configuration['framework'] = [
             'rate_limiter' => [
-                'enabled' => true,
                 'limiters' => [
                     self::RATE_LIMITER_NAME => [
                         'policy' => 'sliding_window',

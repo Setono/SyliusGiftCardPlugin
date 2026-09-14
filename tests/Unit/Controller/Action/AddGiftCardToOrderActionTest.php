@@ -106,6 +106,31 @@ final class AddGiftCardToOrderActionTest extends TestCase
         self::assertSame([self::TOO_MANY_ATTEMPTS], $session->getFlashBag()->get('error'));
     }
 
+    /**
+     * A request whose address is unknown is counted against its session only; there is no bucket that every
+     * such request would share, which would throttle strangers together
+     *
+     * @test
+     */
+    public function it_counts_a_request_without_an_address_against_its_session_alone(): void
+    {
+        $action = $this->createAction($this->createFormFactory(null), $this->createRateLimiterFactory(3));
+
+        $session = $this->session();
+
+        for ($i = 0; $i < 3; ++$i) {
+            $action($this->createRequest('NOSUCHCODE12', $session, 'the-session-id', null));
+        }
+        $session->getFlashBag()->get('error');
+
+        $action($this->createRequest('NOSUCHCODE12', $session, 'the-session-id', null));
+        self::assertSame([self::TOO_MANY_ATTEMPTS], $session->getFlashBag()->get('error'));
+
+        // another visitor without an address is not held to the budget the first one used up
+        $action($this->createRequest('NOSUCHCODE12', $session, 'somebody-elses-session-id', null));
+        self::assertSame([self::GENERIC_ERROR], $session->getFlashBag()->get('error'));
+    }
+
     /** @test */
     public function it_does_not_throttle_when_no_rate_limiter_is_configured(): void
     {
@@ -277,16 +302,23 @@ final class AddGiftCardToOrderActionTest extends TestCase
         ], new InMemoryStorage());
     }
 
-    private function createRequest(string $code, Session $session, string $sessionId = 'the-session-id'): Request
-    {
+    private function createRequest(
+        string $code,
+        Session $session,
+        string $sessionId = 'the-session-id',
+        ?string $clientIp = '203.0.113.10',
+    ): Request {
         $request = Request::create(
             '/gift-cards',
             'POST',
             ['setono_sylius_gift_card_add_gift_card_to_order' => ['giftCard' => $code]],
             [$session->getName() => $sessionId],
             [],
-            ['REMOTE_ADDR' => '203.0.113.10'],
+            null === $clientIp ? [] : ['REMOTE_ADDR' => $clientIp],
         );
+        if (null === $clientIp) {
+            $request->server->remove('REMOTE_ADDR');
+        }
         $request->setSession($session);
 
         return $request;
