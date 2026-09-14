@@ -17,6 +17,8 @@ setono_sylius_gift_card:
             back_image: Back image
         gift_card_information:
             amount: Amount
+            amount_help_minimum: 'Choose any amount from %minimum%.'
+            amount_help_range: 'Choose any amount between %minimum% and %maximum%.'
             custom_message: Message
             custom_message_placeholder: Write a short message to the recipient...
             design: Design

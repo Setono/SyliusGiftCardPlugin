@@ -5,6 +5,16 @@ sylius_fixtures:
     suites:
         default:
             fixtures:
+                channel:
+                    options:
+                        custom:
+                            fashion_web_store:
+                                # Sylius seeds the channel with the default locale only. The shop specs need a
+                                # locale that writes decimals with a comma to cover the live gift card preview
+                                locales:
+                                    - en_US
+                                    - fr_FR
+
                 setono_gift_card:
                     options:
                         custom:
