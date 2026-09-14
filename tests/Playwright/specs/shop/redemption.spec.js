@@ -8,6 +8,8 @@ const { test, expect } = require('@playwright/test');
  */
 // Seeded with a known code and a balance far larger than a cart, from the test application's fixtures
 const GIFT_CARD_CODE = 'E2EREDEMPTION01';
+// Codes are shown grouped in fours for reading (GiftCardCodeNormalizer::format()); the raw code only appears in form actions
+const GIFT_CARD_CODE_AS_DISPLAYED = GIFT_CARD_CODE.match(/.{1,4}/g).join('-');
 
 const GIFT_CARD_FIELD = '[name="setono_sylius_gift_card_add_gift_card_to_order[giftCard]"]';
 
@@ -42,6 +44,17 @@ async function applyGiftCard(page, code) {
     const giftCardForm = page.locator('form').filter({ has: page.locator(GIFT_CARD_FIELD) });
     await giftCardForm.locator('button[type="submit"]').first().click();
     await page.waitForLoadState('networkidle');
+}
+
+/**
+ * The row listing the applied gift card. Found through its remove form, whose action carries the raw code, because
+ * the cell shows the code grouped. Scoped to that form rather than `form[action*="remove"]`, which would also match
+ * the cart's line item removal and empty the cart instead
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+function appliedGiftCardRow(page) {
+    return page.locator('tr').filter({ has: page.locator(`form[action*="/gift-cards/${GIFT_CARD_CODE}/remove"]`) });
 }
 
 /**
@@ -84,8 +97,9 @@ test.describe('shop redemption', () => {
 
         await applyGiftCard(page, GIFT_CARD_CODE);
 
-        // the card is listed as applied, by the code that was entered
-        await expect(page.getByText(GIFT_CARD_CODE, { exact: false }).first()).toBeVisible();
+        // the card is listed as applied, its code grouped for reading
+        await expect(appliedGiftCardRow(page)).toBeVisible();
+        await expect(appliedGiftCardRow(page)).toContainText(GIFT_CARD_CODE_AS_DISPLAYED);
 
         // The gift card pays for the order rather than discounting it, so the order still costs what it did
         expect(await orderTotalInCents(page), 'redeeming should not change what the order costs').toBe(before);
@@ -99,14 +113,13 @@ test.describe('shop redemption', () => {
         const before = await orderTotalInCents(page);
 
         await applyGiftCard(page, GIFT_CARD_CODE);
-        await expect(page.getByText(GIFT_CARD_CODE, { exact: false }).first()).toBeVisible();
+        await expect(appliedGiftCardRow(page)).toBeVisible();
 
-        // Scoped to the gift card's own remove form. `form[action*="remove"]` would also match the cart's
-        // line item removal, which empties the cart instead and makes the assertions below meaningless
-        await page.locator(`form[action*="/gift-cards/${GIFT_CARD_CODE}/remove"] button[type="submit"]`).first().click();
+        await appliedGiftCardRow(page).locator('button[type="submit"]').first().click();
         await page.waitForLoadState('networkidle');
 
-        await expect(page.getByText(GIFT_CARD_CODE, { exact: false })).toHaveCount(0);
+        await expect(appliedGiftCardRow(page)).toHaveCount(0);
+        await expect(page.getByText(GIFT_CARD_CODE_AS_DISPLAYED, { exact: false })).toHaveCount(0);
         expect(await orderTotalInCents(page), 'removing the gift card should restore the total').toBe(before);
     });
 

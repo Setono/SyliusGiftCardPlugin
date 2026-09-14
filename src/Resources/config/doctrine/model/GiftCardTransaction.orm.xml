@@ -8,9 +8,9 @@
             <generator strategy="AUTO"/>
         </id>
 
-        <field name="amount" type="integer"/>
-        <field name="type" length="16"/>
-        <field name="reason" type="text" nullable="true"/>
+        <field name="amount" column="amount" type="integer"/>
+        <field name="type" column="type" length="16"/>
+        <field name="reason" column="reason" type="text" nullable="true"/>
         <field name="idempotencyKey" column="idempotency_key" nullable="true" unique="true"/>
 
         <field name="createdAt" column="created_at" type="datetime">

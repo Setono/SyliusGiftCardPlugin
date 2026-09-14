@@ -52,7 +52,10 @@ final class GiftCardEmailManager implements GiftCardEmailManagerInterface
 
         $this->send(Emails::GIFT_CARD, $email, [$giftCard], [
             'channel' => $channel,
-            'localeCode' => $channel?->getDefaultLocale()?->getCode(),
+            // A Sylius customer carries no locale of its own, so the locale the card was bought in is the best
+            // approximation of the recipient's language. Resolved exactly like the PDF generator does it, so the
+            // email body and the PDF attached to it are never written in two different languages
+            'localeCode' => $giftCard->getOrder()?->getLocaleCode() ?? $channel?->getDefaultLocale()?->getCode(),
         ]);
     }
 

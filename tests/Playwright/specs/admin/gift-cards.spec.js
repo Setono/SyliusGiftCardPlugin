@@ -98,6 +98,22 @@ test.describe('admin gift cards', () => {
             .toContainText(/Deducting more than the gift card holds/i);
     });
 
+    /**
+     * Codes are grouped in fours for reading wherever they are shown (GiftCardCodeNormalizer::format()), so the
+     * show page must not print the stored code as one unbroken run
+     */
+    test('the show page groups the code for reading', async ({ page }) => {
+        const id = await firstGiftCardId(page);
+
+        await page.goto(`/admin/gift-cards/${id}`);
+
+        // the details table row labelled "Code"; the seeded codes are generated, so the value is discovered, not known
+        const codeRow = page.locator('table tr').filter({ has: page.locator('td strong', { hasText: /^Code$/ }) });
+        const displayed = (await codeRow.locator('td').nth(1).innerText()).trim();
+
+        expect(displayed).toMatch(/^([A-Z0-9]{4}-)*[A-Z0-9]{1,4}$/);
+    });
+
     test('a gift card PDF can be downloaded', async ({ page }) => {
         const id = await firstGiftCardId(page);
 

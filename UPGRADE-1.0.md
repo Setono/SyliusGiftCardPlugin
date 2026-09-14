@@ -34,7 +34,28 @@ Generate a migration and review it carefully before running it against productio
 bin/console doctrine:migrations:diff
 ```
 
-Existing gift cards will need `delivery_type` backfilled (default to `virtual`) and `initial_amount` populated. Write a data migration for your own data as needed.
+Existing gift cards will need `delivery_type` backfilled (default to `virtual`) and `initial_amount` populated, for example:
+
+```sql
+UPDATE setono_sylius_gift_card__gift_card SET delivery_type = 'virtual' WHERE delivery_type IS NULL OR delivery_type = '';
+UPDATE setono_sylius_gift_card__gift_card SET initial_amount = amount WHERE initial_amount IS NULL OR initial_amount = 0;
+```
+
+Write a data migration for your own data as needed.
+
+### Column names
+
+Every column the plugin maps is now named explicitly — `initial_amount`, `currency_code`, `delivery_type`, `custom_message`, `expires_at`, and `gift_card` on `sylius_product` — so the names above are the ones you get in every application, whatever `doctrine.orm.naming_strategy` it configures.
+
+In `0.12.x` these names were left to that strategy. If your application configures none (the Sylius-Standard default), your columns are currently `initialAmount`, `currencyCode` and `customMessage`, and `doctrine:migrations:diff` will express the change as a drop plus an add, which throws the data away. Replace those statements with renames before running the migration:
+
+```sql
+ALTER TABLE setono_sylius_gift_card__gift_card CHANGE initialAmount initial_amount INT NOT NULL;
+ALTER TABLE setono_sylius_gift_card__gift_card CHANGE currencyCode currency_code VARCHAR(3) NOT NULL;
+ALTER TABLE setono_sylius_gift_card__gift_card CHANGE customMessage custom_message LONGTEXT DEFAULT NULL;
+```
+
+Applications that already configure an underscore naming strategy have these columns under the new names and need no rename.
 
 ## Template overrides
 
