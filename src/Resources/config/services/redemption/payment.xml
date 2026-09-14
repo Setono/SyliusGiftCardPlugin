@@ -8,6 +8,14 @@
             <argument>%setono_sylius_gift_card.redemption.payment_method_code%</argument>
         </service>
 
+        <!-- What the gift cards have already paid on a placed order: the sum of its completed gift card payments -->
+        <service id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardPaidAmountCalculator"
+                 class="Setono\SyliusGiftCardPlugin\Calculator\GiftCardPaidAmountCalculator">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentChecker"/>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardPaidAmountCalculatorInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Calculator\GiftCardPaidAmountCalculator"/>
+
         <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProvider"
                  class="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProvider">
             <argument type="service" id="sylius.repository.payment_method"/>
@@ -35,12 +43,18 @@
         <service id="Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface"
                  alias="Setono\SyliusGiftCardPlugin\Redemption\PaymentRedemptionMethod"/>
 
-        <!-- Size the gateway payment to (total - gift card coverage) for both the checkout and after-checkout processors -->
+        <!--
+            Size the gateway payment to (total - what the gift cards cover) for both of Sylius' payment processors.
+            The checkout one works on carts, where the coverage comes from the gift cards' live balances; the
+            after-checkout one works on placed orders, where the gift cards have already been redeemed and the
+            coverage is what their completed payments say
+        -->
         <service id="setono_sylius_gift_card.order_processor.gift_card_aware_payment.checkout"
                  class="Setono\SyliusGiftCardPlugin\OrderProcessor\GiftCardAwareOrderPaymentProcessor"
                  decorates="sylius.order_processing.order_payment_processor.checkout">
             <argument type="service" id="setono_sylius_gift_card.order_processor.gift_card_aware_payment.checkout.inner"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardPaidAmountCalculator"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentChecker"/>
             <argument>cart</argument>
         </service>
@@ -50,6 +64,7 @@
                  decorates="sylius.order_processing.order_payment_processor.after_checkout">
             <argument type="service" id="setono_sylius_gift_card.order_processor.gift_card_aware_payment.after_checkout.inner"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardPaidAmountCalculator"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentChecker"/>
             <argument>new</argument>
         </service>
