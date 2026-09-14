@@ -110,9 +110,13 @@ setono_sylius_gift_card:
         terms: 'Terms & conditions apply. This card is not redeemable for cash and cannot be replaced if lost or stolen.'
     email:
         balance: Balance
+        how_to_redeem: Enter the code at checkout to pay with your gift card. Whatever is left stays on the card for next time.
         new_gift_card: New gift card
         new_gift_card_intro: A new gift card was created for you
         pdf_attached: Your gift card is attached to this email as a PDF.
+        physical_code_on_card: The code is printed on the card itself, so you get it when the card arrives.
+        physical_on_its_way: Your gift card is on its way — we are shipping it to you.
+        valid_until: 'Valid until'
         your_gift_card: Your gift card
         your_gift_cards_you_bought_in_the_order: Your gift cards you bought in the order
 

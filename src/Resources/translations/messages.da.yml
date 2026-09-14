@@ -110,9 +110,13 @@ setono_sylius_gift_card:
         terms: 'Vilkår og betingelser gælder. Kortet kan ikke ombyttes til kontanter og kan ikke erstattes ved tab eller tyveri.'
     email:
         balance: Saldo
+        how_to_redeem: Indtast koden ved betaling for at betale med dit gavekort. Resten bliver stående på kortet til næste gang.
         new_gift_card: Nyt gavekort
         new_gift_card_intro: Der er blevet oprettet et nyt gavekort til dig
         pdf_attached: Dit gavekort er vedhæftet denne email som PDF.
+        physical_code_on_card: Koden står på selve kortet, så du får den, når kortet ankommer.
+        physical_on_its_way: Dit gavekort er på vej — vi sender det til dig.
+        valid_until: 'Gyldigt til'
         your_gift_card: Dit gavekort
         your_gift_cards_you_bought_in_the_order: Dine købte gavekort på denne ordre
 

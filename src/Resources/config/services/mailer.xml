@@ -8,6 +8,7 @@
                  class="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManager">
             <argument type="service" id="sylius.email_sender"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface"/>
+            <argument>%setono_sylius_gift_card.delivery.email_physical_cards%</argument>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface"
                  alias="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManager"/>
