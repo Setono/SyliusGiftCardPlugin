@@ -2,5 +2,6 @@
 {% if data is null %}
     {{ 'setono_sylius_gift_card.ui.no_customer'|trans }}
 {% else %}
-    <a href="mailto:{{ data.emailCanonical }}">{{ data.emailCanonical }}</a> <a href="{{ path('sylius_admin_customer_show', { 'id': data.id }) }}" target="_blank"><i class="external alternate icon"></i></a>
+    {% set open_customer_label = 'setono_sylius_gift_card.ui.open_customer'|trans({'%customer%': data.emailCanonical}) %}
+    <a href="mailto:{{ data.emailCanonical }}">{{ data.emailCanonical }}</a> <a href="{{ path('sylius_admin_customer_show', { 'id': data.id }) }}" target="_blank" rel="noopener" aria-label="{{ open_customer_label }}" title="{{ open_customer_label }}"><i class="external alternate icon"></i></a>
 {% endif %}

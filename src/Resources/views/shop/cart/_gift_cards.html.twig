@@ -8,7 +8,8 @@
 
     {{ form_start(applyForm, {'action': path('setono_sylius_gift_card_shop_add_gift_card_to_order'), 'method': 'post', 'attr': {'novalidate': 'novalidate'}}) }}
         <div class="ui action input">
-            {{ form_widget(applyForm.giftCard) }}
+            {# The field is deliberately label-less in this inline layout, so it carries its name as an aria-label instead of relying on the placeholder #}
+            {{ form_widget(applyForm.giftCard, {'attr': applyForm.giftCard.vars.attr|merge({'aria-label': 'setono_sylius_gift_card.ui.gift_card_code'|trans})}) }}
             <button type="submit" class="ui teal button" {{ sylius_test_html_attribute('apply-gift-card-button') }}>
                 {{ 'setono_sylius_gift_card.ui.apply_gift_card'|trans }}
             </button>
@@ -27,7 +28,8 @@
                         <td class="right aligned collapsing">
                             <form method="post" action="{{ path('setono_sylius_gift_card_shop_remove_gift_card_from_order', {'giftCard': giftCard.code}) }}">
                                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('setono_remove_gift_card_' ~ giftCard.code) }}"/>
-                                <button type="submit" class="ui red tiny icon button" {{ sylius_test_html_attribute('remove-gift-card-button', giftCard.code) }}>
+                                {% set remove_label = 'setono_sylius_gift_card.ui.remove_gift_card'|trans({'%code%': giftCard.code}) %}
+                                <button type="submit" class="ui red tiny icon button" aria-label="{{ remove_label }}" title="{{ remove_label }}" {{ sylius_test_html_attribute('remove-gift-card-button', giftCard.code) }}>
                                     <i class="trash icon"></i>
                                 </button>
                             </form>
