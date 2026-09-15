@@ -58,6 +58,13 @@ setono_sylius_gift_card:
         your_message_here: Din besked her
         design: Design
         designs: Design
+        setup_warning:
+            topbar: 'Gavekortopsætningen er ufuldstændig: intet design i %channels%'
+            header: Gavekortopsætningen er ikke færdig
+            explanation: 'Disse kanaler sælger gavekort, men har intet aktivt gavekortdesign, så deres produktsider viser ingen designvælger, og fysiske gavekort printes uden grafik: %channels%.'
+            create_design: Opret et gavekortdesign
+            create_design_suffix: og aktivér det for kanalen, eller
+            run_command: 'installér det medfølgende "Classic"-design i alle kanaler ved at køre'
         design_images: Designbilleder
         design_images_help: 'Upload et forsidebillede (vises i vælgeren, forhåndsvisningen og på gavekortet) og eventuelt et bagsidebillede. Liggende format, mindst 1050×740px, JPG eller PNG.'
         enter_gift_card_code: Indtast gavekortskoden
