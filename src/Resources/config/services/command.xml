@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="Setono\SyliusGiftCardPlugin\Command\CreateDefaultDesignCommand"
+                 class="Setono\SyliusGiftCardPlugin\Command\CreateDefaultDesignCommand">
+            <argument type="service" id="setono_sylius_gift_card.repository.gift_card_design"/>
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_design"/>
+            <argument type="service" id="setono_sylius_gift_card.factory.gift_card_design_image"/>
+            <argument type="service" id="sylius.repository.channel"/>
+            <argument type="service" id="sylius.image_uploader"/>
+            <argument type="service" id="doctrine"/>
+            <argument>%setono_sylius_gift_card.default_design_image_path%</argument>
+
+            <tag name="console.command"/>
+        </service>
+    </services>
+</container>

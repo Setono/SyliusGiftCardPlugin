@@ -64,6 +64,7 @@ setono_sylius_gift_card:
         front: Forside
         gift_card: Gavekort
         gift_card_channel_does_not_match_channel: Gavekortet er købt på en anden kanal, brug venligst gavekortet på %channel%
+        gift_card_code: Gavekortskode
         gift_card_code_is_invalid: Gavekortskoden er ugyldig
         gift_cards: Gavekort
         gift_card_designs: Gavekortdesign
@@ -75,9 +76,11 @@ setono_sylius_gift_card:
         new_gift_card_design: Nyt gavekortdesign
         no_image: Intet billede
         no_transactions: Dette gavekort har endnu ingen transaktioner.
+        open_customer: 'Åbn kunden %customer% i en ny fane'
         physical: 'Fysisk — sendes til dig'
         position: Placering
         remaining_to_pay: Resterende at betale
+        remove_gift_card: 'Fjern gavekort %code%'
         transactions: Transaktioner
         transaction_type_issue: Udstedt
         transaction_type_manual: Manuel justering
