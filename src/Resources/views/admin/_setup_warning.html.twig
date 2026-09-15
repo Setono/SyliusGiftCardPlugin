@@ -1,0 +1,19 @@
+{# Rendered above the header of the gift card and gift card design indexes while a channel sells gift cards
+   without an enabled design #}
+{% set channels = setono_gift_card_channels_without_design() %}
+{% if channels is not empty %}
+    <div class="ui warning message" data-test-gift-card-setup-warning-message>
+        <div class="header">{{ 'setono_sylius_gift_card.ui.setup_warning.header'|trans }}</div>
+        <p>{{ 'setono_sylius_gift_card.ui.setup_warning.explanation'|trans({'%channels%': channels|map(channel => channel.name)|join(', ')}) }}</p>
+        <ul class="list">
+            <li>
+                <a href="{{ path('setono_sylius_gift_card_admin_gift_card_design_create') }}">{{ 'setono_sylius_gift_card.ui.setup_warning.create_design'|trans }}</a>
+                {{ 'setono_sylius_gift_card.ui.setup_warning.create_design_suffix'|trans }}
+            </li>
+            <li>
+                {{ 'setono_sylius_gift_card.ui.setup_warning.run_command'|trans }}
+                <code>bin/console setono:gift-card:create-default-design</code>
+            </li>
+        </ul>
+    </div>
+{% endif %}

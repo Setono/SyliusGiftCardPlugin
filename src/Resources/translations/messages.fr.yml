@@ -58,6 +58,13 @@ setono_sylius_gift_card:
         your_message_here: Votre message ici
         design: Modèle
         designs: Modèles
+        setup_warning:
+            topbar: 'Configuration des chèques-cadeaux incomplète : aucun modèle dans %channels%'
+            header: La configuration des chèques-cadeaux n''est pas terminée
+            explanation: 'Ces canaux vendent des chèques-cadeaux mais n''ont aucun modèle activé : leurs pages produit n''affichent pas de sélecteur de modèle et les cartes physiques sont imprimées sans visuel : %channels%.'
+            create_design: Créez un modèle de chèque-cadeau
+            create_design_suffix: et activez-le pour le canal, ou
+            run_command: 'installez le modèle « Classic » fourni dans tous les canaux en exécutant'
         design_images: Images du modèle
         design_images_help: "Téléversez une image recto (affichée dans le sélecteur, l'aperçu et sur le chèque-cadeau) et, éventuellement, une image verso. Format paysage, au moins 1050×740px, JPG ou PNG."
         enter_gift_card_code: Renseignez le numéro de chèque-cadeau
