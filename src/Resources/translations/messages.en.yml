@@ -58,6 +58,13 @@ setono_sylius_gift_card:
         your_message_here: Your message here
         design: Design
         designs: Designs
+        setup_warning:
+            topbar: 'Gift card setup incomplete: no design in %channels%'
+            header: The gift card setup is not complete
+            explanation: 'These channels sell gift cards but have no enabled gift card design, so their product pages show no design picker and physical cards print without artwork: %channels%.'
+            create_design: Create a gift card design
+            create_design_suffix: and enable it for the channel, or
+            run_command: 'install the bundled "Classic" design in every channel by running'
         design_images: Design images
         design_images_help: 'Upload a front image (shown in the picker, preview and on the gift card) and, optionally, a back image. Landscape orientation, at least 1050×740px, JPG or PNG.'
         enter_gift_card_code: Enter gift card code

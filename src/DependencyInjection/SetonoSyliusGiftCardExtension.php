@@ -175,6 +175,33 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                             ],
                         ],
                     ],
+                    // The warning about a channel selling gift cards without a design: a label in the top bar of every
+                    // admin page, and the full message above the header of the two indexes that can fix it
+                    // (Sylius' header block sits at priority 20)
+                    'sylius.admin.layout.topbar_middle' => [
+                        'blocks' => [
+                            'setono_gift_card_setup_warning' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/admin/layout/_setup_warning_topbar.html.twig',
+                                'priority' => 10,
+                            ],
+                        ],
+                    ],
+                    'setono_sylius_gift_card.admin.gift_card.index' => [
+                        'blocks' => [
+                            'setono_gift_card_setup_warning' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/admin/_setup_warning.html.twig',
+                                'priority' => 30,
+                            ],
+                        ],
+                    ],
+                    'setono_sylius_gift_card.admin.gift_card_design.index' => [
+                        'blocks' => [
+                            'setono_gift_card_setup_warning' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/admin/_setup_warning.html.twig',
+                                'priority' => 30,
+                            ],
+                        ],
+                    ],
                     'sylius.shop.product.show.add_to_cart_form' => [
                         'blocks' => [
                             'setono_gift_card_information' => [
