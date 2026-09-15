@@ -49,6 +49,11 @@
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>
+        <property name="customMessage">
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLength">
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
         <property name="sendNotificationEmail">
             <constraint name="Type">
                 <option name="type">bool</option>

@@ -50,6 +50,7 @@
             <argument>%setono_sylius_gift_card.model.gift_card_design.class%</argument>
             <argument type="service" id="sylius.context.channel"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProvider"/>
+            <argument>%setono_sylius_gift_card.purchase.maximum_message_length%</argument>
             <tag name="form.type"/>
         </service>
 

@@ -7,6 +7,8 @@ setono_sylius_gift_card:
     channel_configuration:
         unique_channel_locale: Kombinationen af denne kanal og lokalitet er allerede brugt
     gift_card:
+        custom_message:
+            too_long: 'Beskeden må højst være {{ limit }} tegn lang.'
         code:
             not_blank: Indtast venligst din kode
             unique: Koden skal være unik

@@ -19,6 +19,7 @@ setono_sylius_gift_card:
         gift_card_information:
             amount: Beløb
             custom_message: Besked
+            custom_message_help: 'Højst %limit% tegn. Linjeskift bevares på gavekortet.'
             custom_message_placeholder: Skriv en kort besked til modtageren...
             design: Design
         adjust_balance:
@@ -33,6 +34,7 @@ setono_sylius_gift_card:
         average: Gennemsnit
         back: Tilbage
         balance: Saldo
+        characters_left: '%remaining% tegn tilbage'
         count: Antal
         current_balance: Nuværende saldo
         create_gift_card: Opret gavekort

@@ -7,6 +7,9 @@
 
     {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig') }}
 
+    {# The limit is configurable, so it is read back off the field the form type built #}
+    {% set message_limit = gift_card_form.customMessage.vars.attr.maxlength|default(null) %}
+
     <div id="setono-gift-card-information"
          class="ui segment"
          data-preview-message-placeholder="{{ 'setono_sylius_gift_card.ui.your_message_here'|trans }}"
@@ -48,6 +51,15 @@
         </div>
 
         {{ form_row(gift_card_form.customMessage) }}
+        {% if message_limit is not null %}
+            {# The counter is rendered here rather than by the script so it is right before the script runs. It
+               also carries the sentence with %remaining% still in it, because the number sits in a different
+               place in every language and the script must not build the sentence out of fragments #}
+            <small class="ssgc-message-counter"
+                   data-js-gc-message-counter
+                   data-template="{{ 'setono_sylius_gift_card.ui.characters_left'|trans }}"
+                   aria-live="polite">{{ 'setono_sylius_gift_card.ui.characters_left'|trans({'%remaining%': message_limit}) }}</small>
+        {% endif %}
     </div>
 
     <script defer src="{{ asset('bundles/setonosyliusgiftcardplugin/js/product-gift-card.js') }}"></script>

@@ -106,4 +106,77 @@ test.describe('shop gift card product', () => {
 
         expect(serverErrors, 'adding to the cart must not fail with a server error').toEqual([]);
     });
+
+    test('the message field counts down and the preview keeps the line breaks', async ({ page }) => {
+        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+
+        const message = page.locator('[name*="giftCardInformation"][name*="[customMessage]"]').first();
+        const counter = page.locator('[data-js-gc-message-counter]');
+
+        // The limit is configurable, so it is read off the field the plugin rendered rather than hardcoded
+        const limit = Number(await message.getAttribute('maxlength'));
+        expect(limit, 'the message field has no maxlength').toBeGreaterThan(0);
+
+        // An untouched field has the whole budget left, and the counter is server rendered so it is already
+        // correct before the script runs
+        await expect(counter).toContainText(String(limit));
+
+        const typed = 'Happy birthday!\nEnjoy your gift.';
+        await message.fill(typed);
+
+        await expect(counter).toContainText(String(limit - typed.length));
+
+        const preview = await previewMessage(page);
+        expect(preview.text).toBe(typed);
+        // white-space: pre-line is what carries the newline through to the PDF as well
+        expect(preview.whiteSpace).toBe('pre-line');
+        expect(preview.lines, 'the preview collapsed the line break').toBeGreaterThanOrEqual(2);
+    });
+
+    test('a message of many lines is clamped instead of growing over the card', async ({ page }) => {
+        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+
+        const message = page.locator('[name*="giftCardInformation"][name*="[customMessage]"]').first();
+        const limit = Number(await message.getAttribute('maxlength'));
+
+        // The nastiest message that still fits the limit: as many lines as characters allow
+        await message.fill(Array.from({ length: Math.floor(limit / 3) }, () => 'ab').join('\n'));
+
+        const preview = await previewMessage(page);
+        expect(preview.scrollHeight, 'the message is not clamped').toBeGreaterThan(preview.clientHeight);
+        expect(preview.titleOverlapsBrand, 'the title has been pushed into the brand row').toBe(false);
+    });
+
+    /**
+     * Reads the message element of whichever card variant is on screen — the design picker decides whether the
+     * framed default or the merchant image variant is the visible one — plus how the card laid it out.
+     *
+     * @param {import('@playwright/test').Page} page
+     */
+    async function previewMessage(page) {
+        return page.evaluate(() => {
+            const container = document.getElementById('setono-gift-card-information');
+            const nodes = Array.from(container.querySelectorAll('[data-js-gc-message]'));
+            const element = nodes.find((node) => node.getClientRects().length > 0) ?? nodes[0];
+
+            const range = document.createRange();
+            range.selectNodeContents(element);
+
+            const card = element.closest('.ssgc-card');
+            const brand = card.querySelector('.ssgc-card__brand');
+            const title = card.querySelector('.ssgc-card__title');
+            const overlaps = null !== brand && null !== title && title.getClientRects().length > 0
+                && title.getBoundingClientRect().top < brand.getBoundingClientRect().bottom;
+
+            return {
+                text: element.textContent,
+                whiteSpace: getComputedStyle(element).whiteSpace,
+                // One rect per rendered line box, so this is the number of lines the card actually shows
+                lines: range.getClientRects().length,
+                clientHeight: element.clientHeight,
+                scrollHeight: element.scrollHeight,
+                titleOverlapsBrand: overlaps,
+            };
+        });
+    }
 });

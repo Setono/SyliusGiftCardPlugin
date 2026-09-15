@@ -15,6 +15,7 @@ use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimits;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
@@ -117,6 +118,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             GiftCardDesign::class,
             $channelContext->reveal(),
             $designProvider->reveal(),
+            200,
         );
 
         // The design picker is an EntityType, but the choices are handed to it explicitly, so only the
@@ -129,9 +131,12 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             $this->prophesize(MoneyFormatterInterface::class)->reveal(),
         );
 
+        // The rules live in the validation mapping rather than on the form, so the mapping is what is loaded here
         $validator = Validation::createValidatorBuilder()
+            ->addXmlMapping(__DIR__ . '/../../../../src/Resources/config/validation/GiftCardInformation.xml')
             ->setConstraintValidatorFactory(new ConstraintValidatorFactory([
                 ValidGiftCardAmountValidator::class => $amountValidator,
+                GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
             ]))
             ->getValidator()
         ;

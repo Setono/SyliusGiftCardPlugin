@@ -19,6 +19,7 @@ setono_sylius_gift_card:
         gift_card_information:
             amount: Amount
             custom_message: Message
+            custom_message_help: 'Up to %limit% characters. Line breaks are kept on the card.'
             custom_message_placeholder: Write a short message to the recipient...
             design: Design
         adjust_balance:
@@ -33,6 +34,7 @@ setono_sylius_gift_card:
         average: Average
         back: Back
         balance: Balance
+        characters_left: '%remaining% characters left'
         count: Count
         current_balance: Current balance
         create_gift_card: Create gift card
