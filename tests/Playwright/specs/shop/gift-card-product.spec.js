@@ -18,6 +18,9 @@ test.describe('shop gift card product', () => {
         // amount, message and design are what the customer fills in
         await expect(page.locator('[name*="giftCardInformation"][name*="[amount]"]')).toHaveCount(1);
         await expect(page.locator('[name*="giftCardInformation"][name*="[customMessage]"]')).toHaveCount(1);
+        // the design picker is only rendered when the channel has designs, which the fixtures seed
+        await expect(page.locator('[data-js-gift-card-design-picker]')).toBeVisible();
+        expect(await page.locator('[name*="giftCardInformation"][name*="[design]"]').count()).toBeGreaterThan(0);
     });
 
     test('an ordinary product does not render the gift card form', async ({ page }) => {

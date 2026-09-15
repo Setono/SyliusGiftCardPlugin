@@ -41,8 +41,8 @@ final class PreviewGiftCardDesignPdfActionTest extends GiftCardFunctionalTestCas
 
         // Neither channel's hostname is ever consulted: the design belongs to SECOND, so that is the one
         // the preview must be rendered for, regardless of which channel a request happened to arrive on
-        $this->createChannel('FIRST', $currency, $locale);
-        $second = $this->createChannel('SECOND', $currency, $locale);
+        $this->createChannelWith('FIRST', $currency, $locale);
+        $second = $this->createChannelWith('SECOND', $currency, $locale);
         $design = $this->createDesign($second);
 
         $this->manager->flush();
@@ -59,7 +59,7 @@ final class PreviewGiftCardDesignPdfActionTest extends GiftCardFunctionalTestCas
     {
         $currency = $this->createCurrency('USD');
         $locale = $this->createLocale('en_US');
-        $this->createChannel('ONLY', $currency, $locale);
+        $this->createChannelWith('ONLY', $currency, $locale);
 
         $design = $this->createDesign();
 
@@ -88,7 +88,7 @@ final class PreviewGiftCardDesignPdfActionTest extends GiftCardFunctionalTestCas
         return $locale;
     }
 
-    private function createChannel(string $code, CurrencyInterface $currency, LocaleInterface $locale): ChannelInterface
+    private function createChannelWith(string $code, CurrencyInterface $currency, LocaleInterface $locale): ChannelInterface
     {
         /** @var ChannelFactoryInterface<ChannelInterface> $channelFactory */
         $channelFactory = self::getContainer()->get('sylius.factory.channel');
