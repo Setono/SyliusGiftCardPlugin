@@ -18,5 +18,11 @@
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>
+        <property name="design">
+            <!-- Only mandatory when the channel offers designs to choose from, which a plain NotBlank cannot express -->
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequired">
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
     </class>
 </constraint-mapping>

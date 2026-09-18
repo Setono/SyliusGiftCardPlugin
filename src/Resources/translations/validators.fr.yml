@@ -34,6 +34,8 @@ setono_sylius_gift_card:
         amount:
             too_low: 'Le montant du chèque-cadeau doit être au moins de {{ minimum }}.'
             too_high: 'Le montant du chèque-cadeau ne peut pas dépasser {{ maximum }}.'
+        design:
+            required: 'Veuillez choisir un modèle.'
     gift_card_design:
         position:
             not_null: Veuillez saisir une position

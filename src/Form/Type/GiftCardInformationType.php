@@ -14,7 +14,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Valid;
 
 /**
@@ -70,10 +69,6 @@ final class GiftCardInformationType extends AbstractType
 
                     return ['data-image-path' => $front?->getPath() ?? ''];
                 },
-                // A channel without designs skips the picker, so a design is only mandatory when there is one to pick
-                'constraints' => [] === $designs ? [] : [
-                    new NotBlank(['groups' => self::VALIDATION_GROUPS]),
-                ],
             ])
         ;
     }

@@ -15,6 +15,7 @@ use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimits;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
@@ -137,6 +138,10 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             ->setConstraintValidatorFactory(new ConstraintValidatorFactory([
                 ValidGiftCardAmountValidator::class => $amountValidator,
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
+                GiftCardDesignRequiredValidator::class => new GiftCardDesignRequiredValidator(
+                    $channelContext->reveal(),
+                    $designProvider->reveal(),
+                ),
             ]))
             ->getValidator()
         ;
