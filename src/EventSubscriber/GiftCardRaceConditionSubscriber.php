@@ -21,8 +21,14 @@ use Throwable;
  *
  * GiftCard carries a version column, so when two orders redeem the same card at the same moment the second
  * flush updates zero rows and Doctrine throws an OptimisticLockException. The customer did nothing wrong and
- * nothing was written — the transaction rolled back, the order was not placed and the cart still holds the
- * card — so they are told what happened and sent back to the cart summary to review it.
+ * nothing was written - the transaction rolled back, the order was not placed and the cart still holds the
+ * card.
+ *
+ * On a stock Sylius shop this never gets to act: Sylius' resource update handler wraps the exception in a
+ * RaceConditionException, which the resource controller handles itself by redirecting to the referer. That
+ * behaviour is deliberately left alone. This is the safety net for applications where the Doctrine exception
+ * does reach the kernel, because the checkout is completed by a controller of their own or the update handler
+ * was replaced: there the customer is told what happened and sent back to the cart summary.
  *
  * The entity manager is closed once a flush fails, so nothing here may touch the database: a flash and a
  * redirect is all this can do, and all it needs to do.
@@ -76,8 +82,8 @@ final class GiftCardRaceConditionSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * The exception is not always the bare Doctrine one: Sylius' resource update handler rethrows it wrapped,
-     * so the whole chain is inspected
+     * The exception is not always the bare Doctrine one, another layer may have wrapped it, so the whole chain
+     * is inspected
      */
     private static function causedByOptimisticLock(Throwable $throwable): bool
     {
