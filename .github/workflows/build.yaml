@@ -278,11 +278,22 @@ jobs:
                     bin/console assets:install public --symlink --relative
                     bin/console cache:warmup
 
+            -   name: "Keep the sessions where a failed run can upload them"
+                # The test application leaves session handling to PHP, whose php.ini decides where the files go.
+                # The admin session has been found dead partway through the suite on this job more than once,
+                # so the files are kept inside the workspace and uploaded with the report when the run fails.
+                # A leading path separator keeps PHP's own scan directory in place
+                run: |
+                    mkdir -p "$GITHUB_WORKSPACE/tests/Application/var/sessions" "$RUNNER_TEMP/php-ini"
+                    printf 'session.save_path=%s\n' "$GITHUB_WORKSPACE/tests/Application/var/sessions" > "$RUNNER_TEMP/php-ini/sessions.ini"
+                    echo "PHP_INI_SCAN_DIR=:$RUNNER_TEMP/php-ini" >> "$GITHUB_ENV"
+
             -   name: "Serve the test application"
                 run: |
                     cd tests/Application
                     symfony serve --no-tls --daemon --port=8080
                     symfony server:status
+                    symfony php -i | grep -E '^session\.(save_handler|save_path|gc_maxlifetime|gc_probability|gc_divisor|use_strict_mode|lazy_write)'
             -   name: "Wait for the test application"
                 # The first requests to a freshly built application are slow and, when several arrive at once,
                 # can race each other while the dev container and templates are compiled; the login the
@@ -298,12 +309,20 @@ jobs:
             -   name: "Run end to end tests"
                 run: "(cd tests/Playwright && npx playwright test)"
 
-            -   name: "Upload the report"
+            -   name: "List the session files"
+                if: "always()"
+                run: "ls -la tests/Application/var/sessions"
+
+            -   name: "Upload the report, the application log, the session files and the server log"
                 uses: "actions/upload-artifact@v4"
                 if: "failure()"
                 with:
                     name: "playwright-report"
-                    path: "tests/Playwright/playwright-report"
+                    path: |
+                        tests/Playwright/playwright-report
+                        tests/Application/var/log
+                        tests/Application/var/sessions
+                        ~/.symfony5/log
                     retention-days: 7
 
     mutation-tests:
