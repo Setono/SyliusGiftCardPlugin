@@ -17,6 +17,7 @@ use Sylius\Bundle\ResourceBundle\Controller\ResourceUpdateHandlerInterface;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\ProductVariant;
 use Sylius\Component\Order\OrderTransitions;
+use Sylius\Resource\Exception\RaceConditionException;
 use Sylius\Resource\Metadata\RegistryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -62,14 +63,14 @@ final class GiftCardRedemptionRaceTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * Sylius' resource update handler turns the lost race into a RaceConditionException, which the resource
-     * controller swallows: it redirects to the referer, and the shop's checkout complete route disables
-     * flashes, so the customer is bounced back to checkout without a word. CheckoutRaceConditionUpdateHandler
-     * lets the Doctrine exception through instead, which is what GiftCardRaceConditionSubscriber acts on
+     * At checkout completion the flush happens inside Sylius' resource update handler, which turns the lost race
+     * into a RaceConditionException. The resource controller handles that one itself by redirecting to the
+     * referer, so the customer never sees an error page. The plugin leaves that handling alone; this pins it,
+     * because it is what makes a concurrent redemption harmless on a stock shop
      *
      * @test
      */
-    public function it_lets_the_lost_race_out_of_the_resource_update_handler_at_checkout_completion(): void
+    public function it_reaches_sylius_as_a_race_condition_at_checkout_completion(): void
     {
         $giftCard = $this->createGiftCard(5000);
         $order = $this->createOrderWithAppliedGiftCard($giftCard, 5000);
@@ -78,13 +79,17 @@ final class GiftCardRedemptionRaceTest extends GiftCardFunctionalTestCase
 
         $this->orderWorkflow()->apply($order, OrderTransitions::TRANSITION_CREATE);
 
-        $this->expectException(OptimisticLockException::class);
+        try {
+            $this->updateHandler()->handle(
+                $order,
+                $this->requestConfiguration(GiftCardRaceConditionSubscriber::CHECKOUT_COMPLETE_ROUTE),
+                $this->manager,
+            );
 
-        $this->updateHandler()->handle(
-            $order,
-            $this->requestConfiguration(GiftCardRaceConditionSubscriber::CHECKOUT_COMPLETE_ROUTE),
-            $this->manager,
-        );
+            self::fail('The lost race went unnoticed');
+        } catch (RaceConditionException $e) {
+            self::assertInstanceOf(OptimisticLockException::class, $e->getPrevious());
+        }
     }
 
     private function updateHandler(): ResourceUpdateHandlerInterface

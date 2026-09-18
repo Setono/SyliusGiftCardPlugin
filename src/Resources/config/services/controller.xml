@@ -7,21 +7,6 @@
     <services>
         <defaults public="true"/>
 
-        <!--
-            Wraps Sylius' resource update handler from the outside (hence the negative decoration priority, which
-            puts this last in the chain) so it sees the RaceConditionException Sylius raises for a lost optimistic
-            lock, and can let it through to GiftCardRaceConditionSubscriber at checkout completion
-        -->
-        <service id="Setono\SyliusGiftCardPlugin\Doctrine\ORM\Handler\CheckoutRaceConditionUpdateHandler"
-                 class="Setono\SyliusGiftCardPlugin\Doctrine\ORM\Handler\CheckoutRaceConditionUpdateHandler"
-                 decorates="sylius.resource_controller.resource_update_handler"
-                 decoration-priority="-100"
-                 public="false">
-            <argument type="service"
-                      id="Setono\SyliusGiftCardPlugin\Doctrine\ORM\Handler\CheckoutRaceConditionUpdateHandler.inner"/>
-            <argument type="service" id="request_stack"/>
-        </service>
-
         <service id="Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction">
             <argument type="service" id="form.factory"/>
