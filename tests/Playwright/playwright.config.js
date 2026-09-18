@@ -41,6 +41,9 @@ module.exports = defineConfig({
         {
             name: 'shop',
             testMatch: /shop\/.*\.spec\.js/,
+            // The shop specs run anonymously, but one of them drives the admin as well (a card going stale is
+            // the admin's doing), and reuses the signed in session the setup project stores
+            dependencies: ['setup'],
             use: { ...devices['Desktop Chrome'] },
         },
     ],

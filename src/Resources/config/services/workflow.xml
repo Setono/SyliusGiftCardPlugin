@@ -13,6 +13,11 @@
             getSubscribedEvents().
         -->
 
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\GuardCheckoutCompletionSubscriber">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuard"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\ReconcileGiftCardsSubscriber">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator"/>
             <tag name="kernel.event_subscriber"/>

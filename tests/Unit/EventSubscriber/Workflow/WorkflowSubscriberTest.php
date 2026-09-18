@@ -10,13 +10,16 @@ use Prophecy\Prophecy\MethodProphecy;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\CommitRedemptionSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\DisableGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\EnableGiftCardsSubscriber;
+use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\GuardCheckoutCompletionSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\ReconcileGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\RollbackRedemptionSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\SendGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
+use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
 use Symfony\Component\Workflow\Event\CompletedEvent;
+use Symfony\Component\Workflow\Event\GuardEvent;
 use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\Transition;
 use Webmozart\Assert\Assert;
@@ -118,6 +121,39 @@ final class WorkflowSubscriberTest extends TestCase
             static fn (GiftCardRedemptionMethodInterface $method): callable => new RollbackRedemptionSubscriber($method),
             'rollback',
         ];
+    }
+
+    /** @test */
+    public function it_blocks_checkout_completion_when_the_guard_is_not_satisfied(): void
+    {
+        $order = $this->prophesize(OrderInterface::class)->reveal();
+
+        $guard = $this->prophesize(GiftCardCoverageGuardInterface::class);
+        $guard->isSatisfiedBy($order)->willReturn(false);
+
+        $event = $this->guardEvent($order);
+        (new GuardCheckoutCompletionSubscriber($guard->reveal()))($event);
+
+        self::assertTrue($event->isBlocked());
+    }
+
+    /** @test */
+    public function it_lets_checkout_complete_when_the_guard_is_satisfied(): void
+    {
+        $order = $this->prophesize(OrderInterface::class)->reveal();
+
+        $guard = $this->prophesize(GiftCardCoverageGuardInterface::class);
+        $guard->isSatisfiedBy($order)->willReturn(true);
+
+        $event = $this->guardEvent($order);
+        (new GuardCheckoutCompletionSubscriber($guard->reveal()))($event);
+
+        self::assertFalse($event->isBlocked());
+    }
+
+    private function guardEvent(object $subject): GuardEvent
+    {
+        return new GuardEvent($subject, new Marking(), new Transition('t', 'from', 'to'));
     }
 
     private function completedEvent(object $subject): CompletedEvent
