@@ -75,6 +75,9 @@
         "symfony/web-profiler-bundle": "^6.4",
         "symfony/webpack-encore-bundle": "^1.17.2"
     },
+    "conflict": {
+        "twig/twig": ">=3.29"
+    },
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
