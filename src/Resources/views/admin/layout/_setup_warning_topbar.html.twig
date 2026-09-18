@@ -1,0 +1,11 @@
+{# Shown in the top bar of every admin page while a channel sells gift cards without an enabled design. The
+   designs index carries the full explanation and both ways to fix it #}
+{% set channels = setono_gift_card_channels_without_design() %}
+{% if channels is not empty %}
+    <a class="item" href="{{ path('setono_sylius_gift_card_admin_gift_card_design_index') }}" data-test-gift-card-setup-warning>
+        <div class="ui orange label">
+            <i class="warning sign icon"></i>
+            {{ 'setono_sylius_gift_card.ui.setup_warning.topbar'|trans({'%channels%': channels|map(channel => channel.name)|join(', ')}) }}
+        </div>
+    </a>
+{% endif %}
