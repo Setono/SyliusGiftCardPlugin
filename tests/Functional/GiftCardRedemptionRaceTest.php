@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Doctrine\ORM\OptimisticLockException;
-use Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardRaceConditionSubscriber;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
@@ -20,7 +19,6 @@ use Sylius\Component\Order\OrderTransitions;
 use Sylius\Resource\Exception\RaceConditionException;
 use Sylius\Resource\Metadata\RegistryInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Workflow\WorkflowInterface;
 use Webmozart\Assert\Assert;
 
@@ -82,7 +80,7 @@ final class GiftCardRedemptionRaceTest extends GiftCardFunctionalTestCase
         try {
             $this->updateHandler()->handle(
                 $order,
-                $this->requestConfiguration(GiftCardRaceConditionSubscriber::CHECKOUT_COMPLETE_ROUTE),
+                $this->requestConfiguration(),
                 $this->manager,
             );
 
@@ -100,19 +98,9 @@ final class GiftCardRedemptionRaceTest extends GiftCardFunctionalTestCase
         return $handler;
     }
 
-    /**
-     * The request has to be the current one, because that is how the handler knows which route it is serving
-     */
-    private function requestConfiguration(string $route): RequestConfiguration
+    private function requestConfiguration(): RequestConfiguration
     {
         $container = self::getContainer();
-
-        $request = new Request();
-        $request->attributes->set('_route', $route);
-
-        /** @var RequestStack $requestStack */
-        $requestStack = $container->get('request_stack');
-        $requestStack->push($request);
 
         /** @var RegistryInterface $registry */
         $registry = $container->get('sylius.resource_registry');
@@ -120,7 +108,7 @@ final class GiftCardRedemptionRaceTest extends GiftCardFunctionalTestCase
         /** @var RequestConfigurationFactoryInterface $factory */
         $factory = $container->get('sylius.resource_controller.request_configuration_factory');
 
-        return $factory->create($registry->get('sylius.order'), $request);
+        return $factory->create($registry->get('sylius.order'), new Request());
     }
 
     private function orderWorkflow(): WorkflowInterface
