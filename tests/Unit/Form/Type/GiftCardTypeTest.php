@@ -131,6 +131,117 @@ final class GiftCardTypeTest extends TypeTestCase
     }
 
     /**
+     * After issuance the balance belongs to the balance operator, which records every movement in the ledger. Editing
+     * a card must neither offer the amount nor move what it was issued with
+     *
+     * @test
+     */
+    public function it_keeps_the_balance_out_of_the_form_once_the_card_exists(): void
+    {
+        $giftCard = $this->existingGiftCard();
+        $giftCard->setInitialAmount(5000);
+        $giftCard->setAmount(3000);
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+
+        self::assertFalse($form->has('amount'));
+
+        $form->submit([
+            'customMessage' => 'Enjoy',
+        ]);
+
+        self::assertTrue($form->isSynchronized());
+        self::assertSame('Enjoy', $giftCard->getCustomMessage());
+        self::assertSame(3000, $giftCard->getAmount());
+        self::assertSame(5000, $giftCard->getInitialAmount());
+    }
+
+    /**
+     * Whether to email the customer is decided when the card is issued; an existing card is sent from its show page
+     *
+     * @test
+     */
+    public function it_only_asks_whether_to_notify_the_customer_while_the_card_is_new(): void
+    {
+        self::assertTrue($this->factory->create(GiftCardType::class, new GiftCard())->has('sendNotificationEmail'));
+        self::assertFalse($this->factory->create(GiftCardType::class, $this->existingGiftCard())->has('sendNotificationEmail'));
+    }
+
+    /** @test */
+    public function it_generates_a_code_for_a_card_that_has_none(): void
+    {
+        $giftCard = new GiftCard();
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+
+        self::assertSame('GENERATEDCODE', $giftCard->getCode());
+        self::assertSame('GENERATEDCODE', $form->get('code')->getData());
+    }
+
+    /** @test */
+    public function it_keeps_the_code_a_card_already_has(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setCode('CHOSENCODE');
+
+        $this->factory->create(GiftCardType::class, $giftCard);
+
+        self::assertSame('CHOSENCODE', $giftCard->getCode());
+    }
+
+    /**
+     * The admin picks a date, and a gift card stays valid through the end of that day
+     *
+     * @test
+     */
+    public function it_keeps_the_card_valid_through_the_end_of_the_expiry_day(): void
+    {
+        $giftCard = new GiftCard();
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit([
+            'code' => 'EXPIRING',
+            'channel' => 'WEB',
+            'currencyCode' => 'DKK',
+            'amount' => '50',
+            'expiresAt' => '2031-03-15',
+        ]);
+
+        self::assertTrue($form->isSynchronized());
+        self::assertSame('2031-03-15 23:59:59', $giftCard->getExpiresAt()?->format('Y-m-d H:i:s'));
+    }
+
+    /** @test */
+    public function it_leaves_a_card_without_an_expiry_date_valid_indefinitely(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setExpiresAt(new \DateTimeImmutable('2031-03-15 23:59:59'));
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit([
+            'code' => 'FOREVER',
+            'channel' => 'WEB',
+            'currencyCode' => 'DKK',
+            'amount' => '50',
+            'expiresAt' => '',
+        ]);
+
+        self::assertTrue($form->isSynchronized());
+        self::assertNull($giftCard->getExpiresAt());
+    }
+
+    private function existingGiftCard(): GiftCard
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setChannel($this->channel);
+        $giftCard->setCurrencyCode('DKK');
+        $giftCard->setCode('EXISTING');
+        (new \ReflectionProperty(GiftCard::class, 'id'))->setValue($giftCard, 1);
+
+        return $giftCard;
+    }
+
+    /**
      * @return list<FormExtensionInterface>
      */
     protected function getExtensions(): array
