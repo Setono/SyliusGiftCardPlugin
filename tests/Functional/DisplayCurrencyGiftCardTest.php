@@ -7,23 +7,18 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Cart\CartGiftCardHandlerInterface;
 use Setono\SyliusGiftCardPlugin\Exception\GiftCardCurrencyMismatchException;
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Order\AddToCartCommand;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsApplicable;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\Component\Core\Currency\CurrencyStorageInterface;
-use Sylius\Component\Core\Model\ChannelPricing;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\ProductVariant;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Core\OrderCheckoutTransitions;
 use Sylius\Component\Currency\Context\CurrencyContextInterface;
@@ -67,7 +62,7 @@ final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
     {
         $cart = $this->cart();
 
-        $item = $this->addItem($cart, 'GIFT_CARD', 5000, true);
+        $item = $this->addItem($cart, 'GIFT_CARD', 5000, giftCard: true);
         $this->handler()->handle(new AddToCartCommand($cart, $item, new GiftCardInformation(5000)));
 
         // bumping the quantity in the cart adds a unit without a card, which reconciliation issues one for
@@ -89,9 +84,9 @@ final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
     /** @test */
     public function it_redeems_a_base_currency_card_while_the_shopper_browses_in_another_currency(): void
     {
-        $giftCard = $this->createEnabledGiftCard('BASECURRENCY0001', 'USD', 20000);
+        $giftCard = $this->createEnabledGiftCard('BASECURRENCY0001', 20000, currencyCode: 'USD');
         $cart = $this->cart();
-        $this->addItem($cart, 'MUG', 10000, false);
+        $this->addItem($cart, 'MUG', 10000);
 
         self::assertCount(0, $this->validateAgainstCart($giftCard));
 
@@ -120,9 +115,9 @@ final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
      */
     public function it_refuses_a_card_in_the_display_currency_on_an_order_kept_in_the_base_currency(): void
     {
-        $giftCard = $this->createEnabledGiftCard('DISPLAYCURRENCY1', 'EUR', 20000);
+        $giftCard = $this->createEnabledGiftCard('DISPLAYCURRENCY1', 20000, currencyCode: 'EUR');
         $cart = $this->cart();
-        $this->addItem($cart, 'MUG', 10000, false);
+        $this->addItem($cart, 'MUG', 10000);
 
         // the card is enabled, unexpired, holds a balance and belongs to the cart's channel, so its currency is the
         // only thing the rule can object to (which message the shopper is shown for it is not this test's concern)
@@ -191,61 +186,6 @@ final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
         $stateMachine->apply($cart, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_COMPLETE);
 
         $this->manager->flush();
-    }
-
-    private function addItem(Order $cart, string $code, int $price, bool $giftCard): OrderItem
-    {
-        $product = new Product();
-        $product->setCurrentLocale('en_US');
-        $product->setFallbackLocale('en_US');
-        $product->setCode($code);
-        $product->setName($code);
-        $product->setSlug(strtolower($code));
-        $product->setGiftCard($giftCard);
-        $product->addChannel($this->getChannel());
-        $this->manager->persist($product);
-
-        $variant = new ProductVariant();
-        $variant->setCurrentLocale('en_US');
-        $variant->setFallbackLocale('en_US');
-        $variant->setCode($code . '_VARIANT');
-        $variant->setName($code);
-        $variant->setProduct($product);
-        $variant->setShippingRequired(false);
-
-        // what the channel sells the product for, in its base currency, so processing the cart prices the item
-        $channelPricing = new ChannelPricing();
-        $channelPricing->setChannelCode((string) $this->getChannel()->getCode());
-        $channelPricing->setPrice($price);
-        $variant->addChannelPricing($channelPricing);
-
-        $this->manager->persist($variant);
-
-        $item = new OrderItem();
-        $item->setVariant($variant);
-        $item->setUnitPrice($price);
-        new OrderItemUnit($item);
-        $cart->addItem($item);
-
-        return $item;
-    }
-
-    private function createEnabledGiftCard(string $code, string $currencyCode, int $amount): GiftCardInterface
-    {
-        /** @var GiftCardFactoryInterface $factory */
-        $factory = self::getContainer()->get('setono_sylius_gift_card.factory.gift_card');
-
-        $giftCard = $factory->createForChannel($this->getChannel());
-        $giftCard->setCode($code);
-        $giftCard->setCurrencyCode($currencyCode);
-        $giftCard->setInitialAmount($amount);
-        $giftCard->setAmount($amount);
-        $giftCard->enable();
-
-        $this->manager->persist($giftCard);
-        $this->manager->flush();
-
-        return $giftCard;
     }
 
     /**
