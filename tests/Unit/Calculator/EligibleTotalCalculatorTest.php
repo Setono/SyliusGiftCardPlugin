@@ -43,6 +43,34 @@ final class EligibleTotalCalculatorTest extends TestCase
     }
 
     /**
+     * Every product of an application that installed the plugin is of the plugin's product class, so being one is
+     * not what makes a product a gift card
+     *
+     * @test
+     */
+    public function it_keeps_ordinary_products_and_items_without_a_product_eligible(): void
+    {
+        $ordinaryProduct = $this->prophesize(ProductInterface::class);
+        $ordinaryProduct->isGiftCard()->willReturn(false);
+
+        $ordinaryItem = $this->prophesize(OrderItemInterface::class);
+        $ordinaryItem->getProduct()->willReturn($ordinaryProduct->reveal());
+        $ordinaryItem->getTotal()->willReturn(3000);
+
+        $itemWithoutProduct = $this->prophesize(OrderItemInterface::class);
+        $itemWithoutProduct->getProduct()->willReturn(null);
+        $itemWithoutProduct->getTotal()->willReturn(2000);
+
+        $order = $this->prophesize(OrderInterface::class);
+        $order->getTotal()->willReturn(5000);
+        $order->getItems()->willReturn(new ArrayCollection([$ordinaryItem->reveal(), $itemWithoutProduct->reveal()]));
+
+        $calculator = new EligibleTotalCalculator();
+
+        self::assertSame(5000, $calculator->getEligibleTotal($order->reveal()));
+    }
+
+    /**
      * Redeeming does not change what the order costs, so the eligible total a card is measured against stays
      * put however many cards are already applied
      *
