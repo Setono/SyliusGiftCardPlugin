@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardRaceConditionSubscriber;
+use Setono\SyliusGiftCardPlugin\Model\GiftCard;
+use Sylius\Component\Core\Model\OrderSequence;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -41,7 +43,7 @@ final class GiftCardRaceConditionSubscriberTest extends TestCase
         $session = new Session(new MockArraySessionStorage());
         $event = $this->exceptionEvent(
             GiftCardRaceConditionSubscriber::CHECKOUT_COMPLETE_ROUTE,
-            OptimisticLockException::lockFailedVersionMismatch(new \stdClass(), 1, 2),
+            OptimisticLockException::lockFailedVersionMismatch(new GiftCard(), 1, 2),
             $session,
         );
 
@@ -68,7 +70,7 @@ final class GiftCardRaceConditionSubscriberTest extends TestCase
     {
         $event = $this->exceptionEvent(
             GiftCardRaceConditionSubscriber::CHECKOUT_COMPLETE_ROUTE,
-            new \RuntimeException('Operated entity was previously modified.', 0, OptimisticLockException::lockFailedVersionMismatch(new \stdClass(), 1, 2)),
+            new \RuntimeException('Operated entity was previously modified.', 0, OptimisticLockException::lockFailedVersionMismatch(new GiftCard(), 1, 2)),
         );
 
         $this->subscriber()->onKernelException($event);
@@ -81,13 +83,35 @@ final class GiftCardRaceConditionSubscriberTest extends TestCase
     {
         $event = $this->exceptionEvent(
             'sylius_shop_checkout_select_payment',
-            OptimisticLockException::lockFailedVersionMismatch(new \stdClass(), 1, 2),
+            OptimisticLockException::lockFailedVersionMismatch(new GiftCard(), 1, 2),
         );
 
         $this->subscriber()->onKernelException($event);
 
         self::assertNull($event->getResponse());
         self::assertFalse($event->isPropagationStopped());
+    }
+
+    /**
+     * Sylius locks the order number sequence and product stock optimistically as well, and two customers checking
+     * out at the same moment can lose that race without either of them having a gift card
+     *
+     * @test
+     */
+    public function it_ignores_a_race_lost_on_anything_but_a_gift_card(): void
+    {
+        $session = new Session(new MockArraySessionStorage());
+        $event = $this->exceptionEvent(
+            GiftCardRaceConditionSubscriber::CHECKOUT_COMPLETE_ROUTE,
+            OptimisticLockException::lockFailed(new OrderSequence()),
+            $session,
+        );
+
+        $this->subscriber()->onKernelException($event);
+
+        self::assertNull($event->getResponse());
+        self::assertFalse($event->isPropagationStopped());
+        self::assertSame([], $session->getFlashBag()->peekAll());
     }
 
     /** @test */
@@ -109,7 +133,7 @@ final class GiftCardRaceConditionSubscriberTest extends TestCase
     {
         $event = $this->exceptionEvent(
             GiftCardRaceConditionSubscriber::CHECKOUT_COMPLETE_ROUTE,
-            OptimisticLockException::lockFailedVersionMismatch(new \stdClass(), 1, 2),
+            OptimisticLockException::lockFailedVersionMismatch(new GiftCard(), 1, 2),
         );
 
         $this->subscriber()->onKernelException($event);

@@ -7,6 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\EventSubscriber;
 use function count;
 use Doctrine\ORM\OptimisticLockException;
 use function in_array;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use function spl_object_id;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -62,7 +63,7 @@ final class GiftCardRaceConditionSubscriber implements EventSubscriberInterface
             return;
         }
 
-        if (!self::causedByOptimisticLock($event->getThrowable())) {
+        if (!self::lostGiftCardRace($event->getThrowable())) {
             return;
         }
 
@@ -82,17 +83,18 @@ final class GiftCardRaceConditionSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * The exception is not always the bare Doctrine one, another layer may have wrapped it, so the whole chain
-     * is inspected
+     * Sylius locks other entities optimistically too (the order number sequence, product stock), and a race lost on
+     * one of those has nothing to do with gift cards, so only a failed lock on a gift card counts. The exception is
+     * not always the bare Doctrine one, another layer may have wrapped it, so the whole chain is inspected
      */
-    private static function causedByOptimisticLock(Throwable $throwable): bool
+    private static function lostGiftCardRace(Throwable $throwable): bool
     {
         /** @var list<int> $seen */
         $seen = [];
 
         for ($exception = $throwable; null !== $exception; $exception = $exception->getPrevious()) {
             if ($exception instanceof OptimisticLockException) {
-                return true;
+                return $exception->getEntity() instanceof GiftCardInterface;
             }
 
             // exception chains are not guaranteed to be acyclic, and this must not hang on one that is not
