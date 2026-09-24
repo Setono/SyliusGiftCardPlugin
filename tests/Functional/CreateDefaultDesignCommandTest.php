@@ -80,6 +80,35 @@ final class CreateDefaultDesignCommandTest extends GiftCardFunctionalTestCase
         self::assertCount(1, $design->getImages());
     }
 
+    /**
+     * Once the design exists it is the merchant's: running the command again, e.g. after adding a channel, only adds
+     * the channel and leaves whatever the merchant changed alone, even a design they disabled on purpose
+     *
+     * @test
+     */
+    public function it_leaves_an_existing_default_design_as_the_merchant_configured_it(): void
+    {
+        $this->getChannel();
+        $this->runCommand();
+
+        $design = $this->theOnlyDesign();
+        $design->setName('Our classic');
+        $design->setPosition(5);
+        $design->disable();
+        $this->manager->flush();
+        $this->manager->clear();
+
+        $this->createChannel('SECOND_CHANNEL');
+        $this->runCommand();
+        $this->manager->clear();
+
+        $design = $this->theOnlyDesign();
+        self::assertSame('Our classic', $design->getName());
+        self::assertSame(5, $design->getPosition());
+        self::assertFalse($design->isEnabled());
+        self::assertEqualsCanonicalizing(['TEST_CHANNEL', 'SECOND_CHANNEL'], $this->channelCodesOf($design));
+    }
+
     private function runCommand(): CommandTester
     {
         /** @var KernelInterface $kernel */
