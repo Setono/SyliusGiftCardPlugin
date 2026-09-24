@@ -109,27 +109,40 @@ async function disableGiftCard(browser, editHref) {
  * @param {import('@playwright/test').Page} page
  */
 async function checkoutToCompleteStep(page) {
-    await page.goto('/en_US/checkout/address');
-
-    await page.locator('[name="sylius_checkout_address[customer][email]"]').fill(`stale-${Date.now()}@example.com`);
+    const email = `stale-${Date.now()}@example.com`;
     const billing = 'sylius_checkout_address[billingAddress]';
-    await page.locator(`[name="${billing}[firstName]"]`).fill('Stale');
-    await page.locator(`[name="${billing}[lastName]"]`).fill('Card');
-    await page.locator(`[name="${billing}[street]"]`).fill('1 Main Street');
-    // The seeded shipping methods serve the US zone; failing that, the first country the channel offers, so the
-    // spec does not assume which countries are seeded
+
+    await page.goto('/en_US/checkout/address');
     const countries = page.locator(`select[name="${billing}[countryCode]"]`);
     const offered = await countries.locator('option[value]:not([value=""])').evaluateAll((options) => options.map((o) => o.value));
     expect(offered.length, 'the channel should offer at least one country').toBeGreaterThan(0);
-    await countries.selectOption(offered.includes('US') ? 'US' : offered[0]);
-    await page.locator(`[name="${billing}[city]"]`).fill('Springfield');
-    await page.locator(`[name="${billing}[postcode]"]`).fill('12345');
 
-    await page.locator('#next-step').click();
-    await page.waitForURL('**/checkout/select-shipping');
+    // Sylius' fixtures give every shipping method a random zone, so no country is sure to be shipped to (when all of
+    // them land in "Rest of the World", nothing ships to the US). Try the offered countries in turn until the
+    // shipping step lists a method
+    for (const country of offered) {
+        await page.goto('/en_US/checkout/address');
+        await page.locator('[name="sylius_checkout_address[customer][email]"]').fill(email);
+        await page.locator(`[name="${billing}[firstName]"]`).fill('Stale');
+        await page.locator(`[name="${billing}[lastName]"]`).fill('Card');
+        await page.locator(`[name="${billing}[street]"]`).fill('1 Main Street');
+        await countries.selectOption(country);
+        await page.locator(`[name="${billing}[city]"]`).fill('Springfield');
+        await page.locator(`[name="${billing}[postcode]"]`).fill('12345');
 
-    await page.locator('#next-step').click();
-    await page.waitForURL('**/checkout/complete');
+        await page.locator('#next-step').click();
+        await page.waitForURL('**/checkout/select-shipping');
+
+        // the method choices, not the form's hidden token, which is there even when nothing ships to the address
+        if (await page.locator('input[name^="sylius_checkout_select_shipping[shipments]"][name$="[method]"]').count() > 0) {
+            await page.locator('#next-step').click();
+            await page.waitForURL('**/checkout/complete');
+
+            return;
+        }
+    }
+
+    throw new Error(`no seeded shipping method ships to any of the countries the channel offers (${offered.join(', ')})`);
 }
 
 test.describe('a gift card going stale during checkout', () => {
