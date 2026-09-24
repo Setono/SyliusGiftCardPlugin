@@ -1,0 +1,4 @@
+# The functional tests render admin pages through the kernel, and CI only builds the frontend for the end to end job.
+# Without strict mode a missing entrypoints file renders no tags instead of failing the page
+webpack_encore:
+    strict_mode: false

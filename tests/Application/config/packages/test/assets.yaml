@@ -1,0 +1,9 @@
+# Unversioned asset paths, so pages rendered by the functional tests do not need the built manifests (CI only builds
+# the frontend for the end to end job)
+framework:
+    assets:
+        packages:
+            shop:
+                json_manifest_path: ~
+            admin:
+                json_manifest_path: ~
