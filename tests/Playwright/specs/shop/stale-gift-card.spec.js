@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { addSomethingToCart, applyGiftCard } = require('../support/cart');
 const { ADMIN_STORAGE_STATE } = require('../support/paths');
 
 /**
@@ -12,8 +13,6 @@ const { ADMIN_STORAGE_STATE } = require('../support/paths');
  * The spec issues its own card through the admin rather than disabling the seeded one, which the other shop specs
  * rely on staying usable.
  */
-
-const GIFT_CARD_FIELD = '[name="setono_sylius_gift_card_add_gift_card_to_order[giftCard]"]';
 
 // Codes are shown grouped in fours for reading (GiftCardCodeNormalizer::format()); the raw code only appears in form actions
 const grouped = (code) => code.match(/.{1,4}/g).join('-');
@@ -104,42 +103,6 @@ async function disableGiftCard(browser, editHref) {
 }
 
 /**
- * @param {import('@playwright/test').Page} page
- */
-async function addSomethingToCart(page) {
-    await page.goto('/en_US/');
-
-    const href = await page.locator('a[href*="/products/"]').evaluateAll((links) => {
-        const found = links
-            .map((l) => l.getAttribute('href') ?? '')
-            // a gift card product cannot be paid for with a gift card, so the cart needs an ordinary one
-            .filter((h) => /\/products\//.test(h) && !h.includes('gift-card'));
-        return found[0] ?? null;
-    });
-    expect(href, 'no ordinary product found in the shop').toBeTruthy();
-
-    await page.goto(href);
-    await page.locator('form[name="sylius_add_to_cart"] button[type="submit"]').first().click();
-    await page.waitForLoadState('networkidle');
-}
-
-/**
- * @param {import('@playwright/test').Page} page
- * @param {string} code
- */
-async function applyGiftCard(page, code) {
-    await page.goto('/en_US/cart/');
-    await page.locator(GIFT_CARD_FIELD).fill(code);
-
-    const giftCardForm = page.locator('form').filter({ has: page.locator(GIFT_CARD_FIELD) });
-    await giftCardForm.locator('button[type="submit"]').first().click();
-    await page.waitForLoadState('networkidle');
-
-    // the cart lists the code grouped in fours, so the row is found through its remove form, which carries the raw code
-    await expect(page.locator(`form[action*="/gift-cards/${code}/remove"]`)).toBeVisible();
-}
-
-/**
  * Walks a guest through address and shipping. With the card covering everything the payment step is skipped, so
  * this ends on the complete step.
  *
@@ -178,6 +141,8 @@ test.describe('a gift card going stale during checkout', () => {
 
         await addSomethingToCart(page);
         await applyGiftCard(page, code);
+        // the cart lists the code grouped in fours, so the row is found through its remove form, which carries the raw code
+        await expect(page.locator(`form[action*="/gift-cards/${code}/remove"]`)).toBeVisible();
         await checkoutToCompleteStep(page);
 
         await disableGiftCard(browser, editHref);
@@ -197,6 +162,8 @@ test.describe('a gift card going stale during checkout', () => {
 
         await addSomethingToCart(page);
         await applyGiftCard(page, code);
+        // the cart lists the code grouped in fours, so the row is found through its remove form, which carries the raw code
+        await expect(page.locator(`form[action*="/gift-cards/${code}/remove"]`)).toBeVisible();
         await checkoutToCompleteStep(page);
 
         await disableGiftCard(browser, editHref);

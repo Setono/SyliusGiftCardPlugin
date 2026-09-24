@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { GIFT_CARD_FIELD, addSomethingToCart, applyGiftCard } = require('../support/cart');
 
 /**
  * Redemption through the shop UI.
@@ -11,8 +12,6 @@ const GIFT_CARD_CODE = 'E2EREDEMPTION01';
 // Codes are shown grouped in fours for reading (GiftCardCodeNormalizer::format()); the raw code only appears in form actions
 const GIFT_CARD_CODE_AS_DISPLAYED = GIFT_CARD_CODE.match(/.{1,4}/g).join('-');
 
-const GIFT_CARD_FIELD = '[name="setono_sylius_gift_card_add_gift_card_to_order[giftCard]"]';
-
 /**
  * The code the way the PDF prints it, in groups of four separated by dashes, e.g. E2ER-EDEM-PTIO-N01
  *
@@ -20,39 +19,6 @@ const GIFT_CARD_FIELD = '[name="setono_sylius_gift_card_add_gift_card_to_order[g
  */
 function asPrintedOnTheCard(code) {
     return code.match(/.{1,4}/g).join('-');
-}
-
-/**
- * @param {import('@playwright/test').Page} page
- */
-async function addSomethingToCart(page) {
-    await page.goto('/en_US/');
-
-    const href = await page.locator('a[href*="/products/"]').evaluateAll((links) => {
-        const found = links
-            .map((l) => l.getAttribute('href') ?? '')
-            // a gift card product cannot be paid for with a gift card, so the cart needs an ordinary one
-            .filter((h) => /\/products\//.test(h) && !h.includes('gift-card'));
-        return found[0] ?? null;
-    });
-    expect(href, 'no ordinary product found in the shop').toBeTruthy();
-
-    await page.goto(href);
-    await page.locator('form[name="sylius_add_to_cart"] button[type="submit"]').first().click();
-    await page.waitForLoadState('networkidle');
-}
-
-/**
- * @param {import('@playwright/test').Page} page
- */
-async function applyGiftCard(page, code) {
-    await page.goto('/en_US/cart/');
-    await page.locator(GIFT_CARD_FIELD).fill(code);
-
-    // scoped to the gift card form, because the cart also carries an "Apply coupon" button
-    const giftCardForm = page.locator('form').filter({ has: page.locator(GIFT_CARD_FIELD) });
-    await giftCardForm.locator('button[type="submit"]').first().click();
-    await page.waitForLoadState('networkidle');
 }
 
 /**
