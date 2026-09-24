@@ -14,17 +14,17 @@
         -->
 
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\ReconcileGiftCardsSubscriber">
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\EnableGiftCardsSubscriber">
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\SendGiftCardsSubscriber">
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 
@@ -39,7 +39,7 @@
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\DisableGiftCardsSubscriber">
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface"/>
             <tag name="kernel.event_subscriber"/>
         </service>
     </services>

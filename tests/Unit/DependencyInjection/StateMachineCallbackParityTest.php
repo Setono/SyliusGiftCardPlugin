@@ -10,7 +10,6 @@ use Prophecy\Argument\ArgumentsWildcard;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\SetonoSyliusGiftCardExtension;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
-use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -34,7 +33,7 @@ final class StateMachineCallbackParityTest extends TestCase
      * The service a subscriber's collaborator resolves to, as the winzou callbacks name it
      */
     private const COLLABORATOR_SERVICES = [
-        OrderGiftCardOperatorInterface::class => '@' . OrderGiftCardOperator::class,
+        OrderGiftCardOperatorInterface::class => '@' . OrderGiftCardOperatorInterface::class,
         GiftCardRedemptionMethodInterface::class => '@setono_sylius_gift_card.redemption_method',
     ];
 

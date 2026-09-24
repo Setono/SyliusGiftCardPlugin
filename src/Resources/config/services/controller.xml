@@ -11,16 +11,16 @@
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction">
             <argument type="service" id="form.factory"/>
             <argument type="service" id="sylius.context.cart"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface"/>
             <argument type="service" id="doctrine"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Controller\Action\RemoveGiftCardFromOrderAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\RemoveGiftCardFromOrderAction">
             <argument type="service" id="sylius.context.cart"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface"/>
             <argument type="service" id="security.csrf.token_manager"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
             <argument type="service" id="doctrine"/>
@@ -50,7 +50,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\AdjustGiftCardBalanceAction"
                  class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\AdjustGiftCardBalanceAction">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface"/>
             <argument type="service" id="form.factory"/>
             <argument type="service" id="twig"/>
             <argument type="service" id="router"/>

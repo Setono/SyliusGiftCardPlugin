@@ -6,7 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction;
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\SendGiftCardEmailAction;
-use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator;
+use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
 use Symfony\Component\Config\FileLocator;
@@ -60,7 +60,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
      */
     public function prepend(ContainerBuilder $container): void
     {
-        $operator = '@' . OrderGiftCardOperator::class;
+        $operator = '@' . OrderGiftCardOperatorInterface::class;
 
         // winzou runs callbacks in ascending priority order and Sylius' own sit at -800..-100, so a callback
         // without a priority (0) always runs after everything Sylius does. Every callback below states where

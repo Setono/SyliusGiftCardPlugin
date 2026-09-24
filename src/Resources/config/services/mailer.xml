@@ -14,7 +14,7 @@
 
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\SendGiftCardEmailSubscriber"
                  class="Setono\SyliusGiftCardPlugin\EventSubscriber\SendGiftCardEmailSubscriber">
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManager"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface"/>
 
             <tag name="kernel.event_subscriber"/>
         </service>
