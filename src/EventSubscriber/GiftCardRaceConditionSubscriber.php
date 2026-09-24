@@ -76,10 +76,6 @@ final class GiftCardRaceConditionSubscriber implements EventSubscriberInterface
         }
 
         $event->setResponse(new RedirectResponse($this->urlGenerator->generate(self::CART_SUMMARY_ROUTE)));
-
-        // Symfony's own error listener overwrites whatever response was set before it, so the redirect only
-        // survives if the event stops here
-        $event->stopPropagation();
     }
 
     /**
