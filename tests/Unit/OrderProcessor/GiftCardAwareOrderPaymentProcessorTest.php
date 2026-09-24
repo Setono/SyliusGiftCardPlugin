@@ -16,6 +16,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\OrderProcessor\GiftCardAwareOrderPaymentProcessor;
 use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
+use Sylius\Component\Core\Model\OrderInterface as CoreOrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 
@@ -75,6 +76,65 @@ final class GiftCardAwareOrderPaymentProcessorTest extends TestCase
         $order->removePayment($cartPayment->reveal())->shouldBeCalled();
 
         $this->processor(PaymentInterface::STATE_CART)->process($order->reveal());
+    }
+
+    /**
+     * A cart can hold gift cards that cover nothing, e.g. when all it contains is gift card products, which a gift
+     * card cannot pay for. The cart payment is then Sylius' business alone
+     *
+     * @test
+     */
+    public function it_leaves_the_cart_payment_alone_when_the_gift_cards_cover_nothing(): void
+    {
+        $cartPayment = $this->gatewayPayment(PaymentInterface::STATE_CART);
+        $order = $this->order(10000, [$cartPayment]);
+
+        $this->coverageCalculator->calculate($order->reveal())->willReturn($this->coverage(0));
+        $cartPayment->setAmount(Argument::any())->shouldNotBeCalled();
+        $order->removePayment(Argument::any())->shouldNotBeCalled();
+
+        $this->processor(PaymentInterface::STATE_CART)->process($order->reveal());
+
+        $this->decorated->process($order->reveal())->shouldHaveBeenCalled();
+    }
+
+    /**
+     * Only the gateway payment is sized to what is left: a gift card payment carries exactly what its card pays,
+     * whatever state it is in
+     *
+     * @test
+     */
+    public function it_never_resizes_or_removes_a_gift_card_payment(): void
+    {
+        $giftCardPayment = $this->giftCardPayment(PaymentInterface::STATE_CART);
+        $cartPayment = $this->gatewayPayment(PaymentInterface::STATE_CART);
+        $order = $this->order(10000, [$giftCardPayment, $cartPayment]);
+
+        $this->coverageCalculator->calculate($order->reveal())->willReturn($this->coverage(6000));
+        $cartPayment->setAmount(4000)->shouldBeCalled();
+        $giftCardPayment->setAmount(Argument::any())->shouldNotBeCalled();
+        $order->removePayment($giftCardPayment->reveal())->shouldNotBeCalled();
+
+        $this->processor(PaymentInterface::STATE_CART)->process($order->reveal());
+    }
+
+    /**
+     * The order class may not carry gift cards at all (the application has not applied the plugin's order trait),
+     * and then Sylius' sizing of the payment stands
+     *
+     * @test
+     */
+    public function it_only_runs_the_decorated_processor_for_an_order_that_cannot_carry_gift_cards(): void
+    {
+        $order = $this->prophesize(CoreOrderInterface::class);
+        $order->getPayments()->shouldNotBeCalled();
+
+        $this->coverageCalculator->calculate(Argument::any())->shouldNotBeCalled();
+        $this->paidAmountCalculator->getPaidAmount(Argument::any())->shouldNotBeCalled();
+
+        $this->processor(PaymentInterface::STATE_CART)->process($order->reveal());
+
+        $this->decorated->process($order->reveal())->shouldHaveBeenCalled();
     }
 
     /** @test */
