@@ -1,0 +1,6 @@
+# The lowest dependency set resolves symfony/web-link to 4.4 (api-platform/core allows ^4.4), whose response listener
+# calls ResponseEvent::isMasterRequest(), which Symfony 6 removed, so every request the functional tests send through
+# the kernel would fail there. Nothing in the test application sends Link headers
+framework:
+    web_link:
+        enabled: false
