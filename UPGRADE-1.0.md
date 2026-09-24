@@ -24,6 +24,11 @@ The entire API Platform / `sylius/api-bundle` integration has been removed. If y
 
 The bundle configuration tree changed completely. Remove any `setono_sylius_gift_card` configuration referencing `pdf_rendering`, `driver`, or the old `resources` classes, and adopt the new tree (see the README). You no longer import `@SetonoSyliusGiftCardPlugin/Resources/config/app/config.yaml` — the plugin auto-configures via `prepend()`.
 
+Two changes deserve a closer look, because a gift card code is a bearer token (whoever knows it can spend the balance) and `1.0` guards it more strictly:
+
+- **`code_length` must be at least 12.** `0.12.x` accepted anything from 1 and defaulted to 20. A shorter setting now stops the container from compiling with `The value 8 is too small for path "setono_sylius_gift_card.code_length". Should be greater than or equal to 12`. Raise it or drop it (the default is 16). Codes already issued keep working whatever their length; the setting only applies to codes generated from now on.
+- **Applying a code is rate limited**, per session and per client IP, through two limiters the plugin registers under `framework.rate_limiter` (see the README). Behind a reverse proxy or load balancer, configure `framework.trusted_proxies` first: without it every customer's requests come from the proxy's address, so they all share one IP budget.
+
 ## Entity / schema changes
 
 The `GiftCard` entity changed: `origin` was removed; `deliveryType`, `design`, an optimistic-lock `version` column and a `transactions` relation were added; `initialAmount` is now set explicitly; the `orderItemUnit` foreign key changed from `CASCADE` to `SET NULL`. New tables are created for `gift_card_design` (+ translation + image + channel join) and `gift_card_transaction`; the `gift_card_configuration*` tables are no longer used.
@@ -56,6 +61,10 @@ ALTER TABLE setono_sylius_gift_card__gift_card CHANGE customMessage custom_messa
 ```
 
 Applications that already configure an underscore naming strategy have these columns under the new names and need no rename.
+
+## Validation overrides
+
+The constraint that decides whether a gift card may be applied to the cart is `GiftCardIsEligible` (it was called `GiftCardIsApplicable` earlier in the `1.x` development). It gives the customer one message for every reason a card cannot be used (disabled, expired, empty, another channel or currency), so the form cannot tell someone guessing codes which ones exist, and logs the reason instead. Its only options are `message` and `alreadyAppliedMessage`: validation XML that still sets `notEnabledMessage`, `expiredMessage`, `emptyMessage`, `channelMismatchMessage` or `currencyMismatchMessage` fails with `The options "notEnabledMessage" do not exist in constraint "Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsEligible"`. Set `message` instead.
 
 ## Template overrides
 
