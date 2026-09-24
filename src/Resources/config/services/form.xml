@@ -30,6 +30,7 @@
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="sylius.context.channel"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
+            <argument type="service" id="logger" on-invalid="null"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Form\Extension\ProductTypeExtension"

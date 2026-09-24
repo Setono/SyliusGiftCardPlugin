@@ -23,6 +23,7 @@ setono_sylius_gift_card:
             not_base_currency: 'The currency {{ currency }} is not the base currency of the channel {{ channel }} ({{ base_currency }}). Gift card balances are kept in the channel''s base currency, so a card can only be issued in it.'
         send_notification_email:
             boolean: Send notification email must be a boolean
+        could_not_be_applied: The gift card could not be applied to your order.
         not_enabled: This gift card is not active.
         expired: This gift card has expired.
         no_balance: This gift card has no balance left.

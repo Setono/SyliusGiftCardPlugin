@@ -17,6 +17,18 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
 final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension implements PrependExtensionInterface
 {
+    /**
+     * The name of the per session rate limiter prepended onto framework.rate_limiter, i.e. the limiter factory
+     * is available as the "limiter.setono_sylius_gift_card_apply" service
+     */
+    public const RATE_LIMITER_NAME = 'setono_sylius_gift_card_apply';
+
+    /**
+     * The name of the per client IP rate limiter prepended onto framework.rate_limiter, i.e. the limiter factory
+     * is available as the "limiter.setono_sylius_gift_card_apply_ip" service
+     */
+    public const IP_RATE_LIMITER_NAME = 'setono_sylius_gift_card_apply_ip';
+
     public function load(array $configs, ContainerBuilder $container): void
     {
         /**
@@ -25,7 +37,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
          *     default_validity_period: string|null,
          *     purchase: array{minimum_amount: int, maximum_amount: int|null, maximum_message_length: int},
          *     delivery: array{email_physical_cards: bool},
-         *     redemption: array{payment_method_code: string},
+         *     redemption: array{payment_method_code: string, rate_limiter: string|null, ip_rate_limiter: string|null},
          *     pdf: array{page_size: string},
          *     resources: array<string, mixed>,
          * } $config
@@ -55,6 +67,14 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
 
         $loader->load('services.xml');
         $loader->load('services/redemption/payment.xml');
+
+        // AddGiftCardToOrderAction asks for these aliases with on-invalid="null", so leaving one out is what turns
+        // that bucket off. Pointing one at a service that does not exist fails at compile time, as it should
+        foreach (['rate_limiter', 'ip_rate_limiter'] as $option) {
+            if (null !== $config['redemption'][$option]) {
+                $container->setAlias(sprintf('setono_sylius_gift_card.redemption.%s', $option), $config['redemption'][$option]);
+            }
+        }
     }
 
     /**
@@ -528,6 +548,36 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                 ],
                             ],
                         ],
+                    ],
+                ],
+            ],
+        ];
+
+        // The limiters the redemption.rate_limiter and redemption.ip_rate_limiter options point at unless the
+        // application names others. They are registered whether or not they are used, because the plugin's own
+        // configuration is not processed yet when prepending, and their values can be overridden under
+        // framework.rate_limiter like any other limiter's
+        $configuration['framework'] = [
+            'rate_limiter' => [
+                'limiters' => [
+                    self::RATE_LIMITER_NAME => [
+                        'policy' => 'sliding_window',
+                        'limit' => 10,
+                        'interval' => '1 minute',
+                        // Locking would require symfony/lock, which a Sylius application does not
+                        // necessarily have, and the race it prevents only ever lets a handful of extra
+                        // attempts through, which does not matter for throttling code guesses
+                        'lock_factory' => null,
+                    ],
+                    // Everyone behind one address shares this bucket (an office NAT, a mobile carrier's CGNAT),
+                    // so it gets five times the budget of a single visitor, the ratio Symfony's login throttling
+                    // keeps between its per IP limiter and its per username one. It still stops a guesser that
+                    // discards its session cookie after every attempt
+                    self::IP_RATE_LIMITER_NAME => [
+                        'policy' => 'sliding_window',
+                        'limit' => 50,
+                        'interval' => '1 minute',
+                        'lock_factory' => null,
                     ],
                 ],
             ],

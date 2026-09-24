@@ -13,9 +13,11 @@ final class InsufficientGiftCardBalanceException extends RuntimeException implem
         private readonly GiftCardInterface $giftCard,
         private readonly int $requestedAmount,
     ) {
+        // Named by its id rather than its code: a code is a bearer token, and an exception message ends up in logs
+        // and error trackers
         parent::__construct(sprintf(
-            'The gift card "%s" has a balance of %d but %d was requested',
-            (string) $giftCard->getCode(),
+            'The gift card with id %s has a balance of %d but %d was requested',
+            (string) $giftCard->getId(),
             $giftCard->getAmount(),
             $requestedAmount,
         ));

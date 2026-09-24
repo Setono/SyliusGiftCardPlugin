@@ -17,8 +17,86 @@ final class ConfigurationTest extends TestCase
     public function it_has_sensible_redemption_defaults(): void
     {
         $this->assertProcessedConfigurationEquals([[]], [
-            'redemption' => ['payment_method_code' => 'gift_card'],
+            'redemption' => [
+                'payment_method_code' => 'gift_card',
+                'rate_limiter' => 'limiter.setono_sylius_gift_card_apply',
+                'ip_rate_limiter' => 'limiter.setono_sylius_gift_card_apply_ip',
+            ],
         ], 'redemption');
+    }
+
+    /**
+     * Rate limiting is what keeps a gift card code from being guessed, so it has to be on unless the shop
+     * owner deliberately turns it off, and each bucket can be turned off on its own
+     *
+     * @test
+     */
+    public function it_allows_the_rate_limiters_to_be_turned_off(): void
+    {
+        $this->assertProcessedConfigurationEquals([['redemption' => ['rate_limiter' => null, 'ip_rate_limiter' => null]]], [
+            'redemption' => [
+                'payment_method_code' => 'gift_card',
+                'rate_limiter' => null,
+                'ip_rate_limiter' => null,
+            ],
+        ], 'redemption');
+
+        $this->assertProcessedConfigurationEquals([['redemption' => ['ip_rate_limiter' => null]]], [
+            'redemption' => [
+                'payment_method_code' => 'gift_card',
+                'rate_limiter' => 'limiter.setono_sylius_gift_card_apply',
+                'ip_rate_limiter' => null,
+            ],
+        ], 'redemption');
+    }
+
+    /** @test */
+    public function it_lets_the_application_name_its_own_rate_limiters(): void
+    {
+        $this->assertProcessedConfigurationEquals([['redemption' => ['rate_limiter' => 'limiter.shop_forms', 'ip_rate_limiter' => 'limiter.shop_forms_per_ip']]], [
+            'redemption' => [
+                'payment_method_code' => 'gift_card',
+                'rate_limiter' => 'limiter.shop_forms',
+                'ip_rate_limiter' => 'limiter.shop_forms_per_ip',
+            ],
+        ], 'redemption');
+    }
+
+    /**
+     * @dataProvider provideRateLimiterOptions
+     *
+     * @test
+     */
+    public function it_rejects_a_rate_limiter_that_is_not_a_service_id(string $option): void
+    {
+        $this->assertConfigurationIsInvalid(
+            [['redemption' => [$option => '']]],
+            sprintf('The %s option must be the id of a rate limiter factory service', $option),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideRateLimiterOptions(): iterable
+    {
+        yield 'rate_limiter' => ['rate_limiter'];
+        yield 'ip_rate_limiter' => ['ip_rate_limiter'];
+    }
+
+    /**
+     * A gift card code is a bearer token, so a code short enough to be guessed is a configuration error
+     * rather than a choice
+     *
+     * @test
+     */
+    public function it_rejects_a_guessable_code_length(): void
+    {
+        $this->assertConfigurationIsInvalid([['code_length' => 4]], 'code_length');
+
+        $this->assertProcessedConfigurationEquals([['code_length' => 12]], [
+            'code_length' => 12,
+        ], 'code_length');
     }
 
     /** @test */

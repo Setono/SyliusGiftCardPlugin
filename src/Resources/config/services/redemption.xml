@@ -56,6 +56,8 @@
                  class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsEligibleValidator">
             <argument type="service" id="sylius.context.cart"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
+            <argument type="service" id="logger" on-invalid="null"/>
 
             <tag name="validator.constraint_validator"/>
         </service>

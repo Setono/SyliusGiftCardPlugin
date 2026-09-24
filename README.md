@@ -198,7 +198,7 @@ All settings are optional and shown here with their defaults:
 ```yaml
 # config/packages/setono_sylius_gift_card.yaml
 setono_sylius_gift_card:
-    code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…)
+    code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…); minimum 12, because a code is a bearer token and must not be guessable
     default_validity_period: '3 years'   # any strtotime-compatible interval, or null to never expire
     purchase:
         minimum_amount: 100              # minor units (e.g. cents)
@@ -208,6 +208,8 @@ setono_sylius_gift_card:
         email_physical_cards: false      # true also emails the code and the PDF of a *physical* card when the order is paid, as a backup
     redemption:
         payment_method_code: gift_card   # code of the (auto-created) payment method a redeemed gift card is paid with
+        rate_limiter: limiter.setono_sylius_gift_card_apply         # throttles attempts to apply a code per visitor (session), see below; ~ turns it off
+        ip_rate_limiter: limiter.setono_sylius_gift_card_apply_ip   # throttles them per client IP, see below; ~ turns it off
     pdf:
         page_size: A6                    # any page size supported by dompdf; the card scales to fill it
 ```
@@ -217,6 +219,30 @@ counter, and it is the limit enforced by the `GiftCardMessageLength` constraint 
 gift card information, so raising the setting raises the limit everywhere. The card shows the message with its line
 breaks intact and clamps it to four lines, so a message much longer than the default will be cut off on the gift
 card and in its PDF.
+
+### Protecting codes from guessing
+
+Attempts to apply a code are throttled so codes cannot be brute forced. Each attempt counts against two buckets, and
+both have to accept it: one per visitor (their session), 10 attempts per minute, and one per client IP, 50 attempts
+per minute. The IP bucket stops a guesser that throws its session cookie away after every attempt. Everyone behind
+one address shares it, an office NAT or a mobile carrier's CGNAT for example, which is why it allows five times as
+many attempts as a single visitor gets (the ratio Symfony's login throttling uses as well).
+
+The plugin registers both limiters under `framework.rate_limiter.limiters`, as `setono_sylius_gift_card_apply` and
+`setono_sylius_gift_card_apply_ip` (sliding windows); change their values in your own `framework` configuration, or
+point `rate_limiter` and `ip_rate_limiter` at any [rate limiter](https://symfony.com/doc/current/rate_limiter.html)
+you configured yourself.
+
+**Behind a reverse proxy or load balancer, configure
+[`framework.trusted_proxies`](https://symfony.com/doc/current/deployment/proxies.html).** Without it, Symfony takes
+the proxy's address for the client IP of every request, so all the shop's customers share one IP bucket: 50 attempts
+a minute between them, after which everybody who tries a gift card code is told to wait, customers with a real card
+included. If you cannot configure trusted proxies, set `ip_rate_limiter: ~` and rely on the session bucket alone.
+
+Every rejected code gives the customer the same message, whatever the reason (unknown, disabled, expired,
+empty, wrong channel or currency), so the form cannot be used to find out which codes exist. The actual
+reason is written to the log at info level, with the code masked down to its last four characters
+(`************MNOP`): a code is a bearer token, and logs travel.
 
 ## Customization
 
