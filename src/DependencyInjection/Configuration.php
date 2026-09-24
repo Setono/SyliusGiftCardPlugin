@@ -72,7 +72,7 @@ final class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->booleanNode('email_physical_cards')
-                            ->info('Whether the code and the PDF of a physical gift card are emailed to the buyer as a digital backup. Off by default: a physical card is shipped with its code printed on it, so emailing the code makes the card spendable before it arrives')
+                            ->info('Whether the email sent when an order is paid also carries the code and the PDF of a physical gift card, as a digital backup. Off by default: a physical card is shipped with its code printed on it, so emailing the code makes the card spendable before it arrives. Sending a card from the admin always includes them')
                             ->defaultFalse()
                         ->end()
                     ->end()

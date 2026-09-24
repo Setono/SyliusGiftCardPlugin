@@ -19,8 +19,10 @@ interface GiftCardEmailManagerInterface
     public function sendGiftCardsFromOrder(OrderInterface $order, array $giftCards): void;
 
     /**
-     * Emails a single gift card to its associated customer (used for admin created gift cards and manual resends),
-     * disclosing its code and PDF under the same rule as {@see self::sendGiftCardsFromOrder()}
+     * Emails a single gift card to its associated customer (used for admin created gift cards and manual resends)
+     * with its code in the body and the card attached as a PDF. Unlike {@see self::sendGiftCardsFromOrder()} this
+     * discloses the code of a physical gift card too: it is only called because an admin explicitly asked for the
+     * card to be emailed, which is how a physical card the customer lost or never received is replaced
      */
     public function sendGiftCard(GiftCardInterface $giftCard): void;
 }
