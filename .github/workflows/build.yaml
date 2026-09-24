@@ -288,12 +288,19 @@ jobs:
                     printf 'session.save_path=%s\n' "$GITHUB_WORKSPACE/tests/Application/var/sessions" > "$RUNNER_TEMP/php-ini/sessions.ini"
                     echo "PHP_INI_SCAN_DIR=:$RUNNER_TEMP/php-ini" >> "$GITHUB_ENV"
 
+            -   name: "Show the session settings php-fpm reads"
+                # The php-fpm binary the Symfony CLI serves the application with (server:status below names it), run
+                # on its own. It reads php-fpm's php.ini, which is not the command line's, plus the extra scan
+                # directory. The running server adds its own pool configuration on top, so whether its sessions
+                # really land in the workspace shows in "List the session files" after the suite
+                run: |
+                    php-fpm${{ matrix.php-version }} -i | grep -E '^(Loaded Configuration File|session\.(save_handler|save_path|gc_maxlifetime|gc_probability|gc_divisor|use_strict_mode|lazy_write)) '
+
             -   name: "Serve the test application"
                 run: |
                     cd tests/Application
                     symfony serve --no-tls --daemon --port=8080
                     symfony server:status
-                    symfony php -i | grep -E '^session\.(save_handler|save_path|gc_maxlifetime|gc_probability|gc_divisor|use_strict_mode|lazy_write)'
             -   name: "Wait for the test application"
                 # The first requests to a freshly built application are slow and, when several arrive at once,
                 # can race each other while the dev container and templates are compiled; the login the
