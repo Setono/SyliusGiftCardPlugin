@@ -9,7 +9,7 @@
             <constraint name="NotBlank">
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
-            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsApplicable">
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsEligible">
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>

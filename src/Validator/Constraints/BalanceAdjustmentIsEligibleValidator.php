@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
  * Deducting more than a gift card holds used to reach the balance operator, which asserts and blows up with a
  * 500. It is ordinary user error, so it belongs in the form as a field error
  */
-final class BalanceAdjustmentIsApplicableValidator extends ConstraintValidator
+final class BalanceAdjustmentIsEligibleValidator extends ConstraintValidator
 {
     public function __construct(private readonly MoneyFormatterInterface $moneyFormatter)
     {
@@ -22,8 +22,8 @@ final class BalanceAdjustmentIsApplicableValidator extends ConstraintValidator
 
     public function validate(mixed $value, Constraint $constraint): void
     {
-        if (!$constraint instanceof BalanceAdjustmentIsApplicable) {
-            throw new UnexpectedTypeException($constraint, BalanceAdjustmentIsApplicable::class);
+        if (!$constraint instanceof BalanceAdjustmentIsEligible) {
+            throw new UnexpectedTypeException($constraint, BalanceAdjustmentIsEligible::class);
         }
 
         if (!$value instanceof AdjustGiftCardBalanceCommand) {

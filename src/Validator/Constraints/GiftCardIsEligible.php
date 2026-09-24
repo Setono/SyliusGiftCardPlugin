@@ -7,7 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Validator\Constraints;
 use Symfony\Component\Validator\Constraint;
 
 #[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::IS_REPEATABLE)]
-final class GiftCardIsApplicable extends Constraint
+final class GiftCardIsEligible extends Constraint
 {
     public string $notEnabledMessage = 'setono_sylius_gift_card.gift_card.not_enabled';
 

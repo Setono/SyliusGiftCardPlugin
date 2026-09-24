@@ -10,8 +10,8 @@ interface GiftCardCoverageCalculatorInterface
 {
     /**
      * Computes how much each gift card applied to the order covers, capping the running total at the eligible
-     * total so multiple gift cards stack correctly and never over-cover. Gift cards that are not usable or whose
-     * currency does not match the order contribute nothing
+     * total so multiple gift cards stack correctly and never over-cover. Gift cards the eligibility checker rejects
+     * for the order (disabled, expired, empty, another channel or currency) contribute nothing
      */
     public function calculate(OrderInterface $order): GiftCardCoverage;
 }

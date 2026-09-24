@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Calculator;
 
-use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderInterface as CoreOrderInterface;
 
@@ -12,6 +12,7 @@ final class GiftCardCoverageCalculator implements GiftCardCoverageCalculatorInte
 {
     public function __construct(
         private readonly EligibleTotalCalculatorInterface $eligibleTotalCalculator,
+        private readonly GiftCardEligibilityCheckerInterface $eligibilityChecker,
     ) {
     }
 
@@ -28,7 +29,7 @@ final class GiftCardCoverageCalculator implements GiftCardCoverageCalculatorInte
         foreach ($order->getGiftCards() as $giftCard) {
             $amount = 0;
 
-            if ($remaining > 0 && $this->isEligible($giftCard, $order)) {
+            if ($remaining > 0 && null === $this->eligibilityChecker->getIneligibilityReason($giftCard, $order)) {
                 $amount = min($giftCard->getAmount(), $remaining);
                 $remaining -= $amount;
             }
@@ -37,14 +38,5 @@ final class GiftCardCoverageCalculator implements GiftCardCoverageCalculatorInte
         }
 
         return new GiftCardCoverage($entries);
-    }
-
-    private function isEligible(GiftCardInterface $giftCard, OrderInterface $order): bool
-    {
-        if (!$giftCard->isUsable()) {
-            return false;
-        }
-
-        return $giftCard->getCurrencyCode() === $order->getCurrencyCode();
     }
 }

@@ -8,15 +8,22 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\Argument\ArgumentsWildcard;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\MethodProphecy;
+use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\SetonoSyliusGiftCardExtension;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
+use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Workflow\Event\CompletedEvent;
+use Symfony\Component\Workflow\Event\Event;
+use Symfony\Component\Workflow\Event\GuardEvent;
+use Symfony\Component\Workflow\Event\TransitionEvent;
 use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\Transition;
+use Webmozart\Assert\Assert;
 
 /**
  * The plugin hooks the order state machines twice, as winzou callbacks prepended by the extension and as Symfony
@@ -35,12 +42,15 @@ final class StateMachineCallbackParityTest extends TestCase
     private const COLLABORATOR_SERVICES = [
         OrderGiftCardOperatorInterface::class => '@' . OrderGiftCardOperatorInterface::class,
         GiftCardRedemptionMethodInterface::class => '@setono_sylius_gift_card.redemption_method',
+        GiftCardCoverageGuardInterface::class => '@' . GiftCardCoverageGuardInterface::class,
     ];
 
     /**
-     * A winzou "before" callback corresponds to Symfony Workflow's "transition" event, an "after" callback to "completed"
+     * A winzou "guard" callback corresponds to Symfony Workflow's "guard" event, a "before" callback to "transition"
+     * and an "after" callback to "completed"
      */
     private const WORKFLOW_EVENT_BY_POSITION = [
+        'guard' => 'guard',
         'before' => 'transition',
         'after' => 'completed',
     ];
@@ -143,8 +153,17 @@ final class StateMachineCallbackParityTest extends TestCase
 
         foreach (self::subscriberClasses() as $class) {
             foreach ($class::getSubscribedEvents() as $event => $listeners) {
+                // Symfony Workflow names its events workflow.<graph>.<kind>.<transition>
+                $parts = explode('.', $event, 4);
+                self::assertCount(4, $parts, sprintf('%s subscribes to %s, which is not a Symfony Workflow transition event', $class, $event));
+                [$prefix, $graph, $kind, $transition] = $parts;
+                self::assertSame('workflow', $prefix);
+
+                $position = array_search($kind, self::WORKFLOW_EVENT_BY_POSITION, true);
+                self::assertIsString($position, sprintf('%s subscribes to %s, which has no winzou callback position', $class, $event));
+
                 foreach (self::listeners($listeners) as [$handler, $priority]) {
-                    [$collaboratorInterface, $method] = $this->forwardedCall($class, $handler);
+                    [$collaboratorInterface, $method] = $this->forwardedCall($class, $handler, $kind);
 
                     $service = self::COLLABORATOR_SERVICES[$collaboratorInterface] ?? null;
                     self::assertIsString($service, sprintf(
@@ -152,15 +171,6 @@ final class StateMachineCallbackParityTest extends TestCase
                         $class,
                         $collaboratorInterface,
                     ));
-
-                    // Symfony Workflow names its events workflow.<graph>.<kind>.<transition>
-                    $parts = explode('.', $event, 4);
-                    self::assertCount(4, $parts, sprintf('%s subscribes to %s, which is not a Symfony Workflow transition event', $class, $event));
-                    [$prefix, $graph, $kind, $transition] = $parts;
-                    self::assertSame('workflow', $prefix);
-
-                    $position = array_search($kind, self::WORKFLOW_EVENT_BY_POSITION, true);
-                    self::assertIsString($position, sprintf('%s subscribes to %s, which has no winzou callback position', $class, $event));
 
                     $hooks[self::hook($position, $graph, $transition, $service, $method)] = -$priority;
                 }
@@ -231,14 +241,15 @@ final class StateMachineCallbackParityTest extends TestCase
     }
 
     /**
-     * Builds the subscriber around a dummy of its collaborator, hands it a completed event and reports which
-     * collaborator method the order was forwarded to
+     * Builds the subscriber around a dummy of its collaborator, hands it the event its subscription is for and
+     * reports which collaborator method the order was forwarded to
      *
      * @param class-string<EventSubscriberInterface> $class
+     * @param string $kind the Symfony Workflow event kind the subscriber listens to (guard, transition, completed)
      *
      * @return array{class-string, string} the collaborator interface and the method called on it
      */
-    private function forwardedCall(string $class, string $handler): array
+    private function forwardedCall(string $class, string $handler, string $kind): array
     {
         $constructor = (new \ReflectionClass($class))->getConstructor();
         self::assertNotNull($constructor);
@@ -254,15 +265,13 @@ final class StateMachineCallbackParityTest extends TestCase
         }
 
         $collaborator = $this->prophesize($collaboratorInterface);
+        self::stubEveryMethod($collaborator, $collaboratorInterface);
+
         $subscriber = new $class($collaborator->reveal());
         $listener = [$subscriber, $handler];
         self::assertIsCallable($listener);
 
-        $listener(new CompletedEvent(
-            $this->prophesize(OrderInterface::class)->reveal(),
-            new Marking(),
-            new Transition('t', 'from', 'to'),
-        ));
+        $listener(self::event($kind, $this->prophesize(OrderInterface::class)->reveal()));
 
         $called = [];
         foreach ((new \ReflectionClass($collaboratorInterface))->getMethods() as $method) {
@@ -273,6 +282,54 @@ final class StateMachineCallbackParityTest extends TestCase
         self::assertCount(1, $called, sprintf('%s::%s should call exactly one method on its collaborator', $class, $handler));
 
         return [$collaboratorInterface, $called[0]];
+    }
+
+    /**
+     * Makes the dummy accept any call. A dummy answers null to everything, which PHP refuses for a method declared
+     * to return a scalar or an array (a guard's collaborator answers with a bool), and once one method is stubbed
+     * Prophecy rejects calls to any other. So every method is stubbed, and those answering with a scalar or an array
+     * answer something PHP accepts and that lets the transition through, so the subscriber has nothing to do but
+     * call its one collaborator method
+     *
+     * @param ObjectProphecy<object> $collaborator
+     * @param class-string $collaboratorInterface
+     */
+    private static function stubEveryMethod(ObjectProphecy $collaborator, string $collaboratorInterface): void
+    {
+        foreach ((new \ReflectionClass($collaboratorInterface))->getMethods() as $method) {
+            $prophecy = $collaborator->__call($method->getName(), [Argument::cetera()]);
+            Assert::isInstanceOf($prophecy, MethodProphecy::class);
+
+            $type = $method->getReturnType();
+            if (!$type instanceof \ReflectionNamedType || $type->allowsNull()) {
+                continue;
+            }
+
+            $default = match ($type->getName()) {
+                'bool' => true,
+                'int' => 0,
+                'float' => 0.0,
+                'string' => '',
+                'array' => [],
+                default => null,
+            };
+            if (null !== $default) {
+                $prophecy->willReturn($default);
+            }
+        }
+    }
+
+    private static function event(string $kind, object $subject): Event
+    {
+        $marking = new Marking();
+        $transition = new Transition('t', 'from', 'to');
+
+        return match ($kind) {
+            'guard' => new GuardEvent($subject, $marking, $transition),
+            'transition' => new TransitionEvent($subject, $marking, $transition),
+            'completed' => new CompletedEvent($subject, $marking, $transition),
+            default => self::fail(sprintf('no Symfony Workflow event is built for the "%s" kind', $kind)),
+        };
     }
 
     private static function hook(string $position, string $graph, string $transition, string $service, string $method): string
