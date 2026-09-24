@@ -115,7 +115,7 @@ setono_sylius_gift_card:
         new_gift_card_intro: A new gift card was created for you
         pdf_attached: Your gift card is attached to this email as a PDF.
         physical_code_on_card: The code is printed on the card itself, so you get it when the card arrives.
-        physical_on_its_way: Your gift card is on its way — we are shipping it to you.
+        physical_will_be_shipped: Your gift card will be shipped to you.
         valid_until: 'Valid until'
         your_gift_card: Your gift card
         your_gift_cards_you_bought_in_the_order: Your gift cards you bought in the order

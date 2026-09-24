@@ -107,7 +107,7 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
 
     /**
      * A physical gift card is shipped with its code printed on it. Emailing the code when the order is paid would
-     * make the card spendable before it arrives, so the email only announces that the card is on its way
+     * make the card spendable before it arrives, so the email only says that the card will be shipped
      *
      * @test
      */
@@ -124,7 +124,7 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
         self::assertCount(0, $email['attachments'], 'a physical gift card should not be attached as a PDF');
         self::assertStringNotContainsString('EMAI-LTES-T000-0000-1', $email['html']);
         self::assertStringNotContainsString('EMAILTEST00000001', $email['html']);
-        self::assertStringContainsString('on its way', $email['html']);
+        self::assertStringContainsString('will be shipped to you', $email['html']);
         self::assertStringContainsString('The code is printed on the card itself', $email['html']);
         self::assertStringNotContainsString('attached to this email as a PDF', $email['html']);
         self::assertStringNotContainsString('Enter the code at checkout', $email['html']);
@@ -161,7 +161,7 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
         self::assertSame('gift-card-EMAILTEST00000001.pdf', $email['attachments'][0]['filename']);
         self::assertStringContainsString('EMAI-LTES-T000-0000-1', $email['html']);
         // the card is still shipped, so the customer is still told it is coming
-        self::assertStringContainsString('on its way', $email['html']);
+        self::assertStringContainsString('will be shipped to you', $email['html']);
         self::assertStringNotContainsString('The code is printed on the card itself', $email['html']);
     }
 
@@ -187,7 +187,7 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
         self::assertStringContainsString('EMAI-LTES-T000-0000-1', $email['html']);
         self::assertStringContainsString('attached to this email as a PDF', $email['html']);
         self::assertStringContainsString('Enter the code at checkout', $email['html']);
-        self::assertStringNotContainsString('on its way', $email['html']);
+        self::assertStringNotContainsString('shipped', $email['html']);
         self::assertStringNotContainsString('The code is printed on the card itself', $email['html']);
     }
 

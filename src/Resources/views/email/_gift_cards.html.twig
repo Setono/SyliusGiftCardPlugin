@@ -40,7 +40,7 @@
 
     {% if physical and (announceShipping or not disclosed) %}
         <p>
-            {% if announceShipping %}{{ 'setono_sylius_gift_card.email.physical_on_its_way'|trans({}, 'messages', localeCode) }}{% endif %}
+            {% if announceShipping %}{{ 'setono_sylius_gift_card.email.physical_will_be_shipped'|trans({}, 'messages', localeCode) }}{% endif %}
             {% if not disclosed %}{{ 'setono_sylius_gift_card.email.physical_code_on_card'|trans({}, 'messages', localeCode) }}{% endif %}
         </p>
     {% endif %}

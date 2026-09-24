@@ -12,7 +12,7 @@ interface GiftCardEmailManagerInterface
     /**
      * Emails all gift cards bought on the order to the order's customer. A virtual gift card is delivered by the
      * email itself: its code is in the body and the card is attached as a PDF. A physical one is only announced as
-     * being on its way, without its code or PDF, unless setono_sylius_gift_card.delivery.email_physical_cards is on
+     * going to be shipped, without its code or PDF, unless setono_sylius_gift_card.delivery.email_physical_cards is on
      *
      * @param list<GiftCardInterface> $giftCards
      */
