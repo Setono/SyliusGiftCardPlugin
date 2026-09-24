@@ -94,10 +94,55 @@ final class CreateGiftCardProductActionTest extends TestCase
             $csrfTokenManager->reveal(),
         );
 
-        $response = $action($this->request('valid'));
+        $request = $this->request('valid');
+        $response = $action($request);
 
         self::assertInstanceOf(RedirectResponse::class, $response);
         self::assertSame('/admin/products/42/edit', $response->getTargetUrl());
+
+        $session = $request->getSession();
+        self::assertInstanceOf(Session::class, $session);
+        self::assertSame(['setono_sylius_gift_card.gift_card.product_created'], $session->getFlashBag()->get('success'));
+    }
+
+    /**
+     * The first gift card product is simply "gift_card"; a shop that creates more gets the next free suffix
+     *
+     * @test
+     */
+    public function it_gives_the_product_the_first_code_not_taken(): void
+    {
+        $product = $this->prophesize(ProductInterface::class);
+        $product->getId()->willReturn(42);
+
+        $productFactory = $this->prophesize(GiftCardProductFactoryInterface::class);
+        $productFactory->create('gift_card_3', 'Gift card', Argument::any(), false)->willReturn($product->reveal())->shouldBeCalledOnce();
+
+        $productRepository = $this->prophesize(RepositoryInterface::class);
+        $productRepository->findOneBy(['code' => 'gift_card'])->willReturn($this->prophesize(ProductInterface::class)->reveal());
+        $productRepository->findOneBy(['code' => 'gift_card_2'])->willReturn($this->prophesize(ProductInterface::class)->reveal());
+        $productRepository->findOneBy(['code' => 'gift_card_3'])->willReturn(null);
+
+        $manager = $this->prophesize(EntityManagerInterface::class);
+
+        $managerRegistry = $this->prophesize(ManagerRegistry::class);
+        $managerRegistry->getManagerForClass(Argument::type('string'))->willReturn($manager->reveal());
+
+        $urlGenerator = $this->prophesize(UrlGeneratorInterface::class);
+        $urlGenerator->generate('sylius_admin_product_update', ['id' => 42])->willReturn('/admin/products/42/edit');
+
+        $csrfTokenManager = $this->prophesize(CsrfTokenManagerInterface::class);
+        $csrfTokenManager->isTokenValid(Argument::type(CsrfToken::class))->willReturn(true);
+
+        $action = new CreateGiftCardProductAction(
+            $productFactory->reveal(),
+            $productRepository->reveal(),
+            $managerRegistry->reveal(),
+            $urlGenerator->reveal(),
+            $csrfTokenManager->reveal(),
+        );
+
+        $action($this->request('valid'));
     }
 
     private function request(string $token): Request

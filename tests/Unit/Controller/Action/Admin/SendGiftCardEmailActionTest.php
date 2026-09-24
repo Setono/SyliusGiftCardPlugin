@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
@@ -91,6 +92,27 @@ final class SendGiftCardEmailActionTest extends TestCase
             ['setono_sylius_gift_card.gift_card.email_not_sent_no_customer'],
             $this->flashes($request, 'error'),
         );
+    }
+
+    /** @test */
+    public function it_answers_not_found_for_an_unknown_gift_card(): void
+    {
+        $emailManager = $this->prophesize(GiftCardEmailManagerInterface::class);
+        $emailManager->sendGiftCard(Argument::cetera())->shouldNotBeCalled();
+
+        $giftCardRepository = $this->prophesize(GiftCardRepositoryInterface::class);
+        $giftCardRepository->find(42)->willReturn(null);
+
+        $action = new SendGiftCardEmailAction(
+            $giftCardRepository->reveal(),
+            $emailManager->reveal(),
+            $this->prophesize(UrlGeneratorInterface::class)->reveal(),
+            $this->csrfTokenManager('valid', true)->reveal(),
+        );
+
+        $this->expectException(NotFoundHttpException::class);
+
+        $action($this->request('valid'), 42);
     }
 
     private function action(GiftCardInterface $giftCard, GiftCardEmailManagerInterface $emailManager): SendGiftCardEmailAction
