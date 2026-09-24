@@ -8,5 +8,7 @@
                  class="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver">
             <argument type="service" id="router"/>
         </service>
+        <service id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver"/>
     </services>
 </container>

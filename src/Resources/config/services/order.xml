@@ -21,7 +21,7 @@
                  decorates="sylius.factory.add_to_cart_command" decoration-priority="-10">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Order\Factory\AddToCartCommandFactory.inner"/>
             <argument>%setono_sylius_gift_card.order.model.add_to_cart_command.class%</argument>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactoryInterface"/>
         </service>
     </services>
 </container>

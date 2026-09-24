@@ -39,7 +39,7 @@
 
         <service id="Setono\SyliusGiftCardPlugin\Form\Extension\AddToCartTypeExtension"
                  class="Setono\SyliusGiftCardPlugin\Form\Extension\AddToCartTypeExtension">
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Cart\CartGiftCardHandler"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Cart\CartGiftCardHandlerInterface"/>
             <argument>%setono_sylius_gift_card.order.model.add_to_cart_command.class%</argument>
             <tag name="form.type_extension" extended-type="Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType"/>
         </service>
@@ -49,7 +49,7 @@
             <argument>%setono_sylius_gift_card.order.model.gift_card_information.class%</argument>
             <argument>%setono_sylius_gift_card.model.gift_card_design.class%</argument>
             <argument type="service" id="sylius.context.channel"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProvider"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface"/>
             <argument>%setono_sylius_gift_card.purchase.maximum_message_length%</argument>
             <tag name="form.type"/>
         </service>
@@ -65,7 +65,7 @@
                  class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType">
             <argument>%setono_sylius_gift_card.model.gift_card.class%</argument>
             <argument type="service" id="sylius.repository.currency"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface"/>
             <argument>%Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType.validation_groups%</argument>
             <tag name="form.type"/>
         </service>

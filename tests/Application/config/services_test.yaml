@@ -1,0 +1,7 @@
+services:
+    # Decorates the interface the way the README tells applications to, so EligibleTotalCalculatorDecorationTest can
+    # prove the plugin's own services are built with the decorator. Public so the test can reach the instance they share
+    Setono\SyliusGiftCardPlugin\Tests\Application\Calculator\OverridableEligibleTotalCalculator:
+        decorates: Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface
+        arguments: ['@.inner']
+        public: true

@@ -11,7 +11,7 @@
 
         <service id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculator"
                  class="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculator">
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface"
                  alias="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculator"/>
@@ -28,7 +28,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"
                  class="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
             <argument type="service" id="setono_sylius_gift_card.redemption_method"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface"

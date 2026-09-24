@@ -20,7 +20,7 @@
 
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\RecordGiftCardIssuanceSubscriber"
                  class="Setono\SyliusGiftCardPlugin\EventSubscriber\RecordGiftCardIssuanceSubscriber">
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface"/>
             <argument type="service" id="doctrine"/>
 
             <tag name="kernel.event_subscriber"/>

@@ -216,6 +216,11 @@ card and in its PDF.
 
 Every extension point below is a plain service or template you replace — no configuration flags required.
 
+The plugin's services use each other through their interfaces, so to change one, decorate (or replace) the service
+registered under its interface, e.g. `Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface`. What
+you register there is what the whole plugin uses, the state machine callbacks included. The resources are the
+exception: they follow Sylius' conventions, see [Overriding models, repositories and factories](#overriding-models-repositories-and-factories).
+
 ### Customizing the PDF
 
 Gift cards render to PDF with [dompdf](https://github.com/dompdf/dompdf). Override `@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig` to change the layout, or replace/decorate `Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface` to use a different engine.
@@ -228,7 +233,15 @@ The plugin sends two emails: `setono_sylius_gift_card__gift_card` (a single gift
 
 ### Changing what gift cards may pay for
 
-By default gift cards may pay for everything except gift-card line items. Decorate `Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface` to change this.
+By default gift cards may pay for everything except gift-card line items. To change this, decorate `Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface`:
+
+```yaml
+# config/services.yaml
+services:
+    App\GiftCard\EligibleTotalCalculator:
+        decorates: Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface
+        arguments: ['@.inner']
+```
 
 ### Customizing the add-to-cart command
 

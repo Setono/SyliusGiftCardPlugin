@@ -7,7 +7,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator"
                  class="Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator">
             <argument type="service" id="sylius.context.channel"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface"/>
             <argument type="service" id="sylius.money_formatter"/>
 
             <tag name="validator.constraint_validator"/>
@@ -32,7 +32,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator"
                  class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator">
             <argument type="service" id="sylius.context.channel"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProvider"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface"/>
 
             <tag name="validator.constraint_validator"/>
         </service>
