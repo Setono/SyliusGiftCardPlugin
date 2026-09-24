@@ -14,7 +14,7 @@ use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
-use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsApplicable;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsEligible;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\Component\Core\Currency\CurrencyStorageInterface;
 use Sylius\Component\Core\Model\Customer;
@@ -197,7 +197,7 @@ final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
         /** @var ValidatorInterface $validator */
         $validator = self::getContainer()->get('validator');
 
-        return $validator->validate($giftCard, new GiftCardIsApplicable());
+        return $validator->validate($giftCard, new GiftCardIsEligible());
     }
 
     private function handler(): CartGiftCardHandlerInterface
