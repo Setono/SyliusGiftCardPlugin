@@ -6,7 +6,9 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\DependencyInjection;
 
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\SetonoSyliusGiftCardExtension;
+use Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardSetupRuntime;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Contracts\Service\ResetInterface;
 
 final class SetonoSyliusGiftCardExtensionTest extends TestCase
 {
@@ -26,6 +28,38 @@ final class SetonoSyliusGiftCardExtensionTest extends TestCase
         $template = $blocks['setono_gift_card']['template'];
         self::assertSame('@SetonoSyliusGiftCardPlugin/admin/product/_gift_card.html.twig', $template);
         self::assertFileExists($this->resolveTemplate($template));
+    }
+
+    /**
+     * The service files are not autoconfigured, so a service implementing ResetInterface is only reset between
+     * requests under a worker runtime (FrankenPHP's worker mode, RoadRunner) when it carries the kernel.reset tag
+     * itself. Without it, whatever it memoised stays for every later request the worker serves
+     *
+     * @test
+     */
+    public function it_tags_every_resettable_service_for_the_kernel_to_reset(): void
+    {
+        $container = new ContainerBuilder();
+
+        (new SetonoSyliusGiftCardExtension())->load([], $container);
+
+        $resettable = [];
+        foreach ($container->getDefinitions() as $id => $definition) {
+            $class = $definition->getClass() ?? $id;
+            if (!str_starts_with($class, 'Setono\\SyliusGiftCardPlugin\\') || !is_a($class, ResetInterface::class, true)) {
+                continue;
+            }
+
+            $resettable[] = $id;
+
+            self::assertSame(
+                [['method' => 'reset']],
+                $definition->getTag('kernel.reset'),
+                sprintf('%s implements %s, but is not tagged kernel.reset', $id, ResetInterface::class),
+            );
+        }
+
+        self::assertContains(GiftCardSetupRuntime::class, $resettable);
     }
 
     /**

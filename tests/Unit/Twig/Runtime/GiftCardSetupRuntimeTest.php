@@ -43,4 +43,27 @@ final class GiftCardSetupRuntimeTest extends TestCase
         self::assertSame([], $runtime->getChannelsWithoutDesign());
         self::assertSame([], $runtime->getChannelsWithoutDesign());
     }
+
+    /**
+     * Under a worker runtime the shared runtime outlives the request, and the kernel resets it before the next one,
+     * which must ask the checker again rather than show the previous request's answer
+     *
+     * @test
+     */
+    public function it_forgets_the_answer_when_reset(): void
+    {
+        $channel = $this->prophesize(ChannelInterface::class)->reveal();
+
+        $checker = $this->prophesize(GiftCardSetupCheckerInterface::class);
+        $checker->getChannelsWithoutDesign()->willReturn([$channel], [])->shouldBeCalledTimes(2);
+
+        $runtime = new GiftCardSetupRuntime($checker->reveal());
+
+        self::assertSame([$channel], $runtime->getChannelsWithoutDesign());
+
+        $runtime->reset();
+
+        self::assertSame([], $runtime->getChannelsWithoutDesign());
+        self::assertSame([], $runtime->getChannelsWithoutDesign());
+    }
 }

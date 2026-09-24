@@ -39,6 +39,9 @@
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardSetupCheckerInterface"/>
 
             <tag name="twig.runtime"/>
+            <!-- Clears the memoised answer between requests under a worker runtime. Nothing here is autoconfigured,
+                 so the tag is explicit -->
+            <tag name="kernel.reset" method="reset"/>
         </service>
     </services>
 </container>
