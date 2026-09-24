@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Validator\Constraints;
 
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
@@ -12,7 +13,10 @@ use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequired;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Channel\Context\ChannelNotFoundException;
+use Sylius\Component\Channel\Model\ChannelInterface as BaseChannelInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
 /**
@@ -65,6 +69,29 @@ final class GiftCardDesignRequiredValidatorTest extends ConstraintValidatorTestC
         $this->validator->validate(null, new GiftCardDesignRequired());
 
         $this->assertNoViolation();
+    }
+
+    /**
+     * Designs are offered per shop channel, so a channel of another kind has none to require one of
+     *
+     * @test
+     */
+    public function it_has_nothing_to_require_in_a_channel_that_is_not_a_shop_channel(): void
+    {
+        $this->channelContext->getChannel()->willReturn($this->prophesize(BaseChannelInterface::class)->reveal());
+
+        $this->validator->validate(null, new GiftCardDesignRequired());
+
+        $this->assertNoViolation();
+        $this->designProvider->getDesigns(Argument::any())->shouldNotHaveBeenCalled();
+    }
+
+    /** @test */
+    public function it_only_validates_its_own_constraint(): void
+    {
+        $this->expectException(UnexpectedTypeException::class);
+
+        $this->validator->validate(null, new NotBlank());
     }
 
     protected function createValidator(): GiftCardDesignRequiredValidator

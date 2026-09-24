@@ -6,6 +6,8 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Validator\Constraints;
 
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLength;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\UnexpectedValueException;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
@@ -55,6 +57,14 @@ final class GiftCardMessageLengthValidatorTest extends ConstraintValidatorTestCa
         $this->expectException(UnexpectedValueException::class);
 
         $this->validator->validate(42, new GiftCardMessageLength());
+    }
+
+    /** @test */
+    public function it_only_validates_its_own_constraint(): void
+    {
+        $this->expectException(UnexpectedTypeException::class);
+
+        $this->validator->validate('message', new NotBlank());
     }
 
     protected function createValidator(): GiftCardMessageLengthValidator
