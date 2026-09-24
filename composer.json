@@ -50,6 +50,7 @@
         "symfony/options-resolver": "^6.4",
         "symfony/routing": "^6.4",
         "symfony/security-csrf": "^6.4",
+        "symfony/service-contracts": "^2.5 || ^3.0",
         "symfony/translation": "^6.4",
         "symfony/translation-contracts": "^2.4 || ^3.0",
         "symfony/validator": "^6.4",

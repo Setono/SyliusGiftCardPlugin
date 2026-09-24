@@ -181,6 +181,8 @@ again after you add a channel.
 bin/console setono:gift-card:create-default-design
 ```
 
+A channel without an enabled design still works: the product page shows no design picker and the card renders its framed default. The admin does point it out, though: while a channel sells gift cards without an enabled design, every admin page carries a warning in the top bar and the gift card and design indexes explain how to fix it.
+
 ### Install assets
 
 ```bash
