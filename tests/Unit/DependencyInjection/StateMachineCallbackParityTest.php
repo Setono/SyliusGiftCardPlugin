@@ -15,6 +15,8 @@ use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
+use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Payment\PaymentTransitions;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Workflow\Event\CompletedEvent;
@@ -43,6 +45,14 @@ final class StateMachineCallbackParityTest extends TestCase
         OrderGiftCardOperatorInterface::class => '@' . OrderGiftCardOperatorInterface::class,
         GiftCardRedemptionMethodInterface::class => '@setono_sylius_gift_card.redemption_method',
         GiftCardCoverageGuardInterface::class => '@' . GiftCardCoverageGuardInterface::class,
+    ];
+
+    /**
+     * What a graph's transitions are applied to, and so what a subscriber on it is handed as the event's subject.
+     * Every graph not listed here is one of the order graphs, whose subject is the order
+     */
+    private const SUBJECT_BY_GRAPH = [
+        PaymentTransitions::GRAPH => PaymentInterface::class,
     ];
 
     /**
@@ -163,7 +173,7 @@ final class StateMachineCallbackParityTest extends TestCase
                 self::assertIsString($position, sprintf('%s subscribes to %s, which has no winzou callback position', $class, $event));
 
                 foreach (self::listeners($listeners) as [$handler, $priority]) {
-                    [$collaboratorInterface, $method] = $this->forwardedCall($class, $handler, $kind);
+                    [$collaboratorInterface, $method] = $this->forwardedCall($class, $handler, $graph, $kind);
 
                     $service = self::COLLABORATOR_SERVICES[$collaboratorInterface] ?? null;
                     self::assertIsString($service, sprintf(
@@ -241,15 +251,16 @@ final class StateMachineCallbackParityTest extends TestCase
     }
 
     /**
-     * Builds the subscriber around a dummy of its collaborator, hands it the event its subscription is for and
-     * reports which collaborator method the order was forwarded to
+     * Builds the subscriber around a dummy of its collaborator, hands it the event its subscription is for, carrying
+     * the subject the graph transitions, and reports which collaborator method the subject was forwarded to
      *
      * @param class-string<EventSubscriberInterface> $class
+     * @param string $graph the state machine graph the subscriber listens to (sylius_order, sylius_payment, ...)
      * @param string $kind the Symfony Workflow event kind the subscriber listens to (guard, transition, completed)
      *
      * @return array{class-string, string} the collaborator interface and the method called on it
      */
-    private function forwardedCall(string $class, string $handler, string $kind): array
+    private function forwardedCall(string $class, string $handler, string $graph, string $kind): array
     {
         $constructor = (new \ReflectionClass($class))->getConstructor();
         self::assertNotNull($constructor);
@@ -271,7 +282,8 @@ final class StateMachineCallbackParityTest extends TestCase
         $listener = [$subscriber, $handler];
         self::assertIsCallable($listener);
 
-        $listener(self::event($kind, $this->prophesize(OrderInterface::class)->reveal()));
+        $subject = $this->prophesize(self::SUBJECT_BY_GRAPH[$graph] ?? OrderInterface::class)->reveal();
+        $listener(self::event($kind, $subject));
 
         $called = [];
         foreach ((new \ReflectionClass($collaboratorInterface))->getMethods() as $method) {

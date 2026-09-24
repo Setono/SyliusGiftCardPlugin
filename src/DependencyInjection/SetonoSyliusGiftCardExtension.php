@@ -118,6 +118,34 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                 // After enable, so a card is never emailed before it is enabled
                                 'priority' => -40,
                             ],
+                            'setono_sylius_gift_card__disable_gift_cards' => [
+                                'on' => ['refund'],
+                                'do' => [$operator, 'disable'],
+                                'args' => ['object'],
+                                // The money for an order refunded in full went back, so the cards it bought must
+                                // not be spendable. Deliberately not on partially_refund: a partial refund does not
+                                // say which payments or items the money went back for, so the cards stay usable
+                                // and the merchant disables them by hand where that is what the refund meant.
+                                // Sylius registers nothing on refund, so there is nothing to order against
+                                'priority' => 0,
+                            ],
+                        ],
+                    ],
+                ],
+                'sylius_payment' => [
+                    'callbacks' => [
+                        'after' => [
+                            'setono_sylius_gift_card__rollback_payment' => [
+                                'on' => ['refund'],
+                                'do' => ['@setono_sylius_gift_card.redemption_method', 'rollbackPayment'],
+                                'args' => ['object'],
+                                // Runs for every refunded payment (the redemption method ignores those that are not
+                                // gift card payments) and is also what restores the balance when an order is
+                                // cancelled, since rollback refunds the gift card payments. Before sylius_resolve_state
+                                // (-100) works out the order's payment state from the refunded payment, so the card
+                                // is whole again before anything reacts to the order being (partially) refunded
+                                'priority' => -150,
+                            ],
                         ],
                     ],
                 ],

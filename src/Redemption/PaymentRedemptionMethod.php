@@ -101,25 +101,43 @@ final class PaymentRedemptionMethod extends RedemptionMethod
                 continue;
             }
 
-            if (PaymentInterface::STATE_COMPLETED !== $payment->getState()) {
-                continue;
-            }
-
-            $giftCard = $this->resolveGiftCard($payment);
-            if (null === $giftCard) {
-                continue;
-            }
-
-            $this->balanceOperator->restore(
-                $giftCard,
-                (int) $payment->getAmount(),
-                $order,
-                $payment,
-                sprintf('restore:order:%s:payment:%s', (string) $order->getId(), (string) $payment->getId()),
-            );
-
+            // Refunding the payment is what gives the balance back: rollbackPayment() runs off the refund transition
+            // on both state machine adapters, so a cancelled order and an admin refunding the payment by hand take the
+            // same path and neither can restore what the other already has. Restoring here as well would not be
+            // caught by the idempotency key, which is only visible to the next call once the ledger row is flushed.
+            // Only a completed payment can be refunded, and only a completed payment has anything to give back
             $this->transition($payment, PaymentTransitions::TRANSITION_REFUND);
         }
+    }
+
+    public function rollbackPayment(PaymentInterface $payment): void
+    {
+        if (!$this->paymentChecker->isGiftCardPayment($payment)) {
+            return;
+        }
+
+        // A payment still standing has not given the money back, so the card must not get it back either
+        if (PaymentInterface::STATE_REFUNDED !== $payment->getState()) {
+            return;
+        }
+
+        $giftCard = $this->resolveGiftCard($payment);
+        if (null === $giftCard) {
+            return;
+        }
+
+        $order = $payment->getOrder();
+        Assert::isInstanceOf($order, OrderInterface::class);
+
+        // Keyed on the payment alone, so every route to refunding it (rollback() on cancel, the admin's refund button,
+        // a re-fired callback) shares one key and the balance comes back exactly once per payment
+        $this->balanceOperator->restore(
+            $giftCard,
+            (int) $payment->getAmount(),
+            $order,
+            $payment,
+            sprintf('restore:payment:%s', (string) $payment->getId()),
+        );
     }
 
     /**
