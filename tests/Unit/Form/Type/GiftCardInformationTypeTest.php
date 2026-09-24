@@ -10,6 +10,7 @@ use Doctrine\Persistence\ObjectManager;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardInformationType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesign;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImage;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimits;
@@ -24,6 +25,7 @@ use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\ChoiceList\View\ChoiceView;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormExtensionInterface;
 use Symfony\Component\Form\Forms;
@@ -37,6 +39,9 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     use ProphecyTrait;
 
     private GiftCardDesignInterface $design;
+
+    /** A second design the channel offers, the one with front artwork */
+    private GiftCardDesignInterface $illustratedDesign;
 
     /**
      * What the amount limits provider answers as the maximum; the range is only quoted when one is configured
@@ -146,6 +151,72 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     }
 
     /**
+     * The design is required whenever the channel offers any, so the picker starts on the first of them rather
+     * than confronting the customer with an error for a choice they may not care about
+     *
+     * @test
+     */
+    public function it_offers_the_channel_designs_and_preselects_the_first(): void
+    {
+        $design = $this->factory->create(GiftCardInformationType::class, $this->createInformation())->get('design');
+
+        self::assertSame([$this->design, $this->illustratedDesign], $design->getConfig()->getOption('choices'));
+        self::assertSame($this->design, $design->getData());
+    }
+
+    /**
+     * The live preview swaps the card artwork as the customer picks a design, reading it from the choice. A design
+     * without front artwork previews the framed default, which an empty path tells the script
+     *
+     * @test
+     */
+    public function it_hands_the_live_preview_each_designs_front_image(): void
+    {
+        $view = $this->factory->create(GiftCardInformationType::class, $this->createInformation())->createView();
+
+        $vars = $view->children['design']->vars;
+        self::assertIsArray($vars);
+        self::assertIsArray($vars['choices']);
+
+        $paths = [];
+        foreach ($vars['choices'] as $choice) {
+            self::assertInstanceOf(ChoiceView::class, $choice);
+            self::assertIsString($choice->value);
+            self::assertIsArray($choice->attr);
+
+            $paths[$choice->value] = $choice->attr['data-image-path'] ?? null;
+        }
+
+        self::assertSame(['classic' => '', 'birthday' => 'ab/cd/birthday.png'], $paths);
+    }
+
+    /**
+     * The textarea stops the customer at the configured length and says so up front; the validator enforces the
+     * same limit for a request that ignores the attribute
+     *
+     * @test
+     */
+    public function it_limits_the_message_to_the_configured_length(): void
+    {
+        $form = $this->factory->create(GiftCardInformationType::class, $this->createInformation());
+        $message = $form->get('customMessage')->getConfig();
+
+        self::assertSame(['%limit%' => 200], $message->getOption('help_translation_parameters'));
+        $attr = $message->getOption('attr');
+        self::assertIsArray($attr);
+        self::assertSame(200, $attr['maxlength'] ?? null);
+
+        $form->submit([
+            'amount' => '50.00',
+            'customMessage' => str_repeat('a', 201),
+            'design' => 'classic',
+        ]);
+
+        self::assertFalse($form->isValid());
+        self::assertCount(1, $form->get('customMessage')->getErrors());
+    }
+
+    /**
      * The form factory is built in setUp() from what getExtensions() is told, so a test that changes that has to
      * build it again. Everything this test registers comes from getExtensions()
      */
@@ -175,6 +246,15 @@ final class GiftCardInformationTypeTest extends TypeTestCase
         $design->getFrontImage()->willReturn(null);
         $this->design = $design->reveal();
 
+        $frontImage = new GiftCardDesignImage();
+        $frontImage->setPath('ab/cd/birthday.png');
+
+        $illustratedDesign = $this->prophesize(GiftCardDesignInterface::class);
+        $illustratedDesign->getCode()->willReturn('birthday');
+        $illustratedDesign->getName()->willReturn('Birthday');
+        $illustratedDesign->getFrontImage()->willReturn($frontImage);
+        $this->illustratedDesign = $illustratedDesign->reveal();
+
         $channel = $this->prophesize(ChannelInterface::class);
         if (null === $this->baseCurrencyCode) {
             $channel->getBaseCurrency()->willReturn(null);
@@ -188,7 +268,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
         $channelContext->getChannel()->willReturn($channel->reveal());
 
         $designProvider = $this->prophesize(GiftCardDesignProviderInterface::class);
-        $designProvider->getDesigns($channel->reveal())->willReturn([$this->design]);
+        $designProvider->getDesigns($channel->reveal())->willReturn([$this->design, $this->illustratedDesign]);
 
         $amountLimitsProvider = $this->prophesize(GiftCardAmountLimitsProviderInterface::class);
         $amountLimitsProvider->getLimits($channel->reveal())->willReturn(new GiftCardAmountLimits(100, $this->maximumAmount));
