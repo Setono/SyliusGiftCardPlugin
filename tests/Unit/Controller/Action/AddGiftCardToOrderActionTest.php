@@ -62,6 +62,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
         $action = $this->createAction(
             $this->createFormFactory(null),
             $this->createRateLimiterFactory(3),
+            $this->createRateLimiterFactory(15),
             $cartContext->reveal(),
         );
 
@@ -87,21 +88,46 @@ final class AddGiftCardToOrderActionTest extends TestCase
         $cartContext->getCart()->shouldHaveBeenCalledTimes(3);
     }
 
-    /** @test */
-    public function it_refuses_attempts_from_a_fresh_session_on_an_exhausted_address(): void
+    /**
+     * Everyone behind one address (an office NAT, a mobile carrier's CGNAT) shares its bucket, so the address
+     * gets a larger budget than a single visitor, and one visitor using up their own does not lock out the rest
+     *
+     * @test
+     */
+    public function it_lets_other_visitors_behind_the_same_address_through_when_one_has_exhausted_their_budget(): void
     {
-        $action = $this->createAction($this->createFormFactory(null), $this->createRateLimiterFactory(3));
+        $action = $this->createAction($this->createFormFactory(null), $this->createRateLimiterFactory(3), $this->createRateLimiterFactory(15));
 
         $session = $this->session();
 
-        for ($i = 0; $i < 3; ++$i) {
+        for ($i = 0; $i < 4; ++$i) {
             $action($this->createRequest('NOSUCHCODE12', $session, 'the-session-id'));
         }
-        $session->getFlashBag()->get('error');
+        self::assertSame(
+            [self::GENERIC_ERROR, self::GENERIC_ERROR, self::GENERIC_ERROR, self::TOO_MANY_ATTEMPTS],
+            $session->getFlashBag()->get('error'),
+        );
 
-        // throwing the cookie away to start over does not hand out a new budget, because the address has one
-        // of its own
-        $action($this->createRequest('NOSUCHCODE12', $session, 'a-brand-new-session-id'));
+        $action($this->createRequest('NOSUCHCODE12', $session, 'a-colleagues-session-id'));
+
+        self::assertSame([self::GENERIC_ERROR], $session->getFlashBag()->get('error'));
+    }
+
+    /** @test */
+    public function it_refuses_attempts_from_fresh_sessions_once_the_address_is_exhausted(): void
+    {
+        $action = $this->createAction($this->createFormFactory(null), $this->createRateLimiterFactory(3), $this->createRateLimiterFactory(5));
+
+        $session = $this->session();
+
+        // throwing the cookie away before every attempt gets a new session budget each time, but the address
+        // has a budget of its own
+        for ($i = 0; $i < 5; ++$i) {
+            $action($this->createRequest('NOSUCHCODE12', $session, sprintf('session-id-%d', $i)));
+        }
+        self::assertSame(array_fill(0, 5, self::GENERIC_ERROR), $session->getFlashBag()->get('error'));
+
+        $action($this->createRequest('NOSUCHCODE12', $session, 'yet-another-session-id'));
 
         self::assertSame([self::TOO_MANY_ATTEMPTS], $session->getFlashBag()->get('error'));
     }
@@ -114,7 +140,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
      */
     public function it_counts_a_request_without_an_address_against_its_session_alone(): void
     {
-        $action = $this->createAction($this->createFormFactory(null), $this->createRateLimiterFactory(3));
+        $action = $this->createAction($this->createFormFactory(null), $this->createRateLimiterFactory(3), $this->createRateLimiterFactory(3));
 
         $session = $this->session();
 
@@ -131,10 +157,57 @@ final class AddGiftCardToOrderActionTest extends TestCase
         self::assertSame([self::GENERIC_ERROR], $session->getFlashBag()->get('error'));
     }
 
+    /**
+     * Each bucket is turned off on its own: with rate_limiter: ~ the address bucket still applies
+     *
+     * @test
+     */
+    public function it_throttles_by_address_alone_without_a_session_limiter(): void
+    {
+        $action = $this->createAction($this->createFormFactory(null), null, $this->createRateLimiterFactory(3));
+
+        $session = $this->session();
+
+        for ($i = 0; $i < 4; ++$i) {
+            $action($this->createRequest('NOSUCHCODE12', $session, sprintf('session-id-%d', $i)));
+        }
+
+        self::assertSame(
+            [self::GENERIC_ERROR, self::GENERIC_ERROR, self::GENERIC_ERROR, self::TOO_MANY_ATTEMPTS],
+            $session->getFlashBag()->get('error'),
+        );
+    }
+
+    /**
+     * ip_rate_limiter: ~ is the way out for a shop behind a proxy it cannot list in framework.trusted_proxies,
+     * where every customer would otherwise share the proxy's bucket
+     *
+     * @test
+     */
+    public function it_throttles_by_session_alone_without_an_address_limiter(): void
+    {
+        $action = $this->createAction($this->createFormFactory(null), $this->createRateLimiterFactory(3), null);
+
+        $session = $this->session();
+
+        for ($i = 0; $i < 3; ++$i) {
+            $action($this->createRequest('NOSUCHCODE12', $session, 'the-session-id'));
+        }
+        $session->getFlashBag()->get('error');
+
+        $action($this->createRequest('NOSUCHCODE12', $session, 'the-session-id'));
+        self::assertSame([self::TOO_MANY_ATTEMPTS], $session->getFlashBag()->get('error'));
+
+        for ($i = 0; $i < 10; ++$i) {
+            $action($this->createRequest('NOSUCHCODE12', $session, sprintf('session-id-%d', $i)));
+        }
+        self::assertSame(array_fill(0, 10, self::GENERIC_ERROR), $session->getFlashBag()->get('error'));
+    }
+
     /** @test */
     public function it_does_not_throttle_when_no_rate_limiter_is_configured(): void
     {
-        $action = $this->createAction($this->createFormFactory(null), null);
+        $action = $this->createAction($this->createFormFactory(null), null, null);
 
         $session = $this->session();
 
@@ -199,6 +272,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
         $action = $this->createAction(
             $this->createFormFactory($giftCard),
             $this->createRateLimiterFactory(3),
+            $this->createRateLimiterFactory(15),
             $cartContext->reveal(),
             $applicator->reveal(),
         );
@@ -219,7 +293,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
      */
     private function errorsFor(?GiftCardInterface $giftCard): array
     {
-        $action = $this->createAction($this->createFormFactory($giftCard), null);
+        $action = $this->createAction($this->createFormFactory($giftCard), null, null);
 
         $session = $this->session();
         $action($this->createRequest('SOMEGIFTCARD', $session));
@@ -233,6 +307,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
     private function createAction(
         FormFactoryInterface $formFactory,
         ?RateLimiterFactory $rateLimiterFactory,
+        ?RateLimiterFactory $ipRateLimiterFactory,
         ?CartContextInterface $cartContext = null,
         ?GiftCardApplicatorInterface $applicator = null,
     ): AddGiftCardToOrderAction {
@@ -257,6 +332,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
             $redirectUrlResolver->reveal(),
             $managerRegistry->reveal(),
             $rateLimiterFactory,
+            $ipRateLimiterFactory,
         );
     }
 

@@ -19,6 +19,7 @@ use Sylius\Component\Resource\Factory\Factory;
 use Sylius\Component\Resource\Factory\TranslatableFactory;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
+use Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -88,14 +89,16 @@ final class Configuration implements ConfigurationInterface
                             ->defaultValue('gift_card')
                             ->cannotBeEmpty()
                         ->end()
-                        ->scalarNode('rate_limiter')
-                            ->info('The rate limiter factory, as a service id, that throttles how often a single visitor may try to apply a gift card code, so codes cannot be guessed by brute force. Defaults to the limiter the plugin registers under framework.rate_limiter (10 attempts per minute, per client IP and session); point it at a limiter of your own, or set it to null to turn throttling off')
-                            ->defaultValue('limiter.' . SetonoSyliusGiftCardExtension::RATE_LIMITER_NAME)
-                            ->validate()
-                                ->ifTrue(static fn ($value): bool => null !== $value && (!is_string($value) || '' === $value))
-                                ->thenInvalid('The rate limiter must be the id of a rate limiter factory service, or null to turn throttling off: %s')
-                            ->end()
-                        ->end()
+                        ->append(self::rateLimiterNode(
+                            'rate_limiter',
+                            'The rate limiter factory, as a service id, that throttles how often a single visitor (session) may try to apply a gift card code, so codes cannot be guessed by brute force. Defaults to the limiter the plugin registers under framework.rate_limiter (10 attempts per minute); point it at a limiter of your own, or set it to null to stop throttling per session',
+                            SetonoSyliusGiftCardExtension::RATE_LIMITER_NAME,
+                        ))
+                        ->append(self::rateLimiterNode(
+                            'ip_rate_limiter',
+                            'The rate limiter factory, as a service id, that throttles attempts to apply a gift card code per client IP, which stops a guesser that discards its session cookie. Everyone behind one address shares this budget, so it defaults to a larger one than rate_limiter: the limiter the plugin registers under framework.rate_limiter (50 attempts per minute). Behind a reverse proxy, framework.trusted_proxies must be configured, or every customer shares the proxy\'s bucket. Point it at a limiter of your own, or set it to null to stop throttling per IP',
+                            SetonoSyliusGiftCardExtension::IP_RATE_LIMITER_NAME,
+                        ))
                     ->end()
                 ->end()
                 ->arrayNode('pdf')
@@ -113,6 +116,25 @@ final class Configuration implements ConfigurationInterface
         $this->addResourcesSection($rootNode);
 
         return $treeBuilder;
+    }
+
+    /**
+     * A rate limiter option: the service id of a rate limiter factory, defaulting to one the plugin prepends onto
+     * framework.rate_limiter, or null to leave that bucket out
+     */
+    private static function rateLimiterNode(string $name, string $info, string $defaultLimiter): ScalarNodeDefinition
+    {
+        $node = new ScalarNodeDefinition($name);
+        $node
+            ->info($info)
+            ->defaultValue('limiter.' . $defaultLimiter)
+            ->validate()
+                ->ifTrue(static fn ($value): bool => null !== $value && (!is_string($value) || '' === $value))
+                ->thenInvalid(sprintf('The %s option must be the id of a rate limiter factory service, or null to turn that throttling off: %%s', $name))
+            ->end()
+        ;
+
+        return $node;
     }
 
     private function addResourcesSection(ArrayNodeDefinition $node): void

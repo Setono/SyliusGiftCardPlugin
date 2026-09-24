@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\RateLimiter\LimiterInterface;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Webmozart\Assert\Assert;
 
@@ -27,8 +28,10 @@ final class AddGiftCardToOrderAction
     use ORMTrait;
 
     /**
-     * @param RateLimiterFactory|null $rateLimiterFactory Null when throttling is turned off, i.e. when
-     *                                                    setono_sylius_gift_card.redemption.rate_limiter is null
+     * @param RateLimiterFactory|null $rateLimiterFactory   The per visitor (session) limiter; null when
+     *                                                      setono_sylius_gift_card.redemption.rate_limiter is null
+     * @param RateLimiterFactory|null $ipRateLimiterFactory The per client IP limiter; null when
+     *                                                      setono_sylius_gift_card.redemption.ip_rate_limiter is null
      */
     public function __construct(
         private readonly FormFactoryInterface $formFactory,
@@ -37,6 +40,7 @@ final class AddGiftCardToOrderAction
         private readonly RedirectUrlResolverInterface $redirectRouteResolver,
         ManagerRegistry $managerRegistry,
         private readonly ?RateLimiterFactory $rateLimiterFactory = null,
+        private readonly ?RateLimiterFactory $ipRateLimiterFactory = null,
     ) {
         $this->managerRegistry = $managerRegistry;
     }
@@ -82,45 +86,46 @@ final class AddGiftCardToOrderAction
      */
     private function consumeRateLimiterToken(Request $request): bool
     {
-        if (null === $this->rateLimiterFactory) {
-            return true;
-        }
-
         $accepted = true;
 
-        foreach ($this->rateLimiterKeys($request) as $key) {
+        foreach ($this->rateLimiters($request) as $limiter) {
             // every bucket is consumed even when an earlier one already refused, so that exhausting one
             // bucket cannot be used to spend from another
-            $accepted = $this->rateLimiterFactory->create($key)->consume()->isAccepted() && $accepted;
+            $accepted = $limiter->consume()->isAccepted() && $accepted;
         }
 
         return $accepted;
     }
 
     /**
-     * The attempt is counted against the visitor's IP and against their session separately: a guesser that
-     * throws its cookies away to get a fresh session still runs into the limit for its IP, and one that comes
-     * in through a pool of addresses still runs into the limit for its session
+     * The attempt is counted against the visitor's session and against their IP separately, and both have to
+     * accept: a guesser that throws its cookies away to get a fresh session still runs into the limit for its
+     * IP, and one that comes in through a pool of addresses still runs into the limit for its session.
      *
-     * @return list<string>
+     * Everyone behind one address shares its bucket (an office NAT, a mobile carrier's CGNAT, and every customer
+     * of a shop whose proxy is not in framework.trusted_proxies), which is why the IP limiter the plugin
+     * registers allows more attempts than the session one
+     *
+     * @return list<LimiterInterface>
      */
-    private function rateLimiterKeys(Request $request): array
+    private function rateLimiters(Request $request): array
     {
-        $keys = [];
+        $limiters = [];
+
+        $sessionId = $this->sessionId($request);
+        if (null !== $this->rateLimiterFactory && null !== $sessionId) {
+            // the keys are prefixed so the two buckets stay apart if both options name the same limiter
+            $limiters[] = $this->rateLimiterFactory->create(sprintf('session-%s', $sessionId));
+        }
 
         // Only known addresses get a bucket; one shared by every request without an address would throttle
         // strangers together
         $clientIp = $request->getClientIp();
-        if (null !== $clientIp) {
-            $keys[] = sprintf('ip-%s', $clientIp);
+        if (null !== $this->ipRateLimiterFactory && null !== $clientIp) {
+            $limiters[] = $this->ipRateLimiterFactory->create(sprintf('ip-%s', $clientIp));
         }
 
-        $sessionId = $this->sessionId($request);
-        if (null !== $sessionId) {
-            $keys[] = sprintf('session-%s', $sessionId);
-        }
-
-        return $keys;
+        return $limiters;
     }
 
     /**

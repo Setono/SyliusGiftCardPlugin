@@ -4,11 +4,14 @@ imports:
 framework:
     rate_limiter:
         limiters:
-            # The end to end suite applies gift cards from a single address, so the plugin's default of 10 per
-            # minute would throttle the suite itself (and any re-run within the window) rather than a guesser.
-            # The throttling itself is covered by tests/Unit/Controller/Action/AddGiftCardToOrderActionTest.php
+            # The end to end suite applies gift cards from a single address, so the plugin's defaults of 10 per
+            # minute per session and 50 per minute per address would throttle the suite itself (and any re-run
+            # within the window) rather than a guesser. The throttling itself is covered by
+            # tests/Unit/Controller/Action/AddGiftCardToOrderActionTest.php
             setono_sylius_gift_card_apply:
                 limit: 100
+            setono_sylius_gift_card_apply_ip:
+                limit: 500
 
 sylius_fixtures:
     suites:
