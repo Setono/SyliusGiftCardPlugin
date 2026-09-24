@@ -4,10 +4,21 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Redemption;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\AbstractException;
+use Doctrine\DBAL\Exception\DeadlockException;
+use Doctrine\DBAL\Exception\DriverException;
+use Doctrine\DBAL\Exception\LockWaitTimeoutException;
+use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverage;
 use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
@@ -16,13 +27,20 @@ use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\PaymentRedemptionMethod;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Sylius\Component\Payment\PaymentTransitions;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 
 /**
+ * Two orders redeeming the same card must lose to each other on the card, in a way Sylius turns into a redirect,
+ * rather than deadlock: the commit tests pin the locking commit() does to get there.
+ *
  * Refunding a gift card payment is the one place its balance comes back from, whether an admin refunded it by hand
  * or the order was cancelled, so rollbackPayment() has to give back exactly what the payment took, keyed on the
  * payment alone, and only once the payment really is refunded
@@ -30,6 +48,15 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 final class PaymentRedemptionMethodTest extends TestCase
 {
     use ProphecyTrait;
+
+    /** @var list<string> */
+    private array $log = [];
+
+    /** @var ObjectProphecy<EntityManagerInterface> */
+    private ObjectProphecy $manager;
+
+    /** @var ObjectProphecy<Connection> */
+    private ObjectProphecy $connection;
 
     /** @var ObjectProphecy<GiftCardBalanceOperatorInterface> */
     private ObjectProphecy $balanceOperator;
@@ -43,28 +70,103 @@ final class PaymentRedemptionMethodTest extends TestCase
     /** @var ObjectProphecy<GiftCardRepositoryInterface> */
     private ObjectProphecy $giftCardRepository;
 
-    private PaymentRedemptionMethod $redemptionMethod;
-
     protected function setUp(): void
     {
+        $this->log = [];
+        $this->connection = $this->prophesize(Connection::class);
+        $this->connection->isTransactionActive()->willReturn(true);
+
+        $this->manager = $this->prophesize(EntityManagerInterface::class);
+        $this->manager->getConnection()->willReturn($this->connection->reveal());
+        $this->manager->contains(Argument::any())->willReturn(true);
+
         $this->balanceOperator = $this->prophesize(GiftCardBalanceOperatorInterface::class);
         $this->paymentChecker = $this->prophesize(GiftCardPaymentCheckerInterface::class);
         $this->stateMachine = $this->prophesize(StateMachineInterface::class);
         $this->giftCardRepository = $this->prophesize(GiftCardRepositoryInterface::class);
+    }
 
-        /** @var ObjectProphecy<FactoryInterface<PaymentInterface>> $paymentFactory */
-        $paymentFactory = $this->prophesize(FactoryInterface::class);
-
-        $this->redemptionMethod = new PaymentRedemptionMethod(
-            $this->prophesize(OrderProcessorInterface::class)->reveal(),
-            $this->prophesize(GiftCardCoverageCalculatorInterface::class)->reveal(),
-            $this->balanceOperator->reveal(),
-            $this->prophesize(GiftCardPaymentMethodProviderInterface::class)->reveal(),
-            $this->paymentChecker->reveal(),
-            $paymentFactory->reveal(),
-            $this->stateMachine->reveal(),
-            $this->giftCardRepository->reveal(),
+    /** @test */
+    public function it_locks_the_gift_cards_in_id_order_before_redeeming_any_of_them(): void
+    {
+        $log = &$this->log;
+        $this->manager->lock(Argument::type(GiftCardInterface::class), LockMode::PESSIMISTIC_WRITE)->will(
+            function (array $args) use (&$log): void {
+                /** @var GiftCardInterface $giftCard */
+                $giftCard = $args[0];
+                $log[] = 'lock ' . (string) $giftCard->getId();
+            },
         );
+
+        $this->redemptionMethod([[$this->giftCard(2), 2000], [$this->giftCard(1), 3000]])->commit($this->order());
+
+        self::assertSame(['lock 1', 'lock 2', 'redeem 2', 'redeem 1'], $this->log);
+    }
+
+    /**
+     * A lock only lasts until the end of the transaction it is taken in, so without one there is nothing to take
+     *
+     * @test
+     */
+    public function it_takes_no_lock_outside_a_transaction(): void
+    {
+        $this->connection->isTransactionActive()->willReturn(false);
+        $this->manager->lock(Argument::cetera())->shouldNotBeCalled();
+
+        $this->redemptionMethod([[$this->giftCard(1), 3000]])->commit($this->order());
+
+        self::assertSame(['redeem 1'], $this->log);
+    }
+
+    /**
+     * A writer that did not lock first (an admin adjusting the balance, a cancelled order restoring it) can hold the
+     * shared lock of its own ledger row while this order waits for the exclusive one, and the database rolls this
+     * order back to break the deadlock
+     *
+     * @test
+     */
+    public function it_reports_a_deadlock_at_the_lock_as_a_lost_race_on_the_gift_card(): void
+    {
+        $giftCard = $this->giftCard(1);
+        $this->manager->lock($giftCard, LockMode::PESSIMISTIC_WRITE)->willThrow(
+            new DeadlockException(self::driverException(1213, '40001'), null),
+        );
+
+        $this->assertLostRaceOn($giftCard);
+    }
+
+    /**
+     * MariaDB from 11.6.2 checks locking reads against the transaction's snapshot, so a card another order redeemed
+     * after this one started reading fails the lock with ER_CHECKREAD instead of the later versioned update
+     *
+     * @test
+     */
+    public function it_reports_a_card_changed_since_it_was_read_as_a_lost_race_on_the_gift_card(): void
+    {
+        $giftCard = $this->giftCard(1);
+        $this->manager->lock($giftCard, LockMode::PESSIMISTIC_WRITE)->willThrow(
+            new DriverException(self::driverException(1020, 'HY000'), null),
+        );
+
+        $this->assertLostRaceOn($giftCard);
+    }
+
+    /** @test */
+    public function it_lets_any_other_database_error_through(): void
+    {
+        $giftCard = $this->giftCard(1);
+        $timeout = new LockWaitTimeoutException(self::driverException(1205, 'HY000'), null);
+        $this->manager->lock($giftCard, LockMode::PESSIMISTIC_WRITE)->willThrow($timeout);
+
+        try {
+            $this->redemptionMethod([[$giftCard, 3000]])->commit($this->order());
+
+            self::fail('The database error was swallowed');
+        } catch (LockWaitTimeoutException $e) {
+            self::assertSame($timeout, $e);
+        }
+
+        self::assertSame([], $this->log);
     }
 
     /** @test */
@@ -78,7 +180,7 @@ final class PaymentRedemptionMethodTest extends TestCase
 
         $this->balanceOperator->restore($giftCard, 3000, $order, $payment, 'restore:payment:42')->shouldBeCalledOnce();
 
-        $this->redemptionMethod->rollbackPayment($payment);
+        $this->rollbackRedemptionMethod()->rollbackPayment($payment);
     }
 
     /** @test */
@@ -90,7 +192,7 @@ final class PaymentRedemptionMethodTest extends TestCase
 
         $this->balanceOperator->restore(Argument::cetera())->shouldNotBeCalled();
 
-        $this->redemptionMethod->rollbackPayment($payment->reveal());
+        $this->rollbackRedemptionMethod()->rollbackPayment($payment->reveal());
     }
 
     /**
@@ -105,7 +207,7 @@ final class PaymentRedemptionMethodTest extends TestCase
 
         $this->balanceOperator->restore(Argument::cetera())->shouldNotBeCalled();
 
-        $this->redemptionMethod->rollbackPayment($payment);
+        $this->rollbackRedemptionMethod()->rollbackPayment($payment);
     }
 
     /**
@@ -125,7 +227,7 @@ final class PaymentRedemptionMethodTest extends TestCase
         $gateway->getState()->willReturn(PaymentInterface::STATE_COMPLETED);
         $this->paymentChecker->isGiftCardPayment($gateway)->willReturn(false);
 
-        $order->getPayments()->willReturn(new \Doctrine\Common\Collections\ArrayCollection([$completed, $refunded, $gateway->reveal()]));
+        $order->getPayments()->willReturn(new ArrayCollection([$completed, $refunded, $gateway->reveal()]));
 
         $this->stateMachine->can($completed, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_REFUND)->willReturn(true);
         $this->stateMachine->can($refunded, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_REFUND)->willReturn(false);
@@ -136,7 +238,101 @@ final class PaymentRedemptionMethodTest extends TestCase
 
         $this->balanceOperator->restore(Argument::cetera())->shouldNotBeCalled();
 
-        $this->redemptionMethod->rollback($order->reveal());
+        $this->rollbackRedemptionMethod()->rollback($order->reveal());
+    }
+
+    private function assertLostRaceOn(GiftCardInterface $giftCard): void
+    {
+        try {
+            $this->redemptionMethod([[$giftCard, 3000]])->commit($this->order());
+
+            self::fail('The lost race went unnoticed');
+        } catch (OptimisticLockException $e) {
+            // Sylius' update handler turns this into a redirect, and it names the card the order lost
+            self::assertSame($giftCard, $e->getEntity());
+        }
+
+        self::assertSame([], $this->log, 'Nothing may be redeemed from a card the order lost');
+    }
+
+    /**
+     * Built for the commit tests: the coverage is what the given cards cover, and every redemption is logged
+     *
+     * @param list<array{0: GiftCardInterface, 1: int}> $coverage
+     */
+    private function redemptionMethod(array $coverage): PaymentRedemptionMethod
+    {
+        $coverageCalculator = $this->prophesize(GiftCardCoverageCalculatorInterface::class);
+        $coverageCalculator->calculate(Argument::any())->willReturn(new GiftCardCoverage(array_map(
+            static fn (array $entry): array => ['giftCard' => $entry[0], 'amount' => $entry[1]],
+            $coverage,
+        )));
+
+        $log = &$this->log;
+        $balanceOperator = $this->prophesize(GiftCardBalanceOperatorInterface::class);
+        $balanceOperator->redeem(Argument::cetera())->will(function (array $args) use (&$log): void {
+            /** @var GiftCardInterface $giftCard */
+            $giftCard = $args[0];
+            $log[] = 'redeem ' . (string) $giftCard->getId();
+        });
+
+        $paymentMethodProvider = $this->prophesize(GiftCardPaymentMethodProviderInterface::class);
+        $paymentMethodProvider->getPaymentMethod(Argument::any())->willReturn(
+            $this->prophesize(PaymentMethodInterface::class)->reveal(),
+        );
+
+        /** @var ObjectProphecy<FactoryInterface<PaymentInterface>> $paymentFactory */
+        $paymentFactory = $this->prophesize(FactoryInterface::class);
+        $paymentFactory->createNew()->will(static fn (): Payment => new Payment());
+
+        // the payment transitions are Sylius' business, not what these tests are about
+        $stateMachine = $this->prophesize(StateMachineInterface::class);
+        $stateMachine->can(Argument::cetera())->willReturn(false);
+
+        $managerRegistry = $this->prophesize(ManagerRegistry::class);
+        $managerRegistry->getManagerForClass(Argument::any())->willReturn($this->manager->reveal());
+
+        return new PaymentRedemptionMethod(
+            $this->prophesize(OrderProcessorInterface::class)->reveal(),
+            $coverageCalculator->reveal(),
+            $balanceOperator->reveal(),
+            $paymentMethodProvider->reveal(),
+            $this->prophesize(GiftCardPaymentCheckerInterface::class)->reveal(),
+            $paymentFactory->reveal(),
+            $stateMachine->reveal(),
+            $this->prophesize(GiftCardRepositoryInterface::class)->reveal(),
+            $managerRegistry->reveal(),
+        );
+    }
+
+    /**
+     * Built for the rollback tests, around the prophecies they set their expectations on
+     */
+    private function rollbackRedemptionMethod(): PaymentRedemptionMethod
+    {
+        /** @var ObjectProphecy<FactoryInterface<PaymentInterface>> $paymentFactory */
+        $paymentFactory = $this->prophesize(FactoryInterface::class);
+
+        return new PaymentRedemptionMethod(
+            $this->prophesize(OrderProcessorInterface::class)->reveal(),
+            $this->prophesize(GiftCardCoverageCalculatorInterface::class)->reveal(),
+            $this->balanceOperator->reveal(),
+            $this->prophesize(GiftCardPaymentMethodProviderInterface::class)->reveal(),
+            $this->paymentChecker->reveal(),
+            $paymentFactory->reveal(),
+            $this->stateMachine->reveal(),
+            $this->giftCardRepository->reveal(),
+            $this->prophesize(ManagerRegistry::class)->reveal(),
+        );
+    }
+
+    private function giftCard(int $id): GiftCardInterface
+    {
+        $giftCard = $this->prophesize(GiftCardInterface::class);
+        $giftCard->getId()->willReturn($id);
+        $giftCard->getCode()->willReturn('CARD' . $id);
+
+        return $giftCard->reveal();
     }
 
     private function giftCardPayment(int $id, string $state, int $amount, string $giftCardCode, OrderInterface $order): PaymentInterface
@@ -154,5 +350,20 @@ final class PaymentRedemptionMethodTest extends TestCase
         $this->paymentChecker->isGiftCardPayment($payment)->willReturn(true);
 
         return $payment->reveal();
+    }
+
+    private function order(): Order
+    {
+        $order = new Order();
+        $order->setChannel($this->prophesize(ChannelInterface::class)->reveal());
+        $order->setCurrencyCode('USD');
+
+        return $order;
+    }
+
+    private static function driverException(int $code, string $sqlState): AbstractException
+    {
+        return new class('Simulated database error', $sqlState, $code) extends AbstractException {
+        };
     }
 }
