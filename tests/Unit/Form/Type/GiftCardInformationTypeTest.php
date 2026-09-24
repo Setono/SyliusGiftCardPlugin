@@ -22,9 +22,11 @@ use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Currency\Model\CurrencyInterface;
+use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormExtensionInterface;
+use Symfony\Component\Form\Forms;
 use Symfony\Component\Form\PreloadedExtension;
 use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Validator\ConstraintValidatorFactory;
@@ -35,6 +37,13 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     use ProphecyTrait;
 
     private GiftCardDesignInterface $design;
+
+    /**
+     * What the amount limits provider answers as the maximum; the range is only quoted when one is configured
+     */
+    private ?int $maximumAmount = null;
+
+    private ?string $baseCurrencyCode = 'USD';
 
     /** @test */
     public function it_maps_a_valid_submission(): void
@@ -81,6 +90,73 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     }
 
     /**
+     * The customer should learn the purchasable range from the field, not from the error after submitting, and the
+     * money in it is formatted in the locale being browsed
+     *
+     * @test
+     */
+    public function it_quotes_the_amount_limits_and_asks_for_a_numeric_keypad(): void
+    {
+        $form = $this->factory->create(GiftCardInformationType::class, $this->createInformation());
+        $amount = $form->get('amount')->getConfig();
+
+        self::assertSame('setono_sylius_gift_card.form.gift_card_information.amount_help_minimum', $amount->getOption('help'));
+        self::assertSame(['%minimum%' => '1,00 $US'], $amount->getOption('help_translation_parameters'));
+
+        $attr = $amount->getOption('attr');
+        self::assertIsArray($attr);
+        self::assertSame('decimal', $attr['inputmode'] ?? null);
+        self::assertArrayHasKey('data-js-gc-amount-input', $attr);
+    }
+
+    /**
+     * With a maximum configured both ends of the range are quoted, each formatted in the locale being browsed
+     *
+     * @test
+     */
+    public function it_quotes_the_range_when_a_maximum_is_configured(): void
+    {
+        $this->maximumAmount = 250000;
+        $this->rebuildFormFactory();
+
+        $amount = $this->factory->create(GiftCardInformationType::class, $this->createInformation())->get('amount')->getConfig();
+
+        self::assertSame('setono_sylius_gift_card.form.gift_card_information.amount_help_range', $amount->getOption('help'));
+        self::assertSame(
+            ['%minimum%' => '1,00 $US', '%maximum%' => '2 500,00 $US'],
+            $amount->getOption('help_translation_parameters'),
+        );
+    }
+
+    /**
+     * Without a base currency there is nothing to format the limits as, so the field carries no help rather than
+     * money in a currency the shop does not sell in
+     *
+     * @test
+     */
+    public function it_quotes_no_limits_when_the_channel_has_no_base_currency(): void
+    {
+        $this->baseCurrencyCode = null;
+        $this->rebuildFormFactory();
+
+        $amount = $this->factory->create(GiftCardInformationType::class, $this->createInformation())->get('amount')->getConfig();
+
+        self::assertNull($amount->getOption('help'));
+        self::assertSame([], $amount->getOption('help_translation_parameters'));
+    }
+
+    /**
+     * The form factory is built in setUp() from what getExtensions() is told, so a test that changes that has to
+     * build it again. Everything this test registers comes from getExtensions()
+     */
+    private function rebuildFormFactory(): void
+    {
+        $this->factory = Forms::createFormFactoryBuilder()
+            ->addExtensions($this->getExtensions())
+            ->getFormFactory();
+    }
+
+    /**
      * Mirrors GiftCardInformationFactory, which seeds the information object with the order item's unit price
      */
     private function createInformation(): GiftCardInformation
@@ -99,11 +175,14 @@ final class GiftCardInformationTypeTest extends TypeTestCase
         $design->getFrontImage()->willReturn(null);
         $this->design = $design->reveal();
 
-        $currency = $this->prophesize(CurrencyInterface::class);
-        $currency->getCode()->willReturn('USD');
-
         $channel = $this->prophesize(ChannelInterface::class);
-        $channel->getBaseCurrency()->willReturn($currency->reveal());
+        if (null === $this->baseCurrencyCode) {
+            $channel->getBaseCurrency()->willReturn(null);
+        } else {
+            $currency = $this->prophesize(CurrencyInterface::class);
+            $currency->getCode()->willReturn($this->baseCurrencyCode);
+            $channel->getBaseCurrency()->willReturn($currency->reveal());
+        }
 
         $channelContext = $this->prophesize(ChannelContextInterface::class);
         $channelContext->getChannel()->willReturn($channel->reveal());
@@ -112,7 +191,14 @@ final class GiftCardInformationTypeTest extends TypeTestCase
         $designProvider->getDesigns($channel->reveal())->willReturn([$this->design]);
 
         $amountLimitsProvider = $this->prophesize(GiftCardAmountLimitsProviderInterface::class);
-        $amountLimitsProvider->getLimits($channel->reveal())->willReturn(new GiftCardAmountLimits(100, null));
+        $amountLimitsProvider->getLimits($channel->reveal())->willReturn(new GiftCardAmountLimits(100, $this->maximumAmount));
+
+        $moneyFormatter = $this->prophesize(MoneyFormatterInterface::class);
+        $moneyFormatter->format(100, 'USD', 'fr_FR')->willReturn('1,00 $US');
+        $moneyFormatter->format(250000, 'USD', 'fr_FR')->willReturn('2 500,00 $US');
+
+        $localeContext = $this->prophesize(LocaleContextInterface::class);
+        $localeContext->getLocaleCode()->willReturn('fr_FR');
 
         $type = new GiftCardInformationType(
             GiftCardInformation::class,
@@ -120,6 +206,9 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             $channelContext->reveal(),
             $designProvider->reveal(),
             200,
+            $amountLimitsProvider->reveal(),
+            $moneyFormatter->reveal(),
+            $localeContext->reveal(),
         );
 
         // The design picker is an EntityType, but the choices are handed to it explicitly, so only the
