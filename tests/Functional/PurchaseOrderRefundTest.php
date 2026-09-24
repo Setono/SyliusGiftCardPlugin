@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
@@ -38,7 +37,7 @@ final class PurchaseOrderRefundTest extends GiftCardFunctionalTestCase
      */
     public function refunding_the_payment_of_an_order_that_bought_gift_cards_disables_them(): void
     {
-        $giftCard = $this->createEnabledGiftCard('PURCHASE00000001');
+        $giftCard = $this->createEnabledGiftCard('PURCHASE00000001', 5000);
         $order = $this->createPaidOrderThatBought($giftCard, 'PURCHASE00000001');
 
         $payment = $order->getPayments()->first();
@@ -54,7 +53,7 @@ final class PurchaseOrderRefundTest extends GiftCardFunctionalTestCase
     /** @test */
     public function a_partial_refund_leaves_the_gift_cards_the_order_bought_usable(): void
     {
-        $giftCard = $this->createEnabledGiftCard('PURCHASE00000002');
+        $giftCard = $this->createEnabledGiftCard('PURCHASE00000002', 5000);
         $order = $this->createPaidOrderThatBought($giftCard, 'PURCHASE00000002');
 
         $this->stateMachine()->apply($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_PARTIALLY_REFUND);
@@ -72,7 +71,7 @@ final class PurchaseOrderRefundTest extends GiftCardFunctionalTestCase
      */
     public function symfony_workflow_refunding_an_order_that_bought_gift_cards_disables_them(): void
     {
-        $giftCard = $this->createEnabledGiftCard('PURCHASE00000003');
+        $giftCard = $this->createEnabledGiftCard('PURCHASE00000003', 5000);
         $order = $this->createPaidOrderThatBought($giftCard, 'PURCHASE00000003');
 
         $this->orderPaymentWorkflow()->apply($order, OrderPaymentTransitions::TRANSITION_REFUND);
@@ -85,7 +84,7 @@ final class PurchaseOrderRefundTest extends GiftCardFunctionalTestCase
     /** @test */
     public function symfony_workflow_partially_refunding_an_order_leaves_the_gift_cards_it_bought_usable(): void
     {
-        $giftCard = $this->createEnabledGiftCard('PURCHASE00000004');
+        $giftCard = $this->createEnabledGiftCard('PURCHASE00000004', 5000);
         $order = $this->createPaidOrderThatBought($giftCard, 'PURCHASE00000004');
 
         $this->orderPaymentWorkflow()->apply($order, OrderPaymentTransitions::TRANSITION_PARTIALLY_REFUND);
@@ -93,21 +92,6 @@ final class PurchaseOrderRefundTest extends GiftCardFunctionalTestCase
 
         self::assertSame(OrderPaymentStates::STATE_PARTIALLY_REFUNDED, $order->getPaymentState());
         self::assertTrue($giftCard->isEnabled(), 'a partial refund does not say what it was for, so the card stays usable');
-    }
-
-    private function createEnabledGiftCard(string $code): GiftCardInterface
-    {
-        /** @var GiftCardFactoryInterface $factory */
-        $factory = self::getContainer()->get('setono_sylius_gift_card.factory.gift_card');
-
-        $giftCard = $factory->createForChannel($this->getChannel());
-        $giftCard->setCode($code);
-        $giftCard->setInitialAmount(5000);
-        $giftCard->setAmount(5000);
-        $giftCard->enable();
-        $this->manager->persist($giftCard);
-
-        return $giftCard;
     }
 
     /**

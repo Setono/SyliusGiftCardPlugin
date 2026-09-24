@@ -4,18 +4,12 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
-use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
-use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
-use Sylius\Component\Core\Model\ProductVariant;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Core\OrderCheckoutTransitions;
 use Sylius\Component\Core\OrderPaymentStates;
@@ -71,7 +65,7 @@ final class ReplacementPaymentTest extends GiftCardFunctionalTestCase
         $giftCard = $this->createEnabledGiftCard('PARTIAL000000002', 8000);
         $cash = $this->createCashPaymentMethod();
         $order = $this->createCheckoutReadyOrder(6000);
-        $this->addGiftCardProductItem($order, 4000);
+        $this->addItem($order, 'GIFT_CARD', 4000, giftCard: true);
         $order->addGiftCard($giftCard);
         $gatewayPayment = $this->addGatewayPayment($order, $cash, 4000);
         $this->manager->flush();
@@ -123,22 +117,6 @@ final class ReplacementPaymentTest extends GiftCardFunctionalTestCase
         return $stateMachine;
     }
 
-    private function createEnabledGiftCard(string $code, int $amount): GiftCardInterface
-    {
-        /** @var GiftCardFactoryInterface $factory */
-        $factory = self::getContainer()->get('setono_sylius_gift_card.factory.gift_card');
-
-        $giftCard = $factory->createForChannel($this->getChannel());
-        $giftCard->setCode($code);
-        $giftCard->setInitialAmount($amount);
-        $giftCard->setAmount($amount);
-        $giftCard->enable();
-
-        $this->manager->persist($giftCard);
-
-        return $giftCard;
-    }
-
     private function createCashPaymentMethod(): PaymentMethodInterface
     {
         /** @var PaymentMethodFactoryInterface<PaymentMethodInterface> $factory */
@@ -175,43 +153,11 @@ final class ReplacementPaymentTest extends GiftCardFunctionalTestCase
         $order->setCustomer($customer);
         $order->setCheckoutState(OrderCheckoutStates::STATE_PAYMENT_SELECTED);
 
-        $this->addItem($order, 'MUG', 'Mug', $unitPrice, false);
+        $this->addItem($order, 'MUG', $unitPrice);
 
         $this->manager->persist($order);
 
         return $order;
-    }
-
-    private function addGiftCardProductItem(Order $order, int $unitPrice): void
-    {
-        $this->addItem($order, 'GIFT_CARD', 'Gift card', $unitPrice, true);
-    }
-
-    private function addItem(Order $order, string $code, string $name, int $unitPrice, bool $giftCard): void
-    {
-        $product = new Product();
-        $product->setCurrentLocale('en_US');
-        $product->setFallbackLocale('en_US');
-        $product->setCode($code);
-        $product->setName($name);
-        $product->setSlug(strtolower($code));
-        $product->setGiftCard($giftCard);
-        $this->manager->persist($product);
-
-        $variant = new ProductVariant();
-        $variant->setCurrentLocale('en_US');
-        $variant->setFallbackLocale('en_US');
-        $variant->setCode($code . '_VARIANT');
-        $variant->setName($name);
-        $variant->setProduct($product);
-        $variant->setShippingRequired(false);
-        $this->manager->persist($variant);
-
-        $item = new OrderItem();
-        $item->setVariant($variant);
-        $item->setUnitPrice($unitPrice);
-        new OrderItemUnit($item);
-        $order->addItem($item);
     }
 
     /**

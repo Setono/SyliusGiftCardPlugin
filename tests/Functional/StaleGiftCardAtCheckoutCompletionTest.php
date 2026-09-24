@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Setono\SyliusGiftCardPlugin\Exception\UnderpaidOrderException;
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
@@ -185,21 +184,6 @@ final class StaleGiftCardAtCheckoutCompletionTest extends GiftCardFunctionalTest
         $workflow = self::getContainer()->get('state_machine.' . OrderCheckoutTransitions::GRAPH);
 
         return $workflow;
-    }
-
-    private function createEnabledGiftCard(string $code, int $amount): GiftCardInterface
-    {
-        /** @var GiftCardFactoryInterface $factory */
-        $factory = self::getContainer()->get('setono_sylius_gift_card.factory.gift_card');
-
-        $giftCard = $factory->createForChannel($this->getChannel());
-        $giftCard->setCode($code);
-        $giftCard->setInitialAmount($amount);
-        $giftCard->setAmount($amount);
-        $giftCard->enable();
-        $this->manager->persist($giftCard);
-
-        return $giftCard;
     }
 
     /**

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
-use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
@@ -166,21 +165,6 @@ final class GiftCardPaymentRefundTest extends GiftCardFunctionalTestCase
         self::assertSame(OrderPaymentStates::STATE_PAID, $order->getPaymentState());
 
         return [$order, $giftCard, $payment];
-    }
-
-    private function createEnabledGiftCard(string $code, int $amount): GiftCardInterface
-    {
-        /** @var GiftCardFactoryInterface $factory */
-        $factory = self::getContainer()->get('setono_sylius_gift_card.factory.gift_card');
-
-        $giftCard = $factory->createForChannel($this->getChannel());
-        $giftCard->setCode($code);
-        $giftCard->setInitialAmount($amount);
-        $giftCard->setAmount($amount);
-        $giftCard->enable();
-        $this->manager->persist($giftCard);
-
-        return $giftCard;
     }
 
     private function createPaidOrder(string $code, GiftCardInterface $giftCard): Order
