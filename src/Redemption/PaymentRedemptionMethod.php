@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Redemption;
 
+use Doctrine\DBAL\Exception\DeadlockException;
+use Doctrine\DBAL\Exception\DriverException;
+use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\Persistence\ManagerRegistry;
+use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
 use Setono\SyliusGiftCardPlugin\Exception\UnderpaidOrderException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
@@ -28,9 +34,14 @@ use Webmozart\Assert\Assert;
  */
 final class PaymentRedemptionMethod extends RedemptionMethod
 {
+    use ORMTrait;
+
     private const DETAIL_GIFT_CARD_ID = 'setono_gift_card_id';
 
     private const DETAIL_GIFT_CARD_CODE = 'setono_gift_card_code';
+
+    /** MariaDB's "Record has changed since last read", raised by a locking read under innodb_snapshot_isolation */
+    private const ER_CHECKREAD = 1020;
 
     /**
      * @param FactoryInterface<PaymentInterface> $paymentFactory
@@ -44,8 +55,11 @@ final class PaymentRedemptionMethod extends RedemptionMethod
         private readonly FactoryInterface $paymentFactory,
         private readonly StateMachineInterface $stateMachine,
         private readonly GiftCardRepositoryInterface $giftCardRepository,
+        ManagerRegistry $managerRegistry,
     ) {
         parent::__construct($orderProcessor, $coverageCalculator);
+
+        $this->managerRegistry = $managerRegistry;
     }
 
     public function commit(OrderInterface $order): void
@@ -56,16 +70,16 @@ final class PaymentRedemptionMethod extends RedemptionMethod
         $currencyCode = $order->getCurrencyCode();
         Assert::notNull($currencyCode);
 
+        $entries = array_values(array_filter(
+            $this->coverageCalculator->calculate($order)->getEntries(),
+            fn (array $entry): bool => $entry['amount'] > 0 && !$this->hasPaymentForGiftCard($order, $entry['giftCard']),
+        ));
+
+        $this->lockGiftCards(array_column($entries, 'giftCard'));
+
         $paymentMethod = null;
 
-        foreach ($this->coverageCalculator->calculate($order)->getEntries() as $entry) {
-            $giftCard = $entry['giftCard'];
-            $amount = $entry['amount'];
-
-            if ($amount <= 0 || $this->hasPaymentForGiftCard($order, $giftCard)) {
-                continue;
-            }
-
+        foreach ($entries as ['giftCard' => $giftCard, 'amount' => $amount]) {
             $paymentMethod ??= $this->paymentMethodProvider->getPaymentMethod($channel);
 
             $payment = $this->paymentFactory->createNew();
@@ -173,6 +187,64 @@ final class PaymentRedemptionMethod extends RedemptionMethod
         if ($paid < $order->getTotal()) {
             throw new UnderpaidOrderException($order, $paid);
         }
+    }
+
+    /**
+     * Two orders redeeming the same card at the same moment would otherwise deadlock instead of racing on the card's
+     * version. Doctrine inserts before it updates, so each order's ledger row takes a shared lock on the card's row
+     * through its foreign key, and each order then needs an exclusive lock on that row for the versioned update:
+     * neither can have it while the other holds its shared lock, and the database rolls one of them back with a
+     * DeadlockException that nothing turns into a redirect.
+     *
+     * Taking the exclusive lock before anything of the order is written makes the second order wait for the first
+     * to commit instead. Its versioned update then matches no row, which is the OptimisticLockException Sylius'
+     * update handler already turns into a redirect; where the database reports the loss at the lock instead, the
+     * same exception is thrown from here. The cards are locked in id order, so two orders sharing more than one
+     * card cannot deadlock on these locks either.
+     *
+     * A row lock lasts until the end of the transaction it is taken in. At checkout completion that is the one
+     * Sylius' update handler wraps the transition and the flush in; without a transaction there is nothing that
+     * would hold the lock until the flush, so none is taken
+     *
+     * @param list<GiftCardInterface> $giftCards
+     */
+    private function lockGiftCards(array $giftCards): void
+    {
+        usort($giftCards, static fn (GiftCardInterface $a, GiftCardInterface $b): int => $a->getId() <=> $b->getId());
+
+        foreach ($giftCards as $giftCard) {
+            $manager = $this->getManager($giftCard);
+
+            if (!$manager->getConnection()->isTransactionActive() || !$manager->contains($giftCard)) {
+                continue;
+            }
+
+            try {
+                $manager->lock($giftCard, LockMode::PESSIMISTIC_WRITE);
+            } catch (\Throwable $e) {
+                // lock() only declares Doctrine's own lock exceptions, but the SELECT ... FOR UPDATE it runs fails
+                // with whatever the database reports
+                if ($e instanceof DriverException && self::lostToAnotherWriter($e)) {
+                    throw OptimisticLockException::lockFailed($giftCard);
+                }
+
+                throw $e;
+            }
+        }
+    }
+
+    /**
+     * Some databases report the other order's win at the lock rather than at the versioned update. MariaDB from
+     * 11.6.2 checks locking reads against the transaction's snapshot by default (innodb_snapshot_isolation), so when
+     * the other order committed after this one started reading, the lock fails with ER_CHECKREAD instead of waiting
+     * and succeeding. And a writer that did not lock first (an admin adjusting the balance, a cancelled order
+     * restoring it) can hold the shared lock of its own ledger row while this order waits for the exclusive one;
+     * the database then breaks the deadlock by rolling this order back. Either way the card changed under the order,
+     * which is what the versioned update would have reported
+     */
+    private static function lostToAnotherWriter(DriverException $exception): bool
+    {
+        return $exception instanceof DeadlockException || self::ER_CHECKREAD === $exception->getCode();
     }
 
     private function hasPaymentForGiftCard(OrderInterface $order, GiftCardInterface $giftCard): bool
