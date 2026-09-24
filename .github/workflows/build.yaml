@@ -209,6 +209,16 @@ jobs:
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
 
+            # The functional tests render shop and admin pages through the kernel, and those pages need the built
+            # frontend (Encore's entrypoints and manifests), exactly as they do when the application is served
+            -   name: "Setup Node"
+                uses: "actions/setup-node@v4"
+                with:
+                    node-version-file: "tests/Application/.nvmrc"
+
+            -   name: "Build assets"
+                run: "(cd tests/Application && yarn install --frozen-lockfile && yarn build)"
+
             -   name: "Lint container"
                 run: "(cd tests/Application && bin/console lint:container)"
 
@@ -396,6 +406,15 @@ jobs:
                 uses: "ramsey/composer-install@v3"
                 with:
                     dependency-versions: "highest"
+
+            # The coverage run includes the functional tests, which render pages that need the built frontend
+            -   name: "Setup Node"
+                uses: "actions/setup-node@v4"
+                with:
+                    node-version-file: "tests/Application/.nvmrc"
+
+            -   name: "Build assets"
+                run: "(cd tests/Application && yarn install --frozen-lockfile && yarn build)"
 
             -   name: "Create database"
                 run: "(cd tests/Application && bin/console doctrine:database:create)"
