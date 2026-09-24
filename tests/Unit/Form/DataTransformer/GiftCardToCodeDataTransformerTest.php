@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Form\DataTransformer;
 
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Setono\SyliusGiftCardPlugin\Form\DataTransformer\GiftCardToCodeDataTransformer;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
@@ -59,13 +62,34 @@ final class GiftCardToCodeDataTransformerTest extends TestCase
     }
 
     /**
+     * The code a customer typed may belong to a disabled card or to one from another channel, which is still
+     * spendable there, so the log says which code it was without spelling it out
+     *
+     * @test
+     */
+    public function it_logs_a_code_it_cannot_resolve_masked(): void
+    {
+        $logger = $this->prophesize(LoggerInterface::class);
+        $transformer = $this->transformer(['NOSUCHCARD000000' => null], $logger->reveal());
+
+        try {
+            $transformer->reverseTransform('nosu-chca-rd00-0000');
+            self::fail('The code should not have resolved');
+        } catch (TransformationFailedException) {
+        }
+
+        $logger->info(Argument::that(static fn (string $message): bool => str_contains($message, '************0000') && !str_contains($message, 'NOSUCHCARD')))
+            ->shouldHaveBeenCalledOnce();
+    }
+
+    /**
      * The repository only answers to the canonical codes listed here, so a lookup with anything else, the raw
      * input for instance, is an unexpected call and fails the test. The real normalizer is used on purpose:
      * what is under test is that the input reaches the repository in canonical form
      *
      * @param array<string, GiftCardInterface|null> $giftCardsByCode
      */
-    private function transformer(array $giftCardsByCode): GiftCardToCodeDataTransformer
+    private function transformer(array $giftCardsByCode, LoggerInterface $logger = new NullLogger()): GiftCardToCodeDataTransformer
     {
         $channel = $this->prophesize(ChannelInterface::class)->reveal();
 
@@ -81,6 +105,7 @@ final class GiftCardToCodeDataTransformerTest extends TestCase
             $repository->reveal(),
             $channelContext->reveal(),
             new GiftCardCodeNormalizer(),
+            $logger,
         );
     }
 }

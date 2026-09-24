@@ -10,6 +10,7 @@ use Prophecy\Prophecy\ObjectProphecy;
 use Psr\Log\LoggerInterface;
 use Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface;
 use Setono\SyliusGiftCardPlugin\Checker\GiftCardIneligibilityReason;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
@@ -76,6 +77,24 @@ final class GiftCardIsEligibleValidatorTest extends ConstraintValidatorTestCase
     }
 
     /**
+     * The card exists and may well be spendable, in another channel for instance, so the log line names it by a
+     * masked code
+     *
+     * @test
+     */
+    public function it_does_not_write_the_code_of_the_gift_card_to_the_log(): void
+    {
+        $giftCard = $this->giftCard();
+        $this->eligibilityChecker->getIneligibilityReason($giftCard, $this->order->reveal())
+            ->willReturn(GiftCardIneligibilityReason::ChannelMismatch);
+
+        $this->validator->validate($giftCard, new GiftCardIsEligible());
+
+        $this->logger->info(Argument::that(static fn (string $message): bool => str_contains($message, '"********CARD"') && !str_contains($message, 'SOMEGIFTCARD')))
+            ->shouldHaveBeenCalledOnce();
+    }
+
+    /**
      * @return iterable<string, array{GiftCardIneligibilityReason}>
      */
     public static function provideIneligibilityReasons(): iterable
@@ -106,7 +125,7 @@ final class GiftCardIsEligibleValidatorTest extends ConstraintValidatorTestCase
         $cartContext = $this->prophesize(CartContextInterface::class);
         $cartContext->getCart()->willReturn($this->order->reveal());
 
-        return new GiftCardIsEligibleValidator($cartContext->reveal(), $this->eligibilityChecker->reveal(), $this->logger->reveal());
+        return new GiftCardIsEligibleValidator($cartContext->reveal(), $this->eligibilityChecker->reveal(), new GiftCardCodeNormalizer(), $this->logger->reveal());
     }
 
     private function giftCard(): GiftCardInterface

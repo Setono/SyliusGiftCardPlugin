@@ -355,7 +355,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
         $validator = Validation::createValidatorBuilder()
             ->addXmlMapping(dirname(__DIR__, 4) . '/src/Resources/config/validation/AddGiftCardToOrderCommand.xml')
             ->setConstraintValidatorFactory(new ContainerConstraintValidatorFactory(new ServiceLocator([
-                GiftCardIsEligibleValidator::class => static fn (): GiftCardIsEligibleValidator => new GiftCardIsEligibleValidator($cartContext->reveal(), new GiftCardEligibilityChecker()),
+                GiftCardIsEligibleValidator::class => static fn (): GiftCardIsEligibleValidator => new GiftCardIsEligibleValidator($cartContext->reveal(), new GiftCardEligibilityChecker(), new GiftCardCodeNormalizer()),
             ])))
             ->getValidator();
 

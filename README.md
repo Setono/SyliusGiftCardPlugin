@@ -241,7 +241,8 @@ included. If you cannot configure trusted proxies, set `ip_rate_limiter: ~` and 
 
 Every rejected code gives the customer the same message, whatever the reason (unknown, disabled, expired,
 empty, wrong channel or currency), so the form cannot be used to find out which codes exist. The actual
-reason is written to the log at info level.
+reason is written to the log at info level, with the code masked down to its last four characters
+(`************MNOP`): a code is a bearer token, and logs travel.
 
 ## Customization
 

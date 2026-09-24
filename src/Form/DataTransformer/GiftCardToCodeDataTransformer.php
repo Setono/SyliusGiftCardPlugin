@@ -66,22 +66,15 @@ final class GiftCardToCodeDataTransformer implements DataTransformerInterface
 
         // The customer only gets the form's generic invalid_message, so that a code that exists cannot be
         // told apart from one that does not. The attempt is logged instead, both to help the shop owner
-        // answer "why does my gift card not work" and to make a run of guesses visible
+        // answer "why does my gift card not work" and to make a run of guesses visible. The code is masked:
+        // it may belong to a disabled card or to one from another channel, which is still spendable there,
+        // and masking also keeps a guesser from writing control characters or megabytes into the log
         $this->logger->info(sprintf(
             'No enabled gift card with the code "%s" exists in the channel "%s"',
-            self::sanitizeForLog($value),
+            $this->codeNormalizer->mask($value),
             (string) $channel->getCode(),
         ));
 
         throw new TransformationFailedException('setono_sylius_gift_card.ui.gift_card_code_does_not_exist');
-    }
-
-    /**
-     * Cuts a submitted code down to something safe to write to a log: bounded in length and without the
-     * control characters a guesser could otherwise use to forge log lines of their own
-     */
-    private static function sanitizeForLog(string $code): string
-    {
-        return (string) preg_replace('/[^[:print:]]/', '', mb_substr($code, 0, 64));
     }
 }
