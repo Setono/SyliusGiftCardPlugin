@@ -110,9 +110,13 @@ setono_sylius_gift_card:
         terms: "Conditions générales applicables. Cette carte n'est ni échangeable contre des espèces ni remplaçable en cas de perte ou de vol."
     email:
         balance: Solde
+        how_to_redeem: Saisissez le code lors du paiement pour payer avec votre chèque-cadeau. Le solde restant reste sur la carte pour la prochaine fois.
         new_gift_card: Nouveau chèque-cadeau
         new_gift_card_intro: Un nouveau chèque-cadeau a été créé pour vous
         pdf_attached: Votre chèque-cadeau est joint à cet email au format PDF.
+        physical_code_on_card: "Le code est imprimé sur la carte elle-même : vous l'aurez à sa réception."
+        physical_will_be_shipped: Votre chèque-cadeau vous sera expédié.
+        valid_until: "Valable jusqu'au"
         your_gift_card: Votre chèque-cadeau
         your_gift_cards_you_bought_in_the_order: Vos chèques-cadeaux achetés avec cette commande
 

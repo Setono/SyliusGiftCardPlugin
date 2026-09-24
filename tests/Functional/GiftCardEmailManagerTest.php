@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
+use Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManager;
 use Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface;
 use Sylius\Component\Channel\Factory\ChannelFactoryInterface;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\Customer;
+use Sylius\Component\Core\Model\Order;
+use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Locale\Model\Locale;
+use Sylius\Component\Mailer\Sender\SenderInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mime\Email;
@@ -92,6 +98,97 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
         self::assertSame('application/pdf', $attachment['type']);
         self::assertSame('gift-card-EMAILTEST00000001.pdf', $attachment['filename']);
         self::assertStringStartsWith('%PDF', $attachment['body'], 'the attachment should be a valid PDF');
+
+        // the email is the delivery, so it has to carry everything the card says and what to do with it
+        self::assertStringContainsString('Happy birthday!', $email['html']);
+        self::assertStringContainsString('Valid until', $email['html']);
+        self::assertStringContainsString('Enter the code at checkout', $email['html']);
+    }
+
+    /**
+     * A physical gift card is shipped with its code printed on it. Emailing the code when the order is paid would
+     * make the card spendable before it arrives, so the email only says that the card will be shipped
+     *
+     * @test
+     */
+    public function it_does_not_email_a_physical_gift_cards_code_or_pdf_when_the_order_is_paid(): void
+    {
+        $giftCard = $this->createGiftCard('customer@example.com', deliveryType: GiftCardDeliveryType::Physical);
+
+        $this->emailManager->sendGiftCardsFromOrder($this->createOrder($giftCard), [$giftCard]);
+
+        self::assertCount(1, $this->sentEmails);
+
+        $email = $this->sentEmails[0];
+        self::assertStringContainsString('000000042', $email['html'], 'precondition: this is the order email');
+        self::assertCount(0, $email['attachments'], 'a physical gift card should not be attached as a PDF');
+        self::assertStringNotContainsString('EMAI-LTES-T000-0000-1', $email['html']);
+        self::assertStringNotContainsString('EMAILTEST00000001', $email['html']);
+        self::assertStringContainsString('will be shipped to you', $email['html']);
+        self::assertStringContainsString('The code is printed on the card itself', $email['html']);
+        self::assertStringNotContainsString('attached to this email as a PDF', $email['html']);
+        self::assertStringNotContainsString('Enter the code at checkout', $email['html']);
+
+        // the balance is still worth telling the buyer about
+        self::assertStringContainsString('Balance', $email['html']);
+    }
+
+    /**
+     * Merchants who want the digital backup anyway turn setono_sylius_gift_card.delivery.email_physical_cards on
+     *
+     * @test
+     */
+    public function it_emails_a_physical_gift_cards_code_and_pdf_when_the_order_is_paid_if_configured_to(): void
+    {
+        $container = self::getContainer();
+
+        /** @var SenderInterface $sender */
+        $sender = $container->get('sylius.email_sender');
+
+        /** @var GiftCardPdfGeneratorInterface $pdfGenerator */
+        $pdfGenerator = $container->get(GiftCardPdfGeneratorInterface::class);
+
+        $emailManager = new GiftCardEmailManager($sender, $pdfGenerator, true);
+
+        $giftCard = $this->createGiftCard('customer@example.com', deliveryType: GiftCardDeliveryType::Physical);
+
+        $emailManager->sendGiftCardsFromOrder($this->createOrder($giftCard), [$giftCard]);
+
+        self::assertCount(1, $this->sentEmails);
+
+        $email = $this->sentEmails[0];
+        self::assertCount(1, $email['attachments'], 'the gift card PDF should be attached');
+        self::assertSame('gift-card-EMAILTEST00000001.pdf', $email['attachments'][0]['filename']);
+        self::assertStringContainsString('EMAI-LTES-T000-0000-1', $email['html']);
+        // the card is still shipped, so the customer is still told it is coming
+        self::assertStringContainsString('will be shipped to you', $email['html']);
+        self::assertStringNotContainsString('The code is printed on the card itself', $email['html']);
+    }
+
+    /**
+     * Sending a gift card from the admin is how a physical card the customer lost, or that never arrived, is
+     * replaced. The admin asked for the customer to have the code, so it is disclosed with the default
+     * configuration, and the email does not claim that a card is being shipped
+     *
+     * @test
+     */
+    public function it_emails_a_physical_gift_cards_code_and_pdf_when_an_admin_sends_it(): void
+    {
+        $giftCard = $this->createGiftCard('customer@example.com', deliveryType: GiftCardDeliveryType::Physical);
+
+        $this->emailManager->sendGiftCard($giftCard);
+
+        self::assertCount(1, $this->sentEmails);
+
+        $email = $this->sentEmails[0];
+        self::assertCount(1, $email['attachments'], 'the gift card PDF should be attached');
+        self::assertSame('gift-card-EMAILTEST00000001.pdf', $email['attachments'][0]['filename']);
+        self::assertStringStartsWith('%PDF', $email['attachments'][0]['body']);
+        self::assertStringContainsString('EMAI-LTES-T000-0000-1', $email['html']);
+        self::assertStringContainsString('attached to this email as a PDF', $email['html']);
+        self::assertStringContainsString('Enter the code at checkout', $email['html']);
+        self::assertStringNotContainsString('shipped', $email['html']);
+        self::assertStringNotContainsString('The code is printed on the card itself', $email['html']);
     }
 
     /** @test */
@@ -131,8 +228,11 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
         self::assertStringNotContainsString('A new gift card was created for you', $email['html']);
     }
 
-    private function createGiftCard(?string $customerEmail, ?ChannelInterface $channel = null): GiftCardInterface
-    {
+    private function createGiftCard(
+        ?string $customerEmail,
+        ?ChannelInterface $channel = null,
+        GiftCardDeliveryType $deliveryType = GiftCardDeliveryType::Virtual,
+    ): GiftCardInterface {
         $container = self::getContainer();
 
         /** @var \Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface $factory */
@@ -141,6 +241,8 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
         $giftCard = $factory->createNew();
         $giftCard->setCode('EMAILTEST00000001');
         $giftCard->setChannel($channel ?? $this->getChannel());
+        $giftCard->setDeliveryType($deliveryType);
+        $giftCard->setCustomMessage('Happy birthday!');
         $giftCard->setCurrencyCode('USD');
         $giftCard->setInitialAmount(5000);
         $giftCard->setAmount(5000);
@@ -157,6 +259,21 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
         $this->manager->flush();
 
         return $giftCard;
+    }
+
+    /**
+     * The order a gift card was bought on, as far as the order email reads it
+     */
+    private function createOrder(GiftCardInterface $giftCard): OrderInterface
+    {
+        $order = new Order();
+        $order->setNumber('000000042');
+        $order->setChannel($giftCard->getChannel());
+        $order->setCurrencyCode('USD');
+        $order->setLocaleCode('en_US');
+        $order->setCustomer($giftCard->getCustomer());
+
+        return $order;
     }
 
     /**

@@ -1,0 +1,52 @@
+{# Renders the gift cards in an email body. Shared by the single card email and the order email so the two cannot
+   drift apart in what they tell the customer.
+
+   A physical gift card is shipped with its code printed on it, so the order email withholds its code: printing it
+   here would make the card spendable before it arrives. GiftCardEmailManager decides per email whether the code of
+   a physical card is disclosed and passes that as disclosePhysicalCards - always when an admin sends a card, which is
+   how a lost or missing card is replaced, and in the order email only when the merchant turned on
+   setono_sylius_gift_card.delivery.email_physical_cards. A disclosed physical card is presented exactly like a
+   virtual one. GiftCardEmailManager applies the same rule to the PDF attachments, so a card whose code is withheld
+   here has no PDF attached either.
+
+   announceShipping is set by the order email, which goes out while a physical card has yet to be shipped. A card
+   an admin sends on its own may have been shipped long ago, or lost on the way, so nothing is said about shipping.
+
+   Emails are rendered outside of a request, so every translation takes localeCode explicitly, the way Sylius' own
+   email templates do. Without it the translator's current locale wins: the admin's UI locale when a card is resent
+   from the admin, the default locale from the CLI or a webhook.
+
+   @var giftCards \Setono\SyliusGiftCardPlugin\Model\GiftCardInterface[] #}
+{% set disclosePhysicalCards = disclosePhysicalCards|default(false) %}
+{% set announceShipping = announceShipping|default(false) %}
+{% set physicalCount = giftCards|filter(giftCard => giftCard.deliveryType.value == 'physical')|length %}
+{% set disclosedCount = disclosePhysicalCards ? giftCards|length : giftCards|length - physicalCount %}
+
+{% for giftCard in giftCards %}
+    {% set physical = giftCard.deliveryType.value == 'physical' %}
+    {% set disclosed = disclosePhysicalCards or not physical %}
+    <p>
+        {% if disclosed %}
+            <strong>{{ giftCard.code|setono_gift_card_format_code }}</strong><br/>
+        {% endif %}
+        {{ 'setono_sylius_gift_card.email.balance'|trans({}, 'messages', localeCode) }}: {{ giftCard.amount|sylius_format_money(giftCard.currencyCode, localeCode|default('en')) }}
+        {% if giftCard.expiresAt is not null %}
+            <br/>{{ 'setono_sylius_gift_card.email.valid_until'|trans({}, 'messages', localeCode) }} {{ giftCard.expiresAt|format_date('long', locale=localeCode) }}
+        {% endif %}
+        {% if giftCard.customMessage is not empty %}
+            <br/><em>{{ giftCard.customMessage }}</em>
+        {% endif %}
+    </p>
+
+    {% if physical and (announceShipping or not disclosed) %}
+        <p>
+            {% if announceShipping %}{{ 'setono_sylius_gift_card.email.physical_will_be_shipped'|trans({}, 'messages', localeCode) }}{% endif %}
+            {% if not disclosed %}{{ 'setono_sylius_gift_card.email.physical_code_on_card'|trans({}, 'messages', localeCode) }}{% endif %}
+        </p>
+    {% endif %}
+{% endfor %}
+
+{% if disclosedCount > 0 %}
+    <p>{{ 'setono_sylius_gift_card.email.pdf_attached'|trans({}, 'messages', localeCode) }}</p>
+    <p>{{ 'setono_sylius_gift_card.email.how_to_redeem'|trans({}, 'messages', localeCode) }}</p>
+{% endif %}
