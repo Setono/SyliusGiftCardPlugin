@@ -110,28 +110,40 @@ test.describe('shop gift card product', () => {
         await expect(help).toHaveText(/\d/);
     });
 
+    /**
+     * The preview parses the typed amount in the locale the template writes onto its container. A shop only
+     * renders the locales its channel offers, and the seeded channel deliberately offers one: Sylius' order
+     * fixture picks each demo order's locale from the channel and loads the products with only that locale's
+     * translation, so a second channel locale makes loading the fixtures fail at random. The comma decimal
+     * locale is therefore written into the real product page on its way to the browser; the markup, the field
+     * and the script are the shop's own.
+     */
     test('the preview reads the amount with the decimal separator of the locale', async ({ page }) => {
-        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+        const productPage = `/en_US/products/${GIFT_CARD_SLUG}`;
+        const container = page.locator('#setono-gift-card-information');
+        const amount = page.locator('[name*="giftCardInformation"][name*="[amount]"]').first();
+
+        // The script is told the locale being browsed, and reads a dot as the decimal separator there
+        await page.goto(productPage);
+        await expect(container).toHaveAttribute('data-locale', 'en-US');
+        await amount.fill('50.50');
+        await expectPreviewAmount(page, /50\.50/);
 
         // A locale writing decimals with a comma is the one a naive parseFloat truncates to whole units
-        const locales = await localesOnPage(page);
-        const commaLocale = locales.find(
-            (locale) => new Intl.NumberFormat(locale.replace('_', '-')).format(1.1).indexOf(',') !== -1,
-        );
-        test.skip(undefined === commaLocale, 'the shop offers no locale that uses a decimal comma');
+        const commaLocale = 'fr-FR';
+        await page.route((url) => url.pathname === productPage, async (route) => {
+            const response = await route.fetch();
+            const html = await response.text();
+            await route.fulfill({
+                response,
+                body: html.replace(/(id="setono-gift-card-information"[^>]*?\sdata-locale=")[^"]*"/, `$1${commaLocale}"`),
+            });
+        });
+        await page.goto(productPage);
+        await expect(container).toHaveAttribute('data-locale', commaLocale);
 
-        await page.goto(`/${commaLocale}/products/${GIFT_CARD_SLUG}`);
-
-        const amount = page.locator('[name*="giftCardInformation"][name*="[amount]"]').first();
         await amount.fill('50,50');
-
-        // Both the framed and the image layout of the card carry the amount; whichever is on screen has to
-        // show the halves the customer typed, not a truncated 50
-        const previews = page.locator('#setono-gift-card-information [data-js-gc-amount]');
-        expect(await previews.count(), 'the preview does not render an amount').toBeGreaterThan(0);
-        for (let i = 0; i < await previews.count(); i++) {
-            await expect(previews.nth(i)).toHaveText(/50,50/);
-        }
+        await expectPreviewAmount(page, /50,50/);
     });
 
     test('the page renders in every locale the channel offers', async ({ page }) => {
@@ -237,6 +249,21 @@ test.describe('shop gift card product', () => {
         expect(preview.scrollHeight, 'the message is not clamped').toBeGreaterThan(preview.clientHeight);
         expect(preview.titleOverlapsBrand, 'the title has been pushed into the brand row').toBe(false);
     });
+
+    /**
+     * Both the framed and the image layout of the card carry the amount, and whichever is on screen has to show
+     * what the customer typed, so every one of them is checked
+     *
+     * @param {import('@playwright/test').Page} page
+     * @param {RegExp} expected
+     */
+    async function expectPreviewAmount(page, expected) {
+        const previews = page.locator('#setono-gift-card-information [data-js-gc-amount]');
+        expect(await previews.count(), 'the preview does not render an amount').toBeGreaterThan(0);
+        for (let i = 0; i < await previews.count(); i++) {
+            await expect(previews.nth(i)).toHaveText(expected);
+        }
+    }
 
     /**
      * Reads the message element of whichever card variant is on screen — the design picker decides whether the
