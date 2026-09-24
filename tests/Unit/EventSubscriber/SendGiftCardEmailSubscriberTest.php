@@ -79,6 +79,30 @@ final class SendGiftCardEmailSubscriberTest extends TestCase
         $this->assertNothingIsSent($giftCard);
     }
 
+    /**
+     * Sylius' resource controller dispatches the event once an admin created a gift card, and a card bought in the
+     * shop is never created through it
+     *
+     * @test
+     */
+    public function it_listens_to_the_admin_creating_a_gift_card(): void
+    {
+        self::assertSame(
+            ['setono_sylius_gift_card.gift_card.post_create' => 'onGiftCardPostCreate'],
+            SendGiftCardEmailSubscriber::getSubscribedEvents(),
+        );
+    }
+
+    /** @test */
+    public function it_ignores_an_event_about_anything_but_a_gift_card(): void
+    {
+        $emailManager = $this->prophesize(GiftCardEmailManagerInterface::class);
+        $emailManager->sendGiftCard(Argument::cetera())->shouldNotBeCalled();
+
+        $subscriber = new SendGiftCardEmailSubscriber($emailManager->reveal());
+        $subscriber->onGiftCardPostCreate(new ResourceControllerEvent(new \stdClass()));
+    }
+
     private function assertNothingIsSent(GiftCardInterface $giftCard): void
     {
         $emailManager = $this->prophesize(GiftCardEmailManagerInterface::class);
