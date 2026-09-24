@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
-final class GiftCardIsApplicableValidator extends ConstraintValidator
+final class GiftCardIsEligibleValidator extends ConstraintValidator
 {
     public function __construct(
         private readonly CartContextInterface $cartContext,
@@ -24,8 +24,8 @@ final class GiftCardIsApplicableValidator extends ConstraintValidator
 
     public function validate(mixed $value, Constraint $constraint): void
     {
-        if (!$constraint instanceof GiftCardIsApplicable) {
-            throw new UnexpectedTypeException($constraint, GiftCardIsApplicable::class);
+        if (!$constraint instanceof GiftCardIsEligible) {
+            throw new UnexpectedTypeException($constraint, GiftCardIsEligible::class);
         }
 
         if (null === $value) {

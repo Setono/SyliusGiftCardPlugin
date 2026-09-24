@@ -51,8 +51,8 @@
         <service id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface"
                  alias="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator"/>
 
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsApplicableValidator"
-                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsApplicableValidator">
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsEligibleValidator"
+                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsEligibleValidator">
             <argument type="service" id="sylius.context.cart"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface"/>
 
