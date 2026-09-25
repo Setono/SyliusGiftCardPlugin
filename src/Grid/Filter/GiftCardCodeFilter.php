@@ -24,6 +24,10 @@ final class GiftCardCodeFilter implements FilterInterface
     ) {
     }
 
+    /**
+     * @param mixed $data
+     * @param array<string, mixed> $options
+     */
     public function apply(DataSourceInterface $dataSource, string $name, $data, array $options): void
     {
         $value = is_array($data) ? $data['value'] ?? null : $data;
