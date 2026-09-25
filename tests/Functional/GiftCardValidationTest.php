@@ -13,6 +13,7 @@ use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -210,6 +211,72 @@ final class GiftCardValidationTest extends GiftCardFunctionalTestCase
         }
 
         self::assertSame([], $this->violations($design));
+    }
+
+    /**
+     * The code is a unique, non nullable column, so a design without one has to be a field error rather than the
+     * database's. An empty text field is submitted as null
+     *
+     * @test
+     */
+    public function it_rejects_a_design_without_a_code(): void
+    {
+        foreach ([null, ''] as $code) {
+            $design = $this->newDesign('codeless');
+            $design->setCode($code);
+
+            self::assertSame(
+                ['code: setono_sylius_gift_card.gift_card_design.code.not_blank'],
+                $this->violations($design, templates: true),
+                sprintf('code %s', var_export($code, true)),
+            );
+        }
+    }
+
+    /**
+     * The fixtures and setono:gift-card:create-default-design find a design by its code, so two designs can never
+     * share one
+     *
+     * @test
+     */
+    public function it_rejects_a_code_another_design_already_has(): void
+    {
+        $this->createDesign('classic');
+
+        self::assertSame([], $this->violations($this->newDesign('modern')));
+        self::assertSame(
+            ['code: setono_sylius_gift_card.gift_card_design.code.unique'],
+            $this->violations($this->newDesign('classic'), templates: true),
+        );
+    }
+
+    /**
+     * Saving a design that already exists is not a clash with itself
+     *
+     * @test
+     */
+    public function it_accepts_a_design_keeping_its_own_code(): void
+    {
+        $design = $this->createDesign('classic');
+        $design->setName('Classic, renamed');
+
+        self::assertSame([], $this->violations($design));
+    }
+
+    /** @test */
+    public function it_rejects_a_design_code_longer_than_the_column(): void
+    {
+        $design = $this->newDesign('long');
+
+        $design->setCode(str_repeat('a', 255));
+        self::assertSame([], $this->violations($design));
+
+        $design->setCode(str_repeat('a', 256));
+        $violations = $this->validate($design);
+
+        self::assertCount(1, $violations);
+        self::assertSame('code', $violations[0]->getPropertyPath());
+        self::assertSame(Length::TOO_LONG_ERROR, $violations[0]->getCode());
     }
 
     /**

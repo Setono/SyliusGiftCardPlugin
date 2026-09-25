@@ -5,9 +5,24 @@
                     xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/services/constraint-mapping-1.0.xsd">
 
     <class name="Setono\SyliusGiftCardPlugin\Model\GiftCardDesign">
+        <constraint name="Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity">
+            <option name="fields">code</option>
+            <option name="message">setono_sylius_gift_card.gift_card_design.code.unique</option>
+            <option name="groups">setono_sylius_gift_card</option>
+        </constraint>
         <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\UniqueDesignImageTypes">
             <option name="groups">setono_sylius_gift_card</option>
         </constraint>
+        <property name="code">
+            <constraint name="NotBlank">
+                <option name="message">setono_sylius_gift_card.gift_card_design.code.not_blank</option>
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+            <constraint name="Length">
+                <option name="max">255</option>
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
         <property name="position">
             <constraint name="NotNull">
                 <option name="message">setono_sylius_gift_card.gift_card_design.position.not_null</option>

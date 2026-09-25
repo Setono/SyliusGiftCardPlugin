@@ -38,6 +38,9 @@ setono_sylius_gift_card:
         design:
             required: 'Please choose a design.'
     gift_card_design:
+        code:
+            not_blank: Please enter a code
+            unique: Another design already uses this code
         position:
             not_null: Please enter a position
         name:

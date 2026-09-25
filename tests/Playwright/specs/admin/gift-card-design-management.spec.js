@@ -1,6 +1,7 @@
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
+const { firstDesignId } = require('../support/fixtures');
 const { clickAndWaitForPage } = require('../support/navigation');
 const { giftCardProductPath } = require('../support/shop');
 
@@ -8,7 +9,8 @@ const { giftCardProductPath } = require('../support/shop');
  * Managing gift card designs in the admin, and what that does to the design picker on the shop's gift card product.
  *
  * Every spec creates the design it works on and deletes it again, whatever happens in between: the seeded design has
- * to stay the one the shop preselects, and the setup warning spec flips every design it finds.
+ * to stay the one the shop preselects, and the setup warning spec flips every design it finds. The specs of a form
+ * that must be refused create nothing, and check that they did not.
  */
 
 const FORM = 'form[name="setono_sylius_gift_card_gift_card_design"]';
@@ -26,15 +28,13 @@ function uniqueCode(purpose) {
 }
 
 /**
- * Fills in and submits the new design form
+ * Fills in and submits the new design form. The page it leads to must not be a server error
  *
  * @param {import('@playwright/test').Page} page
- * @param {{code: string, enabled?: boolean, images?: Array<'front'|'back'>}} design
+ * @param {{code: string, name?: string, enabled?: boolean, images?: Array<'front'|'back'>}} design
  * @returns {Promise<string>} the name the design was given
  */
-async function submitNewDesign(page, { code, enabled = true, images = [] }) {
-    const name = `Design ${code}`;
-
+async function submitNewDesign(page, { code, name = `Design ${code}`, enabled = true, images = [] }) {
     await page.goto('/admin/gift-card-designs/new');
     await page.locator(`${FORM} [name$="[code]"]`).fill(code);
     // behind the seeded design, which the shop has to keep preselecting
@@ -59,15 +59,24 @@ async function submitNewDesign(page, { code, enabled = true, images = [] }) {
 }
 
 /**
- * The row of the design in the designs grid
+ * The row of the design in the designs grid, found by its code or its name
  *
  * @param {import('@playwright/test').Page} page
- * @param {string} code
+ * @param {string} codeOrName
  */
-async function designRow(page, code) {
+async function designRow(page, codeOrName) {
     await page.goto('/admin/gift-card-designs/');
 
-    return page.locator('table tbody tr').filter({ has: page.locator('td', { hasText: new RegExp(`^${code}$`) }) });
+    return page.locator('table tbody tr').filter({ has: page.locator('td', { hasText: new RegExp(`^${codeOrName}$`) }) });
+}
+
+/**
+ * The validation error the design form shows on its code field
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+function codeFieldError(page) {
+    return page.locator(`${FORM} .field`).filter({ has: page.locator('[name$="[code]"]') }).locator('.sylius-validation-error');
 }
 
 /**
@@ -144,6 +153,36 @@ test.describe('admin gift card design management', () => {
         } finally {
             await deleteDesign(page, code);
         }
+    });
+
+    /**
+     * The code is a unique, non nullable column that nothing checked before the database did, so a blank or a taken
+     * code ended the request in a 500 and lost what the admin had typed
+     */
+    test('a design without a code is a validation error, not a crash', async ({ page }) => {
+        const name = `Design ${uniqueCode('codeless')}`;
+
+        await submitNewDesign(page, { code: '', name });
+
+        await expect(page).toHaveURL(/\/admin\/gift-card-designs\/new$/);
+        await expect(codeFieldError(page)).toHaveText('Please enter a code');
+        // the form is shown again with what the admin typed, and nothing was created
+        await expect(page.locator(`${FORM} [name*="[translations]"][name$="[name]"]`).first()).toHaveValue(name);
+        await expect(await designRow(page, name)).toHaveCount(0);
+    });
+
+    test('a design with a code already in use is a validation error, not a crash', async ({ page }) => {
+        // the seeded design's code, which is what the fixtures and setono:gift-card:create-default-design install
+        await page.goto(`/admin/gift-card-designs/${await firstDesignId(page)}/edit`);
+        const taken = await page.locator(`${FORM} [name$="[code]"]`).inputValue();
+        const name = `Design ${uniqueCode('duplicate')}`;
+
+        await submitNewDesign(page, { code: taken, name });
+
+        await expect(page).toHaveURL(/\/admin\/gift-card-designs\/new$/);
+        await expect(codeFieldError(page)).toHaveText('Another design already uses this code');
+        await expect(await designRow(page, taken)).toHaveCount(1);
+        await expect(await designRow(page, name)).toHaveCount(0);
     });
 
     test('only enabled designs are offered in the shop', async ({ page }) => {
