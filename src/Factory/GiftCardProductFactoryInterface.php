@@ -28,4 +28,10 @@ interface GiftCardProductFactoryInterface
         array $channels = [],
         array $deliveryTypes = [],
     ): ProductInterface;
+
+    /**
+     * The slug create() gives a product with the given code, in every locale. A slug is unique per locale, so whoever
+     * picks the code has to know whether its slug is free as well
+     */
+    public function getSlug(string $code): string;
 }

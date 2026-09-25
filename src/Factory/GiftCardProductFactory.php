@@ -72,7 +72,7 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
             $product->setCurrentLocale($localeCode);
             $product->setFallbackLocale($localeCode);
             $product->setName($name);
-            $product->setSlug($this->slugGenerator->generate($code));
+            $product->setSlug($this->getSlug($code));
         }
 
         foreach ($channels as $channel) {
@@ -94,6 +94,11 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         }
 
         return $product;
+    }
+
+    public function getSlug(string $code): string
+    {
+        return $this->slugGenerator->generate($code);
     }
 
     /**
