@@ -9,6 +9,7 @@
             <argument type="service" id="sylius.context.channel"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface"/>
             <argument type="service" id="sylius.money_formatter"/>
+            <argument type="service" id="sylius.context.locale"/>
 
             <tag name="validator.constraint_validator"/>
         </service>

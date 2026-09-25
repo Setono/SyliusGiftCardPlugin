@@ -299,6 +299,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             $channelContext->reveal(),
             $amountLimitsProvider->reveal(),
             $this->prophesize(MoneyFormatterInterface::class)->reveal(),
+            $localeContext->reveal(),
         );
 
         // The rules live in the validation mapping rather than on the form, so the mapping is what is loaded here

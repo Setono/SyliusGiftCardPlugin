@@ -9,6 +9,8 @@ use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Channel\Context\ChannelNotFoundException;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Locale\Context\LocaleContextInterface;
+use Sylius\Component\Locale\Context\LocaleNotFoundException;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -20,6 +22,7 @@ final class ValidGiftCardAmountValidator extends ConstraintValidator
         private readonly ChannelContextInterface $channelContext,
         private readonly GiftCardAmountLimitsProviderInterface $amountLimitsProvider,
         private readonly MoneyFormatterInterface $moneyFormatter,
+        private readonly LocaleContextInterface $localeContext,
     ) {
     }
 
@@ -52,7 +55,7 @@ final class ValidGiftCardAmountValidator extends ConstraintValidator
 
         if ($value < $limits->minimum) {
             $this->context->buildViolation($constraint->tooLowMessage)
-                ->setParameter('{{ minimum }}', $this->moneyFormatter->format($limits->minimum, $currencyCode))
+                ->setParameter('{{ minimum }}', $this->formatLimit($limits->minimum, $currencyCode))
                 ->addViolation()
             ;
 
@@ -61,9 +64,27 @@ final class ValidGiftCardAmountValidator extends ConstraintValidator
 
         if (null !== $limits->maximum && $value > $limits->maximum) {
             $this->context->buildViolation($constraint->tooHighMessage)
-                ->setParameter('{{ maximum }}', $this->moneyFormatter->format($limits->maximum, $currencyCode))
+                ->setParameter('{{ maximum }}', $this->formatLimit($limits->maximum, $currencyCode))
                 ->addViolation()
             ;
         }
+    }
+
+    /**
+     * The amount field's help text quotes the same limits before the customer submits (GiftCardInformationType), in
+     * the locale the customer is browsing in, so the error quotes them that way too rather than in English
+     */
+    private function formatLimit(int $limit, string $currencyCode): string
+    {
+        try {
+            $localeCode = $this->localeContext->getLocaleCode();
+        } catch (LocaleNotFoundException) {
+            // Validation also runs outside a shop request (a console command, a host application's API), where no
+            // locale is being browsed. The money formatter then falls back to its own default instead of the
+            // validation failing
+            $localeCode = null;
+        }
+
+        return $this->moneyFormatter->format($limit, $currencyCode, $localeCode);
     }
 }
