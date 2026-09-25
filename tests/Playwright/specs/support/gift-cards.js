@@ -46,12 +46,13 @@ async function pickCustomer(page, email) {
  * channel the form proposes, the only currency a card may be issued in.
  *
  * @param {import('@playwright/test').Page} page an authenticated admin page
- * @param {{amount: number, enabled?: boolean, customerEmail?: string|null, customMessage?: string|null, expiresAt?: string|null}} card
- *        amount in minor units; expiresAt as YYYY-MM-DD
- * @returns {Promise<{id: string, code: string, currency: string}>} the code as stored, without the grouping it is
- *          displayed with
+ * @param {{amount: number, code?: string|null, enabled?: boolean, customerEmail?: string|null, customMessage?: string|null, expiresAt?: string|null}} card
+ *        amount in minor units; code typed over the generated one the form proposes, left as proposed when null;
+ *        expiresAt as YYYY-MM-DD
+ * @returns {Promise<{id: string, code: string, shownCode: string, currency: string}>} the code as stored, without the
+ *          grouping it is displayed with, and the code the form held when it was submitted
  */
-async function issueGiftCard(page, { amount, enabled = true, customerEmail = null, customMessage = null, expiresAt = null }) {
+async function issueGiftCard(page, { amount, code = null, enabled = true, customerEmail = null, customMessage = null, expiresAt = null }) {
     await page.goto('/admin/gift-cards/new');
     const channel = await page.locator(`${FORM} select[name$="[channel]"]`).inputValue();
     if (!baseCurrencies.has(channel)) {
@@ -75,6 +76,10 @@ async function issueGiftCard(page, { amount, enabled = true, customerEmail = nul
     if (null !== expiresAt) {
         await page.locator(`${FORM} [name$="[expiresAt]"]`).fill(expiresAt);
     }
+    if (null !== code) {
+        await page.locator(`${FORM} [name$="[code]"]`).fill(code);
+    }
+    const shownCode = await page.locator(`${FORM} [name$="[code]"]`).inputValue();
 
     await clickAndWaitForPage(page, page.locator(`${FORM} button[type="submit"]`).first());
 
@@ -86,10 +91,10 @@ async function issueGiftCard(page, { amount, enabled = true, customerEmail = nul
     const id = landed.searchParams.get('id') ?? /\/admin\/gift-cards\/(\d+)(?:\/edit)?$/.exec(landed.pathname)?.[1] ?? null;
     expect(id, `issuing the gift card should have led to a page naming it, not ${page.url()}`).toMatch(/^\d+$/);
 
-    // The code is generated when the card is saved, so it is read back from the card rather than from the form
-    const code = (await giftCardDetails(page, id)).Code.replace(/-/g, '');
+    // Read back from the card rather than taken from the form: the card is what the customer's code has to match
+    const storedCode = (await giftCardDetails(page, id)).Code.replace(/-/g, '');
 
-    return { id, code, currency };
+    return { id, code: storedCode, shownCode, currency };
 }
 
 /**

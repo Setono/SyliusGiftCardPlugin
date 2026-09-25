@@ -54,6 +54,85 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
         self::assertSame(2550, $transaction->getAmount());
     }
 
+    /**
+     * The admin may write the code down to hand the card over, so the card must not be saved under another one
+     *
+     * @test
+     */
+    public function it_issues_the_gift_card_with_the_code_the_form_shows(): void
+    {
+        $form = $this->request('GET', '/admin/gift-cards/new');
+        $shown = self::valueOf($form, sprintf('//input[@name="%s[code]"]', self::FORM));
+        self::assertNotSame('', $shown);
+
+        $response = $this->issue([
+            'code' => $shown,
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'USD',
+            'amount' => '10',
+        ], $form);
+
+        self::assertTrue($response->isRedirect());
+        self::assertSame($shown, $this->findTheOnlyGiftCard()->getCode());
+    }
+
+    /**
+     * The cart normalizes the code a customer types before looking it up, so a code stored the way the admin typed it
+     * could never be redeemed
+     *
+     * @test
+     */
+    public function it_stores_a_typed_code_the_way_customers_enter_it(): void
+    {
+        $response = $this->issue([
+            'code' => 'summer-2026 xyz',
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'USD',
+            'amount' => '10',
+        ]);
+
+        self::assertTrue($response->isRedirect());
+        self::assertSame('SUMMER2026XYZ', $this->findTheOnlyGiftCard()->getCode());
+    }
+
+    /**
+     * The code is unique, and it is the normalized code that has to be: typed differently, it is still the same code
+     *
+     * @test
+     */
+    public function it_refuses_a_code_another_gift_card_already_has(): void
+    {
+        $this->persistGiftCard('SUMMER2026XYZ', 5000);
+
+        $response = $this->issue([
+            'code' => 'summer-2026 xyz',
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'USD',
+            'amount' => '10',
+        ]);
+
+        self::assertSame(422, $response->getStatusCode());
+        self::assertSame(['Code must be unique'], self::codeErrors($response));
+
+        /** @var GiftCardRepositoryInterface $repository */
+        $repository = self::getContainer()->get('setono_sylius_gift_card.repository.gift_card');
+        self::assertCount(1, $repository->findAll());
+    }
+
+    /** @test */
+    public function it_refuses_a_code_with_nothing_left_once_normalized(): void
+    {
+        $response = $this->issue([
+            'code' => ' -- ',
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'USD',
+            'amount' => '10',
+        ]);
+
+        self::assertSame(422, $response->getStatusCode());
+        self::assertSame(['Please enter code'], self::codeErrors($response));
+    }
+
     /** @test */
     public function it_issues_nothing_when_the_form_is_invalid(): void
     {
@@ -106,18 +185,32 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
     }
 
     /**
-     * The code is not among the fields: it is generated when the card is created, and the form only shows it
+     * Submits the create form the way a browser does: without a code among the fields, the code the form proposes is
+     * sent along
      *
      * @param array<string, string> $fields
+     * @param Response|null $form the create form already requested, to submit that one rather than a new one
      */
-    private function issue(array $fields): Response
+    private function issue(array $fields, ?Response $form = null): Response
     {
-        $form = $this->request('GET', '/admin/gift-cards/new');
+        $form ??= $this->request('GET', '/admin/gift-cards/new');
         self::assertSame(200, $form->getStatusCode());
 
         $fields['_token'] = self::valueOf($form, sprintf('//input[@name="%s[_token]"]', self::FORM));
+        $fields['code'] ??= self::valueOf($form, sprintf('//input[@name="%s[code]"]', self::FORM));
 
         return $this->request('POST', '/admin/gift-cards/new', [self::FORM => $fields]);
+    }
+
+    /**
+     * @return list<string> the validation errors the page shows on the code field
+     */
+    private static function codeErrors(Response $response): array
+    {
+        return self::textsOf($response, sprintf(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " field ")][.//input[@name="%s[code]"]]//*[contains(@class, "sylius-validation-error")]',
+            self::FORM,
+        ));
     }
 
     /**

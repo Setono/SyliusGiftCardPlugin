@@ -50,7 +50,7 @@ async function issueGiftCard(browser) {
     await page.goto('/admin/gift-cards/new');
     const form = page.locator('form').filter({ has: page.locator('[name$="[amount]"]') });
 
-    // the code is the plugin's to generate (the form shows it read-only), so it is read back once the card exists
+    // the card keeps the code the form proposes; it is read back from the card once it exists
     await form.locator('[name$="[amount]"]').fill('1000');
     // the shop trades in USD; the form proposes whichever currency sorts first
     const currencies = form.locator('select[name$="[currencyCode]"]');

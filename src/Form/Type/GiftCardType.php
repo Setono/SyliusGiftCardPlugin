@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
-use Sylius\Bundle\ResourceBundle\Form\EventSubscriber\AddCodeFormSubscriber;
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Currency\Model\CurrencyInterface;
@@ -18,6 +18,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -32,6 +33,7 @@ final class GiftCardType extends AbstractResourceType
         string $dataClass,
         private readonly RepositoryInterface $currencyRepository,
         private readonly GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
+        private readonly GiftCardCodeNormalizerInterface $giftCardCodeNormalizer,
         array $validationGroups = [],
     ) {
         parent::__construct($dataClass, $validationGroups);
@@ -39,7 +41,6 @@ final class GiftCardType extends AbstractResourceType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder->addEventSubscriber(new AddCodeFormSubscriber());
         $builder->add('customer', CustomerAutocompleteChoiceType::class, [
             'label' => 'sylius.ui.customer',
         ]);
@@ -118,6 +119,17 @@ final class GiftCardType extends AbstractResourceType
                 $giftCard->setCode($this->giftCardCodeGenerator->generate());
             }
 
+            // A new card is issued with the code its form shows: the generated one, or one the admin types over it.
+            // The field is submitted for that reason, since Sylius builds a fresh card on the POST whose own generated
+            // code would otherwise be saved instead of the one the admin may have written down. Once the card exists
+            // its code is what the customer was given, so it is shown, but locked
+            $isNew = null === $giftCard->getId();
+            $event->getForm()->add('code', TextType::class, [
+                'label' => 'sylius.ui.code',
+                'disabled' => !$isNew,
+                'help' => $isNew ? 'setono_sylius_gift_card.form.gift_card.code_help' : null,
+            ]);
+
             $channel = $giftCard->getChannel();
             $preferredCurrency = $channel instanceof ChannelInterface ? $channel->getBaseCurrency() : null;
             $preferredChoices = $preferredCurrency instanceof CurrencyInterface ? [$preferredCurrency->getCode()] : [];
@@ -133,6 +145,20 @@ final class GiftCardType extends AbstractResourceType
                 'preferred_choices' => $preferredChoices,
                 'disabled' => null !== $giftCard->getId(),
             ]);
+        });
+
+        // The cart normalizes the code a customer types before looking it up, so a code stored the way the admin typed
+        // it, in lowercase or with dashes and spaces, could never be redeemed. It is normalized before it is validated,
+        // which also makes the uniqueness check compare codes the way the cart tells them apart, and an invalid form
+        // shows the admin the code the card would have been given
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event): void {
+            $data = $event->getData();
+            if (!is_array($data) || !isset($data['code']) || !is_string($data['code'])) {
+                return;
+            }
+
+            $data['code'] = $this->giftCardCodeNormalizer->normalize($data['code']);
+            $event->setData($data);
         });
 
         $builder->get('amount')->addModelTransformer(new CallbackTransformer(static function (?int $amount): ?float {

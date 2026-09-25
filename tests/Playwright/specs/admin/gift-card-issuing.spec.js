@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
+const { addSomethingToCart, applyGiftCard } = require('../support/cart');
 const { giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
 const { moneyInCents, typedAmount } = require('../support/money');
 const { clickAndWaitForPage } = require('../support/navigation');
@@ -63,6 +64,47 @@ async function adjustBalance(page, id, amount, reason) {
 }
 
 test.describe('admin issuing gift cards', () => {
+    /**
+     * An admin issuing a card to hand over in the store writes down the code the form shows. The form used to show a
+     * code it then threw away, saving the card under a second, freshly generated one
+     */
+    test('the card is saved with the code the create form shows', async ({ page }) => {
+        const card = await issueGiftCard(page, { amount: 1000 });
+
+        // generated, so only its shape is known
+        expect(card.shownCode).toMatch(/^[A-Z0-9]+$/);
+        expect(card.code).toBe(card.shownCode);
+
+        // Once issued the code is what the customer was given, so the edit form shows it but no longer takes a new one
+        await page.goto(`/admin/gift-cards/${card.id}/edit`);
+        await expect(page.locator('[name$="[code]"]')).toHaveValue(card.shownCode);
+        await expect(page.locator('[name$="[code]"]')).toBeDisabled();
+    });
+
+    /**
+     * The cart looks a code up the way customers type it, in capitals and without the dashes and spaces it is printed
+     * or written down with, so a card has to be stored that way too, or its code could never be redeemed
+     */
+    test('a code the admin types is saved the way customers enter it and can be redeemed as typed', async ({ page, browser }) => {
+        // codes are unique, so every run types a new one; written the way people do: lowercase, a dash and a space
+        const stamp = Date.now();
+        const typed = `summer-${stamp} xyz`;
+
+        const card = await issueGiftCard(page, { amount: 1000, code: typed });
+
+        expect(card.code).toBe(`SUMMER${stamp}XYZ`);
+        await expect(await giftCardRows(page, card.code)).toHaveCount(1);
+
+        // a customer of the shop, not the signed in administrator
+        const shop = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+        const customer = await shop.newPage();
+        await addSomethingToCart(customer);
+        await applyGiftCard(customer, typed);
+        // the cart lists the code grouped in fours, so the card is found through its remove form, which carries the stored code
+        await expect(customer.locator(`form[action*="/gift-cards/${card.code}/remove"]`)).toBeVisible();
+        await shop.close();
+    });
+
     /**
      * The customer field is an autocomplete backed by the plugin's own customer search endpoint, so this is the one
      * place that endpoint is exercised the way the admin uses it
