@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction;
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\SendGiftCardEmailAction;
+use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardCodeFilter;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
@@ -299,6 +300,10 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                         // be reachable through a plain link
                         'setono_sylius_gift_card_post_link' => '@SetonoSyliusGiftCardPlugin/admin/grid/action/post_link.html.twig',
                     ],
+                    'filter' => [
+                        // The code filter takes its form from Sylius' string filter, so it renders like one
+                        GiftCardCodeFilter::NAME => '@SyliusUi/Grid/Filter/string.html.twig',
+                    ],
                 ],
                 'grids' => [
                     'setono_sylius_gift_card_admin_gift_card' => [
@@ -316,10 +321,14 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                             'createdAt' => 'desc',
                         ],
                         'fields' => [
+                            // Grouped for reading, the way every other page shows a code
                             'code' => [
-                                'type' => 'string',
+                                'type' => 'twig',
                                 'label' => 'sylius.ui.code',
                                 'sortable' => null,
+                                'options' => [
+                                    'template' => '@SetonoSyliusGiftCardPlugin/admin/gift_card/grid/field/code.html.twig',
+                                ],
                             ],
                             'customer' => [
                                 'type' => 'twig',
@@ -363,8 +372,9 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                             ],
                         ],
                         'filters' => [
+                            // Normalizes the typed code first, so a code typed the way it is printed finds the card
                             'code' => [
-                                'type' => 'string',
+                                'type' => GiftCardCodeFilter::NAME,
                                 'label' => 'sylius.ui.code',
                             ],
                             'enabled' => [
