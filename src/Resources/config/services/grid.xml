@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <!-- The form and the template are Sylius' string filter's, so the admin gets the same comparison types to pick
+             from; the template is registered for the type in the extension's prepend() -->
+        <service id="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardCodeFilter"
+                 class="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardCodeFilter">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
+            <argument type="service" id="sylius.grid_filter.string"/>
+
+            <tag name="sylius.grid_filter" type="setono_sylius_gift_card_code"
+                 form_type="Sylius\Bundle\GridBundle\Form\Type\Filter\StringFilterType"/>
+        </service>
+    </services>
+</container>

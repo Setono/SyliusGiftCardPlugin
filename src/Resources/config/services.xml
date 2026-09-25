@@ -13,6 +13,7 @@
         <import resource="services/fixture.xml"/>
         <import resource="services/form.xml"/>
         <import resource="services/generator.xml"/>
+        <import resource="services/grid.xml"/>
         <import resource="services/mailer.xml"/>
         <import resource="services/menu.xml"/>
         <import resource="services/operator.xml"/>
