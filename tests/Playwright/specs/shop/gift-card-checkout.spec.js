@@ -1,9 +1,11 @@
 const { test, expect } = require('@playwright/test');
+const { accountOrderRow, createCustomerAccount, signInToShop } = require('../support/account');
 const { signInAsAdministrator } = require('../support/admin');
-const { checkOutAsGuest, placeOrder, uniqueEmail } = require('../support/checkout');
+const { checkOutAsCustomer, checkOutAsGuest, payablePayments, payWith, placeOrder, uniqueEmail } = require('../support/checkout');
 const { giftCardDetails, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
 const { moneyInCents } = require('../support/money');
-const { cancelOrder, openOrderOf, orderPayments } = require('../support/orders');
+const { clickAndWaitForPage } = require('../support/navigation');
+const { cancelOrder, completeOrderPayments, openOrderOf, orderPayments, orderPaymentState } = require('../support/orders');
 const { addGiftCardToCart, addOrdinaryProductToCart, cartFigure, redeemGiftCard, shopPath } = require('../support/shop');
 
 /**
@@ -43,6 +45,25 @@ test.describe('paying with a gift card', () => {
         expect(total, 'the cart should cost something').toBeGreaterThan(0);
 
         return total;
+    }
+
+    /**
+     * Checks that the page of a placed order the card paid in part lets the customer pay the rest, and only the rest:
+     * the card's payment is completed, so it can neither be paid again nor paid another way. Returns the payment
+     * that is left
+     *
+     * @param {import('@playwright/test').Page} page the order's page in the shop
+     */
+    async function expectOnlyTheRestToBePayable(page) {
+        await expect(page.getByText('You can no longer change payment method of this order')).toHaveCount(0);
+        await expect(page.locator('#sylius-pay-link')).toBeEnabled();
+
+        const payments = await payablePayments(page);
+        expect(payments, 'the rest should be the one payment left to pay').toHaveLength(1);
+        expect(payments[0].methods, 'the gift card is no way to pay the rest').not.toContain('Gift card');
+        expect(payments[0].methods.length, 'the rest should be payable some way').toBeGreaterThan(0);
+
+        return payments[0];
     }
 
     test('an order the card covers in full skips the payment step and is paid by the card', async ({ page }) => {
@@ -101,6 +122,80 @@ test.describe('paying with a gift card', () => {
         expect(byOther).toEqual([expect.objectContaining({ amount: orderTotal - balance, state: 'New' })]);
 
         expect(moneyInCents((await giftCardDetails(admin.page, card.id)).Amount)).toBe(0);
+    });
+
+    /**
+     * The shop only lets a customer pay for an order, or change how to pay it, while the order awaits payment. An
+     * order the card paid in part has to keep awaiting payment of the rest, then: from the thank you page's "Change
+     * payment method" a guest reaches the order's page, and that is also where Sylius sends a customer whose payment
+     * at the payment provider did not go through
+     */
+    test('a guest whose card paid part of the order can choose how to pay the rest, and pay it', async ({ page }) => {
+        const email = uniqueEmail('part-paid-guest');
+
+        const total = await cartWithSomethingToPayFor(page);
+        const balance = Math.floor(total / 2);
+        const card = await issueGiftCard(admin.page, { amount: balance });
+
+        await redeemGiftCard(page, card.code);
+        await checkOutAsGuest(page, email);
+        await placeOrder(page);
+
+        await clickAndWaitForPage(page, page.locator('#payment-method-page'));
+        const rest = await expectOnlyTheRestToBePayable(page);
+
+        // Another method than the one chosen at checkout, so the method of the rest is shown to change
+        const method = rest.methods.find((offered) => offered !== rest.chosen) ?? /** @type {string} */ (rest.chosen);
+        await payWith(page, method);
+
+        await openOrderOf(admin.page, email);
+        const orderTotal = moneyInCents(await admin.page.locator('#total').innerText());
+        expect(await orderPaymentState(admin.page), 'the order should wait for the rest to be paid').toBe('Awaiting payment');
+
+        const payments = await orderPayments(admin.page);
+        expect(payments.filter(({ method: paidBy }) => 'Gift card' === paidBy)).toEqual([
+            { method: 'Gift card', amount: balance, state: 'Completed' },
+        ]);
+        expect(payments.filter(({ method: paidBy }) => 'Gift card' !== paidBy)).toEqual([
+            { method, amount: orderTotal - balance, state: 'New' },
+        ]);
+
+        // The money for the rest comes in, and that pays the order
+        await completeOrderPayments(admin.page);
+        expect(await orderPaymentState(admin.page)).toBe('Paid');
+    });
+
+    test('a signed in customer whose card paid part of the order can pay the rest from their account', async ({ page }) => {
+        test.setTimeout(180_000);
+
+        const email = uniqueEmail('part-paid-customer');
+        const password = 'gift-card-customer';
+        await createCustomerAccount(admin.page, email, password);
+        await signInToShop(page, email, password);
+
+        const total = await cartWithSomethingToPayFor(page);
+        const card = await issueGiftCard(admin.page, { amount: Math.floor(total / 2) });
+
+        await redeemGiftCard(page, card.code);
+        await checkOutAsCustomer(page);
+        await placeOrder(page);
+
+        // The thank you page sends a signed in customer to the order in their account, which offers to pay it
+        await clickAndWaitForPage(page, page.locator('#sylius-show-order-in-account'));
+        const number = /\/account\/orders\/(\d+)$/.exec(new URL(page.url()).pathname)?.[1] ?? '';
+        expect(number, `the thank you page should have led to the order in the account, not ${page.url()}`).toMatch(/^\d+$/);
+
+        const payFromOrder = page.locator('a[href*="/order/"]').filter({ hasText: 'Pay' });
+        await expect(payFromOrder, 'the order in the account should offer to pay it').toHaveCount(1);
+        const orderPage = await payFromOrder.getAttribute('href');
+
+        // and so does the list of the customer's orders, leading to the same page
+        const payFromList = (await accountOrderRow(page, number)).locator('a').filter({ hasText: 'Pay' });
+        await expect(payFromList, "the customer's orders should offer to pay the order").toHaveAttribute('href', /** @type {string} */ (orderPage));
+
+        await clickAndWaitForPage(page, payFromList);
+        const rest = await expectOnlyTheRestToBePayable(page);
+        await payWith(page, /** @type {string} */ (rest.chosen));
     });
 
     /**

@@ -75,6 +75,19 @@
             <argument>new</argument>
         </service>
 
+        <!--
+            Keep an order the gift cards pay in part awaiting payment until the rest is paid, rather than partially
+            paid, which Sylius' shop does not let a customer pay and its unpaid order expiry does not cancel. Both
+            state machine adapters resolve the order's payment state through this service id, so it covers both
+        -->
+        <service id="Setono\SyliusGiftCardPlugin\StateResolver\GiftCardAwareOrderPaymentStateResolver"
+                 class="Setono\SyliusGiftCardPlugin\StateResolver\GiftCardAwareOrderPaymentStateResolver"
+                 decorates="sylius.state_resolver.order_payment">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\StateResolver\GiftCardAwareOrderPaymentStateResolver.inner"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardPaidAmountCalculatorInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface"/>
+        </service>
+
         <!-- Skip the checkout payment step when gift cards cover the whole order -->
         <service id="Setono\SyliusGiftCardPlugin\Checker\GiftCardAwarePaymentMethodSelectionRequirementChecker"
                  class="Setono\SyliusGiftCardPlugin\Checker\GiftCardAwarePaymentMethodSelectionRequirementChecker"
