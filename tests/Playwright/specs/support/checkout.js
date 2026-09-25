@@ -1,5 +1,5 @@
 /**
- * Walking a guest through Sylius' checkout.
+ * Walking a guest or a signed in customer through Sylius' checkout, and paying for a placed order from its page.
  *
  * Which steps a checkout takes is part of what the specs check: a cart without anything to ship skips the shipping
  * step, and a cart the applied gift cards cover in full skips the payment step. So the walk follows wherever the shop
@@ -12,20 +12,25 @@ const { shopPath } = require('./shop');
 
 const BILLING = 'sylius_checkout_address[billingAddress]';
 const SHIPPING_METHOD = 'input[name^="sylius_checkout_select_shipping[shipments]"][name$="[method]"]';
+const PAYMENT_FORM = 'form[name="sylius_checkout_select_payment"]';
+const PAYMENT_METHOD = `${PAYMENT_FORM} input[name^="sylius_checkout_select_payment[payments]"][name$="[method]"]`;
 
 /**
- * Fills in the address step for a guest and submits it
+ * Fills in the address step and submits it
  *
  * @param {import('@playwright/test').Page} page
- * @param {string} email
+ * @param {string|null} email the guest's email; null for a signed in customer, whose account gives the order its email
  * @param {string} country
  */
 async function submitAddress(page, email, country) {
     await page.goto(await shopPath(page, 'checkout/address'));
 
-    // Once an address has been submitted the order has a customer, and the step stops asking for the email
+    // Once an address has been submitted the order has a customer, and the step stops asking for the email. It never
+    // asks a signed in customer
     const emailField = page.locator('[name="sylius_checkout_address[customer][email]"]');
-    if (0 < (await emailField.count())) {
+    if (null === email) {
+        await expect(emailField, 'the checkout should know the signed in customer').toHaveCount(0);
+    } else if (0 < (await emailField.count())) {
         await emailField.fill(email);
     }
     await page.locator(`[name="${BILLING}[firstName]"]`).fill('Gift');
@@ -48,6 +53,25 @@ async function submitAddress(page, email, country) {
  *          payment method
  */
 async function checkOutAsGuest(page, email) {
+    return checkOut(page, email);
+}
+
+/**
+ * Takes the cart of a signed in customer through the checkout, the way checkOutAsGuest does for a guest
+ *
+ * @param {import('@playwright/test').Page} page a page signed in as the customer, whose session holds the cart
+ * @returns {Promise<{shipping: boolean, payment: boolean}>}
+ */
+async function checkOutAsCustomer(page) {
+    return checkOut(page, null);
+}
+
+/**
+ * @param {import('@playwright/test').Page} page
+ * @param {string|null} email the guest's email, or null for a signed in customer
+ * @returns {Promise<{shipping: boolean, payment: boolean}>}
+ */
+async function checkOut(page, email) {
     await page.goto(await shopPath(page, 'checkout/address'));
     const countries = await page
         .locator(`select[name="${BILLING}[countryCode]"] option[value]:not([value=""])`)
@@ -113,4 +137,52 @@ function uniqueEmail(purpose) {
     return `${purpose}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
 }
 
-module.exports = { checkOutAsGuest, placeOrder, uniqueEmail };
+/**
+ * The payments the page of a placed order (the one "Change payment method" and the "Pay" buttons lead to) lets the
+ * customer pay, each with the payment methods it offers, by their label, and the one chosen for it
+ *
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<Array<{methods: string[], chosen: string|null}>>}
+ */
+async function payablePayments(page) {
+    const choices = await page.locator(PAYMENT_METHOD).evaluateAll((inputs) =>
+        inputs.map((input) => ({
+            payment: /\[payments\]\[([^\]]+)\]/.exec(input.getAttribute('name') ?? '')?.[1] ?? '',
+            method: document.querySelector(`label[for="${input.id}"]`)?.textContent?.trim() ?? '',
+            checked: input.checked,
+        })),
+    );
+
+    /** @type {Map<string, {methods: string[], chosen: string|null}>} */
+    const payments = new Map();
+    for (const { payment, method, checked } of choices) {
+        const entry = payments.get(payment) ?? { methods: [], chosen: null };
+        entry.methods.push(method);
+        if (checked) {
+            entry.chosen = method;
+        }
+        payments.set(payment, entry);
+    }
+
+    return [...payments.values()];
+}
+
+/**
+ * Pays from the page of a placed order with the payment method of the given label, and waits for the thank you page
+ * the shop sends the customer to once an offline payment method is chosen
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} method
+ */
+async function payWith(page, method) {
+    const label = page.locator(`${PAYMENT_FORM} label[for]`).filter({ hasText: method });
+    await expect(label, `the order page offers no "${method}" to pay with`).toHaveCount(1);
+
+    await label.click();
+    await expect(page.locator(`[id="${await label.getAttribute('for')}"]`)).toBeChecked();
+
+    await clickAndWaitForPage(page, page.locator('#sylius-pay-link'));
+    await expect(page, 'paying should have led to the thank you page').toHaveURL(/\/order\/thank-you$/);
+}
+
+module.exports = { checkOutAsCustomer, checkOutAsGuest, payablePayments, payWith, placeOrder, uniqueEmail };
