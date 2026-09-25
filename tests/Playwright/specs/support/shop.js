@@ -188,4 +188,5 @@ module.exports = {
     giftCardVariantCount,
     redeemGiftCard,
     shopPath,
+    submitAddToCart,
 };

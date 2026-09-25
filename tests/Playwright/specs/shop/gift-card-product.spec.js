@@ -1,4 +1,6 @@
 const { test, expect } = require('@playwright/test');
+const { moneyInCents } = require('../support/money');
+const { giftCardProductPath, submitAddToCart } = require('../support/shop');
 
 /**
  * The gift card form is added to the add to cart form by a form type extension, so it has to appear on gift
@@ -108,6 +110,41 @@ test.describe('shop gift card product', () => {
         await expect(help).toBeVisible();
         // The limits are configurable, so this asserts a money figure is quoted rather than a particular one
         await expect(help).toHaveText(/\d/);
+    });
+
+    /**
+     * Sylius only prices a line once it is in the cart, so the field used to start at 0.00 — an amount the shop
+     * refuses — right under the price the page prints. It starts at that price now, and the preview shows it before
+     * the customer has typed anything.
+     */
+    test('the amount field starts at the price the page shows', async ({ page }) => {
+        await page.goto(await giftCardProductPath(page));
+
+        const price = moneyInCents(await page.locator('#product-price').innerText());
+        expect(price, 'the gift card product has no price to start from').toBeGreaterThan(0);
+
+        const amount = page.locator('[name*="giftCardInformation"][name*="[amount]"]').first();
+        expect(moneyInCents(await amount.inputValue())).toBe(price);
+
+        const previews = page.locator('#setono-gift-card-information [data-js-gc-amount]');
+        expect(await previews.count(), 'the preview does not render an amount').toBeGreaterThan(0);
+        for (let i = 0; i < await previews.count(); i++) {
+            // the script fills the preview in once the page has loaded
+            await expect(previews.nth(i)).toHaveText(/\d/);
+            expect(moneyInCents(/** @type {string} */ (await previews.nth(i).textContent())), 'the preview').toBe(price);
+        }
+    });
+
+    test('a gift card can be bought at the amount the field starts at', async ({ page }) => {
+        await page.goto(await giftCardProductPath(page));
+
+        const price = moneyInCents(await page.locator('#product-price').innerText());
+
+        // the customer leaves the amount alone and only picks what the form preselects
+        await submitAddToCart(page);
+
+        const line = page.locator('#sylius-cart-items tbody tr').first();
+        expect(moneyInCents(await line.locator('.sylius-unit-price').innerText())).toBe(price);
     });
 
     /**
