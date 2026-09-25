@@ -38,6 +38,9 @@ setono_sylius_gift_card:
         design:
             required: 'Veuillez choisir un modèle.'
     gift_card_design:
+        code:
+            not_blank: Veuillez renseigner un code
+            unique: Ce code est déjà utilisé par un autre modèle
         position:
             not_null: Veuillez saisir une position
         name:

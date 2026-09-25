@@ -38,6 +38,9 @@ setono_sylius_gift_card:
         design:
             required: 'Vælg venligst et design.'
     gift_card_design:
+        code:
+            not_blank: Indtast venligst en kode
+            unique: Et andet design bruger allerede denne kode
         position:
             not_null: Angiv en position
         name:
