@@ -4,6 +4,7 @@ setono_sylius_gift_card:
             gift_card: Chèque-cadeau
         gift_card:
             channel: Canal
+            code_help: 'Généré pour vous. Vous pouvez saisir votre propre code à la place : il est enregistré en majuscules, en ne gardant que les lettres A à Z et les chiffres.'
             custom_message: Message personnalisé
             custom_message_placeholder: Ce message sera imprimé sur le chèque-cadeau...
             expires_at: Expire le

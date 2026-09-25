@@ -9,6 +9,7 @@ use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Form\Type\CustomerAutocompleteChoiceType;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
@@ -190,6 +191,90 @@ final class GiftCardTypeTest extends TypeTestCase
     }
 
     /**
+     * The factory gives every new card a code, and Sylius builds another card, with another code, on the POST. The
+     * code shown on the form has to be submitted, or the card is saved under a code the admin never saw
+     *
+     * @test
+     */
+    public function it_issues_a_new_card_with_the_code_its_form_shows(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setCode('SHOWNCODE');
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+
+        self::assertFalse($form->get('code')->isDisabled());
+        self::assertSame('SHOWNCODE', $form->get('code')->getViewData());
+        self::assertSame('setono_sylius_gift_card.form.gift_card.code_help', $form->get('code')->getConfig()->getOption('help'));
+
+        $submitted = new GiftCard();
+        $submitted->setCode('GENERATEDONPOST');
+
+        $form = $this->factory->create(GiftCardType::class, $submitted);
+        $form->submit($this->validSubmission(['code' => 'SHOWNCODE']));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame('SHOWNCODE', $submitted->getCode());
+    }
+
+    /**
+     * The cart normalizes what a customer types before looking the code up, so a code has to be stored normalized
+     *
+     * @test
+     */
+    public function it_normalizes_a_code_the_admin_types(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setCode('GENERATEDONPOST');
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission(['code' => 'summer-2026 xyz']));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame('SUMMER2026XYZ', $giftCard->getCode());
+        // an invalid form is rendered again with the code the card would have been given
+        self::assertSame('SUMMER2026XYZ', $form->get('code')->getViewData());
+    }
+
+    /** @test */
+    public function it_reports_a_code_with_nothing_left_once_normalized_as_blank(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setCode('GENERATEDONPOST');
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission(['code' => ' -- ']));
+
+        self::assertTrue($form->isSynchronized());
+        self::assertFalse($form->isValid());
+        self::assertCount(1, $form->get('code')->getErrors());
+        self::assertSame('setono_sylius_gift_card.gift_card.code.not_blank', $form->get('code')->getErrors()[0]->getMessage());
+    }
+
+    /**
+     * Once issued, the code is what the customer was given
+     *
+     * @test
+     */
+    public function it_shows_the_code_but_locks_it_once_the_card_exists(): void
+    {
+        $giftCard = $this->existingGiftCard();
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+
+        self::assertTrue($form->get('code')->isDisabled());
+        self::assertSame('EXISTING', $form->get('code')->getViewData());
+        self::assertNull($form->get('code')->getConfig()->getOption('help'));
+
+        $form->submit([
+            'code' => 'REPLACED',
+        ]);
+
+        self::assertTrue($form->isSynchronized());
+        self::assertSame('EXISTING', $giftCard->getCode());
+    }
+
+    /**
      * The admin picks a date, and a gift card stays valid through the end of that day
      *
      * @test
@@ -230,6 +315,20 @@ final class GiftCardTypeTest extends TypeTestCase
         self::assertNull($giftCard->getExpiresAt());
     }
 
+    /**
+     * @param array<string, string> $fields
+     *
+     * @return array<string, string>
+     */
+    private function validSubmission(array $fields): array
+    {
+        return $fields + [
+            'channel' => 'WEB',
+            'currencyCode' => 'DKK',
+            'amount' => '50',
+        ];
+    }
+
     private function existingGiftCard(): GiftCard
     {
         $giftCard = new GiftCard();
@@ -260,6 +359,7 @@ final class GiftCardTypeTest extends TypeTestCase
             GiftCard::class,
             $currencyRepository,
             $codeGenerator->reveal(),
+            new GiftCardCodeNormalizer(),
             ['setono_sylius_gift_card'],
         );
 

@@ -4,6 +4,7 @@ setono_sylius_gift_card:
             gift_card: Gavekort
         gift_card:
             channel: Kanal
+            code_help: 'Genereret til dig. Du kan skrive din egen kode i stedet: den gemmes med store bogstaver, og kun bogstaverne A–Z og tal bevares.'
             custom_message: Personlig besked
             custom_message_placeholder: Denne besked printes på gavekortet...
             expires_at: Udløber
