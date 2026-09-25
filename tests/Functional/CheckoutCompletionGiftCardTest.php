@@ -80,7 +80,7 @@ final class CheckoutCompletionGiftCardTest extends GiftCardFunctionalTestCase
                 $giftCard->isEnabled(),
                 sprintf('gift card %s should have been enabled when the order was paid', (string) $giftCard->getCode()),
             );
-            self::assertSame(5000, $giftCard->getAmount(), 'the card should carry the unit total it was reconciled with');
+            self::assertSame(5000, $giftCard->getAmount(), 'the card should carry the amount chosen for it');
         }
     }
 
