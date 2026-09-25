@@ -25,17 +25,23 @@ final class GiftCardCodeFilter implements FilterInterface
     }
 
     /**
+     * The options are typed as loosely as sylius/grid-bundle before 1.15 types them, which the plugin still supports
+     *
      * @param mixed $data
-     * @param array<string, mixed> $options
+     * @param array<mixed, mixed> $options
      */
     public function apply(DataSourceInterface $dataSource, string $name, $data, array $options): void
     {
+        // Handed on as they came, typed the way the string filter of any supported version accepts them
+        /** @var array<string, mixed> $stringFilterOptions */
+        $stringFilterOptions = $options;
+
         $value = is_array($data) ? $data['value'] ?? null : $data;
         $type = (is_array($data) ? $data['type'] ?? null : null) ?? $options['type'] ?? StringFilter::TYPE_CONTAINS;
 
         // "empty" and "not empty" ignore the value, and there is nothing to normalize in a value that is not there
         if (!is_string($value) || in_array($type, [StringFilter::TYPE_EMPTY, StringFilter::TYPE_NOT_EMPTY], true)) {
-            $this->stringFilter->apply($dataSource, $name, $data, $options);
+            $this->stringFilter->apply($dataSource, $name, $data, $stringFilterOptions);
 
             return;
         }
@@ -56,7 +62,7 @@ final class GiftCardCodeFilter implements FilterInterface
             $data = $value;
         }
 
-        $this->stringFilter->apply($dataSource, $name, $data, $options);
+        $this->stringFilter->apply($dataSource, $name, $data, $stringFilterOptions);
     }
 
     /**
