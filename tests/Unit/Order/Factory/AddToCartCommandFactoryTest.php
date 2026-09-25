@@ -36,8 +36,9 @@ final class AddToCartCommandFactoryTest extends TestCase
         $decorated = $this->prophesize(AddToCartCommandFactoryInterface::class);
         $decorated->createWithCartAndCartItem($cart, $cartItem)->willReturn($innerCommand->reveal());
 
+        // the item is not in the cart yet, so the information factory is told which cart (and so channel) it is for
         $giftCardInformationFactory = $this->prophesize(GiftCardInformationFactoryInterface::class);
-        $giftCardInformationFactory->createNew($cartItem)->willReturn($giftCardInformation);
+        $giftCardInformationFactory->createNew($cart, $cartItem)->willReturn($giftCardInformation);
 
         $factory = new AddToCartCommandFactory($decorated->reveal(), AddToCartCommand::class, $giftCardInformationFactory->reveal());
 
@@ -61,7 +62,7 @@ final class AddToCartCommandFactoryTest extends TestCase
         $decorated->createWithCartAndCartItem($cart, $cartItem)->willReturn($innerCommand);
 
         $giftCardInformationFactory = $this->prophesize(GiftCardInformationFactoryInterface::class);
-        $giftCardInformationFactory->createNew(Argument::any())->shouldNotBeCalled();
+        $giftCardInformationFactory->createNew(Argument::cetera())->shouldNotBeCalled();
 
         $factory = new AddToCartCommandFactory($decorated->reveal(), AddToCartCommand::class, $giftCardInformationFactory->reveal());
 
