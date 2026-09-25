@@ -8,6 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface;
 use Sylius\Component\Core\Model\ProductInterface as SyliusProductInterface;
+use Sylius\Component\Product\Model\ProductTranslationInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,10 +39,12 @@ final class CreateGiftCardProductAction
 
     /**
      * @param RepositoryInterface<SyliusProductInterface> $productRepository
+     * @param RepositoryInterface<ProductTranslationInterface> $productTranslationRepository
      */
     public function __construct(
         private readonly GiftCardProductFactoryInterface $productFactory,
         private readonly RepositoryInterface $productRepository,
+        private readonly RepositoryInterface $productTranslationRepository,
         ManagerRegistry $managerRegistry,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
@@ -83,8 +86,19 @@ final class CreateGiftCardProductAction
         do {
             $code = 1 === $suffix ? self::CODE : sprintf('%s_%d', self::CODE, $suffix);
             ++$suffix;
-        } while (null !== $this->productRepository->findOneBy(['code' => $code]));
+        } while ($this->isTaken($code));
 
         return $code;
+    }
+
+    /**
+     * The product gets a slug derived from its code in every locale, and a slug is unique per locale, so a code whose
+     * slug another product already uses in any locale is as taken as the code itself. A merchant who created a
+     * "Gift card" product by hand has the slug "gift-card", which Sylius' admin derives from that name
+     */
+    private function isTaken(string $code): bool
+    {
+        return null !== $this->productRepository->findOneBy(['code' => $code]) ||
+            null !== $this->productTranslationRepository->findOneBy(['slug' => $this->productFactory->getSlug($code)]);
     }
 }

@@ -87,6 +87,24 @@ final class GiftCardProductFactoryTest extends TestCase
         }
     }
 
+    /**
+     * Whoever picks the code checks the slug it will get against the slugs other products use, so the slug the
+     * factory reports for a code must be the one it gives the product
+     *
+     * @test
+     */
+    public function it_gives_the_product_the_slug_it_reports_for_the_code(): void
+    {
+        $factory = $this->factory();
+
+        self::assertSame('gift-card-2', $factory->getSlug('gift_card_2'));
+
+        $product = $factory->create('gift_card_2', 'Gift card');
+        foreach (['en_US', 'da_DK'] as $localeCode) {
+            self::assertSame($factory->getSlug('gift_card_2'), $product->getTranslation($localeCode)->getSlug());
+        }
+    }
+
     /** @test */
     public function it_sells_the_product_in_every_channel_unless_told_otherwise(): void
     {
