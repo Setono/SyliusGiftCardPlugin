@@ -8,7 +8,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\AbstractException;
 use Doctrine\DBAL\Exception\DeadlockException;
-use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Exception\LockWaitTimeoutException;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -136,22 +135,11 @@ final class PaymentRedemptionMethodTest extends TestCase
     }
 
     /**
-     * MariaDB from 11.6.2 checks locking reads against the transaction's snapshot, so a card another order redeemed
-     * after this one started reading fails the lock with ER_CHECKREAD instead of the later versioned update
+     * Only a deadlock, which Doctrine reports the same way on every database, is a lost race on the card. Any other
+     * error the database reports is left for whatever handles database errors
      *
      * @test
      */
-    public function it_reports_a_card_changed_since_it_was_read_as_a_lost_race_on_the_gift_card(): void
-    {
-        $giftCard = $this->giftCard(1);
-        $this->manager->lock($giftCard, LockMode::PESSIMISTIC_WRITE)->willThrow(
-            new DriverException(self::driverException(1020, 'HY000'), null),
-        );
-
-        $this->assertLostRaceOn($giftCard);
-    }
-
-    /** @test */
     public function it_lets_any_other_database_error_through(): void
     {
         $giftCard = $this->giftCard(1);
