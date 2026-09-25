@@ -72,10 +72,12 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
 
                 $manager ??= $this->getManager($giftCard);
 
-                // Snapshot the final paid amount (after any promotions) as the initial and current balance
-                $total = $unit->getTotal();
-                $giftCard->setInitialAmount($total);
-                $giftCard->setAmount($total);
+                // The card is worth the amount the customer chose, which is the price of its line. Not the unit total:
+                // promotions never discount a gift card line, and tax charged on top of it, where a gift card product
+                // carries a tax category, is not part of what the card is worth
+                $amount = $item->getUnitPrice();
+                $giftCard->setInitialAmount($amount);
+                $giftCard->setAmount($amount);
 
                 if (null !== $customer) {
                     $giftCard->setCustomer($customer);

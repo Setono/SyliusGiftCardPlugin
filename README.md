@@ -34,6 +34,8 @@ The delivery type also decides what the buyer is emailed when the order is paid.
 
 The customer chooses the amount, a design and an optional message on the product page (with a live preview). A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)). Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
 
+Promotions never discount a gift card: a card is worth the amount the customer chose, so that is both what the customer pays for it and what the card holds. Unit discounts skip gift card lines, an order discount is taken from the other items only (a percentage of those items, spread over those items), and buying a gift card does not count towards a promotion's "item total" rule. Otherwise a coupon for the whole shop would sell full value gift cards at a discount. To keep a promotion from applying at all to an order that buys a gift card, add the "Has no gift card" rule to it.
+
 ### Redeeming a gift card
 
 The customer enters a gift card code in the cart. The order total stays intact and each applied gift card becomes a completed [`Payment`](https://docs.sylius.com/the-book/carts-and-orders/payments) using a lazily-created *offline* gift card payment method; the remainder is charged through the normal gateway, and the payment step is skipped automatically when gift cards cover the whole order.
@@ -133,6 +135,8 @@ class Order extends BaseOrder implements SetonoSyliusGiftCardOrderInterface
     }
 }
 ```
+
+`OrderTrait` also overrides `getPromotionSubjectTotal()` and `getNonDiscountedItemsTotal()`, so promotions leave the gift cards being bought out of what they discount. If your `Order` overrides either method as well, build on the trait's version (import it under an alias, like the constructor above). Otherwise an order discount is worked out on the gift cards too and put on the other items.
 
 ```php
 // src/Entity/Order/OrderItem.php
