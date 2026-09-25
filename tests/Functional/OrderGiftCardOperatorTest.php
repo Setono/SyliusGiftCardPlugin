@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
+use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
+use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolver;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
@@ -145,6 +150,83 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
         $fullPrice = $this->findGiftCard('FULLPRICE0000001');
         self::assertSame(5000, $fullPrice->getAmount());
         self::assertSame(5000, $fullPrice->getInitialAmount());
+    }
+
+    /**
+     * A card's validity counts from the purchase. The card of the unit the customer put in the cart was created, and
+     * given an expiry, when it went into the cart, possibly weeks before the order is placed; the cards of the units
+     * added by raising the quantity are only created now. Both are bought today, so both expire the configured period
+     * from today, at the end of that day
+     *
+     * @test
+     */
+    public function reconcile_counts_the_validity_of_every_card_from_the_purchase(): void
+    {
+        $template = $this->createPendingGiftCard('ADDEDMONTHAGO001');
+        $expiresAt = $template->getExpiresAt();
+        self::assertNotNull($expiresAt, 'the test application configures a validity period');
+        // as if the card went into the cart a month ago
+        $template->setExpiresAt(\DateTimeImmutable::createFromInterface($expiresAt)->modify('-1 month'));
+
+        $order = $this->createOrder($this->createCustomer());
+        $item = $this->addLine($order, $this->createGiftCardVariant('VIRTUAL', shippingRequired: false), 2, [$template]);
+
+        $period = self::getContainer()->getParameter('setono_sylius_gift_card.default_validity_period');
+        self::assertIsString($period);
+
+        $before = (new \DateTimeImmutable('+' . $period))->setTime(23, 59, 59)->format('Y-m-d H:i:s');
+        $this->operator->reconcile($order);
+        $after = (new \DateTimeImmutable('+' . $period))->setTime(23, 59, 59)->format('Y-m-d H:i:s');
+        $this->manager->clear();
+
+        $expiries = array_map(
+            static fn (GiftCardInterface $giftCard): ?string => $giftCard->getExpiresAt()?->format('Y-m-d H:i:s'),
+            $this->giftCardsOfItem($item),
+        );
+        self::assertCount(2, $expiries);
+        self::assertSame($expiries[0], $expiries[1], 'the cards bought on one order expire at the same moment');
+        // the day is read on both sides of the call, so a test running across midnight still passes
+        self::assertContains($expiries[0], [$before, $after]);
+    }
+
+    /**
+     * With default_validity_period set to null a bought card never expires. The setting in force when the order is
+     * placed is the one that counts, so the card add to cart gave an expiry while a period was configured loses it
+     *
+     * @test
+     */
+    public function reconcile_leaves_every_card_without_an_expiry_when_no_validity_period_is_configured(): void
+    {
+        $container = self::getContainer();
+
+        /** @var GiftCardFactoryInterface $factory */
+        $factory = $container->get('setono_sylius_gift_card.factory.gift_card');
+
+        /** @var ManagerRegistry $managerRegistry */
+        $managerRegistry = $container->get('doctrine');
+
+        /** @var GiftCardEmailManagerInterface $emailManager */
+        $emailManager = $container->get(GiftCardEmailManagerInterface::class);
+
+        /** @var GiftCardBalanceOperatorInterface $balanceOperator */
+        $balanceOperator = $container->get(GiftCardBalanceOperatorInterface::class);
+
+        $operator = new OrderGiftCardOperator($factory, $managerRegistry, $emailManager, $balanceOperator, new GiftCardExpiryResolver(null));
+
+        $template = $this->createPendingGiftCard('ADDEDWITHPERIOD1');
+        self::assertNotNull($template->getExpiresAt(), 'the test application configures a validity period');
+
+        $order = $this->createOrder($this->createCustomer());
+        $item = $this->addLine($order, $this->createGiftCardVariant('VIRTUAL', shippingRequired: false), 2, [$template]);
+
+        $operator->reconcile($order);
+        $this->manager->clear();
+
+        $giftCards = $this->giftCardsOfItem($item);
+        self::assertCount(2, $giftCards);
+        foreach ($giftCards as $giftCard) {
+            self::assertNull($giftCard->getExpiresAt());
+        }
     }
 
     /** @test */

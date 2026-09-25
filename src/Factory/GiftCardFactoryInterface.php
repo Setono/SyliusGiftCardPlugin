@@ -17,7 +17,8 @@ interface GiftCardFactoryInterface extends FactoryInterface
 
     /**
      * Creates a gift card scoped to a channel: a unique code, the channel, the channel's base currency
-     * and an expiry derived from the configured default validity period
+     * and an expiry derived from the configured default validity period, counted from now. A card bought
+     * in the shop gets its final expiry when the order is placed, see OrderGiftCardOperatorInterface::reconcile()
      */
     public function createForChannel(ChannelInterface $channel): GiftCardInterface;
 }
