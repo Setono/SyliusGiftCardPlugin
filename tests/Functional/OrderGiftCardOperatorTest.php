@@ -111,19 +111,21 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * The balance of a card is what the customer paid for its unit, not the amount they typed in when adding it to
-     * the cart: a promotion that took 10.00 off one unit leaves that card with 40.00
+     * A card is worth the amount the customer chose, the price of its line, whatever else ended up on its unit.
+     * Promotions never discount a gift card line (see GiftCardPromotionTest), so an adjustment like this one only gets
+     * there through code of the application's own, and tax charged on top of the price, where the product carries a
+     * tax category and prices exclude tax, is not part of what the card is worth either
      *
      * @test
      */
-    public function reconcile_gives_each_card_the_amount_paid_for_its_unit(): void
+    public function reconcile_gives_each_card_the_amount_chosen_for_it(): void
     {
         $order = $this->createOrder($this->createCustomer());
         $item = $this->addLine(
             $order,
             $this->createGiftCardVariant('VIRTUAL', shippingRequired: false),
             2,
-            [$this->createPendingGiftCard('DISCOUNTED000001'), $this->createPendingGiftCard('FULLPRICE0000001')],
+            [$this->createPendingGiftCard('DISCOUNTED000001'), $this->createPendingGiftCard('TAXED00000000001')],
         );
 
         $discountedUnit = $item->getUnits()->first();
@@ -133,18 +135,27 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
         $promotion->setLabel('10.00 off');
         $promotion->setAmount(-1000);
         $discountedUnit->addAdjustment($promotion);
+
+        $taxedUnit = $item->getUnits()->last();
+        self::assertInstanceOf(OrderItemUnit::class, $taxedUnit);
+        $tax = new Adjustment();
+        $tax->setType(AdjustmentInterface::TAX_ADJUSTMENT);
+        $tax->setLabel('10 % tax');
+        $tax->setAmount(500);
+        $taxedUnit->addAdjustment($tax);
         $this->manager->flush();
+
+        self::assertSame(4000, $discountedUnit->getTotal(), 'precondition: the promotion lowered the unit total');
+        self::assertSame(5500, $taxedUnit->getTotal(), 'precondition: the tax raised the unit total');
 
         $this->operator->reconcile($order);
         $this->manager->clear();
 
-        $discounted = $this->findGiftCard('DISCOUNTED000001');
-        self::assertSame(4000, $discounted->getAmount());
-        self::assertSame(4000, $discounted->getInitialAmount());
-
-        $fullPrice = $this->findGiftCard('FULLPRICE0000001');
-        self::assertSame(5000, $fullPrice->getAmount());
-        self::assertSame(5000, $fullPrice->getInitialAmount());
+        foreach (['DISCOUNTED000001', 'TAXED00000000001'] as $code) {
+            $giftCard = $this->findGiftCard($code);
+            self::assertSame(5000, $giftCard->getAmount(), sprintf('%s should be worth the 50.00 chosen for it', $code));
+            self::assertSame(5000, $giftCard->getInitialAmount());
+        }
     }
 
     /** @test */

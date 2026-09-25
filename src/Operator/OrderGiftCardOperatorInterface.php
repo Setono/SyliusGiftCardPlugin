@@ -13,8 +13,8 @@ interface OrderGiftCardOperatorInterface
 {
     /**
      * Called on checkout completion. Makes sure every gift card order item unit has a gift card (creating any
-     * that are missing after a quantity change), snapshots the final amount from the paid unit total, associates
-     * the customer and refreshes the expiry
+     * that are missing after a quantity change), sets each card's amount to the amount the customer chose (the unit
+     * price of its line), associates the customer and refreshes the expiry
      */
     public function reconcile(OrderInterface $order): void;
 

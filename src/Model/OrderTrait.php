@@ -70,4 +70,50 @@ trait OrderTrait
     {
         return $this->giftCards->contains($giftCard);
     }
+
+    /**
+     * What promotions look at: the items total without the gift cards being bought. A gift card is worth the amount
+     * the customer chose, so its line takes no share of a discount (see GiftCardExcludingMinimumPriceDistributor), and
+     * a percentage of the order is only a percentage of what can be discounted. For the same reason buying a gift card
+     * does not count towards a promotion's "item total" rule
+     */
+    public function getPromotionSubjectTotal(): int
+    {
+        return parent::getPromotionSubjectTotal() - $this->getGiftCardItemsTotal(false);
+    }
+
+    /**
+     * The items total a promotion that does not apply to already discounted items looks at, without the gift cards
+     * being bought, for the reason given on getPromotionSubjectTotal()
+     */
+    public function getNonDiscountedItemsTotal(): int
+    {
+        return parent::getNonDiscountedItemsTotal() - $this->getGiftCardItemsTotal(true);
+    }
+
+    /**
+     * @param bool $nonDiscountedOnly whether to leave out the gift card lines Sylius itself leaves out of the non
+     *                                discounted items total, i.e. those whose variant has a catalog promotion applied
+     */
+    private function getGiftCardItemsTotal(bool $nonDiscountedOnly): int
+    {
+        $channel = $this->getChannel();
+
+        $total = 0;
+        foreach ($this->getItems() as $item) {
+            $product = $item->getProduct();
+            if (!$product instanceof ProductInterface || !$product->isGiftCard()) {
+                continue;
+            }
+
+            $variant = $item->getVariant();
+            if ($nonDiscountedOnly && null !== $channel && null !== $variant && !$variant->getAppliedPromotionsForChannel($channel)->isEmpty()) {
+                continue;
+            }
+
+            $total += $item->getTotal();
+        }
+
+        return $total;
+    }
 }
