@@ -12,6 +12,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
+use Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolverInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -28,6 +29,7 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         ManagerRegistry $managerRegistry,
         private readonly GiftCardEmailManagerInterface $emailManager,
         private readonly GiftCardBalanceOperatorInterface $balanceOperator,
+        private readonly GiftCardExpiryResolverInterface $giftCardExpiryResolver,
     ) {
         $this->managerRegistry = $managerRegistry;
     }
@@ -47,6 +49,11 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
 
         /** @var CustomerInterface|null $customer */
         $customer = $order->getCustomer();
+
+        // A bought card's validity counts from the purchase, which is now. The card add to cart created was given an
+        // expiry when it went into the cart, possibly weeks ago, so every card on the order gets this one instead: the
+        // time spent in the cart does not count, and the cards bought on one order expire at the same moment
+        $expiresAt = $this->giftCardExpiryResolver->resolve();
 
         $manager = null;
 
@@ -76,6 +83,8 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
                 $total = $unit->getTotal();
                 $giftCard->setInitialAmount($total);
                 $giftCard->setAmount($total);
+
+                $giftCard->setExpiresAt($expiresAt);
 
                 if (null !== $customer) {
                     $giftCard->setCustomer($customer);

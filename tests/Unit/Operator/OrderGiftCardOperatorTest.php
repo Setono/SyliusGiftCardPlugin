@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Operator;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
@@ -15,10 +16,12 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator;
+use Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolverInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
+use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\ProductVariant;
 
 /**
@@ -41,6 +44,9 @@ final class OrderGiftCardOperatorTest extends TestCase
     /** @var ObjectProphecy<GiftCardBalanceOperatorInterface> */
     private ObjectProphecy $balanceOperator;
 
+    /** @var ObjectProphecy<GiftCardExpiryResolverInterface> */
+    private ObjectProphecy $expiryResolver;
+
     private OrderGiftCardOperator $operator;
 
     protected function setUp(): void
@@ -49,13 +55,56 @@ final class OrderGiftCardOperatorTest extends TestCase
         $this->managerRegistry = $this->prophesize(ManagerRegistry::class);
         $this->emailManager = $this->prophesize(GiftCardEmailManagerInterface::class);
         $this->balanceOperator = $this->prophesize(GiftCardBalanceOperatorInterface::class);
+        $this->expiryResolver = $this->prophesize(GiftCardExpiryResolverInterface::class);
 
         $this->operator = new OrderGiftCardOperator(
             $this->giftCardFactory->reveal(),
             $this->managerRegistry->reveal(),
             $this->emailManager->reveal(),
             $this->balanceOperator->reveal(),
+            $this->expiryResolver->reveal(),
         );
+    }
+
+    /**
+     * The expiry is resolved once, when the order is placed, and every card bought on it gets that one: on every
+     * line, whether add to cart created the card weeks ago or reconcile creates it now
+     *
+     * @test
+     */
+    public function it_gives_every_card_bought_on_the_order_the_expiry_resolved_at_the_purchase(): void
+    {
+        $expiresAt = new \DateTimeImmutable('2029-09-25 23:59:59');
+        $this->expiryResolver->resolve()->shouldBeCalledOnce()->willReturn($expiresAt);
+
+        $addedToCart = self::giftCard('ADDEDTOCART');
+        $addedToCart->setExpiresAt(new \DateTimeImmutable('2029-08-25 23:59:59'));
+
+        $channel = new Channel();
+        $order = new Order();
+        $order->setChannel($channel);
+        $order->setCurrencyCode('USD');
+        self::addLine($order, true, [$addedToCart, null]);
+        self::addLine($order, true, [null]);
+
+        $this->giftCardFactory->createForChannel($channel)->will(static fn (): GiftCardInterface => new GiftCard());
+        $this->managerRegistry->getManagerForClass(GiftCard::class)->willReturn($this->prophesize(EntityManagerInterface::class)->reveal());
+
+        $this->operator->reconcile($order);
+
+        $giftCards = [];
+        foreach ($order->getItems() as $item) {
+            foreach ($item->getUnits() as $unit) {
+                self::assertInstanceOf(OrderItemUnit::class, $unit);
+                $giftCards[] = $unit->getGiftCard();
+            }
+        }
+
+        self::assertCount(3, $giftCards);
+        foreach ($giftCards as $giftCard) {
+            self::assertNotNull($giftCard);
+            self::assertSame($expiresAt, $giftCard->getExpiresAt());
+        }
     }
 
     /**
