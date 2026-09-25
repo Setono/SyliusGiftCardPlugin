@@ -119,6 +119,9 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
                 return $currency;
             })
             ->setAllowedTypes('currency', ['null', 'string', CurrencyInterface::class])
+            // Sylius keeps every order in the base currency of its channel; the other currencies a channel offers
+            // only change how amounts are displayed. A card in any other currency could never be redeemed, so the
+            // fixture only issues cards in the base currency, like the admin (GiftCardCurrencyIsChannelBaseCurrency)
             ->setNormalizer('currency', function (Options $options, $currencyCode): CurrencyInterface {
                 if ($currencyCode instanceof CurrencyInterface) {
                     $currency = $currencyCode;
@@ -132,24 +135,23 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
                 $channel = $options['channel'];
                 Assert::isInstanceOf($channel, ChannelInterface::class);
 
-                $channelCurrenciesCodes = $channel->getCurrencies()->map(function (CurrencyInterface $currency): string {
-                    $currencyCode = $currency->getCode();
-                    Assert::notNull($currencyCode);
+                $baseCurrency = $channel->getBaseCurrency();
+                Assert::notNull($baseCurrency);
 
-                    return $currencyCode;
-                })->toArray();
+                // The channel is picked at random when the fixture does not name one, so the message names it
+                $issuedIn = sprintf(
+                    'Gift cards are issued in the channel\'s base currency (%s for channel %s)',
+                    (string) $baseCurrency->getCode(),
+                    (string) $channel->getCode(),
+                );
 
                 Assert::nullOrString($currencyCode);
 
-                Assert::notNull($currency, sprintf(
-                    'Currency %s was not found. Use one of: %s',
-                    (string) $currencyCode,
-                    implode(', ', $channelCurrenciesCodes),
-                ));
+                Assert::notNull($currency, sprintf('Currency %s was not found. %s', (string) $currencyCode, $issuedIn));
 
-                Assert::oneOf($currency, $channel->getCurrencies()->toArray(), sprintf(
-                    'Expecting one of %s currencies, got: %s',
-                    implode(', ', $channelCurrenciesCodes),
+                Assert::same($currency->getCode(), $baseCurrency->getCode(), sprintf(
+                    '%s, got: %s',
+                    $issuedIn,
                     (string) $currencyCode,
                 ));
 
