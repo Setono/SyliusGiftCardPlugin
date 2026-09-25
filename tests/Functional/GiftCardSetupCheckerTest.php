@@ -81,6 +81,20 @@ final class GiftCardSetupCheckerTest extends GiftCardFunctionalTestCase
         self::assertSame([], $this->codesOfChannelsWithoutDesign());
     }
 
+    /**
+     * Nobody can buy anything in a disabled channel, so there is nothing to warn about there yet
+     *
+     * @test
+     */
+    public function it_ignores_a_disabled_channel(): void
+    {
+        $disabled = $this->createChannel('DISABLED');
+        $disabled->setEnabled(false);
+        $this->createGiftCardProduct($this->getChannel(), 'CARD', $disabled);
+
+        self::assertSame([$this->getChannel()->getCode()], $this->codesOfChannelsWithoutDesign());
+    }
+
     /** @test */
     public function it_reports_every_such_channel(): void
     {
