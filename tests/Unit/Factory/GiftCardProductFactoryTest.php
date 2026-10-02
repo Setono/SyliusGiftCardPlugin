@@ -158,7 +158,7 @@ final class GiftCardProductFactoryTest extends TestCase
 
         foreach (['virtual' => 'Virtual', 'physical' => 'Physical'] as $value => $name) {
             $variant = $variants['gift_card_' . $value];
-            self::assertSame([$value], array_values(array_map(
+            self::assertSame(['gift_card_delivery_' . $value], array_values(array_map(
                 static fn ($optionValue): ?string => $optionValue->getCode(),
                 $variant->getOptionValues()->toArray(),
             )));
@@ -186,7 +186,9 @@ final class GiftCardProductFactoryTest extends TestCase
         foreach ($option->getValues() as $value) {
             $values[(string) $value->getCode()] = $value->getTranslation('en_US')->getValue();
         }
-        self::assertSame(['virtual' => 'Virtual', 'physical' => 'Physical'], $values);
+        // Option value codes are unique across all options, so the values are prefixed with the option's code rather
+        // than risk the "physical" of a shop's own option
+        self::assertSame(['gift_card_delivery_virtual' => 'Virtual', 'gift_card_delivery_physical' => 'Physical'], $values);
     }
 
     /**
@@ -197,7 +199,7 @@ final class GiftCardProductFactoryTest extends TestCase
      */
     public function it_reuses_the_delivery_option_the_shop_already_has(): void
     {
-        $existing = $this->deliveryOption('virtual', 'physical');
+        $existing = $this->deliveryOption('gift_card_delivery_virtual', 'gift_card_delivery_physical');
         $this->productOptionRepository->findOneBy(['code' => 'gift_card_delivery'])->willReturn($existing);
         $this->productOptionRepository->add(Argument::any())->shouldNotBeCalled();
         $this->productOptionFactory->createNew()->shouldNotBeCalled();
@@ -208,7 +210,47 @@ final class GiftCardProductFactoryTest extends TestCase
 
         $variants = $this->variants($product);
         self::assertSame(['gift_card_2_virtual', 'gift_card_2_physical'], array_keys($variants));
-        self::assertSame($existing->getValues()->first(), $variants['gift_card_2_virtual']->getOptionValues()->first());
+        self::assertSame(['gift_card_delivery_virtual'], $this->optionValueCodes($variants['gift_card_2_virtual']));
+        self::assertSame(['gift_card_delivery_physical'], $this->optionValueCodes($variants['gift_card_2_physical']));
+    }
+
+    /**
+     * A shop that created its delivery option before the values got codes of their own has values coded with the bare
+     * delivery type. Its option is used as it is, and the variants are named as they always were
+     *
+     * @test
+     */
+    public function it_reuses_a_delivery_option_whose_values_are_coded_with_the_bare_delivery_type(): void
+    {
+        $existing = $this->deliveryOption('virtual', 'physical');
+        $this->productOptionRepository->findOneBy(['code' => 'gift_card_delivery'])->willReturn($existing);
+        $this->productOptionRepository->add(Argument::any())->shouldNotBeCalled();
+        $this->productOptionFactory->createNew()->shouldNotBeCalled();
+
+        $variants = $this->variants($this->factory()->create('gift_card_2', 'Gift card'));
+
+        self::assertSame(['gift_card_2_virtual', 'gift_card_2_physical'], array_keys($variants));
+        self::assertSame(['virtual'], $this->optionValueCodes($variants['gift_card_2_virtual']));
+        self::assertSame(['physical'], $this->optionValueCodes($variants['gift_card_2_physical']));
+    }
+
+    /**
+     * Each delivery type is looked up on its own: a value with the prefixed code is used when the option has one, and
+     * a value with the bare code otherwise
+     *
+     * @test
+     */
+    public function it_prefers_a_value_with_the_prefixed_code_over_one_with_the_bare_code(): void
+    {
+        $this->productOptionRepository
+            ->findOneBy(['code' => 'gift_card_delivery'])
+            ->willReturn($this->deliveryOption('virtual', 'physical', 'gift_card_delivery_physical'))
+        ;
+
+        $variants = $this->variants($this->factory()->create('gift_card', 'Gift card'));
+
+        self::assertSame(['virtual'], $this->optionValueCodes($variants['gift_card_virtual']));
+        self::assertSame(['gift_card_delivery_physical'], $this->optionValueCodes($variants['gift_card_physical']));
     }
 
     /** @test */
@@ -242,10 +284,10 @@ final class GiftCardProductFactoryTest extends TestCase
      */
     public function it_refuses_when_the_delivery_option_lacks_a_delivery_type(): void
     {
-        $this->productOptionRepository->findOneBy(['code' => 'gift_card_delivery'])->willReturn($this->deliveryOption('virtual'));
+        $this->productOptionRepository->findOneBy(['code' => 'gift_card_delivery'])->willReturn($this->deliveryOption('gift_card_delivery_virtual'));
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('The product option "gift_card_delivery" has no value "physical"');
+        $this->expectExceptionMessage('The product option "gift_card_delivery" has no value "gift_card_delivery_physical" (or "physical")');
 
         $this->factory()->create('gift_card', 'Gift card');
     }
@@ -292,6 +334,17 @@ final class GiftCardProductFactoryTest extends TestCase
         }
 
         return $variants;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function optionValueCodes(ProductVariantInterface $variant): array
+    {
+        return array_values(array_map(
+            static fn ($optionValue): string => (string) $optionValue->getCode(),
+            $variant->getOptionValues()->toArray(),
+        ));
     }
 
     private function deliveryOption(string ...$valueCodes): ProductOptionInterface
