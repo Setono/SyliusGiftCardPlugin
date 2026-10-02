@@ -121,15 +121,18 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
             ->setDefault('currency', null)
             ->setAllowedTypes('currency', ['null', 'string', CurrencyInterface::class])
             ->setNormalizer('currency', function (Options $options, $currency): ?CurrencyInterface {
-                if (null === $currency || $currency instanceof CurrencyInterface) {
-                    return $currency;
+                if (null === $currency) {
+                    return null;
                 }
 
-                Assert::string($currency);
+                // A currency handed to the factory is looked up by its code, like a code from a fixture file, so one
+                // that is not the managed instance still finds the channels that have it as their base currency
+                $code = $currency instanceof CurrencyInterface ? $currency->getCode() : $currency;
+                Assert::string($code);
 
                 /** @var CurrencyInterface|null $found */
-                $found = $this->currencyRepository->findOneBy(['code' => $currency]);
-                Assert::notNull($found, sprintf('Currency %s was not found. Gift cards are issued in the base currency of their channel', $currency));
+                $found = $this->currencyRepository->findOneBy(['code' => $code]);
+                Assert::notNull($found, sprintf('Currency %s was not found. Gift cards are issued in the base currency of their channel', $code));
 
                 return $found;
             })

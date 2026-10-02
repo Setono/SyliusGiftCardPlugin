@@ -226,6 +226,31 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
     }
 
     /**
+     * The currency handed to the factory need not be the managed instance: it is matched by its code, whether or not
+     * the channel is named
+     *
+     * @test
+     */
+    public function its_example_factory_matches_a_currency_it_is_handed_by_its_code(): void
+    {
+        $euroChannel = $this->createChannelWithBaseCurrency('EURO_CHANNEL', 'EUR');
+
+        $euro = new Currency();
+        $euro->setCode('EUR');
+
+        /** @var GiftCardExampleFactory $factory */
+        $factory = self::getContainer()->get(GiftCardExampleFactory::class);
+
+        $giftCard = $factory->create(['code' => 'FACTORYUNMANAGED01', 'currency' => $euro]);
+        self::assertSame($euroChannel, $giftCard->getChannel());
+        self::assertSame('EUR', $giftCard->getCurrencyCode());
+
+        $giftCard = $factory->create(['code' => 'FACTORYUNMANAGED02', 'channel' => 'EURO_CHANNEL', 'currency' => $euro]);
+        self::assertSame($euroChannel, $giftCard->getChannel());
+        self::assertSame('EUR', $giftCard->getCurrencyCode());
+    }
+
+    /**
      * An entry that names its currency but no channel cannot be issued when no channel has that currency as its base
      * currency, and the message says which currency that is, whichever channels the shop has
      *
