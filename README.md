@@ -42,6 +42,8 @@ A gift card is treated as a means of payment rather than a discount, because tha
 
 Gift cards cannot be used to buy other gift cards, balances are committed when the order is placed and restored, once per payment, when the gift card payment is refunded (cancelling the order refunds it), and every balance change is recorded in an append-only ledger.
 
+An order the gift cards pay only in part stays *awaiting payment* until the rest is paid, although its gift card payments are completed when it is placed (Sylius alone would call it *partially paid*). Sylius' shop only lets a customer pay for an order, or change how to pay it, while the order awaits payment: from the thank you page, from the order in their account, and after a payment that did not go through at the payment provider. Sylius' unpaid order expiry (`sylius:cancel-unpaid-orders`) also only cancels orders that await payment, and cancelling one gives the gift cards their balance back. The plugin does this by decorating Sylius' order payment state resolver (`sylius.state_resolver.order_payment`); in the admin, such an order shows as awaiting payment with the completed gift card payment listed next to the payment for the rest.
+
 ## Requirements
 
 | Requirement | Version                                    |
