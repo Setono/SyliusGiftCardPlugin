@@ -281,6 +281,18 @@ test.describe('admin gift card designs', () => {
     });
 
     /**
+     * A design has no show page, but the resource used to register a show route anyway, rendered with a template
+     * Sylius' admin does not ship. Trimming /edit off a design's address landed on it and answered with a 500
+     */
+    test('a design opened without its edit page is not a server error', async ({ page }) => {
+        const id = await firstDesignId(page);
+
+        const response = await page.goto(`/admin/gift-card-designs/${id}`);
+
+        expect(response?.status()).toBeLessThan(500);
+    });
+
+    /**
      * The position too was written into a non nullable setter while the form was submitted, so saving a design
      * without a position ended in a 500. The setter now accepts null and validation reports the blank field
      */

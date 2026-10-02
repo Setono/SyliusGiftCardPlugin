@@ -84,6 +84,8 @@ setono_sylius_gift_card_admin_gift_card_design:
         alias: setono_sylius_gift_card.gift_card_design
         section: admin
         permission: true
+        # A design has no show page, and Sylius' admin ships no show template to render one with
+        only: [index, create, update, delete, bulkDelete]
         templates: '@SyliusAdmin\\Crud'
         redirect: index
         grid: setono_sylius_gift_card_admin_gift_card_design
