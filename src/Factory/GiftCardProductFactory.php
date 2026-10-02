@@ -101,6 +101,14 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         return $this->slugGenerator->generate($code);
     }
 
+    public function getVariantCodes(string $code, array $deliveryTypes = []): array
+    {
+        return array_map(
+            fn (GiftCardDeliveryType $deliveryType): string => $this->getVariantCode($code, $deliveryType),
+            [] === $deliveryTypes ? GiftCardDeliveryType::cases() : $deliveryTypes,
+        );
+    }
+
     /**
      * @param list<ChannelInterface> $channels
      */
@@ -114,7 +122,7 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
     ): ProductVariantInterface {
         /** @var ProductVariantInterface $variant */
         $variant = $this->productVariantFactory->createNew();
-        $variant->setCode(sprintf('%s_%s', $productCode, (string) $optionValue->getCode()));
+        $variant->setCode($this->getVariantCode($productCode, $deliveryType));
         $variant->setProduct($product);
         $variant->addOptionValue($optionValue);
         $variant->setShippingRequired(GiftCardDeliveryType::Physical === $deliveryType);
@@ -134,6 +142,14 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         }
 
         return $variant;
+    }
+
+    /**
+     * A variant is named after its product and its value of the delivery option, whose code is the delivery type
+     */
+    private function getVariantCode(string $productCode, GiftCardDeliveryType $deliveryType): string
+    {
+        return sprintf('%s_%s', $productCode, $deliveryType->value);
     }
 
     /**

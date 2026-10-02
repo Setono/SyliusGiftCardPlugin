@@ -34,4 +34,14 @@ interface GiftCardProductFactoryInterface
      * picks the code has to know whether its slug is free as well
      */
     public function getSlug(string $code): string;
+
+    /**
+     * The codes create() gives the variants of a product with the given code, one per delivery type. A variant code is
+     * unique across all products, so whoever picks the code has to know whether these are free as well
+     *
+     * @param list<GiftCardDeliveryType> $deliveryTypes the delivery types, defaulting to all of them, as in create()
+     *
+     * @return list<string>
+     */
+    public function getVariantCodes(string $code, array $deliveryTypes = []): array;
 }
