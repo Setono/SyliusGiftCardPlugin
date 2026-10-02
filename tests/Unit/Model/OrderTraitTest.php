@@ -7,6 +7,13 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Model;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
+use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
+use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
+use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
+use Sylius\Component\Core\Model\CatalogPromotion;
+use Sylius\Component\Core\Model\Channel;
+use Sylius\Component\Core\Model\ChannelPricing;
+use Sylius\Component\Core\Model\ProductVariant;
 
 /**
  * An application applies OrderTrait to its own Order class the way the test application does. The order owns the
@@ -89,5 +96,73 @@ final class OrderTraitTest extends TestCase
         self::assertFalse($order->hasGiftCards());
         self::assertSame([$otherOrder], $giftCard->getAppliedOrders()->toArray());
         self::assertTrue($otherOrder->hasGiftCard($giftCard));
+    }
+
+    /**
+     * Promotions take their percentage of, and spread their discount over, what these return, so the gift cards being
+     * bought are left out: a gift card is worth the amount the customer chose and takes no share of a discount
+     *
+     * @test
+     */
+    public function the_gift_cards_being_bought_are_left_out_of_what_promotions_look_at(): void
+    {
+        $channel = self::channel();
+        $order = new Order();
+        $order->setChannel($channel);
+        $order->addItem(self::item(5000, giftCard: true));
+        $order->addItem(self::item(3000, giftCard: false));
+
+        self::assertSame(8000, $order->getItemsTotal());
+        self::assertSame(3000, $order->getPromotionSubjectTotal());
+        self::assertSame(3000, $order->getNonDiscountedItemsTotal());
+    }
+
+    /**
+     * Sylius already leaves an item whose variant has a catalog promotion applied out of the non discounted total, so
+     * a gift card line like that must not be taken off a second time
+     *
+     * @test
+     */
+    public function a_gift_card_line_sylius_already_leaves_out_is_not_left_out_twice(): void
+    {
+        $channel = self::channel();
+        $order = new Order();
+        $order->setChannel($channel);
+        $order->addItem(self::item(5000, giftCard: true, catalogPromotionIn: $channel));
+        $order->addItem(self::item(3000, giftCard: false));
+
+        self::assertSame(3000, $order->getPromotionSubjectTotal());
+        self::assertSame(3000, $order->getNonDiscountedItemsTotal());
+    }
+
+    private static function channel(): Channel
+    {
+        $channel = new Channel();
+        $channel->setCode('WEB');
+
+        return $channel;
+    }
+
+    private static function item(int $unitPrice, bool $giftCard, ?Channel $catalogPromotionIn = null): OrderItem
+    {
+        $product = new Product();
+        $product->setGiftCard($giftCard);
+
+        $variant = new ProductVariant();
+        $variant->setProduct($product);
+
+        if (null !== $catalogPromotionIn) {
+            $channelPricing = new ChannelPricing();
+            $channelPricing->setChannelCode($catalogPromotionIn->getCode());
+            $channelPricing->addAppliedPromotion(new CatalogPromotion());
+            $variant->addChannelPricing($channelPricing);
+        }
+
+        $item = new OrderItem();
+        $item->setVariant($variant);
+        $item->setUnitPrice($unitPrice);
+        new OrderItemUnit($item);
+
+        return $item;
     }
 }

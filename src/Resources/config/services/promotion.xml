@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://symfony.com/schema/dic/services"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <!--
+            A gift card line never takes a share of a promotion, so a card is always worth the amount the customer
+            chose and paid: unit discounts skip it, and order discounts are spread over the other items only (the
+            amount they spread is taken from those items alone, see OrderTrait::getPromotionSubjectTotal())
+        -->
+        <service id="Setono\SyliusGiftCardPlugin\Promotion\Filter\GiftCardExcludingFilter"
+                 class="Setono\SyliusGiftCardPlugin\Promotion\Filter\GiftCardExcludingFilter"
+                 decorates="sylius.promotion_filter.product">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Promotion\Filter\GiftCardExcludingFilter.inner"/>
+        </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Promotion\Distributor\GiftCardExcludingMinimumPriceDistributor"
+                 class="Setono\SyliusGiftCardPlugin\Promotion\Distributor\GiftCardExcludingMinimumPriceDistributor"
+                 decorates="Sylius\Component\Core\Distributor\MinimumPriceDistributorInterface">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Promotion\Distributor\GiftCardExcludingMinimumPriceDistributor.inner"/>
+        </service>
+    </services>
+</container>

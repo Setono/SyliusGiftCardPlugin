@@ -13,8 +13,8 @@ interface OrderGiftCardOperatorInterface
 {
     /**
      * Called on checkout completion. Makes sure every gift card order item unit has a gift card (creating any
-     * that are missing after a quantity change), snapshots the final amount from the paid unit total, associates
-     * the customer and stamps the expiry.
+     * that are missing after a quantity change), sets each card's amount to the amount the customer chose (the unit
+     * price of its line), associates the customer and stamps the expiry.
      *
      * A bought gift card's validity counts from the purchase, i.e. from here, not from when it was added to the
      * cart nor from when the order is paid. Every card bought on the order gets the same expiry, the one
