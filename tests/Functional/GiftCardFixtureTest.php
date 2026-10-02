@@ -208,6 +208,20 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
         $factory->create(['code' => 'FIXTUREBADCUR04', 'currency' => $euro]);
     }
 
+    /**
+     * A short code is a guessable one, and demo data has a way of ending up in production, so the fixture holds a code
+     * to minimum_code_length like the admin does
+     *
+     * @test
+     */
+    public function it_rejects_a_code_shorter_than_the_minimum(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('A gift card code must have at least 12 characters, so it cannot be guessed, got: "SHORTCODE01"');
+
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'SHORTCODE01', 'amount' => 10]]]);
+    }
+
     /** @test */
     public function it_rejects_a_currency_that_does_not_exist(): void
     {

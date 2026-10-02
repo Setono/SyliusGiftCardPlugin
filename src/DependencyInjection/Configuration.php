@@ -25,6 +25,13 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 final class Configuration implements ConfigurationInterface
 {
+    /**
+     * A gift card code is a bearer token: anyone who knows it can spend the balance. No code a card is issued with
+     * from now on, generated or typed, may be shorter than this, which keeps the search space out of reach of guessing
+     * (31^12 combinations for a generated code), even though applying a code is rate limited as well
+     */
+    public const MINIMUM_CODE_LENGTH = 12;
+
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('setono_sylius_gift_card');
@@ -33,14 +40,23 @@ final class Configuration implements ConfigurationInterface
 
         $rootNode
             ->addDefaultsIfNotSet()
+            // A generated code has to meet the minimum like any other, or the shop would issue cards with codes it
+            // refuses an admin to type
+            ->validate()
+                ->ifTrue(static fn (array $config): bool => isset($config['code_length'], $config['minimum_code_length']) && $config['code_length'] < $config['minimum_code_length'])
+                ->then(self::refuseCodeLengthBelowMinimum(...))
+            ->end()
             ->children()
                 ->integerNode('code_length')
-                    // A gift card code is a bearer token: anyone who knows it can spend the balance. The
-                    // minimum keeps the search space out of reach of guessing (31^12 combinations), even
-                    // though applying a code is rate limited as well
-                    ->info('The number of significant characters in a generated gift card code (excluding group separators)')
+                    ->info('The number of significant characters in a generated gift card code (excluding group separators). At least minimum_code_length')
                     ->defaultValue(16)
-                    ->min(12)
+                    ->min(self::MINIMUM_CODE_LENGTH)
+                    ->max(255)
+                ->end()
+                ->integerNode('minimum_code_length')
+                    ->info(sprintf('The fewest significant characters a gift card code may have when the card is issued: a code typed in the admin, a code given to the fixtures, and code_length. At least %d; cards that already exist keep their code, whatever its length', self::MINIMUM_CODE_LENGTH))
+                    ->defaultValue(self::MINIMUM_CODE_LENGTH)
+                    ->min(self::MINIMUM_CODE_LENGTH)
                     ->max(255)
                 ->end()
                 ->scalarNode('default_validity_period')
@@ -116,6 +132,18 @@ final class Configuration implements ConfigurationInterface
         $this->addResourcesSection($rootNode);
 
         return $treeBuilder;
+    }
+
+    /**
+     * @param array{code_length: int, minimum_code_length: int} $config
+     */
+    private static function refuseCodeLengthBelowMinimum(array $config): never
+    {
+        throw new \InvalidArgumentException(sprintf(
+            'The code_length (%d) must be at least the minimum_code_length (%d)',
+            $config['code_length'],
+            $config['minimum_code_length'],
+        ));
     }
 
     /**

@@ -13,6 +13,9 @@
         <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsChannelBaseCurrency">
             <option name="groups">setono_sylius_gift_card</option>
         </constraint>
+        <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCodeLength">
+            <option name="groups">setono_sylius_gift_card</option>
+        </constraint>
         <property name="code">
             <constraint name="NotBlank">
                 <option name="message">setono_sylius_gift_card.gift_card.code.not_blank</option>

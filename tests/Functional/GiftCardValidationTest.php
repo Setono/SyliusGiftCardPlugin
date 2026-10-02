@@ -158,6 +158,37 @@ final class GiftCardValidationTest extends GiftCardFunctionalTestCase
         );
     }
 
+    /**
+     * The minimum is setono_sylius_gift_card.minimum_code_length, 12 by default
+     *
+     * @test
+     */
+    public function it_rejects_a_new_gift_card_whose_code_is_shorter_than_the_configured_minimum(): void
+    {
+        self::assertSame([], $this->violations($this->createGiftCard('ABCDEFGHJKMN')));
+
+        $violations = $this->validate($this->createGiftCard('ABCDEFGHJKM'));
+
+        self::assertCount(1, $violations);
+        self::assertSame('code', $violations[0]->getPropertyPath());
+        self::assertSame('setono_sylius_gift_card.gift_card.code.too_short', $violations[0]->getMessageTemplate());
+        self::assertSame(['{{ limit }}' => '12'], $violations[0]->getParameters());
+    }
+
+    /**
+     * Cards brought over from 0.12 may have shorter codes, which their customers still redeem them by
+     *
+     * @test
+     */
+    public function it_accepts_a_gift_card_that_exists_whatever_the_length_of_its_code(): void
+    {
+        $giftCard = $this->createGiftCard('OLDCODE');
+        $this->manager->persist($giftCard);
+        $this->manager->flush();
+
+        self::assertSame([], $this->violations($giftCard));
+    }
+
     /** @test */
     public function it_rejects_a_gift_card_without_the_basics(): void
     {

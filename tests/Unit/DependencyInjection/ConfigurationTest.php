@@ -99,6 +99,45 @@ final class ConfigurationTest extends TestCase
         ], 'code_length');
     }
 
+    /**
+     * The same reasoning holds for a code an admin types, so the floor of the minimum is not a choice either; a shop
+     * can only raise it
+     *
+     * @test
+     */
+    public function it_holds_issued_codes_to_a_minimum_length_that_can_only_be_raised(): void
+    {
+        $this->assertProcessedConfigurationEquals([[]], [
+            'minimum_code_length' => 12,
+        ], 'minimum_code_length');
+
+        $this->assertProcessedConfigurationEquals([['minimum_code_length' => 16]], [
+            'minimum_code_length' => 16,
+        ], 'minimum_code_length');
+
+        $this->assertConfigurationIsInvalid([['minimum_code_length' => 11]], 'minimum_code_length');
+    }
+
+    /**
+     * A generated code has to meet the minimum like a typed one
+     *
+     * @test
+     */
+    public function it_rejects_a_code_length_below_the_minimum_code_length(): void
+    {
+        $this->assertConfigurationIsInvalid(
+            [['minimum_code_length' => 20, 'code_length' => 16]],
+            'The code_length (16) must be at least the minimum_code_length (20)',
+        );
+
+        $this->assertConfigurationIsInvalid(
+            [['minimum_code_length' => 20]],
+            'The code_length (16) must be at least the minimum_code_length (20)',
+        );
+
+        $this->assertConfigurationIsValid([['minimum_code_length' => 20, 'code_length' => 20]]);
+    }
+
     /** @test */
     public function it_has_sensible_purchase_defaults(): void
     {

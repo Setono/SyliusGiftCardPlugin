@@ -35,6 +35,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
         /**
          * @var array{
          *     code_length: int,
+         *     minimum_code_length: int,
          *     default_validity_period: string|null,
          *     purchase: array{minimum_amount: int, maximum_amount: int|null, maximum_message_length: int},
          *     delivery: array{email_physical_cards: bool},
@@ -47,6 +48,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
 
         $container->setParameter('setono_sylius_gift_card.code_length', $config['code_length']);
+        $container->setParameter('setono_sylius_gift_card.minimum_code_length', $config['minimum_code_length']);
         $container->setParameter('setono_sylius_gift_card.default_validity_period', $config['default_validity_period']);
         $container->setParameter('setono_sylius_gift_card.purchase.minimum_amount', $config['purchase']['minimum_amount']);
         $container->setParameter('setono_sylius_gift_card.purchase.maximum_amount', $config['purchase']['maximum_amount']);
