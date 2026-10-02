@@ -3,7 +3,7 @@ const { clickAndConfirm, flashMessages, setChecked } = require('../support/admin
 const { addSomethingToCart, applyGiftCard } = require('../support/cart');
 const { giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
 const { moneyInCents, typedAmount } = require('../support/money');
-const { channelBaseCurrencyCode } = require('../support/fixtures');
+const { anyCustomerEmail, channelBaseCurrencyCode } = require('../support/fixtures');
 const { clickAndWaitForPage } = require('../support/navigation');
 
 /**
@@ -12,20 +12,6 @@ const { clickAndWaitForPage } = require('../support/navigation');
  * Every spec issues the card it works on, so it knows the card's balance and history exactly, and the cards the
  * fixtures seeded are left for the specs that only look at them.
  */
-
-/**
- * The email of a customer the shop knows, read off the customers grid
- *
- * @param {import('@playwright/test').Page} page
- */
-async function anyCustomerEmail(page) {
-    await page.goto('/admin/customers/');
-
-    const email = (await page.locator('table tbody tr td').allInnerTexts()).map((text) => text.trim()).find((text) => /^\S+@\S+$/.test(text));
-    expect(email, 'the shop has no customer to issue a card to').toBeTruthy();
-
-    return /** @type {string} */ (email);
-}
 
 /**
  * The outstanding balance report's figures per currency: how many usable cards there are and what they hold together

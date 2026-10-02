@@ -466,7 +466,9 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                     'icon' => 'download',
                                 ],
                                 // Sending reaches the customer, so it is a POST form with a CSRF token rather
-                                // than a link, and only the icon is shown to keep the row of actions short
+                                // than a link, and only the icon is shown to keep the row of actions short. It is
+                                // only offered for a card the customer can use, as the email on creation is only
+                                // sent for one
                                 'send_email' => [
                                     'type' => 'setono_sylius_gift_card_post_link',
                                     'label' => 'setono_sylius_gift_card.ui.send_email',
@@ -479,6 +481,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                         ],
                                         'csrf_token_id' => SendGiftCardEmailAction::CSRF_TOKEN_ID,
                                         'confirmation' => true,
+                                        'visible' => 'resource.usable',
                                     ],
                                     'icon' => 'envelope',
                                 ],

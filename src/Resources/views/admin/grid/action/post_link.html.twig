@@ -11,6 +11,8 @@
         confirmation                                   true to ask through the admin's confirmation modal first
         class                                          extra classes for the button
         labeled                                        false to render the icon only
+        visible                                        false to leave the action out; takes the usual grid
+                                                       expressions, so 'resource.usable' decides it per row
 
     The form lays out as `display: contents` so the button, not the form, is the child that the surrounding
     button group lays out, which keeps the action aligned with the plain link actions next to it.
@@ -18,11 +20,14 @@
 {% set path = options.link.url|default('') is not empty ? options.link.url : path(options.link.route, options.link.parameters|default({})) %}
 {% set labeled = options.labeled is defined ? options.labeled : true %}
 {% set confirmation = options.confirmation is defined ? options.confirmation : false %}
+{% set visible = options.visible is defined ? options.visible : true %}
 
-<form action="{{ path }}" method="post" style="display: contents;">
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token(options.csrf_token_id) }}">
-    <button class="ui {% if labeled %}labeled {% endif %}icon button {{ options.class|default('') }}" type="submit"{% if confirmation %} data-requires-confirmation{% endif %}>
-        {% if action.icon is not empty %}<i class="icon {{ action.icon }}"></i>{% endif %}
-        {% if labeled %}{{ action.label|trans }}{% endif %}
-    </button>
-</form>
+{% if visible %}
+    <form action="{{ path }}" method="post" style="display: contents;">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token(options.csrf_token_id) }}">
+        <button class="ui {% if labeled %}labeled {% endif %}icon button {{ options.class|default('') }}" type="submit"{% if confirmation %} data-requires-confirmation{% endif %}>
+            {% if action.icon is not empty %}<i class="icon {{ action.icon }}"></i>{% endif %}
+            {% if labeled %}{{ action.label|trans }}{% endif %}
+        </button>
+    </form>
+{% endif %}

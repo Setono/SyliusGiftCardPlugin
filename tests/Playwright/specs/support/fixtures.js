@@ -153,6 +153,23 @@ async function channelBaseCurrencyCode(page, channelCode) {
 }
 
 /**
+ * The email of a customer the shop knows, read off the customers grid
+ *
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string>}
+ */
+async function anyCustomerEmail(page) {
+    await page.goto('/admin/customers/');
+
+    const email = (await page.locator('table tbody tr td').allInnerTexts()).map((text) => text.trim()).find((text) => /^\S+@\S+$/.test(text));
+    if (undefined === email) {
+        throw new Error('The shop has no customer to issue a card to');
+    }
+
+    return email;
+}
+
+/**
  * Makes sure the shop knows at least one currency other than the given one, creating it through the admin when the
  * fixtures seeded only the channel's own, and returns its code.
  *
@@ -183,4 +200,4 @@ async function currencyOtherThan(page, except) {
     return pick;
 }
 
-module.exports = { channelBaseCurrencyCode, currencyOtherThan, firstDesignId, firstGiftCardId, giftCardCode, productIdsByKind };
+module.exports = { anyCustomerEmail, channelBaseCurrencyCode, currencyOtherThan, firstDesignId, firstGiftCardId, giftCardCode, productIdsByKind };

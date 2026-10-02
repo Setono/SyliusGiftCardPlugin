@@ -8,6 +8,10 @@ setono_sylius_gift_card:
         product_created: Un produit chèque-cadeau a été créé. Vérifiez-le et activez-le ci-dessous.
         email_sent: Le chèque-cadeau a été envoyé au client par email
         email_not_sent_no_customer: Le chèque-cadeau n'a pas d'adresse email client, il n'a donc pas pu être envoyé.
+        email_not_sent_disabled: Le chèque-cadeau est désactivé, il n'a donc pas été envoyé.
+        email_not_sent_expired: Le chèque-cadeau a expiré, il n'a donc pas été envoyé.
+        email_not_sent_no_balance: Le chèque-cadeau n'a plus de solde, il n'a donc pas été envoyé.
+        email_not_sent_not_usable: Le chèque-cadeau ne peut pas être utilisé, il n'a donc pas été envoyé.
         no_longer_usable: Le chèque-cadeau %code% ne peut plus être utilisé et a été retiré de votre commande.
         coverage_changed: Le montant couvert par vos chèques-cadeaux a changé. Veuillez vérifier votre commande et choisir comment régler le reste.
     gift_card_added: Le chèque-cadeau a été ajouté à votre commande

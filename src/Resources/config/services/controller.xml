@@ -66,6 +66,7 @@
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface"/>
             <argument type="service" id="router"/>
             <argument type="service" id="security.csrf.token_manager"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction"
