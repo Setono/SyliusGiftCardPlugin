@@ -106,6 +106,26 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
     }
 
     /**
+     * The card shows the message with the line breaks it was written with, so the email does too. It is still the
+     * customer's text, so it stays escaped. A message stored before symfony/form 6.4.31 may hold CR LF, which is one
+     * line break as well
+     *
+     * @test
+     */
+    public function it_emails_the_message_with_its_line_breaks(): void
+    {
+        $giftCard = $this->createGiftCard('customer@example.com');
+        $giftCard->setCustomMessage("Happy birthday,\nlove from <b>Anna</b>\r\nand Bob");
+        $this->manager->flush();
+
+        $this->emailManager->sendGiftCard($giftCard);
+
+        self::assertCount(1, $this->sentEmails);
+        self::assertSame(1, preg_match('#<em>(Happy birthday.*?)</em>#s', $this->sentEmails[0]['html'], $message), 'the email shows no message');
+        self::assertSame("Happy birthday,<br />\nlove from &lt;b&gt;Anna&lt;/b&gt;<br />\r\nand Bob", $message[1]);
+    }
+
+    /**
      * A physical gift card is shipped with its code printed on it. Emailing the code when the order is paid would
      * make the card spendable before it arrives, so the email only says that the card will be shipped
      *

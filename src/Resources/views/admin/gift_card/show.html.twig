@@ -67,7 +67,8 @@
                         </tr>
                         <tr>
                             <td><strong>{{ 'setono_sylius_gift_card.form.gift_card.custom_message'|trans }}</strong></td>
-                            <td>{{ giftCard.customMessage ?: '-' }}</td>
+                            {# The message keeps the line breaks it was written with, as on the card; nl2br escapes it first #}
+                            <td>{{ giftCard.customMessage ? giftCard.customMessage|nl2br : '-' }}</td>
                         </tr>
                         <tr>
                             <td><strong>{{ 'setono_sylius_gift_card.form.gift_card.expires_at'|trans }}</strong></td>
