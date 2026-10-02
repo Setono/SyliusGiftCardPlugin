@@ -32,6 +32,9 @@ class GiftCardPaymentMethodFixture extends AbstractFixture
         return 'setono_gift_card_payment_method';
     }
 
+    /**
+     * @param array<mixed> $options
+     */
     public function load(array $options): void
     {
         if (null !== $this->paymentMethodProvider->findPaymentMethod()) {
