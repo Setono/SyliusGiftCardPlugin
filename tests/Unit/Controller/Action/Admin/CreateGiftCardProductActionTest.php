@@ -12,6 +12,8 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
+use Sylius\Component\Core\Model\ProductInterface as SyliusProductInterface;
+use Sylius\Component\Product\Model\ProductTranslationInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -48,6 +50,7 @@ final class CreateGiftCardProductActionTest extends TestCase
         $action = new CreateGiftCardProductAction(
             $productFactory->reveal(),
             $this->prophesize(RepositoryInterface::class)->reveal(),
+            $this->prophesize(RepositoryInterface::class)->reveal(),
             $managerRegistry->reveal(),
             $this->prophesize(UrlGeneratorInterface::class)->reveal(),
             $csrfTokenManager->reveal(),
@@ -66,9 +69,13 @@ final class CreateGiftCardProductActionTest extends TestCase
 
         $productFactory = $this->prophesize(GiftCardProductFactoryInterface::class);
         $productFactory->create('gift_card', 'Gift card', Argument::any(), false)->willReturn($product->reveal());
+        $productFactory->getSlug('gift_card')->willReturn('gift-card');
 
         $productRepository = $this->prophesize(RepositoryInterface::class);
         $productRepository->findOneBy(['code' => 'gift_card'])->willReturn(null);
+
+        $productTranslationRepository = $this->prophesize(RepositoryInterface::class);
+        $productTranslationRepository->findOneBy(['slug' => 'gift-card'])->willReturn(null);
 
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->persist($product->reveal())->shouldBeCalled();
@@ -89,6 +96,7 @@ final class CreateGiftCardProductActionTest extends TestCase
         $action = new CreateGiftCardProductAction(
             $productFactory->reveal(),
             $productRepository->reveal(),
+            $productTranslationRepository->reveal(),
             $managerRegistry->reveal(),
             $urlGenerator->reveal(),
             $csrfTokenManager->reveal(),
@@ -112,16 +120,53 @@ final class CreateGiftCardProductActionTest extends TestCase
      */
     public function it_gives_the_product_the_first_code_not_taken(): void
     {
-        $product = $this->prophesize(ProductInterface::class);
-        $product->getId()->willReturn(42);
-
-        $productFactory = $this->prophesize(GiftCardProductFactoryInterface::class);
-        $productFactory->create('gift_card_3', 'Gift card', Argument::any(), false)->willReturn($product->reveal())->shouldBeCalledOnce();
-
         $productRepository = $this->prophesize(RepositoryInterface::class);
         $productRepository->findOneBy(['code' => 'gift_card'])->willReturn($this->prophesize(ProductInterface::class)->reveal());
         $productRepository->findOneBy(['code' => 'gift_card_2'])->willReturn($this->prophesize(ProductInterface::class)->reveal());
         $productRepository->findOneBy(['code' => 'gift_card_3'])->willReturn(null);
+
+        $productTranslationRepository = $this->prophesize(RepositoryInterface::class);
+        $productTranslationRepository->findOneBy(Argument::any())->willReturn(null);
+
+        $this->assertCreatesProductWithCode('gift_card_3', $productRepository->reveal(), $productTranslationRepository->reveal());
+    }
+
+    /**
+     * The product's slug is derived from its code and is unique per locale, so a free code whose slug another product
+     * already uses, like a "Gift card" product the merchant created by hand, is skipped as well. The code and the
+     * slug stay a pair
+     *
+     * @test
+     */
+    public function it_skips_a_code_whose_slug_another_product_already_uses(): void
+    {
+        $productRepository = $this->prophesize(RepositoryInterface::class);
+        $productRepository->findOneBy(Argument::any())->willReturn(null);
+
+        $productTranslationRepository = $this->prophesize(RepositoryInterface::class);
+        $productTranslationRepository->findOneBy(['slug' => 'gift-card'])->willReturn($this->prophesize(ProductTranslationInterface::class)->reveal());
+        $productTranslationRepository->findOneBy(['slug' => 'gift-card-2'])->willReturn(null);
+
+        $this->assertCreatesProductWithCode('gift_card_2', $productRepository->reveal(), $productTranslationRepository->reveal());
+    }
+
+    /**
+     * @param RepositoryInterface<SyliusProductInterface> $productRepository
+     * @param RepositoryInterface<ProductTranslationInterface> $productTranslationRepository
+     */
+    private function assertCreatesProductWithCode(
+        string $code,
+        RepositoryInterface $productRepository,
+        RepositoryInterface $productTranslationRepository,
+    ): void {
+        $product = $this->prophesize(ProductInterface::class);
+        $product->getId()->willReturn(42);
+
+        $productFactory = $this->prophesize(GiftCardProductFactoryInterface::class);
+        $productFactory->create($code, 'Gift card', Argument::any(), false)->willReturn($product->reveal())->shouldBeCalledOnce();
+        $productFactory->getSlug('gift_card')->willReturn('gift-card');
+        $productFactory->getSlug('gift_card_2')->willReturn('gift-card-2');
+        $productFactory->getSlug('gift_card_3')->willReturn('gift-card-3');
 
         $manager = $this->prophesize(EntityManagerInterface::class);
 
@@ -136,7 +181,8 @@ final class CreateGiftCardProductActionTest extends TestCase
 
         $action = new CreateGiftCardProductAction(
             $productFactory->reveal(),
-            $productRepository->reveal(),
+            $productRepository,
+            $productTranslationRepository,
             $managerRegistry->reveal(),
             $urlGenerator->reveal(),
             $csrfTokenManager->reveal(),
