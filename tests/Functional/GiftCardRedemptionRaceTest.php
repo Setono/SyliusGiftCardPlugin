@@ -43,9 +43,9 @@ use Webmozart\Assert\Assert;
 final class GiftCardRedemptionRaceTest extends GiftCardFunctionalTestCase
 {
     /**
-     * The competing order works on a connection of its own, which only sees what this test committed and only has to
-     * wait for the locks this test holds. So unlike the other functional tests, whose writes DAMA rolls back
-     * (phpunit.xml.dist), this one runs on a plain connection and commits for real, and empties the tables afterwards
+     * The competing order works on a second connection, which only sees what this test committed and only waits for
+     * the locks this test holds. So this test cannot run inside the transaction DAMA rolls back (phpunit.xml.dist): it
+     * gets a plain connection, commits for real, and deletes what it committed afterwards
      */
     protected function setUp(): void
     {
@@ -58,19 +58,14 @@ final class GiftCardRedemptionRaceTest extends GiftCardFunctionalTestCase
     {
         $connection = $this->manager->getConnection();
 
-        // A lost race may leave a transaction open, and rows deleted inside it would come back
-        while ($connection->isTransactionActive()) {
-            $connection->rollBack();
-        }
-
-        $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
-
         try {
+            // closing first rolls back a transaction a lost race may have left open
+            $connection->close();
+            $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
             foreach ($connection->createSchemaManager()->listTableNames() as $table) {
                 $connection->executeStatement(sprintf('DELETE FROM %s', $connection->quoteIdentifier($table)));
             }
         } finally {
-            $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
             StaticDriver::setKeepStaticConnections(true);
         }
 
