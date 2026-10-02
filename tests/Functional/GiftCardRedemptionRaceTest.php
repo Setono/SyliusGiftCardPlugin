@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
+use DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
@@ -41,6 +42,36 @@ use Webmozart\Assert\Assert;
  */
 final class GiftCardRedemptionRaceTest extends GiftCardFunctionalTestCase
 {
+    /**
+     * The competing order works on a second connection, which only sees what this test committed and only waits for
+     * the locks this test holds. So this test cannot run inside the transaction DAMA rolls back (phpunit.xml.dist): it
+     * gets a plain connection, commits for real, and deletes what it committed afterwards
+     */
+    protected function setUp(): void
+    {
+        StaticDriver::setKeepStaticConnections(false);
+
+        parent::setUp();
+    }
+
+    protected function tearDown(): void
+    {
+        $connection = $this->manager->getConnection();
+
+        try {
+            // closing first rolls back a transaction a lost race may have left open
+            $connection->close();
+            $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
+            foreach ($connection->createSchemaManager()->listTableNames() as $table) {
+                $connection->executeStatement(sprintf('DELETE FROM %s', $connection->quoteIdentifier($table)));
+            }
+        } finally {
+            StaticDriver::setKeepStaticConnections(true);
+        }
+
+        parent::tearDown();
+    }
+
     /** @test */
     public function it_fails_the_flush_when_the_gift_card_changed_while_the_order_was_placed(): void
     {
