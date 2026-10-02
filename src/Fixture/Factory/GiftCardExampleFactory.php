@@ -68,11 +68,12 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
         $giftCard = $this->giftCardRepository->findOneBy(['code' => $options['code']]);
         $giftCard ??= $this->giftCardFactory->createNew();
 
-        /** @var CurrencyInterface $currency */
-        $currency = $options['currency'];
-
         /** @var ChannelInterface $channel */
         $channel = $options['channel'];
+
+        // The currency the fixture names, if it names one, has been checked to be this one
+        $currency = $channel->getBaseCurrency();
+        Assert::notNull($currency);
 
         /** @var GiftCardDeliveryType $deliveryType */
         $deliveryType = $options['deliveryType'];
@@ -114,58 +115,76 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
                 return $code;
             })
 
-            ->setDefault('channel', LazyOption::randomOne($this->channelRepository))
-            ->setAllowedTypes('channel', ['null', 'string', ChannelInterface::class])
-            ->setNormalizer('channel', LazyOption::findOneBy($this->channelRepository, 'code'))
-
-            ->setDefault('currency', function (Options $options): CurrencyInterface {
-                /** @var ChannelInterface|mixed $channel */
-                $channel = $options['channel'];
-                Assert::isInstanceOf($channel, ChannelInterface::class);
-
-                $currency = $channel->getBaseCurrency();
-                Assert::notNull($currency);
-
-                return $currency;
-            })
+            // Resolved without looking at the channel: when the fixture names no channel, the channel is worked out from
+            // the currency, so the currency cannot be worked out from the channel as well. Left out, the card is issued
+            // in the base currency of its channel
+            ->setDefault('currency', null)
             ->setAllowedTypes('currency', ['null', 'string', CurrencyInterface::class])
-            // Sylius keeps every order in the base currency of its channel; the other currencies a channel offers
-            // only change how amounts are displayed. A card in any other currency could never be redeemed, so the
-            // fixture only issues cards in the base currency, like the admin (GiftCardCurrencyIsChannelBaseCurrency)
-            ->setNormalizer('currency', function (Options $options, $currencyCode): CurrencyInterface {
-                if ($currencyCode instanceof CurrencyInterface) {
-                    $currency = $currencyCode;
-                    $currencyCode = $currency->getCode();
-                } else {
-                    /** @var CurrencyInterface|null $currency */
-                    $currency = $this->currencyRepository->findOneBy(['code' => $currencyCode]);
+            ->setNormalizer('currency', function (Options $options, $currency): ?CurrencyInterface {
+                if (null === $currency || $currency instanceof CurrencyInterface) {
+                    return $currency;
                 }
 
-                /** @var ChannelInterface|mixed $channel */
-                $channel = $options['channel'];
+                Assert::string($currency);
+
+                /** @var CurrencyInterface|null $found */
+                $found = $this->currencyRepository->findOneBy(['code' => $currency]);
+                Assert::notNull($found, sprintf('Currency %s was not found. Gift cards are issued in the base currency of their channel', $currency));
+
+                return $found;
+            })
+
+            // A fixture naming the currency but no channel gets one of the channels with that base currency, so whether
+            // it loads does not depend on which channel happens to be picked
+            ->setDefault('channel', function (Options $options): ChannelInterface {
+                /** @var CurrencyInterface|null $currency */
+                $currency = $options['currency'];
+                if (null === $currency) {
+                    /** @var ChannelInterface $channel */
+                    $channel = LazyOption::randomOne($this->channelRepository)($options);
+
+                    return $channel;
+                }
+
+                /** @var list<ChannelInterface> $channels */
+                $channels = $this->channelRepository->findBy(['baseCurrency' => $currency]);
+                Assert::notEmpty($channels, sprintf(
+                    'Gift cards are issued in the base currency of their channel, and no channel has %s as its base currency',
+                    (string) $currency->getCode(),
+                ));
+
+                return $channels[array_rand($channels)];
+            })
+            ->setAllowedTypes('channel', ['null', 'string', ChannelInterface::class])
+            ->setNormalizer('channel', function (Options $options, $channel): ChannelInterface {
+                if (is_string($channel)) {
+                    $channelCode = $channel;
+                    $channel = $this->channelRepository->findOneBy(['code' => $channelCode]);
+                    Assert::isInstanceOf($channel, ChannelInterface::class, sprintf('Channel %s was not found', $channelCode));
+                }
+
                 Assert::isInstanceOf($channel, ChannelInterface::class);
+
+                // Sylius keeps every order in the base currency of its channel; the other currencies a channel offers
+                // only change how amounts are displayed. A card in any other currency could never be redeemed, so the
+                // fixture only issues cards in the base currency, like the admin (GiftCardCurrencyIsChannelBaseCurrency)
+                /** @var CurrencyInterface|null $currency */
+                $currency = $options['currency'];
+                if (null === $currency) {
+                    return $channel;
+                }
 
                 $baseCurrency = $channel->getBaseCurrency();
                 Assert::notNull($baseCurrency);
 
-                // The channel is picked at random when the fixture does not name one, so the message names it
-                $issuedIn = sprintf(
-                    'Gift cards are issued in the channel\'s base currency (%s for channel %s)',
+                Assert::same($currency->getCode(), $baseCurrency->getCode(), sprintf(
+                    'Gift cards are issued in the channel\'s base currency (%s for channel %s), got: %s',
                     (string) $baseCurrency->getCode(),
                     (string) $channel->getCode(),
-                );
-
-                Assert::nullOrString($currencyCode);
-
-                Assert::notNull($currency, sprintf('Currency %s was not found. %s', (string) $currencyCode, $issuedIn));
-
-                Assert::same($currency->getCode(), $baseCurrency->getCode(), sprintf(
-                    '%s, got: %s',
-                    $issuedIn,
-                    (string) $currencyCode,
+                    (string) $currency->getCode(),
                 ));
 
-                return $currency;
+                return $channel;
             })
 
             ->setDefault('amount', function (Options $options): int {
