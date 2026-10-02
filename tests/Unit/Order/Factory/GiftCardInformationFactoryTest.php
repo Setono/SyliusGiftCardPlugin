@@ -10,6 +10,8 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimits;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
 use Sylius\Component\Core\Calculator\ProductVariantPricesCalculatorInterface;
 use Sylius\Component\Core\Exception\MissingChannelConfigurationException;
 use Sylius\Component\Core\Model\Channel;
@@ -24,9 +26,16 @@ final class GiftCardInformationFactoryTest extends TestCase
     /** @var ObjectProphecy<ProductVariantPricesCalculatorInterface> */
     private ObjectProphecy $calculator;
 
+    /** @var ObjectProphecy<GiftCardAmountLimitsProviderInterface> */
+    private ObjectProphecy $limitsProvider;
+
     protected function setUp(): void
     {
         $this->calculator = $this->prophesize(ProductVariantPricesCalculatorInterface::class);
+
+        // the plugin's defaults: at least 1.00, no maximum
+        $this->limitsProvider = $this->prophesize(GiftCardAmountLimitsProviderInterface::class);
+        $this->limitsProvider->getLimits(Argument::any())->willReturn(new GiftCardAmountLimits(100, null));
     }
 
     /**
@@ -111,6 +120,42 @@ final class GiftCardInformationFactoryTest extends TestCase
     }
 
     /**
+     * The shop refuses an amount outside the purchase limits, so a product priced outside them would start the
+     * customer off at an error, just like one priced at zero. The limits are the ones of the cart's channel, which is
+     * where an application deciding them per channel plugs in
+     *
+     * @test
+     */
+    public function it_leaves_the_amount_empty_when_the_price_is_outside_the_purchase_limits_of_the_channel(): void
+    {
+        $channel = new Channel();
+        $this->limitsProvider->getLimits($channel)->willReturn(new GiftCardAmountLimits(1000, 20000));
+
+        $below = new ProductVariant();
+        $this->calculator->calculate($below, ['channel' => $channel])->willReturn(999);
+        $above = new ProductVariant();
+        $this->calculator->calculate($above, ['channel' => $channel])->willReturn(20001);
+
+        self::assertNull($this->createFactory()->createNew($this->createCart($channel), $this->createItem($below))->getAmount());
+        self::assertNull($this->createFactory()->createNew($this->createCart($channel), $this->createItem($above))->getAmount());
+    }
+
+    /** @test */
+    public function it_seeds_a_price_that_is_exactly_one_of_the_limits(): void
+    {
+        $channel = new Channel();
+        $this->limitsProvider->getLimits($channel)->willReturn(new GiftCardAmountLimits(1000, 20000));
+
+        $minimum = new ProductVariant();
+        $this->calculator->calculate($minimum, ['channel' => $channel])->willReturn(1000);
+        $maximum = new ProductVariant();
+        $this->calculator->calculate($maximum, ['channel' => $channel])->willReturn(20000);
+
+        self::assertSame(1000, $this->createFactory()->createNew($this->createCart($channel), $this->createItem($minimum))->getAmount());
+        self::assertSame(20000, $this->createFactory()->createNew($this->createCart($channel), $this->createItem($maximum))->getAmount());
+    }
+
+    /**
      * The class is the setono_sylius_gift_card.order.model.gift_card_information.class parameter, which is how an
      * application carries information of its own through add to cart
      *
@@ -118,7 +163,7 @@ final class GiftCardInformationFactoryTest extends TestCase
      */
     public function it_creates_the_configured_class(): void
     {
-        $factory = new GiftCardInformationFactory(CustomGiftCardInformation::class, $this->calculator->reveal());
+        $factory = new GiftCardInformationFactory(CustomGiftCardInformation::class, $this->calculator->reveal(), $this->limitsProvider->reveal());
 
         $information = $factory->createNew(new Order(), new OrderItem());
 
@@ -127,7 +172,7 @@ final class GiftCardInformationFactoryTest extends TestCase
 
     private function createFactory(): GiftCardInformationFactory
     {
-        return new GiftCardInformationFactory(GiftCardInformation::class, $this->calculator->reveal());
+        return new GiftCardInformationFactory(GiftCardInformation::class, $this->calculator->reveal(), $this->limitsProvider->reveal());
     }
 
     private function createCart(Channel $channel): Order
