@@ -33,8 +33,10 @@
         {% if giftCard.expiresAt is not null %}
             <br/>{{ 'setono_sylius_gift_card.email.valid_until'|trans({}, 'messages', localeCode) }} {{ giftCard.expiresAt|format_date('long', locale=localeCode) }}
         {% endif %}
+        {# The message keeps the line breaks it was written with, as on the card. nl2br escapes the message first, and a
+           <br> works in every mail client, which white-space: pre-line does not (desktop Outlook's renderer ignores it) #}
         {% if giftCard.customMessage is not empty %}
-            <br/><em>{{ giftCard.customMessage }}</em>
+            <br/><em>{{ giftCard.customMessage|nl2br }}</em>
         {% endif %}
     </p>
 

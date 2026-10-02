@@ -153,6 +153,21 @@ test.describe('admin issuing gift cards', () => {
         await expect(page.locator('.sylius-autocomplete').filter({ has: page.locator('[name$="[customer]"]') }).locator('> .text')).toHaveText(email);
     });
 
+    /**
+     * The card shows the message with the line breaks it was written with, so the show page does too. The message is
+     * the customer's text, so it is shown as typed rather than read as markup
+     */
+    test('the show page keeps the line breaks of the message', async ({ page }) => {
+        const message = 'Happy birthday,\nlove from <b>Anna</b>\nand Bob';
+        const card = await issueGiftCard(page, { amount: 1500, customMessage: message });
+
+        await page.goto(`/admin/gift-cards/${card.id}`);
+        const shown = page.locator('table').first().locator('tbody tr').filter({ hasText: 'Custom message' }).locator('td').nth(1);
+
+        expect(await shown.innerText()).toBe(message);
+        await expect(shown.locator('b')).toHaveCount(0);
+    });
+
     test('an issued card records its opening balance and counts toward the outstanding balance', async ({ page }) => {
         const amount = 4321;
 
