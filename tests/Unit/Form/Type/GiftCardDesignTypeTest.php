@@ -21,6 +21,9 @@ use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormExtensionInterface;
 use Symfony\Component\Form\PreloadedExtension;
 use Symfony\Component\Form\Test\TypeTestCase;
+use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\ConstraintValidator;
+use Symfony\Component\Validator\ConstraintValidatorFactory;
 use Symfony\Component\Validator\Validation;
 
 final class GiftCardDesignTypeTest extends TypeTestCase
@@ -59,6 +62,24 @@ final class GiftCardDesignTypeTest extends TypeTestCase
         self::assertFalse($form->isValid());
         self::assertCount(1, $form->get('position')->getErrors());
         self::assertNull($design->getPosition());
+    }
+
+    /**
+     * The code is a unique, non nullable column, so a blank one used to pass the form and end the request in a 500
+     * when the database refused it
+     *
+     * @test
+     */
+    public function it_reports_a_blank_code_on_the_code_field(): void
+    {
+        $form = $this->factory->create(GiftCardDesignType::class, new GiftCardDesign());
+        $form->submit(['code' => ''] + $this->submission('0'));
+
+        self::assertFalse($form->isValid());
+        $errors = iterator_to_array($form->get('code')->getErrors());
+        self::assertCount(1, $errors);
+        self::assertInstanceOf(FormError::class, $errors[0]);
+        self::assertSame('setono_sylius_gift_card.gift_card_design.code.not_blank', $errors[0]->getMessageTemplate());
     }
 
     /** @test */
@@ -176,8 +197,18 @@ final class GiftCardDesignTypeTest extends TypeTestCase
             new ChannelChoiceType($channelRepository->reveal()),
         ], []);
 
+        $uniqueEntityValidator = new class() extends ConstraintValidator {
+            public function validate(mixed $value, Constraint $constraint): void
+            {
+                // Uniqueness of the code is a database lookup, covered by the functional GiftCardValidationTest
+            }
+        };
+
         $validator = Validation::createValidatorBuilder()
             ->addXmlMapping(__DIR__ . '/../../../../src/Resources/config/validation/GiftCardDesign.xml')
+            ->setConstraintValidatorFactory(new ConstraintValidatorFactory([
+                'doctrine.orm.validator.unique' => $uniqueEntityValidator,
+            ]))
             ->getValidator()
         ;
 
