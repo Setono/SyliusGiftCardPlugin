@@ -118,6 +118,15 @@
         "analyse": "phpstan analyse",
         "check-style": "ecs check",
         "fix-style": "ecs check --fix",
-        "phpunit": "phpunit"
+        "lint": [
+            "@lint:container",
+            "@lint:twig",
+            "@lint:yaml"
+        ],
+        "lint:container": "@php tests/Application/bin/console lint:container",
+        "lint:twig": "@php tests/Application/bin/console lint:twig src/Resources",
+        "lint:yaml": "@php tests/Application/bin/console lint:yaml src/Resources",
+        "phpunit": "phpunit",
+        "rector": "rector process --dry-run"
     }
 }
