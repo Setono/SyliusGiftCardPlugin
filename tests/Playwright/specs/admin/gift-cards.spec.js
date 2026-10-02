@@ -1,5 +1,8 @@
 const { test, expect } = require('@playwright/test');
-const { firstGiftCardId, firstDesignId, giftCardCode, channelBaseCurrencyCode, currencyOtherThan } = require('../support/fixtures');
+const { flashMessages, setChecked } = require('../support/admin');
+const { anyCustomerEmail, firstGiftCardId, firstDesignId, giftCardCode, channelBaseCurrencyCode, currencyOtherThan } = require('../support/fixtures');
+const { giftCardRows, issueGiftCard } = require('../support/gift-cards');
+const { clickAndWaitForPage } = require('../support/navigation');
 const { pdfPageCount, pdfText } = require('../support/pdf');
 
 test.describe('admin gift cards', () => {
@@ -164,7 +167,8 @@ test.describe('admin gift cards', () => {
      * happen through a POST carrying a CSRF token: a link would be followed by a browser prefetch.
      */
     test('a gift card can be emailed from the show page', async ({ page }) => {
-        const id = await firstGiftCardId(page);
+        // Issued here rather than taken from the grid: only a card the customer can use is offered for sending
+        const { id } = await issueGiftCard(page, { amount: 1000, customerEmail: await anyCustomerEmail(page) });
 
         await page.goto(`/admin/gift-cards/${id}`);
 
@@ -172,26 +176,66 @@ test.describe('admin gift cards', () => {
         await expect(form).toHaveCount(1);
         await expect(form.locator('input[name="_csrf_token"]')).toHaveCount(1);
 
-        // Whether the card reaches anybody depends on the card, so read the answer off the page rather than
-        // assuming what the fixtures seeded
-        const hasCustomer = 0 === await page.getByText('No customer', { exact: true }).count();
-
         await form.locator('button[type="submit"]').click();
 
         await expect(page).toHaveURL(new RegExp(`/admin/gift-cards/${id}$`));
-        const flash = page.locator('.sylius-flash-message').first();
-        await expect(flash).toBeVisible();
-        await expect(flash).toContainText(hasCustomer ? /emailed to the customer/i : /no customer email address/i);
+        expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/emailed to the customer/i));
     });
 
     test('the grid offers sending as a POST, not a link', async ({ page }) => {
-        await page.goto('/admin/gift-cards/');
+        const { printedCode } = await issueGiftCard(page, { amount: 1000 });
 
-        const forms = page.locator('form[action$="/send-email"]');
-        await expect(forms.first()).toBeVisible();
-        await expect(forms.first().locator('input[name="_csrf_token"]')).toHaveCount(1);
+        const row = await giftCardRows(page, printedCode);
+        const form = row.locator('form[action$="/send-email"]');
+        await expect(form).toBeVisible();
+        await expect(form.locator('input[name="_csrf_token"]')).toHaveCount(1);
         // A link would let a prefetch send the card behind the admin's back
         await expect(page.locator('a[href$="/send-email"]')).toHaveCount(0);
+    });
+
+    /**
+     * A card the customer cannot use would arrive as a gift that does not work, so the email on creation skips it,
+     * and the admin is not offered to send it either: neither its row in the grid nor its show page has the action
+     */
+    test('sending is only offered for a card the customer can use', async ({ page }) => {
+        const usable = await issueGiftCard(page, { amount: 1000 });
+        const disabled = await issueGiftCard(page, { amount: 1000, enabled: false });
+        const expired = await issueGiftCard(page, { amount: 1000, expiresAt: '2020-01-31' });
+
+        for (const [card, offered] of [[usable, 1], [disabled, 0], [expired, 0]]) {
+            const sendForm = `form[action="/admin/gift-cards/${card.id}/send-email"]`;
+
+            const row = await giftCardRows(page, card.printedCode);
+            await expect(row).toHaveCount(1);
+            await expect(row.locator(sendForm), `the grid row of ${card.printedCode}`).toHaveCount(offered);
+
+            await page.goto(`/admin/gift-cards/${card.id}`);
+            await expect(page.locator(sendForm), `the show page of ${card.printedCode}`).toHaveCount(offered);
+        }
+    });
+
+    /**
+     * A page opened while the card was usable still offers sending after the card stopped being usable, e.g. when
+     * its order was refunded in the meantime. The action refuses then, and says why
+     */
+    test('a card that can no longer be used is not sent from a page opened before', async ({ page }) => {
+        const card = await issueGiftCard(page, { amount: 1000, customerEmail: await anyCustomerEmail(page) });
+        await page.goto(`/admin/gift-cards/${card.id}`);
+        const send = page.locator(`form[action="/admin/gift-cards/${card.id}/send-email"] button[type="submit"]`);
+        await expect(send).toBeVisible();
+
+        // Another tab disables the card while this one still shows it
+        const other = await page.context().newPage();
+        await other.goto(`/admin/gift-cards/${card.id}/edit`);
+        await setChecked(other.locator('[name$="[enabled]"]'), false);
+        await clickAndWaitForPage(other, other.locator('form[name="setono_sylius_gift_card_gift_card"] button[type="submit"]').first());
+        await other.close();
+
+        await clickAndWaitForPage(page, send);
+
+        expect(page.url()).toMatch(new RegExp(`/admin/gift-cards/${card.id}$`));
+        expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/disabled, so it was not sent/i));
+        await expect(page.locator(`form[action="/admin/gift-cards/${card.id}/send-email"]`)).toHaveCount(0);
     });
 
     test('a gift card is not emailed by a GET or without a CSRF token', async ({ page }) => {
