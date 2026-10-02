@@ -60,6 +60,17 @@ final class GiftCardAmountPrefillTest extends GiftCardFunctionalTestCase
     }
 
     /**
+     * The purchase minimum is setono_sylius_gift_card.purchase.minimum_amount, 1.00 by default, so a product sold for
+     * 0.50 would start the field at an amount the shop refuses
+     *
+     * @test
+     */
+    public function it_starts_the_amount_field_empty_when_the_product_is_sold_for_less_than_the_purchase_minimum(): void
+    {
+        self::assertSame('', $this->renderAmountField($this->createGiftCardProduct(50)));
+    }
+
+    /**
      * Does what OrderItemController::addAction() does before it renders the add to cart form on the product page, and
      * returns what the amount field holds when the customer first sees it
      */

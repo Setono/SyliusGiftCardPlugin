@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Order\Factory;
 
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformationInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
 use Sylius\Component\Core\Calculator\ProductVariantPricesCalculatorInterface;
 use Sylius\Component\Core\Exception\MissingChannelConfigurationException;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -21,6 +22,7 @@ final class GiftCardInformationFactory implements GiftCardInformationFactoryInte
     public function __construct(
         private readonly string $className,
         private readonly ProductVariantPricesCalculatorInterface $productVariantPricesCalculator,
+        private readonly GiftCardAmountLimitsProviderInterface $amountLimitsProvider,
     ) {
     }
 
@@ -35,8 +37,9 @@ final class GiftCardInformationFactory implements GiftCardInformationFactoryInte
      * price: Sylius only prices a line once it has been added to the cart, so on the product page the line costs 0.
      * The channel price is in the channel's base currency, which is the currency the amount field is in.
      *
-     * Without a variant, a channel or a price for the variant in the channel there is nothing to suggest, and a
-     * product sold for nothing suggests an amount the shop refuses. The field then starts out empty
+     * Without a variant, a channel or a price for the variant in the channel there is nothing to suggest. A price the
+     * shop refuses as an amount, because the product is sold for nothing or for less or more than the purchase limits
+     * allow, would start the customer off at an error. In each case the field starts out empty
      */
     private function resolveInitialAmount(OrderInterface $cart, OrderItemInterface $cartItem): ?int
     {
@@ -53,6 +56,11 @@ final class GiftCardInformationFactory implements GiftCardInformationFactoryInte
             return null;
         }
 
-        return $price > 0 ? $price : null;
+        $limits = $this->amountLimitsProvider->getLimits($channel);
+        if ($price <= 0 || $price < $limits->minimum || (null !== $limits->maximum && $price > $limits->maximum)) {
+            return null;
+        }
+
+        return $price;
     }
 }
