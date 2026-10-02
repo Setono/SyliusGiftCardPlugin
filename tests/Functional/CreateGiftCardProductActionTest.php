@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
+use Sylius\Component\Core\Model\ProductVariant;
 use Sylius\Component\Core\Model\ProductVariantInterface;
 use Sylius\Component\Locale\Model\Locale;
 use Sylius\Component\Product\Model\ProductOptionInterface;
@@ -131,6 +132,43 @@ final class CreateGiftCardProductActionTest extends AdminFunctionalTestCase
         $this->assertNoProduct('gift_card');
     }
 
+    /**
+     * The variants are named after the product code and the delivery type, and a variant code is unique across all
+     * products, so a product the merchant made by hand or imported with a variant named that way rules the code out
+     * as well
+     *
+     * @test
+     *
+     * @dataProvider deliveryTypes
+     */
+    public function it_skips_a_code_whose_variant_code_another_product_already_uses(string $deliveryType): void
+    {
+        $this->persistHandmadeProduct(['en_US' => 'handmade-gift-card'], [sprintf('gift_card_%s', $deliveryType)]);
+
+        $response = $this->pressCreateGiftCardProduct();
+        self::assertTrue($response->isRedirect(), sprintf('Expected a redirect to the new product, got a %d response', $response->getStatusCode()));
+
+        $product = $this->findProduct('gift_card_2');
+        self::assertTrue($response->isRedirect(sprintf('/admin/products/%d/edit', (int) $product->getId())));
+
+        $variantCodes = [];
+        foreach ($product->getVariants() as $variant) {
+            $variantCodes[] = $variant->getCode();
+        }
+        sort($variantCodes);
+        self::assertSame(['gift_card_2_physical', 'gift_card_2_virtual'], $variantCodes);
+        $this->assertNoProduct('gift_card');
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public function deliveryTypes(): iterable
+    {
+        yield 'virtual' => ['virtual'];
+        yield 'physical' => ['physical'];
+    }
+
     /** @test */
     public function it_creates_nothing_without_the_token_of_the_grid_action(): void
     {
@@ -174,8 +212,9 @@ final class CreateGiftCardProductActionTest extends AdminFunctionalTestCase
      * A product the merchant created by hand, with a code the scaffold never picks
      *
      * @param array<string, string> $slugs the slug of the product by locale code
+     * @param list<string> $variantCodes the codes of the product's variants
      */
-    private function persistHandmadeProduct(array $slugs): void
+    private function persistHandmadeProduct(array $slugs, array $variantCodes = []): void
     {
         $product = new Product();
         $product->setCode('handmade_gift_card');
@@ -185,6 +224,12 @@ final class CreateGiftCardProductActionTest extends AdminFunctionalTestCase
             $product->setFallbackLocale($localeCode);
             $product->setName('Gift card');
             $product->setSlug($slug);
+        }
+
+        foreach ($variantCodes as $variantCode) {
+            $variant = new ProductVariant();
+            $variant->setCode($variantCode);
+            $product->addVariant($variant);
         }
 
         $this->manager->persist($product);

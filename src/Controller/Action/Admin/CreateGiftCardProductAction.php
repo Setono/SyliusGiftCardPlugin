@@ -8,6 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface;
 use Sylius\Component\Core\Model\ProductInterface as SyliusProductInterface;
+use Sylius\Component\Core\Model\ProductVariantInterface;
 use Sylius\Component\Product\Model\ProductTranslationInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -40,11 +41,13 @@ final class CreateGiftCardProductAction
     /**
      * @param RepositoryInterface<SyliusProductInterface> $productRepository
      * @param RepositoryInterface<ProductTranslationInterface> $productTranslationRepository
+     * @param RepositoryInterface<ProductVariantInterface> $productVariantRepository
      */
     public function __construct(
         private readonly GiftCardProductFactoryInterface $productFactory,
         private readonly RepositoryInterface $productRepository,
         private readonly RepositoryInterface $productTranslationRepository,
+        private readonly RepositoryInterface $productVariantRepository,
         ManagerRegistry $managerRegistry,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
@@ -94,11 +97,16 @@ final class CreateGiftCardProductAction
     /**
      * The product gets a slug derived from its code in every locale, and a slug is unique per locale, so a code whose
      * slug another product already uses in any locale is as taken as the code itself. A merchant who created a
-     * "Gift card" product by hand has the slug "gift-card", which Sylius' admin derives from that name
+     * "Gift card" product by hand has the slug "gift-card", which Sylius' admin derives from that name.
+     *
+     * The same goes for the variants, whose codes are derived from the product code and are unique across all
+     * products: a code is taken when another product has a variant with any of them, like a gift card product the
+     * merchant made by hand or imported with the variants "gift_card_virtual" and "gift_card_physical"
      */
     private function isTaken(string $code): bool
     {
         return null !== $this->productRepository->findOneBy(['code' => $code]) ||
-            null !== $this->productTranslationRepository->findOneBy(['slug' => $this->productFactory->getSlug($code)]);
+            null !== $this->productTranslationRepository->findOneBy(['slug' => $this->productFactory->getSlug($code)]) ||
+            null !== $this->productVariantRepository->findOneBy(['code' => $this->productFactory->getVariantCodes($code)]);
     }
 }

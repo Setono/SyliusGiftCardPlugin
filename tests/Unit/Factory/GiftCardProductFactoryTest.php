@@ -105,6 +105,30 @@ final class GiftCardProductFactoryTest extends TestCase
         }
     }
 
+    /**
+     * Whoever picks the code checks the variant codes it will get against the variant codes of other products, so the
+     * codes the factory reports must be the ones it gives the variants, for every delivery type or only the ones asked
+     * for
+     *
+     * @test
+     */
+    public function it_gives_the_variants_the_codes_it_reports_for_the_product_code(): void
+    {
+        $factory = $this->factory();
+
+        self::assertSame(['gift_card_2_virtual', 'gift_card_2_physical'], $factory->getVariantCodes('gift_card_2'));
+        self::assertSame(
+            $factory->getVariantCodes('gift_card_2'),
+            array_keys($this->variants($factory->create('gift_card_2', 'Gift card'))),
+        );
+
+        self::assertSame(['gift_card_2_physical'], $factory->getVariantCodes('gift_card_2', [GiftCardDeliveryType::Physical]));
+        self::assertSame(
+            $factory->getVariantCodes('gift_card_2', [GiftCardDeliveryType::Physical]),
+            array_keys($this->variants($factory->create('gift_card_2', 'Gift card', deliveryTypes: [GiftCardDeliveryType::Physical]))),
+        );
+    }
+
     /** @test */
     public function it_sells_the_product_in_every_channel_unless_told_otherwise(): void
     {
