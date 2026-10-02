@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Fixture\Factory;
 
+use Setono\SyliusGiftCardPlugin\DependencyInjection\Configuration;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
@@ -40,6 +41,7 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
         protected ChannelRepositoryInterface $channelRepository,
         protected RepositoryInterface $currencyRepository,
         protected GiftCardBalanceOperatorInterface $balanceOperator,
+        protected int $minimumCodeLength = Configuration::MINIMUM_CODE_LENGTH,
     ) {
         $this->faker = \Faker\Factory::create();
         $this->optionsResolver = new OptionsResolver();
@@ -103,6 +105,14 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
     {
         $resolver
             ->setDefault('code', fn (Options $options): string => $this->giftCardCodeGenerator->generate())
+            ->setAllowedTypes('code', 'string')
+            // Demo data is held to the same minimum as a code typed in the admin: a short code is a guessable one,
+            // and demo data has a way of ending up in production
+            ->setNormalizer('code', function (Options $options, string $code): string {
+                Assert::minLength($code, $this->minimumCodeLength, 'A gift card code must have at least %2$s characters, so it cannot be guessed, got: %s');
+
+                return $code;
+            })
 
             ->setDefault('channel', LazyOption::randomOne($this->channelRepository))
             ->setAllowedTypes('channel', ['null', 'string', ChannelInterface::class])

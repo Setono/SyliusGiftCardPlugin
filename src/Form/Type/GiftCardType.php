@@ -34,6 +34,7 @@ final class GiftCardType extends AbstractResourceType
         private readonly RepositoryInterface $currencyRepository,
         private readonly GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         private readonly GiftCardCodeNormalizerInterface $giftCardCodeNormalizer,
+        private readonly int $minimumCodeLength,
         array $validationGroups = [],
     ) {
         parent::__construct($dataClass, $validationGroups);
@@ -128,6 +129,7 @@ final class GiftCardType extends AbstractResourceType
                 'label' => 'sylius.ui.code',
                 'disabled' => !$isNew,
                 'help' => $isNew ? 'setono_sylius_gift_card.form.gift_card.code_help' : null,
+                'help_translation_parameters' => ['%minimum%' => $this->minimumCodeLength],
             ]);
 
             $channel = $giftCard->getChannel();

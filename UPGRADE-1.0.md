@@ -26,7 +26,7 @@ The bundle configuration tree changed completely. Remove any `setono_sylius_gift
 
 Two changes deserve a closer look, because a gift card code is a bearer token (whoever knows it can spend the balance) and `1.0` guards it more strictly:
 
-- **`code_length` must be at least 12.** `0.12.x` accepted anything from 1 and defaulted to 20. A shorter setting now stops the container from compiling with `The value 8 is too small for path "setono_sylius_gift_card.code_length". Should be greater than or equal to 12`. Raise it or drop it (the default is 16). Codes already issued keep working whatever their length; the setting only applies to codes generated from now on.
+- **`code_length` must be at least 12.** `0.12.x` accepted anything from 1 and defaulted to 20. A shorter setting now stops the container from compiling with `The value 8 is too small for path "setono_sylius_gift_card.code_length". Should be greater than or equal to 12`. Raise it or drop it (the default is 16). Codes already issued keep working whatever their length; the setting only applies to codes generated from now on. The same floor applies to a code an admin types when issuing a card and to codes given to the `setono_gift_card` fixture, through the new `minimum_code_length` setting (12 by default, and it cannot be lowered); a fixture file naming a shorter code now fails to load.
 - **Applying a code is rate limited**, per session and per client IP, through two limiters the plugin registers under `framework.rate_limiter` (see the README). Behind a reverse proxy or load balancer, configure `framework.trusted_proxies` first: without it every customer's requests come from the proxy's address, so they all share one IP budget.
 
 ## Entity / schema changes

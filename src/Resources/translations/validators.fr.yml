@@ -12,6 +12,7 @@ setono_sylius_gift_card:
         code:
             not_blank: Veuillez renseigner un code
             unique: Le code doit être unique
+            too_short: 'Le code doit comporter au moins {{ limit }} lettres et chiffres, pour ne pas pouvoir être deviné.'
         amount:
             not_blank: Veuillez renseigner un montant
             integer: Le montant doit être un entier

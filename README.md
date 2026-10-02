@@ -200,7 +200,8 @@ All settings are optional and shown here with their defaults:
 ```yaml
 # config/packages/setono_sylius_gift_card.yaml
 setono_sylius_gift_card:
-    code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…); minimum 12, because a code is a bearer token and must not be guessable
+    code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…); at least minimum_code_length
+    minimum_code_length: 12              # fewest significant characters of any code a card is issued with, generated or typed; 12 at the least, because a code is a bearer token and must not be guessable; see below
     default_validity_period: '3 years'   # how long a card stays valid (any strtotime-compatible interval), or null to never expire; see below
     purchase:
         minimum_amount: 100              # minor units (e.g. cents)
@@ -222,6 +223,12 @@ expires at the end of the day the period after checkout completion, however long
 card bought on one order expires on the same day. It does not count from payment, even when that comes days later, as
 with a bank transfer. A change to the setting applies to the cards bought or issued after it; existing cards keep their
 expiry.
+
+`minimum_code_length` applies to every card issued from now on: `code_length` cannot be set below it, an admin who
+types a code of their own on the *New gift card* form is held to it, and so is a code given to the `setono_gift_card`
+fixture. A typed code is counted once it is normalized: it is saved in capitals with dashes and spaces dropped, the way
+the cart looks codes up, so only its letters and digits count. Cards that already exist keep their code whatever its
+length, so cards brought over from `0.12.x` with shorter codes stay usable and editable.
 
 `maximum_message_length` is what both forms allow: it sets the shop textarea's `maxlength` and remaining-characters
 counter, and it is the limit enforced by the `GiftCardMessageLength` constraint on the gift card and on the shop's

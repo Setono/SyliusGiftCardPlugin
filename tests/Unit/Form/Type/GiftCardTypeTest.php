@@ -11,6 +11,7 @@ use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCodeLengthValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
 use Sylius\Bundle\ResourceBundle\Form\Type\ResourceAutocompleteChoiceType;
@@ -199,22 +200,23 @@ final class GiftCardTypeTest extends TypeTestCase
     public function it_issues_a_new_card_with_the_code_its_form_shows(): void
     {
         $giftCard = new GiftCard();
-        $giftCard->setCode('SHOWNCODE');
+        $giftCard->setCode('SHOWNCODE1234');
 
         $form = $this->factory->create(GiftCardType::class, $giftCard);
 
         self::assertFalse($form->get('code')->isDisabled());
-        self::assertSame('SHOWNCODE', $form->get('code')->getViewData());
+        self::assertSame('SHOWNCODE1234', $form->get('code')->getViewData());
         self::assertSame('setono_sylius_gift_card.form.gift_card.code_help', $form->get('code')->getConfig()->getOption('help'));
+        self::assertSame(['%minimum%' => 12], $form->get('code')->getConfig()->getOption('help_translation_parameters'));
 
         $submitted = new GiftCard();
         $submitted->setCode('GENERATEDONPOST');
 
         $form = $this->factory->create(GiftCardType::class, $submitted);
-        $form->submit($this->validSubmission(['code' => 'SHOWNCODE']));
+        $form->submit($this->validSubmission(['code' => 'SHOWNCODE1234']));
 
         self::assertTrue($form->isValid(), (string) $form->getErrors(true));
-        self::assertSame('SHOWNCODE', $submitted->getCode());
+        self::assertSame('SHOWNCODE1234', $submitted->getCode());
     }
 
     /**
@@ -249,6 +251,55 @@ final class GiftCardTypeTest extends TypeTestCase
         self::assertFalse($form->isValid());
         self::assertCount(1, $form->get('code')->getErrors());
         self::assertSame('setono_sylius_gift_card.gift_card.code.not_blank', $form->get('code')->getErrors()[0]->getMessage());
+    }
+
+    /**
+     * A code is a bearer token, and a short one can be guessed at the redemption form. What counts is what is left once
+     * the code is normalized, which is what the cart looks up
+     *
+     * @test
+     */
+    public function it_refuses_a_typed_code_shorter_than_the_minimum(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setCode('GENERATEDONPOST');
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        // 14 characters as typed, 11 once the dashes are dropped
+        $form->submit($this->validSubmission(['code' => 'ABCD-EFGH-JKM']));
+
+        self::assertFalse($form->isValid());
+        self::assertCount(1, $form->get('code')->getErrors());
+        self::assertSame('setono_sylius_gift_card.gift_card.code.too_short', $form->get('code')->getErrors()[0]->getMessage());
+
+        $giftCard = new GiftCard();
+        $giftCard->setCode('GENERATEDONPOST');
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission(['code' => 'ABCD-EFGH-JKMN']));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame('ABCDEFGHJKMN', $giftCard->getCode());
+    }
+
+    /**
+     * Cards brought over from 0.12 may have shorter codes. They are validated whenever they are edited, and must stay
+     * editable
+     *
+     * @test
+     */
+    public function it_lets_an_existing_card_with_a_shorter_code_be_edited(): void
+    {
+        $giftCard = $this->existingGiftCard();
+        $giftCard->setInitialAmount(5000);
+        $giftCard->setAmount(5000);
+        self::assertLessThan(12, strlen((string) $giftCard->getCode()));
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit(['customMessage' => 'Happy birthday']);
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame('Happy birthday', $giftCard->getCustomMessage());
     }
 
     /**
@@ -360,6 +411,7 @@ final class GiftCardTypeTest extends TypeTestCase
             $currencyRepository,
             $codeGenerator->reveal(),
             new GiftCardCodeNormalizer(),
+            12,
             ['setono_sylius_gift_card'],
         );
 
@@ -396,6 +448,8 @@ final class GiftCardTypeTest extends TypeTestCase
                 'doctrine.orm.validator.unique' => $uniqueEntityValidator,
                 // built by the container with the configured limit; the mapping's default of 200 is used here
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
+                // built by the container with the configured minimum, 12 unless raised
+                GiftCardCodeLengthValidator::class => new GiftCardCodeLengthValidator(12),
             ]))
             ->getValidator()
         ;

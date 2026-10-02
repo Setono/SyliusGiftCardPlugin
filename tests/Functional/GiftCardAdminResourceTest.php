@@ -133,6 +133,59 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
         self::assertSame(['Please enter code'], self::codeErrors($response));
     }
 
+    /**
+     * A code is a bearer token, so a code an admin types is held to minimum_code_length like a generated one. It is the
+     * normalized code that counts: 14 characters as typed, 11 once the dashes are dropped
+     *
+     * @test
+     */
+    public function it_refuses_a_typed_code_shorter_than_the_minimum(): void
+    {
+        $response = $this->issue([
+            'code' => 'abcd-efgh-jkm',
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'USD',
+            'amount' => '10',
+        ]);
+
+        self::assertSame(422, $response->getStatusCode());
+        self::assertSame(['The code must have at least 12 letters and digits, so it cannot be guessed.'], self::codeErrors($response));
+
+        /** @var GiftCardRepositoryInterface $repository */
+        $repository = self::getContainer()->get('setono_sylius_gift_card.repository.gift_card');
+        self::assertSame([], $repository->findAll());
+    }
+
+    /**
+     * Cards brought over from 0.12 may have codes shorter than the minimum. The customer was given that code, and the
+     * card is validated whenever it is edited, so the minimum must not lock the admin out of it
+     *
+     * @test
+     */
+    public function it_lets_the_admin_edit_a_card_whose_code_is_shorter_than_the_minimum(): void
+    {
+        $giftCard = $this->persistGiftCard('OLDCODE', 5000);
+        $uri = sprintf('/admin/gift-cards/%d/edit', (int) $giftCard->getId());
+
+        $form = $this->request('GET', $uri);
+        self::assertSame(200, $form->getStatusCode());
+
+        $response = $this->request('POST', $uri, [
+            '_method' => 'PUT',
+            self::FORM => [
+                'enabled' => '1',
+                'customMessage' => 'Happy birthday',
+                '_token' => self::valueOf($form, sprintf('//input[@name="%s[_token]"]', self::FORM)),
+            ],
+        ]);
+
+        self::assertTrue($response->isRedirect(), sprintf('Expected a redirect after saving, got a %d response', $response->getStatusCode()));
+
+        $giftCard = $this->reloadGiftCard($giftCard);
+        self::assertSame('OLDCODE', $giftCard->getCode());
+        self::assertSame('Happy birthday', $giftCard->getCustomMessage());
+    }
+
     /** @test */
     public function it_issues_nothing_when_the_form_is_invalid(): void
     {

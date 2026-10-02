@@ -3,6 +3,7 @@ const { clickAndConfirm, flashMessages, setChecked } = require('../support/admin
 const { addSomethingToCart, applyGiftCard } = require('../support/cart');
 const { giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
 const { moneyInCents, typedAmount } = require('../support/money');
+const { channelBaseCurrencyCode } = require('../support/fixtures');
 const { clickAndWaitForPage } = require('../support/navigation');
 
 /**
@@ -103,6 +104,37 @@ test.describe('admin issuing gift cards', () => {
         // the cart lists the code grouped in fours, so the card is found through its remove form, which carries the stored code
         await expect(customer.locator(`form[action*="/gift-cards/${card.code}/remove"]`)).toBeVisible();
         await shop.close();
+    });
+
+    /**
+     * A code is a bearer token, and a short one can be guessed at the redemption form, so a code the admin types is
+     * held to minimum_code_length (12 by default) like a generated one. It is counted once normalized: the code typed
+     * here is 14 characters, 11 without its dashes
+     */
+    test('a code the admin types has to be long enough not to be guessed', async ({ page }) => {
+        const form = 'form[name="setono_sylius_gift_card_gift_card"]';
+
+        await page.goto('/admin/gift-cards/new');
+        const channel = await page.locator(`${form} select[name$="[channel]"]`).inputValue();
+        const baseCurrency = await channelBaseCurrencyCode(page, channel);
+
+        await page.goto('/admin/gift-cards/new');
+        const codeField = page.locator(`${form} .field`, { has: page.locator('[name$="[code]"]') });
+        // the help under the field says so before anything is submitted
+        await expect(codeField).toContainText('at least 12 letters and digits');
+
+        await page.locator(`${form} [name$="[code]"]`).fill('abcd-efgh-jkm');
+        await page.locator(`${form} select[name$="[currencyCode]"]`).selectOption(baseCurrency);
+        await page.locator(`${form} [name$="[amount]"]`).fill('10');
+
+        const [response] = await Promise.all([
+            page.waitForResponse((r) => r.request().method() === 'POST'),
+            page.locator(`${form} button[type="submit"]`).first().click(),
+        ]);
+        expect(response.status()).toBeLessThan(500);
+
+        await expect(codeField.locator('.sylius-validation-error')).toHaveText(/at least 12 letters and digits/);
+        await expect(await giftCardRows(page, 'ABCD-EFGH-JKM')).toHaveCount(0);
     });
 
     /**
