@@ -3,7 +3,6 @@ setono_sylius_gift_card:
         product:
             gift_card: Gavekort
         gift_card:
-            channel: Kanal
             code_help: 'Genereret til dig. Du kan skrive din egen kode i stedet, med mindst %minimum% bogstaver og tal: den gemmes med store bogstaver, og kun bogstaverne A–Z og tal bevares.'
             custom_message: Personlig besked
             custom_message_placeholder: Denne besked printes på gavekortet...
@@ -15,8 +14,6 @@ setono_sylius_gift_card:
             images: Billeder
             image_type: Billedtype
             image_file_help: 'Brug et liggende billede på mindst 1050×740px (JPG eller PNG). Det bruges som gavekortets gennemgående baggrund, så hold vigtigt indhold væk fra kanterne.'
-            front_image: Forsidebillede
-            back_image: Bagsidebillede
         gift_card_information:
             amount: Beløb
             amount_help_minimum: 'Vælg et beløb på mindst %minimum%.'
@@ -31,19 +28,16 @@ setono_sylius_gift_card:
             reason: Årsag
     ui:
         adjust_balance: Juster saldo
-        amount: Beløb
         apply_gift_card: Anvend
-        applied_gift_cards: Anvendte gavekort
         average: Gennemsnit
         back: Tilbage
         balance: Saldo
         characters_left: '%remaining% tegn tilbage'
         count: Antal
         current_balance: Nuværende saldo
-        create_gift_card: Opret gavekort
-        create_gift_card_design: Opret gavekortdesign
         create_gift_card_product: Opret gavekortprodukt
         customer_help_text: Når en kunde er tilknyttet og notifikation er slået til, modtager kunden gavekortet på email
+        default_design_name: Klassisk
         edit_gift_card: Rediger gavekort
         edit_gift_card_design: Rediger gavekortdesign
         delivery_type: Leveringstype
@@ -67,15 +61,13 @@ setono_sylius_gift_card:
             explanation: 'Disse kanaler sælger gavekort, men har intet aktivt gavekortdesign, så deres produktsider viser ingen designvælger, og fysiske gavekort printes uden grafik: %channels%.'
             create_design: Opret et gavekortdesign
             create_design_suffix: og aktivér det for kanalen, eller
-            run_command: 'installér det medfølgende "Classic"-design i alle kanaler ved at køre'
+            run_command: 'installér det medfølgende design "%design%" i alle kanaler ved at køre'
         design_images: Designbilleder
         design_images_help: 'Upload et forsidebillede (vises i vælgeren, forhåndsvisningen og på gavekortet) og eventuelt et bagsidebillede. Liggende format, mindst 1050×740px, JPG eller PNG.'
         enter_gift_card_code: Indtast gavekortskoden
         front: Forside
         gift_card: Gavekort
-        gift_card_channel_does_not_match_channel: Gavekortet er købt på en anden kanal, brug venligst gavekortet på %channel%
         gift_card_code: Gavekortskode
-        gift_card_code_is_invalid: Gavekortskoden er ugyldig
         gift_cards: Gavekort
         gift_card_designs: Gavekortdesign
         has_no_gift_card: Har ikke noget gavekort
@@ -96,11 +88,9 @@ setono_sylius_gift_card:
         transaction_type_manual: Manuel justering
         transaction_type_redeem: Indløst
         transaction_type_restore: Gendannet
-        virtual: 'Virtuelt — leveres straks på email'
+        virtual: 'Virtuelt — leveres på email'
     pdf:
         valid_until: 'Gyldigt til'
-        how_to_use: Sådan bruger du dit gavekort
-        how_to_use_text: Indtast koden nedenfor ved betaling for at indløse dit gavekort.
         gift_card: Gavekort
         tagline: Gaven, man selv vælger
         value: Værdi
@@ -111,6 +101,8 @@ setono_sylius_gift_card:
         terms: 'Vilkår og betingelser gælder. Kortet kan ikke ombyttes til kontanter og kan ikke erstattes ved tab eller tyveri.'
     email:
         balance: Saldo
+        gift_cards_from_order_intro: 'Her er de gavekort, du har købt med ordre nr. %number%:'
+        gift_cards_from_order_subject: 'Dine gavekort fra ordre nr. %number%'
         how_to_redeem: Indtast koden ved betaling for at betale med dit gavekort. Resten bliver stående på kortet til næste gang.
         new_gift_card: Nyt gavekort
         new_gift_card_intro: Der er blevet oprettet et nyt gavekort til dig
@@ -118,11 +110,3 @@ setono_sylius_gift_card:
         physical_code_on_card: Koden står på selve kortet, så du får den, når kortet ankommer.
         physical_will_be_shipped: Dit gavekort bliver sendt til dig.
         valid_until: 'Gyldigt til'
-        your_gift_card: Dit gavekort
-        your_gift_cards_you_bought_in_the_order: Dine købte gavekort på denne ordre
-
-# Missing from Sylius for some reason
-sylius:
-    form:
-        locale:
-            select: Vælg lokalitet

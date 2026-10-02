@@ -25,6 +25,7 @@
             <argument type="service" id="sylius.repository.channel"/>
             <argument type="service" id="sylius.repository.locale"/>
             <argument type="service" id="sylius.generator.slug"/>
+            <argument type="service" id="translator"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface"
                  alias="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactory"/>

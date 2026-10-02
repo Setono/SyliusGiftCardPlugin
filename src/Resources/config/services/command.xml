@@ -13,6 +13,8 @@
             <argument type="service" id="sylius.image_uploader"/>
             <argument type="service" id="doctrine"/>
             <argument>%setono_sylius_gift_card.default_design_image_path%</argument>
+            <argument type="service" id="translator"/>
+            <argument type="service" id="sylius.repository.locale"/>
 
             <tag name="console.command"/>
         </service>

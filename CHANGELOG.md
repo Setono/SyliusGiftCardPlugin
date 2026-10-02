@@ -44,6 +44,10 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   longer counts towards a promotion's "item total" rule. Promotions a shop already runs behave differently:
   with "free shipping over 100.00", an order of a 100.00 physical gift card used to ship for free and now pays
   for shipping
+- What the plugin creates for customers to see is named in the language of each locale of the shop instead of in
+  English: the gift card payment method, the product, variants and delivery option from **Create gift card
+  product** and the fixture, and the bundled default design. The order email's subject names the order
+  (`email.gift_cards_from_order_subject`), and unused translation keys are gone
 
 ### Removed
 - **The API layer** — the whole API Platform / `sylius/api-bundle` integration. Stay on `0.12.x` if you need it

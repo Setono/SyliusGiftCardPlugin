@@ -19,7 +19,10 @@ class GiftCardProductFixture extends AbstractResourceFixture
         $resourceNode
             ->children()
                 ->scalarNode('code')->cannotBeEmpty()->end()
-                ->scalarNode('name')->cannotBeEmpty()->end()
+                ->scalarNode('name')
+                    ->info('The name of the product in every locale. Named "Gift card" in the language of each locale when left out')
+                    ->cannotBeEmpty()
+                ->end()
                 ->booleanNode('enabled')->end()
                 ->integerNode('price')->end()
                 ->arrayNode('channels')

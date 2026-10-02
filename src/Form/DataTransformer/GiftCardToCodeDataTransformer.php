@@ -75,6 +75,7 @@ final class GiftCardToCodeDataTransformer implements DataTransformerInterface
             (string) $channel->getCode(),
         ));
 
-        throw new TransformationFailedException('setono_sylius_gift_card.ui.gift_card_code_does_not_exist');
+        // The message is for developers only: the form shows its invalid_message instead, deliberately
+        throw new TransformationFailedException('No enabled gift card with this code exists in the current channel');
     }
 }
