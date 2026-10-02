@@ -82,7 +82,7 @@ test.describe('admin issuing gift cards', () => {
         await expect(page.locator('table').first().locator('a', { hasText: email })).toHaveAttribute('href', /\/admin\/customers\/\d+$/);
 
         // The grid mails the customer from the email and opens the customer from the icon next to it
-        const row = await giftCardRows(page, card.code);
+        const row = await giftCardRows(page, card.printedCode);
         await expect(row).toHaveCount(1);
         await expect(row.locator(`a[href="mailto:${email}"]`)).toHaveCount(1);
         await expect(row.getByRole('link', { name: `Open customer ${email} in a new tab` })).toHaveAttribute('href', /\/admin\/customers\/\d+$/);
@@ -147,7 +147,7 @@ test.describe('admin issuing gift cards', () => {
         ]);
 
         // The grid tells a card that has been spent from apart from a fresh one
-        const amountCell = (await giftCardRows(page, card.code)).locator('td').nth(2);
+        const amountCell = (await giftCardRows(page, card.printedCode)).locator('td').nth(2);
         expect(moneyInCents((await amountCell.innerText()).split('\n')[0])).toBe(8500);
         await expect(amountCell).toContainText(/Initial amount/i);
     });
@@ -155,11 +155,11 @@ test.describe('admin issuing gift cards', () => {
     test('a card nothing has happened to can be deleted', async ({ page }) => {
         const card = await issueGiftCard(page, { amount: 1500 });
 
-        const row = await giftCardRows(page, card.code);
+        const row = await giftCardRows(page, card.printedCode);
         await clickAndConfirm(page, row.getByRole('button', { name: /delete/i }));
 
         expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/successfully deleted/i));
-        await expect(await giftCardRows(page, card.code)).toHaveCount(0);
+        await expect(await giftCardRows(page, card.printedCode)).toHaveCount(0);
         expect((await page.goto(`/admin/gift-cards/${card.id}`))?.status()).toBe(404);
     });
 
@@ -170,11 +170,11 @@ test.describe('admin issuing gift cards', () => {
         const card = await issueGiftCard(page, { amount: 1500 });
         await adjustBalance(page, card.id, -500, 'Partly used');
 
-        const row = await giftCardRows(page, card.code);
+        const row = await giftCardRows(page, card.printedCode);
         await clickAndConfirm(page, row.getByRole('button', { name: /delete/i }));
 
         expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/cannot be removed/i));
-        await expect(await giftCardRows(page, card.code)).toHaveCount(1);
+        await expect(await giftCardRows(page, card.printedCode)).toHaveCount(1);
         expect((await page.goto(`/admin/gift-cards/${card.id}`))?.status()).toBe(200);
     });
 });

@@ -1,6 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const { clickAndConfirm } = require('../support/admin');
-const { giftCardRows, issueGiftCard } = require('../support/gift-cards');
+const { firstGiftCardId, giftCardCode } = require('../support/fixtures');
+const { giftCardIds, giftCardRows, issueGiftCard } = require('../support/gift-cards');
 const { clickAndWaitForPage } = require('../support/navigation');
 
 /**
@@ -34,12 +35,13 @@ async function filterGrid(page, { code = { type: 'contains', value: '' }, enable
 }
 
 /**
- * The code column of every row the grid lists
+ * The code column of every row the grid lists, without the grouping the grid shows a code in, so it compares with the
+ * code issueGiftCard() returns
  *
  * @param {import('@playwright/test').Page} page
  */
 async function listedCodes(page) {
-    return (await page.locator('table tbody tr td:first-child').allInnerTexts()).map((code) => code.trim());
+    return (await page.locator('table tbody tr td:first-child').allInnerTexts()).map((code) => code.trim().replace(/-/g, ''));
 }
 
 /**
@@ -68,6 +70,36 @@ test.describe('admin gift card grid', () => {
         expect(await listedCodes(page)).toEqual([card.code]);
     });
 
+    /**
+     * The card, the emails and the show page print a code grouped, and that is how a customer reads it out to support,
+     * while the stored code has no separators. The printed code is taken from the show page, not from the grid, so
+     * this is about the filter alone
+     */
+    test('a code typed the way it is printed on the card finds the card', async ({ page }) => {
+        const id = await firstGiftCardId(page);
+        const printed = await giftCardCode(page, id);
+        expect(printed, 'the code should be printed with separators for this to test anything').toContain('-');
+
+        for (const code of [
+            { type: 'contains', value: printed },
+            // read out over the phone and typed with spaces, in lower case
+            { type: 'equal', value: printed.toLowerCase().replace(/-/g, ' ') },
+        ]) {
+            await filterGrid(page, { code });
+            expect(await giftCardIds(page.locator('table tbody tr')), `filtering by ${code.type} "${code.value}"`).toEqual([id]);
+        }
+    });
+
+    test('the grid shows a code the way the show page prints it', async ({ page }) => {
+        await page.goto('/admin/gift-cards/');
+
+        const row = page.locator('table tbody tr').first();
+        const listed = (await row.locator('td').first().innerText()).trim();
+        const [id] = await giftCardIds(row);
+
+        expect(listed).toBe(await giftCardCode(page, id));
+    });
+
     test('filtering by enabled tells disabled cards from usable ones', async ({ page }) => {
         const card = await issueGiftCard(page, { amount: 1000, enabled: false });
 
@@ -81,7 +113,7 @@ test.describe('admin gift card grid', () => {
             expect(new Set(await listedStates(page))).toEqual(new Set(['Enabled']));
         } finally {
             // An untouched card can be deleted, which keeps a disabled card from topping the grid for other specs
-            await clickAndConfirm(page, (await giftCardRows(page, card.code)).getByRole('button', { name: /delete/i }));
+            await clickAndConfirm(page, (await giftCardRows(page, card.printedCode)).getByRole('button', { name: /delete/i }));
         }
     });
 
