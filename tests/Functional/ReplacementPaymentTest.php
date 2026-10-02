@@ -39,7 +39,7 @@ final class ReplacementPaymentTest extends GiftCardFunctionalTestCase
 
         $this->completeCheckout($order);
 
-        self::assertSame(OrderPaymentStates::STATE_PARTIALLY_PAID, $order->getPaymentState());
+        self::assertSame(OrderPaymentStates::STATE_AWAITING_PAYMENT, $order->getPaymentState());
         self::assertSame(0, $giftCard->getAmount());
         self::assertSame(4000, $gatewayPayment->getAmount());
         self::assertSame(PaymentInterface::STATE_NEW, $gatewayPayment->getState());
@@ -51,6 +51,9 @@ final class ReplacementPaymentTest extends GiftCardFunctionalTestCase
         self::assertNotSame($gatewayPayment, $replacement);
         self::assertSame($cash, $replacement->getMethod());
         self::assertSame(4000, $replacement->getAmount());
+
+        // the customer can still pay the rest, with the replacement, from the order's page in the shop
+        self::assertSame(OrderPaymentStates::STATE_AWAITING_PAYMENT, $order->getPaymentState());
     }
 
     /**
@@ -73,7 +76,7 @@ final class ReplacementPaymentTest extends GiftCardFunctionalTestCase
         $this->completeCheckout($order);
 
         self::assertSame(10000, $order->getTotal());
-        self::assertSame(OrderPaymentStates::STATE_PARTIALLY_PAID, $order->getPaymentState());
+        self::assertSame(OrderPaymentStates::STATE_AWAITING_PAYMENT, $order->getPaymentState());
         self::assertSame(2000, $giftCard->getAmount());
         self::assertSame(4000, $gatewayPayment->getAmount());
 
@@ -83,6 +86,7 @@ final class ReplacementPaymentTest extends GiftCardFunctionalTestCase
         self::assertNotNull($replacement);
         self::assertNotSame($gatewayPayment, $replacement);
         self::assertSame(4000, $replacement->getAmount());
+        self::assertSame(OrderPaymentStates::STATE_AWAITING_PAYMENT, $order->getPaymentState());
     }
 
     private function completeCheckout(Order $order): void

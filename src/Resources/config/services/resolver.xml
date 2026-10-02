@@ -10,5 +10,12 @@
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface"
                  alias="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver"/>
+
+        <service id="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolver"
+                 class="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolver">
+            <argument>%setono_sylius_gift_card.default_validity_period%</argument>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolverInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolver"/>
     </services>
 </container>

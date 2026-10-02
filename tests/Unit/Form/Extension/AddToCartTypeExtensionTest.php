@@ -289,6 +289,7 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
                     $channelContext->reveal(),
                     $amountLimitsProvider->reveal(),
                     $moneyFormatter->reveal(),
+                    $localeContext->reveal(),
                 ),
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
                 GiftCardDesignRequiredValidator::class => new GiftCardDesignRequiredValidator(

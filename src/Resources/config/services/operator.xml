@@ -10,6 +10,7 @@
             <argument type="service" id="doctrine"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolverInterface"/>
         </service>
         <!-- public because the winzou state machine calls it. The callbacks name this interface rather than the class,
              so a decorator of the interface runs there too -->

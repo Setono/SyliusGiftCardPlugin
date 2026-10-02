@@ -75,6 +75,8 @@ Anything reacting to a Symfony event is an **event subscriber**, so the event na
 
 Only doctrine/orm is supported. Resources: `gift_card`, `gift_card_design` (translatable, images with front|back types), `gift_card_transaction` (append-only balance ledger, written only by the balance operator).
 
+Code in `src/` stays **database agnostic**: applications run whatever database they choose, so no vendor error codes, vendor SQL or checks for a particular server. Database conditions are expressed through Doctrine's portable API (`LockMode`, and DBAL's exception classes such as `DeadlockException` or `UniqueConstraintViolationException`), and what those do not map is left alone. Tests may rely on the test application's MySQL.
+
 ### Domain rules
 
 - `GiftCard.amount`/`initialAmount` are integers in minor units (Sylius money convention). `initialAmount` is set explicitly — no implicit seeding.

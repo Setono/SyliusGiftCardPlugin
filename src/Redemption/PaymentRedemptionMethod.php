@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Redemption;
 
 use Doctrine\DBAL\Exception\DeadlockException;
-use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -39,9 +38,6 @@ final class PaymentRedemptionMethod extends RedemptionMethod
     private const DETAIL_GIFT_CARD_ID = 'setono_gift_card_id';
 
     private const DETAIL_GIFT_CARD_CODE = 'setono_gift_card_code';
-
-    /** MariaDB's "Record has changed since last read", raised by a locking read under innodb_snapshot_isolation */
-    private const ER_CHECKREAD = 1020;
 
     /**
      * @param FactoryInterface<PaymentInterface> $paymentFactory
@@ -198,9 +194,9 @@ final class PaymentRedemptionMethod extends RedemptionMethod
      *
      * Taking the exclusive lock before anything of the order is written makes the second order wait for the first
      * to commit instead. Its versioned update then matches no row, which is the OptimisticLockException Sylius'
-     * update handler already turns into a redirect; where the database reports the loss at the lock instead, the
-     * same exception is thrown from here. The cards are locked in id order, so two orders sharing more than one
-     * card cannot deadlock on these locks either.
+     * update handler already turns into a redirect; a deadlock at the lock itself is thrown as the same exception
+     * from here. The cards are locked in id order, so two orders sharing more than one card cannot deadlock on these
+     * locks either.
      *
      * A row lock lasts until the end of the transaction it is taken in. At checkout completion that is the one
      * Sylius' update handler wraps the transition and the flush in; without a transaction there is nothing that
@@ -222,29 +218,20 @@ final class PaymentRedemptionMethod extends RedemptionMethod
             try {
                 $manager->lock($giftCard, LockMode::PESSIMISTIC_WRITE);
             } catch (\Throwable $e) {
-                // lock() only declares Doctrine's own lock exceptions, but the SELECT ... FOR UPDATE it runs fails
-                // with whatever the database reports
-                if ($e instanceof DriverException && self::lostToAnotherWriter($e)) {
-                    throw OptimisticLockException::lockFailed($giftCard);
+                // lock() only declares Doctrine's own lock exceptions, but the SELECT ... FOR UPDATE it runs fails with
+                // whatever the database reports. DeadlockException is how Doctrine reports a deadlock on every database
+                // it supports; any other database error is left alone
+                if (!$e instanceof DeadlockException) {
+                    throw $e;
                 }
 
-                throw $e;
+                // A writer that did not lock first (an admin adjusting the balance, a cancelled order restoring it)
+                // can hold the shared lock of its own ledger row while this order waits for the exclusive one, and the
+                // database breaks the deadlock by rolling this order back. The card changed under the order, which is
+                // what the versioned update would have reported
+                throw OptimisticLockException::lockFailed($giftCard);
             }
         }
-    }
-
-    /**
-     * Some databases report the other order's win at the lock rather than at the versioned update. MariaDB from
-     * 11.6.2 checks locking reads against the transaction's snapshot by default (innodb_snapshot_isolation), so when
-     * the other order committed after this one started reading, the lock fails with ER_CHECKREAD instead of waiting
-     * and succeeding. And a writer that did not lock first (an admin adjusting the balance, a cancelled order
-     * restoring it) can hold the shared lock of its own ledger row while this order waits for the exclusive one;
-     * the database then breaks the deadlock by rolling this order back. Either way the card changed under the order,
-     * which is what the versioned update would have reported
-     */
-    private static function lostToAnotherWriter(DriverException $exception): bool
-    {
-        return $exception instanceof DeadlockException || self::ER_CHECKREAD === $exception->getCode();
     }
 
     private function hasPaymentForGiftCard(OrderInterface $order, GiftCardInterface $giftCard): bool

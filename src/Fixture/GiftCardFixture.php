@@ -20,7 +20,10 @@ class GiftCardFixture extends AbstractResourceFixture
             ->children()
                 ->scalarNode('code')->cannotBeEmpty()->end()
                 ->scalarNode('channel')->cannotBeEmpty()->end()
-                ->scalarNode('currency')->cannotBeEmpty()->end()
+                ->scalarNode('currency')
+                    ->info('The code of the base currency of the channel, which is also the default. Orders are kept in the base currency, so a card in any other currency could never be redeemed and is refused')
+                    ->cannotBeEmpty()
+                ->end()
                 ->floatNode('amount')->end()
                 ->booleanNode('enabled')->end()
         ;

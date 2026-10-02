@@ -49,8 +49,9 @@ async function pickCustomer(page, email) {
  * @param {{amount: number, code?: string|null, enabled?: boolean, customerEmail?: string|null, customMessage?: string|null, expiresAt?: string|null}} card
  *        amount in minor units; code typed over the generated one the form proposes, left as proposed when null;
  *        expiresAt as YYYY-MM-DD
- * @returns {Promise<{id: string, code: string, shownCode: string, currency: string}>} the code as stored, without the
- *          grouping it is displayed with, and the code the form held when it was submitted
+ * @returns {Promise<{id: string, code: string, printedCode: string, shownCode: string, currency: string}>} the code as
+ *          stored, without separators; as printed (the show page, the grid, the PDF and the emails group it, e.g.
+ *          ABCD-EFGH-JKMN-PQRS); and the code the form held when it was submitted
  */
 async function issueGiftCard(page, { amount, code = null, enabled = true, customerEmail = null, customMessage = null, expiresAt = null }) {
     await page.goto('/admin/gift-cards/new');
@@ -92,9 +93,10 @@ async function issueGiftCard(page, { amount, code = null, enabled = true, custom
     expect(id, `issuing the gift card should have led to a page naming it, not ${page.url()}`).toMatch(/^\d+$/);
 
     // Read back from the card rather than taken from the form: the card is what the customer's code has to match
-    const storedCode = (await giftCardDetails(page, id)).Code.replace(/-/g, '');
+    const printedCode = (await giftCardDetails(page, id)).Code;
+    const storedCode = printedCode.replace(/-/g, '');
 
-    return { id, code: storedCode, shownCode, currency };
+    return { id, code: storedCode, printedCode, shownCode, currency };
 }
 
 /**
@@ -147,8 +149,9 @@ async function giftCardTransactions(page, id) {
 }
 
 /**
- * The rows of the gift card grid that mention the given text, e.g. a customer's email. New cards come first, as the
- * grid lists the most recently created at the top.
+ * The rows of the gift card grid that mention the given text, e.g. a customer's email or a card's printed code (the
+ * grid shows a code grouped, like the show page). New cards come first, as the grid lists the most recently created at
+ * the top.
  *
  * @param {import('@playwright/test').Page} page
  * @param {string} text

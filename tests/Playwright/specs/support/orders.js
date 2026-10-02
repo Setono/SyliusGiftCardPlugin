@@ -59,6 +59,15 @@ async function orderPayments(page) {
 }
 
 /**
+ * The payment state of the open order, e.g. "Awaiting payment", as the label above its payments shows it
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function orderPaymentState(page) {
+    return (await page.locator('#payment-state .label').first().innerText()).trim();
+}
+
+/**
  * Marks every payment of the open order that still waits for money as completed, the way an administrator records a
  * bank transfer or a payment on delivery
  *
@@ -85,4 +94,4 @@ async function cancelOrder(page) {
     await clickAndConfirm(page, cancel);
 }
 
-module.exports = { cancelOrder, completeOrderPayments, openOrderOf, orderPayments };
+module.exports = { cancelOrder, completeOrderPayments, openOrderOf, orderPayments, orderPaymentState };

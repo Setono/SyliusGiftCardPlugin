@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Exception\LockWaitTimeoutException;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostLoadEventArgs;
@@ -182,10 +183,14 @@ final class GiftCardRedemptionRaceTest extends GiftCardFunctionalTestCase
 
     /**
      * The other order can also commit after this one has started reading, inside its transaction, but before it
-     * gets to the card. MySQL then grants the lock straight away and the versioned update matches no row; MariaDB
-     * from 11.6.2 refuses the lock itself, because the card changed after the transaction's snapshot was taken.
-     * Either way what reaches Sylius has to be the OptimisticLockException it turns into a redirect, not a driver
-     * error that ends on an error page
+     * gets to the card. MySQL then grants the lock straight away and the versioned update matches no row, which is
+     * the OptimisticLockException Sylius turns into a redirect.
+     *
+     * A database that checks locking reads against the transaction's snapshot (MariaDB from 11.6.2, by default)
+     * refuses the lock itself with an error of its own. Doctrine maps that error to no exception of its own, and the
+     * plugin does not translate vendor error codes, because it cannot know which database an application runs, so
+     * there the customer gets an error page. What has to hold on every database is that nothing of this order is
+     * written
      *
      * @test
      */
@@ -240,11 +245,40 @@ final class GiftCardRedemptionRaceTest extends GiftCardFunctionalTestCase
             $previous = $e->getPrevious();
             self::assertInstanceOf(OptimisticLockException::class, $previous);
             self::assertInstanceOf(GiftCardInterface::class, $previous->getEntity());
+        } catch (DriverException $e) {
+            self::assertTrue(
+                self::checksLockingReadsAgainstTheSnapshot($competitor),
+                sprintf('The lost race reached Sylius as a database error rather than as a race condition: %s', $e->getMessage()),
+            );
         } finally {
             $competitor->close();
         }
 
         self::assertTrue($otherOrder->committed, 'The other order never got to redeem the card');
+
+        $ledgerRows = $this->manager->getConnection()->fetchOne(
+            'SELECT COUNT(*) FROM setono_sylius_gift_card__gift_card_transaction WHERE order_id = ?',
+            [$orderId],
+        );
+        Assert::numeric($ledgerRows);
+        self::assertSame(0, (int) $ledgerRows, 'The order that lost the race redeemed the card all the same');
+    }
+
+    /**
+     * Whether the database refuses a locking read of a row that another transaction changed after this transaction's
+     * snapshot was taken. MariaDB does when innodb_snapshot_isolation is on (the default from 11.6.2); MySQL has no
+     * such setting. Only the test knows which database the test application runs, so only the test asks
+     */
+    private static function checksLockingReadsAgainstTheSnapshot(Connection $connection): bool
+    {
+        $variable = $connection->fetchAssociative("SHOW VARIABLES LIKE 'innodb_snapshot_isolation'");
+        if (false === $variable) {
+            return false;
+        }
+
+        $value = $variable['Value'] ?? null;
+
+        return is_string($value) && 'ON' === strtoupper($value);
     }
 
     private function completeCheckout(): RequestConfiguration

@@ -10,6 +10,7 @@ use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactory;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolverInterface;
 use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Resource\Factory\FactoryInterface;
@@ -27,31 +28,23 @@ final class GiftCardFactoryTest extends TestCase
         self::assertSame('ABCDEFGHIJKLMNOP', $giftCard->getCode());
     }
 
-    /** @test */
-    public function it_expires_a_new_gift_card_after_the_configured_validity_period(): void
+    /**
+     * The expiry is counted from now, which is final for a card issued in the admin. A card bought in the shop gets
+     * its final expiry when the order is placed
+     *
+     * @test
+     */
+    public function it_gives_a_new_gift_card_the_expiry_resolved_for_a_card_issued_now(): void
     {
-        $before = (new \DateTimeImmutable('+3 years'))->format('Y-m-d');
-        $giftCard = $this->createFactory('3 years')->createNew();
-        $after = (new \DateTimeImmutable('+3 years'))->format('Y-m-d');
+        $expiresAt = new \DateTimeImmutable('2029-09-25 23:59:59');
 
-        $expiresAt = $giftCard->getExpiresAt();
-        self::assertNotNull($expiresAt);
-        // the day is read on both sides of the call, so a test running across midnight still passes
-        self::assertContains($expiresAt->format('Y-m-d'), [$before, $after]);
+        $giftCard = $this->createFactory($expiresAt)->createNew();
+
+        self::assertSame($expiresAt, $giftCard->getExpiresAt());
     }
 
     /** @test */
-    public function it_pins_the_expiry_to_the_end_of_the_day(): void
-    {
-        $giftCard = $this->createFactory('3 years')->createNew();
-
-        $expiresAt = $giftCard->getExpiresAt();
-        self::assertNotNull($expiresAt);
-        self::assertSame('23:59:59', $expiresAt->format('H:i:s'));
-    }
-
-    /** @test */
-    public function it_leaves_the_expiry_empty_when_no_validity_period_is_configured(): void
+    public function it_leaves_the_expiry_empty_when_gift_cards_never_expire(): void
     {
         $giftCard = $this->createFactory(null)->createNew();
 
@@ -72,12 +65,14 @@ final class GiftCardFactoryTest extends TestCase
         $channel = new Channel();
         $channel->setBaseCurrency($currency);
 
-        $giftCard = $this->createFactory('3 years')->createForChannel($channel);
+        $expiresAt = new \DateTimeImmutable('2029-09-25 23:59:59');
+
+        $giftCard = $this->createFactory($expiresAt)->createForChannel($channel);
 
         self::assertSame($channel, $giftCard->getChannel());
         self::assertSame('DKK', $giftCard->getCurrencyCode());
         self::assertSame('ABCDEFGHIJKLMNOP', $giftCard->getCode());
-        self::assertNotNull($giftCard->getExpiresAt());
+        self::assertSame($expiresAt, $giftCard->getExpiresAt());
     }
 
     /** @test */
@@ -88,7 +83,7 @@ final class GiftCardFactoryTest extends TestCase
         self::assertNull($giftCard->getCurrencyCode());
     }
 
-    private function createFactory(?string $validityPeriod): GiftCardFactory
+    private function createFactory(?\DateTimeImmutable $expiresAt): GiftCardFactory
     {
         $decorated = $this->prophesize(FactoryInterface::class);
         $decorated->createNew()->will(fn (): GiftCardInterface => new GiftCard());
@@ -96,6 +91,9 @@ final class GiftCardFactoryTest extends TestCase
         $codeGenerator = $this->prophesize(GiftCardCodeGeneratorInterface::class);
         $codeGenerator->generate()->willReturn('ABCDEFGHIJKLMNOP');
 
-        return new GiftCardFactory($decorated->reveal(), $codeGenerator->reveal(), $validityPeriod);
+        $expiryResolver = $this->prophesize(GiftCardExpiryResolverInterface::class);
+        $expiryResolver->resolve()->willReturn($expiresAt);
+
+        return new GiftCardFactory($decorated->reveal(), $codeGenerator->reveal(), $expiryResolver->reveal());
     }
 }

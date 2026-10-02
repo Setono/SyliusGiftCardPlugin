@@ -10,6 +10,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Currency\Model\Currency;
+use Sylius\Component\Currency\Model\CurrencyInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 /**
@@ -86,11 +87,7 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
      */
     public function it_seeds_random_gift_cards_in_the_base_currency_of_a_channel(): void
     {
-        $euro = new Currency();
-        $euro->setCode('EUR');
-        $this->manager->persist($euro);
-        $this->getChannel()->addCurrency($euro);
-        $this->manager->flush();
+        $this->createCurrency('EUR');
 
         $this->loadFixture('setono_gift_card', ['random' => 3]);
 
@@ -158,11 +155,64 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
         );
     }
 
+    /**
+     * A fixture file may still name the currency, as long as it names the base currency the card would be issued in
+     * anyway
+     *
+     * @test
+     */
+    public function it_loads_gift_cards_in_the_base_currency_of_a_channel_that_offers_other_currencies(): void
+    {
+        $this->createCurrency('EUR');
+
+        $this->loadFixture('setono_gift_card', ['custom' => [
+            ['code' => 'FIXTUREBASECUR1', 'channel' => 'TEST_CHANNEL', 'currency' => 'USD'],
+            ['code' => 'FIXTUREBASECUR2', 'channel' => 'TEST_CHANNEL'],
+        ]]);
+
+        self::assertSame('USD', $this->findGiftCard('FIXTUREBASECUR1')->getCurrencyCode());
+        self::assertSame('USD', $this->findGiftCard('FIXTUREBASECUR2')->getCurrencyCode());
+    }
+
+    /**
+     * Orders are kept in the base currency of their channel, so a card in another currency the channel offers could
+     * never be redeemed. The admin refuses to issue one, and so does the fixture
+     *
+     * @test
+     */
+    public function it_rejects_a_currency_the_channel_offers_that_is_not_its_base_currency(): void
+    {
+        $this->createCurrency('EUR');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Gift cards are issued in the channel's base currency (USD for channel TEST_CHANNEL), got: EUR");
+
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTUREBADCUR03', 'channel' => 'TEST_CHANNEL', 'currency' => 'EUR']]]);
+    }
+
+    /**
+     * Applications building on the example factory may hand it the currency itself rather than its code
+     *
+     * @test
+     */
+    public function its_example_factory_rejects_a_currency_that_is_not_the_base_currency_of_the_channel(): void
+    {
+        $euro = $this->createCurrency('EUR');
+
+        /** @var GiftCardExampleFactory $factory */
+        $factory = self::getContainer()->get(GiftCardExampleFactory::class);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Gift cards are issued in the channel's base currency (USD for channel TEST_CHANNEL), got: EUR");
+
+        $factory->create(['code' => 'FIXTUREBADCUR04', 'currency' => $euro]);
+    }
+
     /** @test */
     public function it_rejects_a_currency_that_does_not_exist(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Currency XYZ was not found. Use one of: USD');
+        $this->expectExceptionMessage("Currency XYZ was not found. Gift cards are issued in the channel's base currency (USD for channel TEST_CHANNEL)");
 
         $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTUREBADCUR01', 'currency' => 'XYZ']]]);
     }
@@ -170,13 +220,10 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
     /** @test */
     public function it_rejects_a_currency_the_channel_does_not_sell_in(): void
     {
-        $euro = new Currency();
-        $euro->setCode('EUR');
-        $this->manager->persist($euro);
-        $this->manager->flush();
+        $this->createCurrency('EUR', false);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/EUR/');
+        $this->expectExceptionMessage("Gift cards are issued in the channel's base currency (USD for channel TEST_CHANNEL), got: EUR");
 
         $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTUREBADCUR02', 'currency' => 'EUR']]]);
     }
@@ -212,6 +259,24 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
         yield 'an amount that is not a number' => [['amount' => 'fifty']];
         yield 'enabled that is not a boolean' => [['enabled' => 'yes']];
         yield 'an unknown option' => [['colour' => 'gold']];
+    }
+
+    /**
+     * Creates a currency, which the test channel offers besides its base currency USD unless told otherwise
+     */
+    private function createCurrency(string $code, bool $offeredByTheChannel = true): CurrencyInterface
+    {
+        $currency = new Currency();
+        $currency->setCode($code);
+        $this->manager->persist($currency);
+
+        if ($offeredByTheChannel) {
+            $this->getChannel()->addCurrency($currency);
+        }
+
+        $this->manager->flush();
+
+        return $currency;
     }
 
     private function findGiftCard(string $code): GiftCardInterface

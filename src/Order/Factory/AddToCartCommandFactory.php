@@ -38,7 +38,7 @@ final class AddToCartCommandFactory implements AddToCartCommandFactoryInterface
         return new $this->className(
             $command->getCart(),
             $command->getCartItem(),
-            $this->giftCardInformationFactory->createNew($cartItem),
+            $this->giftCardInformationFactory->createNew($cart, $cartItem),
         );
     }
 }

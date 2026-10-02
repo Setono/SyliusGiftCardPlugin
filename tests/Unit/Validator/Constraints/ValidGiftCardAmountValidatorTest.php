@@ -17,6 +17,8 @@ use Sylius\Component\Channel\Context\ChannelNotFoundException;
 use Sylius\Component\Channel\Model\ChannelInterface as BaseChannelInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Currency\Model\Currency;
+use Sylius\Component\Locale\Context\LocaleContextInterface;
+use Sylius\Component\Locale\Context\LocaleNotFoundException;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\UnexpectedValueException;
@@ -24,7 +26,8 @@ use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
 /**
  * The amount a customer may buy a gift card for is bounded by the limits of the channel being shopped in, and the
- * violation quotes the limit that was crossed as money in the channel's base currency
+ * violation quotes the limit that was crossed as money in the channel's base currency, formatted in the locale being
+ * browsed the way the amount field's help text quotes it
  *
  * @extends ConstraintValidatorTestCase<ValidGiftCardAmountValidator>
  */
@@ -38,27 +41,77 @@ final class ValidGiftCardAmountValidatorTest extends ConstraintValidatorTestCase
     /** @var ObjectProphecy<GiftCardAmountLimitsProviderInterface> */
     private ObjectProphecy $amountLimitsProvider;
 
-    /** @test */
-    public function it_rejects_an_amount_below_the_minimum(): void
+    /** @var ObjectProphecy<LocaleContextInterface> */
+    private ObjectProphecy $localeContext;
+
+    /**
+     * @test
+     *
+     * @dataProvider minimumsInTheLocaleBrowsed
+     */
+    public function it_rejects_an_amount_below_the_minimum(string $localeCode, string $minimum): void
     {
         $this->channelLimits(100, 50000);
+        $this->localeContext->getLocaleCode()->willReturn($localeCode);
+
+        $this->validator->validate(99, new ValidGiftCardAmount());
+
+        $this->buildViolation('setono_sylius_gift_card.gift_card_information.amount.too_low')
+            ->setParameter('{{ minimum }}', $minimum)
+            ->assertRaised();
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider maximumsInTheLocaleBrowsed
+     */
+    public function it_rejects_an_amount_above_the_maximum(string $localeCode, string $maximum): void
+    {
+        $this->channelLimits(100, 50000);
+        $this->localeContext->getLocaleCode()->willReturn($localeCode);
+
+        $this->validator->validate(50001, new ValidGiftCardAmount());
+
+        $this->buildViolation('setono_sylius_gift_card.gift_card_information.amount.too_high')
+            ->setParameter('{{ maximum }}', $maximum)
+            ->assertRaised();
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function minimumsInTheLocaleBrowsed(): iterable
+    {
+        yield 'browsing in French' => ['fr_FR', '1,00 DKK'];
+        yield 'browsing in Danish' => ['da_DK', '1,00 kr.'];
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function maximumsInTheLocaleBrowsed(): iterable
+    {
+        yield 'browsing in French' => ['fr_FR', '500,00 DKK'];
+        yield 'browsing in Danish' => ['da_DK', '500,00 kr.'];
+    }
+
+    /**
+     * Validation also runs where no locale is being browsed, such as a console command or a host application's
+     * API. The limit is then quoted the way the money formatter quotes it without a locale instead of the
+     * validation failing
+     *
+     * @test
+     */
+    public function it_quotes_the_limit_without_a_locale_when_none_can_be_resolved(): void
+    {
+        $this->channelLimits(100, 50000);
+        $this->localeContext->getLocaleCode()->willThrow(new LocaleNotFoundException());
 
         $this->validator->validate(99, new ValidGiftCardAmount());
 
         $this->buildViolation('setono_sylius_gift_card.gift_card_information.amount.too_low')
             ->setParameter('{{ minimum }}', 'DKK 1.00')
-            ->assertRaised();
-    }
-
-    /** @test */
-    public function it_rejects_an_amount_above_the_maximum(): void
-    {
-        $this->channelLimits(100, 50000);
-
-        $this->validator->validate(50001, new ValidGiftCardAmount());
-
-        $this->buildViolation('setono_sylius_gift_card.gift_card_information.amount.too_high')
-            ->setParameter('{{ maximum }}', 'DKK 500.00')
             ->assertRaised();
     }
 
@@ -155,15 +208,21 @@ final class ValidGiftCardAmountValidatorTest extends ConstraintValidatorTestCase
     {
         $this->channelContext = $this->prophesize(ChannelContextInterface::class);
         $this->amountLimitsProvider = $this->prophesize(GiftCardAmountLimitsProviderInterface::class);
+        $this->localeContext = $this->prophesize(LocaleContextInterface::class);
 
+        // What Sylius' money formatter makes of the limits in each locale, and in English without one
         $moneyFormatter = $this->prophesize(MoneyFormatterInterface::class);
-        $moneyFormatter->format(100, 'DKK')->willReturn('DKK 1.00');
-        $moneyFormatter->format(50000, 'DKK')->willReturn('DKK 500.00');
+        $moneyFormatter->format(100, 'DKK', 'fr_FR')->willReturn('1,00 DKK');
+        $moneyFormatter->format(50000, 'DKK', 'fr_FR')->willReturn('500,00 DKK');
+        $moneyFormatter->format(100, 'DKK', 'da_DK')->willReturn('1,00 kr.');
+        $moneyFormatter->format(50000, 'DKK', 'da_DK')->willReturn('500,00 kr.');
+        $moneyFormatter->format(100, 'DKK', null)->willReturn('DKK 1.00');
 
         return new ValidGiftCardAmountValidator(
             $this->channelContext->reveal(),
             $this->amountLimitsProvider->reveal(),
             $moneyFormatter->reveal(),
+            $this->localeContext->reveal(),
         );
     }
 

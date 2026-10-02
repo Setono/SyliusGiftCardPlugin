@@ -32,7 +32,7 @@ The delivery type also decides what the buyer is emailed when the order is paid.
 
 ### Buying a gift card
 
-The customer chooses the amount, a design and an optional message on the product page (with a live preview). A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)). Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
+The customer chooses the amount, a design and an optional message on the product page (with a live preview). The amount field starts out at the price the page shows, i.e. the preselected variant's price in the channel, so the gift card product's price is the amount you suggest; a product priced at zero leaves the field empty. A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)). Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
 
 ### Redeeming a gift card
 
@@ -41,6 +41,8 @@ The customer enters a gift card code in the cart. The order total stays intact a
 A gift card is treated as a means of payment rather than a discount, because that is what it is: selling one takes money for a liability the shop settles later, so redeeming it settles that liability instead of reducing what the order is worth. It also keeps gift cards out of the way of promotions, and matches what order management and accounting systems expect to receive.
 
 Gift cards cannot be used to buy other gift cards, balances are committed when the order is placed and restored, once per payment, when the gift card payment is refunded (cancelling the order refunds it), and every balance change is recorded in an append-only ledger.
+
+An order the gift cards pay only in part stays *awaiting payment* until the rest is paid, although its gift card payments are completed when it is placed (Sylius alone would call it *partially paid*). Sylius' shop only lets a customer pay for an order, or change how to pay it, while the order awaits payment: from the thank you page, from the order in their account, and after a payment that did not go through at the payment provider. Sylius' unpaid order expiry (`sylius:cancel-unpaid-orders`) also only cancels orders that await payment, and cancelling one gives the gift cards their balance back. The plugin does this by decorating Sylius' order payment state resolver (`sylius.state_resolver.order_payment`); in the admin, such an order shows as awaiting payment with the completed gift card payment listed next to the payment for the rest.
 
 ## Requirements
 
@@ -199,7 +201,7 @@ All settings are optional and shown here with their defaults:
 # config/packages/setono_sylius_gift_card.yaml
 setono_sylius_gift_card:
     code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…); minimum 12, because a code is a bearer token and must not be guessable
-    default_validity_period: '3 years'   # any strtotime-compatible interval, or null to never expire
+    default_validity_period: '3 years'   # how long a card stays valid (any strtotime-compatible interval), or null to never expire; see below
     purchase:
         minimum_amount: 100              # minor units (e.g. cents)
         maximum_amount: ~                # null = no maximum
@@ -213,6 +215,13 @@ setono_sylius_gift_card:
     pdf:
         page_size: A6                    # any page size supported by dompdf; the card scales to fill it
 ```
+
+`default_validity_period` counts from when the order is placed for a gift card bought in the shop, and from its
+creation for a gift card issued in the admin (where the expiry date can also be changed on the form). A bought card
+expires at the end of the day the period after checkout completion, however long it sat in the cart before, so every
+card bought on one order expires on the same day. It does not count from payment, even when that comes days later, as
+with a bank transfer. A change to the setting applies to the cards bought or issued after it; existing cards keep their
+expiry.
 
 `maximum_message_length` is what both forms allow: it sets the shop textarea's `maxlength` and remaining-characters
 counter, and it is the limit enforced by the `GiftCardMessageLength` constraint on the gift card and on the shop's
