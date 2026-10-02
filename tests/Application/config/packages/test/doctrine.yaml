@@ -1,0 +1,5 @@
+doctrine:
+    dbal:
+        # dama/doctrine-test-bundle (phpunit.xml.dist) runs every test in a transaction it rolls back afterwards, so the
+        # transactions the application opens have to be savepoints inside it
+        use_savepoints: true

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\SchemaTool;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
@@ -32,8 +31,6 @@ abstract class GiftCardFunctionalTestCase extends KernelTestCase
         /** @var EntityManagerInterface $manager */
         $manager = self::getContainer()->get('doctrine.orm.entity_manager');
         $this->manager = $manager;
-
-        $this->createSchema();
     }
 
     protected function getChannel(): ChannelInterface
@@ -162,13 +159,5 @@ abstract class GiftCardFunctionalTestCase extends KernelTestCase
         $order->addItem($item);
 
         return $item;
-    }
-
-    private function createSchema(): void
-    {
-        $metadata = array_values($this->manager->getMetadataFactory()->getAllMetadata());
-        $schemaTool = new SchemaTool($this->manager);
-        $schemaTool->dropSchema($metadata);
-        $schemaTool->createSchema($metadata);
     }
 }
