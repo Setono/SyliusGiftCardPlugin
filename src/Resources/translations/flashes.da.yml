@@ -14,5 +14,7 @@ setono_sylius_gift_card:
         email_not_sent_not_usable: Gavekortet kan ikke bruges, så det blev ikke sendt.
         no_longer_usable: Gavekortet %code% kan ikke længere bruges og er blevet fjernet fra din ordre.
         coverage_changed: Det beløb, dine gavekort dækker, har ændret sig. Gennemgå venligst din ordre, og vælg hvordan resten skal betales.
+        redemption_unavailable: Gavekort kan ikke bruges i butikken lige nu.
+        redemption_unavailable_removed: Gavekort kan ikke bruges i butikken lige nu, så dem på din ordre er blevet fjernet. Gennemgå venligst din ordre, og vælg hvordan den skal betales.
     gift_card_added: Gavekortet er blevet tilføjet til din ordre
     gift_card_removed: Gavekortet er blevet fjernet fra din ordre

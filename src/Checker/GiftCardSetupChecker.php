@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Checker;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Setono\Doctrine\ORMTrait;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardDesignRepositoryInterface;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -23,6 +24,7 @@ final class GiftCardSetupChecker implements GiftCardSetupCheckerInterface
         private readonly GiftCardDesignRepositoryInterface $designRepository,
         ManagerRegistry $managerRegistry,
         private readonly string $productClass,
+        private readonly GiftCardPaymentMethodProviderInterface $paymentMethodProvider,
     ) {
         $this->managerRegistry = $managerRegistry;
     }
@@ -51,6 +53,26 @@ final class GiftCardSetupChecker implements GiftCardSetupCheckerInterface
         }
 
         return $channels;
+    }
+
+    public function isPaymentMethodMissing(): bool
+    {
+        if (null !== $this->paymentMethodProvider->findPaymentMethod()) {
+            return false;
+        }
+
+        $selling = $this->getCodesOfChannelsSellingGiftCards();
+        if ([] === $selling) {
+            return false;
+        }
+
+        foreach ($this->channelRepository->findBy(['code' => $selling]) as $channel) {
+            if ($channel instanceof ChannelInterface && $channel->isEnabled()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

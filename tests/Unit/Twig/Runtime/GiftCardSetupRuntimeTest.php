@@ -26,7 +26,7 @@ final class GiftCardSetupRuntimeTest extends TestCase
         $checker = $this->prophesize(GiftCardSetupCheckerInterface::class);
         $checker->getChannelsWithoutDesign()->willReturn([$channel])->shouldBeCalledOnce();
 
-        $runtime = new GiftCardSetupRuntime($checker->reveal());
+        $runtime = new GiftCardSetupRuntime($checker->reveal(), 'gift_card');
 
         self::assertSame([$channel], $runtime->getChannelsWithoutDesign());
         self::assertSame([$channel], $runtime->getChannelsWithoutDesign());
@@ -38,7 +38,7 @@ final class GiftCardSetupRuntimeTest extends TestCase
         $checker = $this->prophesize(GiftCardSetupCheckerInterface::class);
         $checker->getChannelsWithoutDesign()->willReturn([])->shouldBeCalledOnce();
 
-        $runtime = new GiftCardSetupRuntime($checker->reveal());
+        $runtime = new GiftCardSetupRuntime($checker->reveal(), 'gift_card');
 
         self::assertSame([], $runtime->getChannelsWithoutDesign());
         self::assertSame([], $runtime->getChannelsWithoutDesign());
@@ -57,7 +57,7 @@ final class GiftCardSetupRuntimeTest extends TestCase
         $checker = $this->prophesize(GiftCardSetupCheckerInterface::class);
         $checker->getChannelsWithoutDesign()->willReturn([$channel], [])->shouldBeCalledTimes(2);
 
-        $runtime = new GiftCardSetupRuntime($checker->reveal());
+        $runtime = new GiftCardSetupRuntime($checker->reveal(), 'gift_card');
 
         self::assertSame([$channel], $runtime->getChannelsWithoutDesign());
 
@@ -65,5 +65,27 @@ final class GiftCardSetupRuntimeTest extends TestCase
 
         self::assertSame([], $runtime->getChannelsWithoutDesign());
         self::assertSame([], $runtime->getChannelsWithoutDesign());
+    }
+
+    /**
+     * The warning names the code the merchant has to give the payment method they create, and only while it is
+     * missing. Like the design check, the checker is consulted once per request, and again after a reset
+     *
+     * @test
+     */
+    public function it_gives_the_code_of_the_missing_payment_method_while_it_is_missing(): void
+    {
+        $checker = $this->prophesize(GiftCardSetupCheckerInterface::class);
+        $checker->isPaymentMethodMissing()->willReturn(true, false)->shouldBeCalledTimes(2);
+
+        $runtime = new GiftCardSetupRuntime($checker->reveal(), 'gift_card');
+
+        self::assertSame('gift_card', $runtime->getMissingPaymentMethodCode());
+        self::assertSame('gift_card', $runtime->getMissingPaymentMethodCode());
+
+        $runtime->reset();
+
+        self::assertNull($runtime->getMissingPaymentMethodCode());
+        self::assertNull($runtime->getMissingPaymentMethodCode());
     }
 }

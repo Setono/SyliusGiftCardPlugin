@@ -38,6 +38,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardSetupRuntime"
                  class="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardSetupRuntime">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardSetupCheckerInterface"/>
+            <argument>%setono_sylius_gift_card.redemption.payment_method_code%</argument>
 
             <tag name="twig.runtime"/>
             <!-- Clears the memoised answer between requests under a worker runtime. Nothing here is autoconfigured,

@@ -37,6 +37,9 @@ final class ThankYouPagePaymentInstructionsTest extends AdminFunctionalTestCase
 
         $this->getChannel()->setHostname(self::HOSTNAME);
         $this->manager->flush();
+
+        // the gift card payments are made with it, and the shop refuses gift cards until it is set up
+        $this->createGiftCardPaymentMethod();
     }
 
     /** @test */

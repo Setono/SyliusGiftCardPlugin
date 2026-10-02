@@ -38,9 +38,26 @@ final class GiftCardSetupExtensionTest extends TestCase
         ]));
         $twig->addExtension(new GiftCardSetupExtension());
         $twig->addRuntimeLoader(new FactoryRuntimeLoader([
-            GiftCardSetupRuntime::class => static fn (): GiftCardSetupRuntime => new GiftCardSetupRuntime($checker->reveal()),
+            GiftCardSetupRuntime::class => static fn (): GiftCardSetupRuntime => new GiftCardSetupRuntime($checker->reveal(), 'gift_card'),
         ]));
 
         self::assertSame('Web store, Mobile store', $twig->render('warning'));
+    }
+
+    /** @test */
+    public function it_gives_templates_the_code_of_the_missing_payment_method(): void
+    {
+        $checker = $this->prophesize(GiftCardSetupCheckerInterface::class);
+        $checker->isPaymentMethodMissing()->willReturn(true);
+
+        $twig = new Environment(new ArrayLoader([
+            'warning' => '{{ setono_gift_card_missing_payment_method_code() }}',
+        ]));
+        $twig->addExtension(new GiftCardSetupExtension());
+        $twig->addRuntimeLoader(new FactoryRuntimeLoader([
+            GiftCardSetupRuntime::class => static fn (): GiftCardSetupRuntime => new GiftCardSetupRuntime($checker->reveal(), 'gift_card'),
+        ]));
+
+        self::assertSame('gift_card', $twig->render('warning'));
     }
 }

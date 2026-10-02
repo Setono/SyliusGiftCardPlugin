@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Controller\Action;
 
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\Form\FormError;
@@ -39,8 +42,10 @@ final class AddGiftCardToOrderAction
         private readonly GiftCardApplicatorInterface $giftCardApplicator,
         private readonly RedirectUrlResolverInterface $redirectRouteResolver,
         ManagerRegistry $managerRegistry,
+        private readonly GiftCardPaymentMethodProviderInterface $paymentMethodProvider,
         private readonly ?RateLimiterFactory $rateLimiterFactory = null,
         private readonly ?RateLimiterFactory $ipRateLimiterFactory = null,
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {
         $this->managerRegistry = $managerRegistry;
     }
@@ -58,6 +63,16 @@ final class AddGiftCardToOrderAction
         $order = $this->cartContext->getCart();
         if (!$order instanceof OrderInterface) {
             throw new NotFoundHttpException();
+        }
+
+        // A card applied now could not pay when the order is placed: the gift card payments are made with a payment
+        // method the shop sets up once, and the admin warns until it has. Every code gets the same answer, before
+        // the code is looked at, so this tells a guesser nothing about the code
+        if (null === $this->paymentMethodProvider->findPaymentMethod()) {
+            $this->logger->error('A customer tried to apply a gift card, but the gift card payment method does not exist. Create it with bin/console setono:gift-card:create-payment-method');
+            $this->addFlash($request, 'error', 'setono_sylius_gift_card.gift_card.redemption_unavailable');
+
+            return $this->redirect($request);
         }
 
         $command = new AddGiftCardToOrderCommand();

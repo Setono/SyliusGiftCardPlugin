@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\EventSubscriber;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
@@ -15,7 +16,9 @@ use Setono\SyliusGiftCardPlugin\EventSubscriber\CheckoutGiftCardCoverageSubscrib
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\OrderCheckoutTransitions;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
@@ -46,6 +49,9 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
     /** @var ObjectProphecy<EntityManagerInterface> */
     private ObjectProphecy $manager;
 
+    /** @var ObjectProphecy<GiftCardPaymentMethodProviderInterface> */
+    private ObjectProphecy $paymentMethodProvider;
+
     protected function setUp(): void
     {
         $this->cartContext = $this->prophesize(CartContextInterface::class);
@@ -53,6 +59,9 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
         $this->applicator = $this->prophesize(GiftCardApplicatorInterface::class);
         $this->orderProcessor = $this->prophesize(OrderProcessorInterface::class);
         $this->manager = $this->prophesize(EntityManagerInterface::class);
+
+        $this->paymentMethodProvider = $this->prophesize(GiftCardPaymentMethodProviderInterface::class);
+        $this->paymentMethodProvider->findPaymentMethod()->willReturn($this->prophesize(PaymentMethodInterface::class)->reveal());
     }
 
     /** @test */
@@ -142,6 +151,48 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
         ]], $this->flashes($request));
     }
 
+    /**
+     * Without the payment method the gift card payments cannot be made when the order is placed, so no card on the cart
+     * can pay, however usable it is. They are all removed, and the customer is told why with a single message rather
+     * than one per card, since nothing is wrong with the cards
+     *
+     * @test
+     */
+    public function it_removes_every_gift_card_while_the_gift_card_payment_method_is_missing(): void
+    {
+        $this->paymentMethodProvider->findPaymentMethod()->willReturn(null);
+
+        $first = $this->prophesize(GiftCardInterface::class)->reveal();
+        $second = $this->prophesize(GiftCardInterface::class)->reveal();
+
+        $cart = $this->prophesize(OrderInterface::class);
+        $cart->hasGiftCards()->willReturn(true);
+        $cart->getId()->willReturn(42);
+        $cart->getGiftCards()->willReturn(new ArrayCollection([$first, $second]));
+        $this->cartContext->getCart()->willReturn($cart->reveal());
+
+        $this->guard->isSatisfiedBy($cart->reveal())->willReturn(false);
+        $this->guard->getIneligibleGiftCards(Argument::any())->shouldNotBeCalled();
+
+        $this->applicator->remove($cart->reveal(), $first)->shouldBeCalledOnce();
+        $this->applicator->remove($cart->reveal(), $second)->shouldBeCalledOnce();
+        $this->orderProcessor->process(Argument::any())->shouldNotBeCalled();
+        $this->manager->flush()->shouldBeCalledOnce();
+
+        $request = $this->completeStepRequest();
+        $event = $this->requestEvent($request);
+        $this->subscriber()($event);
+
+        $response = $event->getResponse();
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame('/cart', $response->getTargetUrl());
+
+        self::assertSame([[
+            'message' => 'setono_sylius_gift_card.gift_card.redemption_unavailable_removed',
+            'parameters' => [],
+        ]], $this->flashes($request));
+    }
+
     private function subscriber(): CheckoutGiftCardCoverageSubscriber
     {
         $urlGenerator = $this->prophesize(UrlGeneratorInterface::class);
@@ -158,6 +209,7 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
             $this->orderProcessor->reveal(),
             $urlGenerator->reveal(),
             $managerRegistry->reveal(),
+            $this->paymentMethodProvider->reveal(),
         );
     }
 

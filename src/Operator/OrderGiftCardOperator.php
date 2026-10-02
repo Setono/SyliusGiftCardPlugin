@@ -55,8 +55,6 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         // time spent in the cart does not count, and the cards bought on one order expire at the same moment
         $expiresAt = $this->giftCardExpiryResolver->resolve();
 
-        $manager = null;
-
         foreach ($items as $item) {
             $template = self::findTemplateGiftCard($item);
             $deliveryType = self::resolveDeliveryType($item);
@@ -77,8 +75,6 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
                     $this->getManager($giftCard)->persist($giftCard);
                 }
 
-                $manager ??= $this->getManager($giftCard);
-
                 // The card is worth the amount the customer chose, which is the price of its line. Not the unit total:
                 // promotions never discount a gift card line, and tax charged on top of it, where a gift card product
                 // carries a tax category, is not part of what the card is worth
@@ -93,8 +89,6 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
                 }
             }
         }
-
-        $manager?->flush();
     }
 
     public function enable(OrderInterface $order): void
@@ -111,8 +105,6 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
             // is re-snapshotted during reconciliation; this is the first moment the balance is final
             $this->balanceOperator->issue($giftCard);
         }
-
-        $this->getManager($giftCards[0])->flush();
     }
 
     public function send(OrderInterface $order): void
@@ -135,8 +127,6 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         foreach ($giftCards as $giftCard) {
             $giftCard->disable();
         }
-
-        $this->getManager($giftCards[0])->flush();
     }
 
     /**

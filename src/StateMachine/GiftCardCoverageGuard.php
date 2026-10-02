@@ -8,6 +8,7 @@ use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
 use Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Sylius\Component\Core\Model\OrderInterface as CoreOrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 
@@ -17,6 +18,7 @@ final class GiftCardCoverageGuard implements GiftCardCoverageGuardInterface
         private readonly GiftCardEligibilityCheckerInterface $eligibilityChecker,
         private readonly GiftCardCoverageCalculatorInterface $coverageCalculator,
         private readonly GiftCardPaymentCheckerInterface $paymentChecker,
+        private readonly GiftCardPaymentMethodProviderInterface $paymentMethodProvider,
     ) {
     }
 
@@ -24,6 +26,12 @@ final class GiftCardCoverageGuard implements GiftCardCoverageGuardInterface
     {
         if (!$order instanceof OrderInterface || !$order->hasGiftCards()) {
             return true;
+        }
+
+        // Without the payment method the gift card payments cannot be made when the order is placed, so the cards
+        // pay nothing at all, whatever they cover on the cart
+        if (null === $this->paymentMethodProvider->findPaymentMethod()) {
+            return false;
         }
 
         return [] === $this->getIneligibleGiftCards($order) && $this->isTotalCovered($order);

@@ -31,7 +31,8 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 /**
  * The operator drives the life of the gift cards bought on an order: reconcile when checkout completes, enable when
  * the order is paid, disable when it is cancelled. It is called directly here, against the real database, so each
- * step is checked by what it leaves behind rather than through the state machine that calls it
+ * step is checked by what it leaves behind rather than through the state machine that calls it. It flushes nothing
+ * itself, so each test flushes after it, as whatever applies the transition does
  */
 final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
 {
@@ -70,6 +71,8 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
         $item = $this->addLine($order, $this->createGiftCardVariant('VIRTUAL', shippingRequired: false), 3, [$template]);
 
         $this->operator->reconcile($order);
+
+        $this->manager->flush();
         $this->manager->clear();
 
         $giftCards = $this->giftCardsOfItem($item);
@@ -104,6 +107,8 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
         $item = $this->addLine($order, $this->createGiftCardVariant('PHYSICAL', shippingRequired: true), 2);
 
         $this->operator->reconcile($order);
+
+        $this->manager->flush();
         $this->manager->clear();
 
         $giftCards = $this->giftCardsOfItem($item);
@@ -154,6 +159,8 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
         self::assertSame(5500, $taxedUnit->getTotal(), 'precondition: the tax raised the unit total');
 
         $this->operator->reconcile($order);
+
+        $this->manager->flush();
         $this->manager->clear();
 
         foreach (['DISCOUNTED000001', 'TAXED00000000001'] as $code) {
@@ -188,6 +195,7 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
         $before = (new \DateTimeImmutable('+' . $period))->setTime(23, 59, 59)->format('Y-m-d H:i:s');
         $this->operator->reconcile($order);
         $after = (new \DateTimeImmutable('+' . $period))->setTime(23, 59, 59)->format('Y-m-d H:i:s');
+        $this->manager->flush();
         $this->manager->clear();
 
         $expiries = array_map(
@@ -231,6 +239,8 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
         $item = $this->addLine($order, $this->createGiftCardVariant('VIRTUAL', shippingRequired: false), 2, [$template]);
 
         $operator->reconcile($order);
+
+        $this->manager->flush();
         $this->manager->clear();
 
         $giftCards = $this->giftCardsOfItem($item);
@@ -248,6 +258,8 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
         $this->addLine($order, $this->createGiftCardVariant('VIRTUAL', shippingRequired: false), 1);
 
         $this->operator->reconcile($order);
+
+        $this->manager->flush();
         $this->manager->clear();
 
         self::assertSame([], $this->giftCardsOfItem($mug));
@@ -273,6 +285,8 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
         $this->manager->flush();
 
         $this->operator->enable($order);
+
+        $this->manager->flush();
         $this->manager->clear();
 
         foreach (['ENABLED000000001' => 5000, 'ENABLED000000002' => 2500] as $code => $amount) {
@@ -295,7 +309,11 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
         $this->addLine($order, $this->createGiftCardVariant('VIRTUAL', shippingRequired: false), 1, [$this->createPendingGiftCard('ENABLEDTWICE0001')]);
 
         $this->operator->enable($order);
+        $this->manager->flush();
+
+        // fired again, as a later request would: the issuance recorded the first time is in the database by then
         $this->operator->enable($order);
+        $this->manager->flush();
         $this->manager->clear();
 
         self::assertSame([[GiftCardTransactionInterface::TYPE_ISSUE, 5000]], $this->ledgerOf($this->findGiftCard('ENABLEDTWICE0001')));
@@ -324,6 +342,8 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
         $this->manager->flush();
 
         $this->operator->disable($order);
+
+        $this->manager->flush();
         $this->manager->clear();
 
         foreach (['CANCELLED0000001', 'CANCELLED0000002'] as $code) {

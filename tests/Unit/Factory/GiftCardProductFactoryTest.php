@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Factory;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -44,6 +46,12 @@ final class GiftCardProductFactoryTest extends TestCase
     /** @var ObjectProphecy<FactoryInterface<ProductOptionInterface>> */
     private ObjectProphecy $productOptionFactory;
 
+    /** @var ObjectProphecy<EntityManagerInterface> */
+    private ObjectProphecy $manager;
+
+    /** @var list<object> what the factory persisted, which the entity manager then contains */
+    private array $persisted = [];
+
     private ChannelInterface $web;
 
     private ChannelInterface $mobile;
@@ -57,7 +65,17 @@ final class GiftCardProductFactoryTest extends TestCase
         $productOptionRepository = $this->prophesize(RepositoryInterface::class);
         $this->productOptionRepository = $productOptionRepository;
         $this->productOptionRepository->findOneBy(['code' => 'gift_card_delivery'])->willReturn(null);
-        $this->productOptionRepository->add(Argument::any())->will(static function (): void {});
+        $this->productOptionRepository->add(Argument::any())->shouldNotBeCalled();
+
+        $persisted = &$this->persisted;
+        $this->manager = $this->prophesize(EntityManagerInterface::class);
+        $this->manager->persist(Argument::any())->will(static function (array $arguments) use (&$persisted): void {
+            $persisted[] = $arguments[0];
+        });
+        $this->manager->contains(Argument::any())->will(static function (array $arguments) use (&$persisted): bool {
+            return in_array($arguments[0], $persisted, true);
+        });
+        $this->manager->flush()->shouldNotBeCalled();
 
         /** @var ObjectProphecy<RepositoryInterface<ChannelInterface>> $channelRepository */
         $channelRepository = $this->prophesize(RepositoryInterface::class);
@@ -170,7 +188,8 @@ final class GiftCardProductFactoryTest extends TestCase
     /** @test */
     public function it_creates_the_delivery_option_when_the_shop_has_none_yet(): void
     {
-        $this->productOptionRepository->add(Argument::type(ProductOptionInterface::class))->shouldBeCalledOnce();
+        // persisted for the caller's flush to write with the product, not flushed here
+        $this->manager->persist(Argument::type(ProductOptionInterface::class))->shouldBeCalledOnce();
 
         $product = $this->factory()->create('gift_card', 'Gift card');
 
@@ -201,7 +220,7 @@ final class GiftCardProductFactoryTest extends TestCase
     {
         $existing = $this->deliveryOption('gift_card_delivery_virtual', 'gift_card_delivery_physical');
         $this->productOptionRepository->findOneBy(['code' => 'gift_card_delivery'])->willReturn($existing);
-        $this->productOptionRepository->add(Argument::any())->shouldNotBeCalled();
+        $this->manager->persist(Argument::any())->shouldNotBeCalled();
         $this->productOptionFactory->createNew()->shouldNotBeCalled();
 
         $product = $this->factory()->create('gift_card_2', 'Gift card');
@@ -224,7 +243,7 @@ final class GiftCardProductFactoryTest extends TestCase
     {
         $existing = $this->deliveryOption('virtual', 'physical');
         $this->productOptionRepository->findOneBy(['code' => 'gift_card_delivery'])->willReturn($existing);
-        $this->productOptionRepository->add(Argument::any())->shouldNotBeCalled();
+        $this->manager->persist(Argument::any())->shouldNotBeCalled();
         $this->productOptionFactory->createNew()->shouldNotBeCalled();
 
         $variants = $this->variants($this->factory()->create('gift_card_2', 'Gift card'));
@@ -292,6 +311,44 @@ final class GiftCardProductFactoryTest extends TestCase
         $this->factory()->create('gift_card', 'Gift card');
     }
 
+    /**
+     * The option is only persisted, and a repository lookup only finds what is flushed, so a second product created
+     * before the flush (the product fixture creates several in one unit of work) gets the option the first one got
+     * instead of a second option with the same, unique, code
+     *
+     * @test
+     */
+    public function it_reuses_the_delivery_option_it_created_until_it_is_flushed(): void
+    {
+        $this->productOptionFactory->createNew()->will(static fn (): ProductOption => new ProductOption())->shouldBeCalledOnce();
+
+        $factory = $this->factory();
+
+        $first = $factory->create('gift_card', 'Gift card');
+        $second = $factory->create('gift_card_2', 'Gift card');
+
+        self::assertSame(array_values($first->getOptions()->toArray()), array_values($second->getOptions()->toArray()));
+        self::assertCount(1, $this->persisted);
+    }
+
+    /**
+     * An option the entity manager no longer holds (it was cleared, say, without a flush) was never written, so the
+     * factory creates the option again rather than hand out one nothing will save
+     *
+     * @test
+     */
+    public function it_creates_the_delivery_option_again_when_the_one_it_created_was_not_kept(): void
+    {
+        $factory = $this->factory();
+
+        $first = $factory->create('gift_card', 'Gift card');
+        $this->persisted = [];
+        $second = $factory->create('gift_card_2', 'Gift card');
+
+        self::assertNotSame(array_values($first->getOptions()->toArray()), array_values($second->getOptions()->toArray()));
+        self::assertCount(1, $this->persisted);
+    }
+
     private function factory(): GiftCardProductFactory
     {
         $productFactory = $this->prophesize(FactoryInterface::class);
@@ -309,6 +366,9 @@ final class GiftCardProductFactoryTest extends TestCase
         $localeRepository = $this->prophesize(RepositoryInterface::class);
         $localeRepository->findAll()->willReturn([$this->locale('en_US'), $this->locale('da_DK')]);
 
+        $managerRegistry = $this->prophesize(ManagerRegistry::class);
+        $managerRegistry->getManagerForClass(Argument::any())->willReturn($this->manager->reveal());
+
         return new GiftCardProductFactory(
             $productFactory->reveal(),
             $productVariantFactory->reveal(),
@@ -319,6 +379,7 @@ final class GiftCardProductFactoryTest extends TestCase
             $this->channelRepository->reveal(),
             $localeRepository->reveal(),
             new SlugGenerator(),
+            $managerRegistry->reveal(),
         );
     }
 

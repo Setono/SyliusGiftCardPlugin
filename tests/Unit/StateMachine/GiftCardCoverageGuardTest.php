@@ -15,9 +15,11 @@ use Setono\SyliusGiftCardPlugin\Checker\GiftCardIneligibilityReason;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuard;
 use Sylius\Component\Core\Model\OrderInterface as CoreOrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 /**
  * The guard the checkout's complete transition asks. A cart the gift cards fully covered skipped the payment step
@@ -106,9 +108,28 @@ final class GiftCardCoverageGuardTest extends TestCase
         $paymentChecker = $this->prophesize(GiftCardPaymentCheckerInterface::class);
         $paymentChecker->isGiftCardPayment($giftCardPayment)->willReturn(true);
 
-        $guard = new GiftCardCoverageGuard($this->eligible(), $this->coverageOf(0), $paymentChecker->reveal());
+        $guard = new GiftCardCoverageGuard($this->eligible(), $this->coverageOf(0), $paymentChecker->reveal(), $this->paymentMethodProvider());
 
         self::assertFalse($guard->isTotalCovered($order));
+    }
+
+    /**
+     * The gift card payments are made with a payment method the shop sets up once, so without it the cards cannot pay
+     * when the order is placed, however usable they are and whatever they cover on the cart
+     *
+     * @test
+     */
+    public function it_is_not_satisfied_while_the_gift_card_payment_method_is_missing(): void
+    {
+        $order = $this->orderWith([$this->giftCard()], [], 5000);
+
+        $paymentChecker = $this->prophesize(GiftCardPaymentCheckerInterface::class);
+        $paymentChecker->isGiftCardPayment(Argument::any())->willReturn(false);
+
+        $guard = new GiftCardCoverageGuard($this->eligible(), $this->coverageOf(5000), $paymentChecker->reveal(), $this->paymentMethodProvider(false));
+
+        self::assertFalse($guard->isSatisfiedBy($order));
+        self::assertTrue($this->guard(coverage: 5000)->isSatisfiedBy($order));
     }
 
     private function guard(?GiftCardEligibilityCheckerInterface $checker = null, int $coverage = 0): GiftCardCoverageGuard
@@ -116,7 +137,15 @@ final class GiftCardCoverageGuardTest extends TestCase
         $paymentChecker = $this->prophesize(GiftCardPaymentCheckerInterface::class);
         $paymentChecker->isGiftCardPayment(Argument::any())->willReturn(false);
 
-        return new GiftCardCoverageGuard($checker ?? $this->eligible(), $this->coverageOf($coverage), $paymentChecker->reveal());
+        return new GiftCardCoverageGuard($checker ?? $this->eligible(), $this->coverageOf($coverage), $paymentChecker->reveal(), $this->paymentMethodProvider());
+    }
+
+    private function paymentMethodProvider(bool $exists = true): GiftCardPaymentMethodProviderInterface
+    {
+        $provider = $this->prophesize(GiftCardPaymentMethodProviderInterface::class);
+        $provider->findPaymentMethod()->willReturn($exists ? $this->prophesize(PaymentMethodInterface::class)->reveal() : null);
+
+        return $provider->reveal();
     }
 
     private function eligible(): GiftCardEligibilityCheckerInterface

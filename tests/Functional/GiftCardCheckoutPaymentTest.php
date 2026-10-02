@@ -6,7 +6,6 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
-use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
@@ -40,7 +39,7 @@ final class GiftCardCheckoutPaymentTest extends GiftCardFunctionalTestCase
 
         // The gift card method is created first, so it sorts first among the channel's payment methods and is what
         // Sylius itself would pick as the default one
-        $this->giftCardPaymentMethodProvider()->getPaymentMethod($this->getChannel());
+        $this->createGiftCardPaymentMethod();
         $this->createCashPaymentMethod();
         $this->manager->flush();
 
@@ -262,14 +261,6 @@ final class GiftCardCheckoutPaymentTest extends GiftCardFunctionalTestCase
         $paymentMethod->addChannel($this->getChannel());
 
         $this->manager->persist($paymentMethod);
-    }
-
-    private function giftCardPaymentMethodProvider(): GiftCardPaymentMethodProviderInterface
-    {
-        /** @var GiftCardPaymentMethodProviderInterface $provider */
-        $provider = self::getContainer()->get(GiftCardPaymentMethodProviderInterface::class);
-
-        return $provider;
     }
 
     private function redemptionMethod(): GiftCardRedemptionMethodInterface

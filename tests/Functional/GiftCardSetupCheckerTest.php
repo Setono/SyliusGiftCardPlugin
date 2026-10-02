@@ -13,7 +13,8 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 
 /**
  * The warning about a channel selling gift cards without a design must only ever point at channels where that
- * is actually the case, so every combination of product and design state is walked through here
+ * is actually the case, so every combination of product and design state is walked through here. The same goes for the
+ * warning about the missing gift card payment method
  */
 final class GiftCardSetupCheckerTest extends GiftCardFunctionalTestCase
 {
@@ -102,6 +103,56 @@ final class GiftCardSetupCheckerTest extends GiftCardFunctionalTestCase
         $this->createGiftCardProduct($this->getChannel(), 'CARD', $other);
 
         self::assertSame(['OTHER', $this->getChannel()->getCode()], $this->codesOfChannelsWithoutDesign());
+    }
+
+    /**
+     * A shop that sells gift cards refuses every one of them until the payment method gift card payments are made
+     * with exists
+     *
+     * @test
+     */
+    public function it_reports_the_missing_payment_method_while_a_channel_sells_gift_cards(): void
+    {
+        $this->createGiftCardProduct($this->getChannel(), 'CARD');
+
+        self::assertTrue($this->checker()->isPaymentMethodMissing());
+
+        $this->createGiftCardPaymentMethod();
+
+        self::assertFalse($this->checker()->isPaymentMethodMissing());
+    }
+
+    /** @test */
+    public function it_has_nothing_to_say_about_the_payment_method_of_a_shop_that_does_not_sell_gift_cards(): void
+    {
+        $this->getChannel();
+        $this->createGiftCardProduct($this->getChannel(), 'CARD')->setEnabled(false);
+        $this->manager->flush();
+
+        self::assertFalse($this->checker()->isPaymentMethodMissing());
+    }
+
+    /**
+     * Nobody can buy anything in a disabled channel, so it does not need the payment method yet either
+     *
+     * @test
+     */
+    public function it_has_nothing_to_say_about_the_payment_method_while_only_a_disabled_channel_sells_gift_cards(): void
+    {
+        $this->getChannel();
+        $disabled = $this->createChannel('DISABLED');
+        $disabled->setEnabled(false);
+        $this->createGiftCardProduct($disabled, 'CARD');
+
+        self::assertFalse($this->checker()->isPaymentMethodMissing());
+    }
+
+    private function checker(): GiftCardSetupCheckerInterface
+    {
+        /** @var GiftCardSetupCheckerInterface $checker */
+        $checker = self::getContainer()->get(GiftCardSetupCheckerInterface::class);
+
+        return $checker;
     }
 
     /**

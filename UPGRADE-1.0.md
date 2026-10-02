@@ -72,19 +72,10 @@ If you overrode any of the removed templates (gift card configuration admin, the
 
 ## Gift card payment method
 
-A `gift_card` payment method using the `offline` gateway is created automatically the first time it is needed. You can also create it yourself via a fixture:
+A redeemed gift card becomes a payment made with an offline payment method with the code `gift_card` (the `redemption.payment_method_code` setting). It is not created automatically: run the command below once after upgrading. It creates the method in every channel and leaves an existing one alone, so it is safe on a shop that already has it.
 
-```yaml
-sylius_fixtures:
-    suites:
-        default:
-            fixtures:
-                payment_method:
-                    options:
-                        custom:
-                            gift_card:
-                                code: gift_card
-                                name: 'Gift card'
-                                gatewayFactory: offline
-                                channels: ['<your-channel-code>']
+```bash
+bin/console setono:gift-card:create-payment-method
 ```
+
+Until the method exists the shop refuses gift cards, and the admin warns on every page. A shop seeded with fixtures gets it from the `setono_gift_card_payment_method` fixture, which the plugin's fixture suite includes.

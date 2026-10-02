@@ -61,6 +61,14 @@ setono_sylius_gift_card:
         your_message_here: Din besked her
         design: Design
         designs: Design
+        payment_method_warning:
+            topbar: 'Gavekortopsætningen er ufuldstændig: ingen betalingsmetode til gavekort'
+            header: Kunderne kan endnu ikke betale med gavekort
+            explanation: 'Butikken sælger gavekort, men har ingen betalingsmetode at gennemføre gavekortbetalinger med, så den afviser alle gavekort, som en kunde forsøger at betale med.'
+            create_payment_method: Opret en offline-betalingsmetode
+            create_payment_method_suffix: med koden
+            or: eller
+            run_command: 'opret den i alle kanaler ved at køre'
         setup_warning:
             topbar: 'Gavekortopsætningen er ufuldstændig: intet design i %channels%'
             header: Gavekortopsætningen er ikke færdig
