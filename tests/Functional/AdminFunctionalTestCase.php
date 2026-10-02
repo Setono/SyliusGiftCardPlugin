@@ -60,11 +60,23 @@ abstract class AdminFunctionalTestCase extends GiftCardFunctionalTestCase
         $userProvider = self::getContainer()->get('sylius.admin_user_provider.email_or_name_based');
         $user = $userProvider->loadUserByIdentifier('administrator');
 
+        // The token carries the role the admin firewall's access control asks for
+        $this->startSession(['_security_admin' => serialize(new TestBrowserToken([AdminUserInterface::DEFAULT_ADMIN_ROLE], $user, 'admin'))]);
+    }
+
+    /**
+     * Starts a session holding the given attributes, and sends its cookie with every following request
+     *
+     * @param array<string, mixed> $attributes
+     */
+    protected function startSession(array $attributes): void
+    {
         /** @var SessionFactoryInterface $sessionFactory */
         $sessionFactory = self::getContainer()->get('session.factory');
         $session = $sessionFactory->createSession();
-        // The token carries the role the admin firewall's access control asks for
-        $session->set('_security_admin', serialize(new TestBrowserToken([AdminUserInterface::DEFAULT_ADMIN_ROLE], $user, 'admin')));
+        foreach ($attributes as $name => $value) {
+            $session->set($name, $value);
+        }
         $session->save();
 
         $this->cookies[$session->getName()] = $session->getId();

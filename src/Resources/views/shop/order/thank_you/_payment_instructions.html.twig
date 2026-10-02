@@ -1,0 +1,15 @@
+{#
+    Sylius' thank you page shows the instructions of the order's last payment, such as where to send a bank transfer.
+    The gift card payments are added when the order is placed, after the payment the customer chose for the rest, so
+    on an order the gift cards pay in part the last payment is a gift card payment and the instructions for the rest
+    would never be shown. Sylius fires no template event around its instructions, so the instructions for the rest are
+    rendered here, built like Sylius' own, on the event right above them (see SetonoSyliusGiftCardExtension::prepend()).
+
+    Where the payment for the rest is the order's last payment, Sylius shows its instructions itself.
+#}
+{% set remaining_payment = setono_gift_card_remaining_payment(order) %}
+{% if remaining_payment is not null and remaining_payment is not same as(order.payments.last()) and remaining_payment.method.instructions is not null %}
+    <div id="sylius-payment-method-instructions" class="ui segment" {{ sylius_test_html_attribute('payment-method-instructions') }}>
+        {{ remaining_payment.method.instructions }}
+    </div>
+{% endif %}
