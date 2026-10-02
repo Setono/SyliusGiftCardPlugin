@@ -39,6 +39,11 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   template is an ordinary overridable Twig file rather than Twig stored in the database
 - Balances are committed when the order is placed and restored when it is cancelled or refunded, and every
   mutation goes through the balance operator
+- Promotions never discount a gift card line, so a card costs and holds exactly the amount chosen: unit
+  discounts skip it, an order discount is taken from the other items only, and a gift card being bought no
+  longer counts towards a promotion's "item total" rule. Promotions a shop already runs behave differently:
+  with "free shipping over 100.00", an order of a 100.00 physical gift card used to ship for free and now pays
+  for shipping
 
 ### Removed
 - **The API layer** — the whole API Platform / `sylius/api-bundle` integration. Stay on `0.12.x` if you need it
