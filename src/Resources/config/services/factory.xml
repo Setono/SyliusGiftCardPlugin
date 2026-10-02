@@ -9,7 +9,7 @@
                  decorates="setono_sylius_gift_card.factory.gift_card">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Factory\GiftCardFactory.inner"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface"/>
-            <argument>%setono_sylius_gift_card.default_validity_period%</argument>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolverInterface"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface"
                  alias="setono_sylius_gift_card.factory.gift_card"/>

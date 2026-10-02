@@ -199,7 +199,7 @@ All settings are optional and shown here with their defaults:
 # config/packages/setono_sylius_gift_card.yaml
 setono_sylius_gift_card:
     code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…); minimum 12, because a code is a bearer token and must not be guessable
-    default_validity_period: '3 years'   # any strtotime-compatible interval, or null to never expire
+    default_validity_period: '3 years'   # how long a card stays valid (any strtotime-compatible interval), or null to never expire; see below
     purchase:
         minimum_amount: 100              # minor units (e.g. cents)
         maximum_amount: ~                # null = no maximum
@@ -213,6 +213,13 @@ setono_sylius_gift_card:
     pdf:
         page_size: A6                    # any page size supported by dompdf; the card scales to fill it
 ```
+
+`default_validity_period` counts from when the order is placed for a gift card bought in the shop, and from its
+creation for a gift card issued in the admin (where the expiry date can also be changed on the form). A bought card
+expires at the end of the day the period after checkout completion, however long it sat in the cart before, so every
+card bought on one order expires on the same day. It does not count from payment, even when that comes days later, as
+with a bank transfer. A change to the setting applies to the cards bought or issued after it; existing cards keep their
+expiry.
 
 `maximum_message_length` is what both forms allow: it sets the shop textarea's `maxlength` and remaining-characters
 counter, and it is the limit enforced by the `GiftCardMessageLength` constraint on the gift card and on the shop's
