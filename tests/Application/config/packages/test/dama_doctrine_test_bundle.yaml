@@ -1,0 +1,11 @@
+# Every test runs in a transaction DAMA's PHPUnit extension (phpunit.xml.dist) rolls back afterwards. The one connection
+# is kept across the kernels a test boots, so each of them sees what the test wrote
+dama_doctrine_test:
+    enable_static_connection: true
+    enable_static_meta_data_cache: true
+    enable_static_query_cache: true
+
+doctrine:
+    dbal:
+        # DAMA's transaction is the outer one, so the transactions the application opens become savepoints inside it
+        use_savepoints: true

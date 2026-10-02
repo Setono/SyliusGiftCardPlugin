@@ -16,7 +16,8 @@ composer check-style       # ECS check (ecs.php)
 composer fix-style         # ECS auto-fix
 composer phpunit           # full PHPUnit suite
 vendor/bin/phpunit --testsuite unit        # unit tests only (no database needed)
-vendor/bin/phpunit --testsuite functional  # functional tests (require MySQL, see below)
+vendor/bin/phpunit --testsuite functional  # functional tests (require MySQL with the schema, see below)
+(cd tests/Application && bin/console doctrine:database:create --env=test && bin/console doctrine:schema:create --env=test)  # once, before the first functional run
 vendor/bin/phpunit tests/Unit/Path/To/SomeTest.php   # single test file
 vendor/bin/phpunit --filter testMethodName           # single test method
 vendor/bin/rector --dry-run                # rector check (CI runs this)
@@ -33,6 +34,7 @@ vendor/bin/rector --dry-run                # rector check (CI runs this)
 ## Testing conventions
 
 - Unit tests live in `tests/Unit`, functional tests (KernelTestCase/WebTestCase booting the test app) in `tests/Functional`.
+- Functional tests need the test database's schema, which they never build or change themselves: CI creates it with `doctrine:schema:create`, and locally it is created once (see Commands; after a mapping change, drop and create it again, or run `doctrine:schema:update --force --env=test`). Every test runs in a transaction that `dama/doctrine-test-bundle` (registered as a PHPUnit extension in `phpunit.xml.dist`) rolls back afterwards, so each starts from an empty database. A test that needs its writes really committed, because a second connection has to see them or wait on their locks, opts out the way `GiftCardRedemptionRaceTest` does: a plain connection (`StaticDriver::setKeepStaticConnections(false)` before the kernel boots), and the tables emptied in `tearDown()`.
 - Use a BDD-style naming convention for test methods (`it_does_something`) with the `@test` annotation or `test` prefix.
 - Use Prophecy for mocking (phpspec/prophecy-phpunit), not PHPUnit mock objects.
 - Form type tests extend `Symfony\Component\Form\Test\TypeTestCase`.

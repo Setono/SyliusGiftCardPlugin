@@ -64,6 +64,7 @@
     "require-dev": {
         "api-platform/core": "^2.7.16",
         "babdev/pagerfanta-bundle": "^3.8",
+        "dama/doctrine-test-bundle": "^8.2",
         "doctrine/doctrine-bundle": "^2.7",
         "lexik/jwt-authentication-bundle": "^2.17",
         "matthiasnoback/symfony-config-test": "^4.3 || ^5.1",

@@ -17,6 +17,12 @@
             <directory>tests/Functional</directory>
         </testsuite>
     </testsuites>
+    <extensions>
+        <!-- Runs every test in a transaction it rolls back afterwards, so each functional test starts from an empty
+             database. The schema is created beforehand (CI does it with doctrine:schema:create). A test that needs to
+             commit for real opts out, see GiftCardRedemptionRaceTest -->
+        <extension class="DAMA\DoctrineTestBundle\PHPUnit\PHPUnitExtension"/>
+    </extensions>
     <php>
         <server name="KERNEL_CLASS_PATH" value="tests/Application/Kernel.php"/>
         <server name="IS_DOCTRINE_ORM_SUPPORTED" value="true"/>
