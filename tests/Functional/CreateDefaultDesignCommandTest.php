@@ -9,6 +9,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImageInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardDesignRepositoryInterface;
 use Sylius\Component\Channel\Model\ChannelInterface;
+use Sylius\Component\Locale\Model\Locale;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -40,6 +41,39 @@ final class CreateDefaultDesignCommandTest extends GiftCardFunctionalTestCase
         $front = $design->getFrontImage();
         self::assertInstanceOf(GiftCardDesignImageInterface::class, $front);
         self::assertNotNull($front->getPath());
+    }
+
+    /**
+     * The design picker on the product page shows the design's name, so it is named in the language of every locale
+     * of the shop rather than in English for all of them
+     *
+     * @test
+     */
+    public function it_names_the_default_design_in_the_language_of_every_locale_of_the_shop(): void
+    {
+        $this->getChannel();
+
+        $danish = new Locale();
+        $danish->setCode('da_DK');
+        $this->manager->persist($danish);
+
+        $french = new Locale();
+        $french->setCode('fr_FR');
+        $this->manager->persist($french);
+        $this->manager->flush();
+
+        $this->runCommand();
+        $this->manager->clear();
+
+        $design = $this->theOnlyDesign();
+
+        $names = [];
+        foreach ($design->getTranslations()->getKeys() as $localeCode) {
+            $names[(string) $localeCode] = $design->getTranslation((string) $localeCode)->getName();
+        }
+        ksort($names);
+
+        self::assertSame(['da_DK' => 'Klassisk', 'en_US' => 'Classic', 'fr_FR' => 'Classique'], $names);
     }
 
     /** @test */

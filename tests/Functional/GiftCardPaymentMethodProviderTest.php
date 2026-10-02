@@ -10,7 +10,10 @@ use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProvider;
 use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Locale\Model\Locale;
+use Sylius\Component\Locale\Model\LocaleInterface;
 use Sylius\Component\Payment\Repository\PaymentMethodRepositoryInterface;
+use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * The provider lazily creates the offline gift card payment method used in payment mode. Its services are only wired
@@ -53,16 +56,22 @@ final class GiftCardPaymentMethodProviderTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * The payment method's name is what the order pages show for a gift card payment, so the method is named in
-     * the language of the channel it is created for rather than in a locale that channel may not have
+     * The payment method's name is what the order pages, the customer's account and the admin show for a gift card
+     * payment, so the method is named in the language of every locale of the shop, not in English for all of them
      *
      * @test
      */
-    public function it_names_the_created_payment_method_in_the_default_locale_of_the_channel(): void
+    public function it_names_the_created_payment_method_in_the_language_of_every_locale_of_the_shop(): void
     {
+        $this->getChannel();
+
         $danish = new Locale();
         $danish->setCode('da_DK');
         $this->manager->persist($danish);
+
+        $french = new Locale();
+        $french->setCode('fr_FR');
+        $this->manager->persist($french);
 
         $channel = $this->createChannel('DANISH_CHANNEL');
         $channel->addLocale($danish);
@@ -77,8 +86,13 @@ final class GiftCardPaymentMethodProviderTest extends GiftCardFunctionalTestCase
         $paymentMethod = $repository->findOneBy(['code' => 'gift_card']);
         self::assertInstanceOf(PaymentMethodInterface::class, $paymentMethod);
 
-        self::assertSame(['da_DK'], array_keys($paymentMethod->getTranslations()->toArray()));
-        self::assertSame('Gift card', $paymentMethod->getTranslation('da_DK')->getName());
+        $names = [];
+        foreach ($paymentMethod->getTranslations()->getKeys() as $localeCode) {
+            $names[(string) $localeCode] = $paymentMethod->getTranslation((string) $localeCode)->getName();
+        }
+        ksort($names);
+
+        self::assertSame(['da_DK' => 'Gavekort', 'en_US' => 'Gift card', 'fr_FR' => 'Chèque-cadeau'], $names);
     }
 
     private function createProvider(): GiftCardPaymentMethodProvider
@@ -94,6 +108,12 @@ final class GiftCardPaymentMethodProviderTest extends GiftCardFunctionalTestCase
         /** @var ManagerRegistry $managerRegistry */
         $managerRegistry = $container->get('doctrine');
 
-        return new GiftCardPaymentMethodProvider($repository, $factory, $managerRegistry, 'gift_card');
+        /** @var TranslatorInterface $translator */
+        $translator = $container->get('translator');
+
+        /** @var RepositoryInterface<LocaleInterface> $localeRepository */
+        $localeRepository = $container->get('sylius.repository.locale');
+
+        return new GiftCardPaymentMethodProvider($repository, $factory, $managerRegistry, 'gift_card', $translator, $localeRepository);
     }
 }

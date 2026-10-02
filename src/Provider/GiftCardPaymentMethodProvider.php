@@ -11,7 +11,10 @@ use Setono\Doctrine\ORMTrait;
 use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Locale\Model\LocaleInterface;
 use Sylius\Component\Payment\Repository\PaymentMethodRepositoryInterface;
+use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class GiftCardPaymentMethodProvider implements GiftCardPaymentMethodProviderInterface
 {
@@ -20,9 +23,17 @@ final class GiftCardPaymentMethodProvider implements GiftCardPaymentMethodProvid
     /**
      * @param PaymentMethodRepositoryInterface<PaymentMethodInterface> $paymentMethodRepository
      * @param PaymentMethodFactoryInterface<PaymentMethodInterface> $paymentMethodFactory
+     * @param RepositoryInterface<LocaleInterface> $localeRepository
      */
-    public function __construct(private readonly PaymentMethodRepositoryInterface $paymentMethodRepository, private readonly PaymentMethodFactoryInterface $paymentMethodFactory, ManagerRegistry $managerRegistry, private readonly string $paymentMethodCode, private readonly LoggerInterface $logger = new NullLogger())
-    {
+    public function __construct(
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly PaymentMethodFactoryInterface $paymentMethodFactory,
+        ManagerRegistry $managerRegistry,
+        private readonly string $paymentMethodCode,
+        private readonly TranslatorInterface $translator,
+        private readonly RepositoryInterface $localeRepository,
+        private readonly LoggerInterface $logger = new NullLogger(),
+    ) {
         $this->managerRegistry = $managerRegistry;
     }
 
@@ -48,10 +59,17 @@ final class GiftCardPaymentMethodProvider implements GiftCardPaymentMethodProvid
             $gatewayConfig->setGatewayName($this->paymentMethodCode);
         }
 
-        $localeCode = $channel->getDefaultLocale()?->getCode() ?? 'en_US';
-        $paymentMethod->setCurrentLocale($localeCode);
-        $paymentMethod->setFallbackLocale($localeCode);
-        $paymentMethod->setName('Gift card');
+        // The name is what the order pages, the customer's account and the admin show for a gift card payment, so it
+        // is given in the language of every locale of the shop. The fallback locale moves along with the current one,
+        // or the translation of the fallback locale would be renamed instead of a new one being added
+        $defaultLocaleCode = $channel->getDefaultLocale()?->getCode() ?? 'en_US';
+        foreach ($this->getLocaleCodes($defaultLocaleCode) as $localeCode) {
+            $paymentMethod->setCurrentLocale($localeCode);
+            $paymentMethod->setFallbackLocale($localeCode);
+            $paymentMethod->setName($this->translator->trans('setono_sylius_gift_card.ui.gift_card', [], 'messages', $localeCode));
+        }
+        $paymentMethod->setCurrentLocale($defaultLocaleCode);
+        $paymentMethod->setFallbackLocale($defaultLocaleCode);
 
         $paymentMethod->addChannel($channel);
 
@@ -65,5 +83,20 @@ final class GiftCardPaymentMethodProvider implements GiftCardPaymentMethodProvid
         ));
 
         return $paymentMethod;
+    }
+
+    /**
+     * @return list<string> the channel's default locale first, then every other locale of the shop
+     */
+    private function getLocaleCodes(string $defaultLocaleCode): array
+    {
+        $localeCodes = [$defaultLocaleCode];
+
+        /** @var LocaleInterface $locale */
+        foreach ($this->localeRepository->findAll() as $locale) {
+            $localeCodes[] = (string) $locale->getCode();
+        }
+
+        return array_values(array_unique(array_filter($localeCodes, static fn (string $code): bool => '' !== $code)));
     }
 }

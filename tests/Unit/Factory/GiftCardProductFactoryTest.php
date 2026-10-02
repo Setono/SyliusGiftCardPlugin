@@ -25,6 +25,8 @@ use Sylius\Component\Product\Model\ProductOptionInterface;
 use Sylius\Component\Product\Model\ProductOptionValue;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Symfony\Component\Translation\Loader\YamlFileLoader;
+use Symfony\Component\Translation\Translator;
 
 /**
  * A gift card product is an ordinary Sylius product flagged as a gift card, with a "delivery" option whose values
@@ -70,10 +72,15 @@ final class GiftCardProductFactoryTest extends TestCase
         $this->productOptionFactory->createNew()->will(static fn (): ProductOption => new ProductOption());
     }
 
-    /** @test */
-    public function it_creates_a_gift_card_product_named_in_every_locale_of_the_shop(): void
+    /**
+     * The shop shows the product's name to its customers, so a product created without a name is named in the
+     * language of each locale rather than in English for all of them
+     *
+     * @test
+     */
+    public function it_creates_a_gift_card_product_named_in_the_language_of_every_locale_of_the_shop(): void
     {
-        $product = $this->factory()->create('gift_card', 'Gift card');
+        $product = $this->factory()->create('gift_card');
 
         self::assertSame('gift_card', $product->getCode());
         self::assertTrue($product->isGiftCard());
@@ -81,10 +88,21 @@ final class GiftCardProductFactoryTest extends TestCase
         // The customer picks physical or virtual from the option, not from a list of variant names
         self::assertSame(ProductInterface::VARIANT_SELECTION_CHOICE, $product->getVariantSelectionMethod());
 
+        self::assertSame('Gift card', $product->getTranslation('en_US')->getName());
+        self::assertSame('Gavekort', $product->getTranslation('da_DK')->getName());
+
         foreach (['en_US', 'da_DK'] as $localeCode) {
-            self::assertSame('Gift card', $product->getTranslation($localeCode)->getName());
             self::assertSame('gift-card', $product->getTranslation($localeCode)->getSlug());
         }
+    }
+
+    /** @test */
+    public function it_gives_the_product_the_name_it_is_given_in_every_locale(): void
+    {
+        $product = $this->factory()->create('gift_card', 'Present');
+
+        self::assertSame('Present', $product->getTranslation('en_US')->getName());
+        self::assertSame('Present', $product->getTranslation('da_DK')->getName());
     }
 
     /**
@@ -156,14 +174,20 @@ final class GiftCardProductFactoryTest extends TestCase
         self::assertFalse($variants['gift_card_virtual']->isShippingRequired());
         self::assertTrue($variants['gift_card_physical']->isShippingRequired());
 
-        foreach (['virtual' => 'Virtual', 'physical' => 'Physical'] as $value => $name) {
+        // The variant names are what the customer chooses between on the product page, in their own language
+        $names = [
+            'virtual' => ['en_US' => 'Virtual — delivered by email', 'da_DK' => 'Virtuelt — leveres på email'],
+            'physical' => ['en_US' => 'Physical — shipped to you', 'da_DK' => 'Fysisk — sendes til dig'],
+        ];
+        foreach ($names as $value => $nameByLocale) {
             $variant = $variants['gift_card_' . $value];
             self::assertSame(['gift_card_delivery_' . $value], array_values(array_map(
                 static fn ($optionValue): ?string => $optionValue->getCode(),
                 $variant->getOptionValues()->toArray(),
             )));
-            self::assertSame($name, $variant->getTranslation('en_US')->getName());
-            self::assertSame($name, $variant->getTranslation('da_DK')->getName());
+            foreach ($nameByLocale as $localeCode => $name) {
+                self::assertSame($name, $variant->getTranslation($localeCode)->getName());
+            }
         }
     }
 
@@ -180,15 +204,20 @@ final class GiftCardProductFactoryTest extends TestCase
         $option = reset($options);
         self::assertInstanceOf(ProductOptionInterface::class, $option);
         self::assertSame('gift_card_delivery', $option->getCode());
-        self::assertSame('Delivery', $option->getTranslation('da_DK')->getName());
+        // The cart and the order show the option and its value, so both are named in the language of each locale
+        self::assertSame('Delivery type', $option->getTranslation('en_US')->getName());
+        self::assertSame('Leveringstype', $option->getTranslation('da_DK')->getName());
 
         $values = [];
+        $danishValues = [];
         foreach ($option->getValues() as $value) {
             $values[(string) $value->getCode()] = $value->getTranslation('en_US')->getValue();
+            $danishValues[(string) $value->getCode()] = $value->getTranslation('da_DK')->getValue();
         }
         // Option value codes are unique across all options, so the values are prefixed with the option's code rather
         // than risk the "physical" of a shop's own option
         self::assertSame(['gift_card_delivery_virtual' => 'Virtual', 'gift_card_delivery_physical' => 'Physical'], $values);
+        self::assertSame(['gift_card_delivery_virtual' => 'Virtuelt', 'gift_card_delivery_physical' => 'Fysisk'], $danishValues);
     }
 
     /**
@@ -319,7 +348,23 @@ final class GiftCardProductFactoryTest extends TestCase
             $this->channelRepository->reveal(),
             $localeRepository->reveal(),
             new SlugGenerator(),
+            $this->translator(),
         );
+    }
+
+    /**
+     * The plugin's own translations, so the names are the ones a shop gets
+     */
+    private function translator(): Translator
+    {
+        $translator = new Translator('en_US');
+        $translator->setFallbackLocales(['en']);
+        $translator->addLoader('yaml', new YamlFileLoader());
+        foreach (['en', 'da'] as $locale) {
+            $translator->addResource('yaml', sprintf('%s/../../../src/Resources/translations/messages.%s.yml', __DIR__, $locale), $locale);
+        }
+
+        return $translator;
     }
 
     /**

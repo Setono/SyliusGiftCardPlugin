@@ -108,6 +108,46 @@ final class CreateGiftCardProductActionTest extends AdminFunctionalTestCase
     }
 
     /**
+     * The shop shows the product's name, its variants' names and its delivery option to customers, so the scaffold
+     * names them in the language of each locale rather than in English for all of them
+     *
+     * @test
+     */
+    public function it_names_the_scaffolded_product_in_the_language_of_every_locale_of_the_shop(): void
+    {
+        $danish = new Locale();
+        $danish->setCode('da_DK');
+        $this->manager->persist($danish);
+        $this->getChannel()->addLocale($danish);
+        $this->manager->flush();
+
+        $this->pressCreateGiftCardProduct();
+
+        $product = $this->findProduct('gift_card');
+        self::assertSame('Gift card', $product->getTranslation('en_US')->getName());
+        self::assertSame('Gavekort', $product->getTranslation('da_DK')->getName());
+
+        $names = [];
+        foreach ($product->getVariants() as $variant) {
+            self::assertInstanceOf(ProductVariantInterface::class, $variant);
+            $names[(string) $variant->getCode()] = [
+                'en_US' => $variant->getTranslation('en_US')->getName(),
+                'da_DK' => $variant->getTranslation('da_DK')->getName(),
+            ];
+        }
+        ksort($names);
+        self::assertSame([
+            'gift_card_physical' => ['en_US' => 'Physical — shipped to you', 'da_DK' => 'Fysisk — sendes til dig'],
+            'gift_card_virtual' => ['en_US' => 'Virtual — delivered by email', 'da_DK' => 'Virtuelt — leveres på email'],
+        ], $names);
+
+        $option = $product->getOptions()->first();
+        self::assertInstanceOf(ProductOptionInterface::class, $option);
+        self::assertSame('Delivery type', $option->getTranslation('en_US')->getName());
+        self::assertSame('Leveringstype', $option->getTranslation('da_DK')->getName());
+    }
+
+    /**
      * The scaffolded product gets a translation in every locale of the shop, so a slug taken in any of them rules the
      * code out, not only one taken in the default locale
      *

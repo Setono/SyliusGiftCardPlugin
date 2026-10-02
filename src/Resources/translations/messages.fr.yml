@@ -3,7 +3,6 @@ setono_sylius_gift_card:
         product:
             gift_card: Chèque-cadeau
         gift_card:
-            channel: Canal
             code_help: 'Généré pour vous. Vous pouvez saisir votre propre code à la place, d''au moins %minimum% lettres et chiffres : il est enregistré en majuscules, en ne gardant que les lettres A à Z et les chiffres.'
             custom_message: Message personnalisé
             custom_message_placeholder: Ce message sera imprimé sur le chèque-cadeau...
@@ -15,8 +14,6 @@ setono_sylius_gift_card:
             images: Images
             image_type: Type d'image
             image_file_help: "Utilisez une image au format paysage d'au moins 1050×740px (JPG ou PNG). Elle sert de fond perdu au chèque-cadeau, veillez donc à éloigner le contenu important des bords."
-            front_image: Image recto
-            back_image: Image verso
         gift_card_information:
             amount: Montant
             amount_help_minimum: "Choisissez un montant d'au moins %minimum%."
@@ -31,19 +28,16 @@ setono_sylius_gift_card:
             reason: Motif
     ui:
         adjust_balance: Ajuster le solde
-        amount: Montant
         apply_gift_card: Appliquer
-        applied_gift_cards: Chèques-cadeaux utilisés
         average: Moyenne
         back: Retour
         balance: Solde
         characters_left: 'Il reste %remaining% caractères'
         count: Nombre
         current_balance: Solde actuel
-        create_gift_card: Créer un chèque-cadeau
-        create_gift_card_design: Créer un modèle de chèque-cadeau
         create_gift_card_product: Créer un produit chèque-cadeau
         customer_help_text: Lorsqu'un client est associé et que la notification est activée, il reçoit le chèque-cadeau par email
+        default_design_name: Classique
         edit_gift_card: Modifier le chèque-cadeau
         edit_gift_card_design: Modifier le modèle de chèque-cadeau
         delivery_type: Type de livraison
@@ -67,15 +61,13 @@ setono_sylius_gift_card:
             explanation: 'Ces canaux vendent des chèques-cadeaux mais n''ont aucun modèle activé : leurs pages produit n''affichent pas de sélecteur de modèle et les cartes physiques sont imprimées sans visuel : %channels%.'
             create_design: Créez un modèle de chèque-cadeau
             create_design_suffix: et activez-le pour le canal, ou
-            run_command: 'installez le modèle « Classic » fourni dans tous les canaux en exécutant'
+            run_command: 'installez le modèle « %design% » fourni dans tous les canaux en exécutant'
         design_images: Images du modèle
         design_images_help: "Téléversez une image recto (affichée dans le sélecteur, l'aperçu et sur le chèque-cadeau) et, éventuellement, une image verso. Format paysage, au moins 1050×740px, JPG ou PNG."
         enter_gift_card_code: Renseignez le numéro de chèque-cadeau
         front: Recto
         gift_card: Chèque-cadeau
-        gift_card_channel_does_not_match_channel: Ce chèque-cadeau a été acheté sur un autre canal, veuillez l'utiliser sur %channel%
         gift_card_code: Numéro de chèque-cadeau
-        gift_card_code_is_invalid: Numéro de chèque-cadeau invalide
         gift_cards: Chèques-cadeaux
         gift_card_designs: Modèles de chèques-cadeaux
         has_no_gift_card: Ne contient pas de chèque-cadeau
@@ -96,11 +88,9 @@ setono_sylius_gift_card:
         transaction_type_manual: Ajustement manuel
         transaction_type_redeem: Utilisé
         transaction_type_restore: Restauré
-        virtual: 'Virtuel — livré immédiatement par email'
+        virtual: 'Virtuel — livré par email'
     pdf:
         valid_until: "Valable jusqu'au"
-        how_to_use: Comment utiliser votre chèque-cadeau
-        how_to_use_text: Saisissez le code ci-dessous lors du paiement pour utiliser votre chèque-cadeau.
         gift_card: Chèque-cadeau
         tagline: Le cadeau qui fait toujours plaisir
         value: Valeur
@@ -111,6 +101,8 @@ setono_sylius_gift_card:
         terms: "Conditions générales applicables. Cette carte n'est ni échangeable contre des espèces ni remplaçable en cas de perte ou de vol."
     email:
         balance: Solde
+        gift_cards_from_order_intro: 'Voici les chèques-cadeaux que vous avez achetés avec la commande n° %number% :'
+        gift_cards_from_order_subject: 'Vos chèques-cadeaux de la commande n° %number%'
         how_to_redeem: Saisissez le code lors du paiement pour payer avec votre chèque-cadeau. Le solde restant reste sur la carte pour la prochaine fois.
         new_gift_card: Nouveau chèque-cadeau
         new_gift_card_intro: Un nouveau chèque-cadeau a été créé pour vous
@@ -118,11 +110,3 @@ setono_sylius_gift_card:
         physical_code_on_card: "Le code est imprimé sur la carte elle-même : vous l'aurez à sa réception."
         physical_will_be_shipped: Votre chèque-cadeau vous sera expédié.
         valid_until: "Valable jusqu'au"
-        your_gift_card: Votre chèque-cadeau
-        your_gift_cards_you_bought_in_the_order: Vos chèques-cadeaux achetés avec cette commande
-
-# Missing from Sylius for some reason
-sylius:
-    form:
-        locale:
-            select: Sélectionnez une langue

@@ -24,6 +24,8 @@
             <argument type="service" id="sylius.factory.payment_method"/>
             <argument type="service" id="doctrine"/>
             <argument>%setono_sylius_gift_card.redemption.payment_method_code%</argument>
+            <argument type="service" id="translator"/>
+            <argument type="service" id="sylius.repository.locale"/>
             <argument type="service" id="logger" on-invalid="null"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface"

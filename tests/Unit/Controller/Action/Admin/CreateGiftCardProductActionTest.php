@@ -70,7 +70,7 @@ final class CreateGiftCardProductActionTest extends TestCase
         $product->getId()->willReturn(42);
 
         $productFactory = $this->prophesize(GiftCardProductFactoryInterface::class);
-        $productFactory->create('gift_card', 'Gift card', Argument::any(), false)->willReturn($product->reveal());
+        $productFactory->create('gift_card', null, Argument::any(), false)->willReturn($product->reveal());
         $productFactory->getSlug('gift_card')->willReturn('gift-card');
         $productFactory->getVariantCodes('gift_card')->willReturn(['gift_card_virtual', 'gift_card_physical']);
 
@@ -218,7 +218,7 @@ final class CreateGiftCardProductActionTest extends TestCase
         $product->getId()->willReturn(42);
 
         $productFactory = $this->prophesize(GiftCardProductFactoryInterface::class);
-        $productFactory->create($code, 'Gift card', Argument::any(), false)->willReturn($product->reveal())->shouldBeCalledOnce();
+        $productFactory->create($code, null, Argument::any(), false)->willReturn($product->reveal())->shouldBeCalledOnce();
         $productFactory->getSlug('gift_card')->willReturn('gift-card');
         $productFactory->getSlug('gift_card_2')->willReturn('gift-card-2');
         $productFactory->getSlug('gift_card_3')->willReturn('gift-card-3');
