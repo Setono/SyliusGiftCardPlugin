@@ -9,6 +9,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Currency\Model\CurrencyInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -175,6 +176,133 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
     }
 
     /**
+     * A card is issued in the base currency of its channel, so an entry that names its currency but no channel goes to
+     * a channel with that base currency. Any channel was picked before, so the same file loaded or failed depending on
+     * the pick; with twenty such entries, a pick that ignores the currency cannot get them all right by chance
+     *
+     * @test
+     */
+    public function it_issues_a_card_naming_only_its_currency_on_a_channel_with_that_base_currency(): void
+    {
+        $this->createChannelWithBaseCurrency('EURO_CHANNEL', 'EUR');
+
+        $entries = [];
+        for ($i = 1; $i <= 10; ++$i) {
+            $entries[] = ['code' => sprintf('FIXTUREEURO%04d', $i), 'currency' => 'EUR'];
+            $entries[] = ['code' => sprintf('FIXTUREUSD%05d', $i), 'currency' => 'USD'];
+        }
+
+        $this->loadFixture('setono_gift_card', ['custom' => $entries]);
+
+        for ($i = 1; $i <= 10; ++$i) {
+            $euroCard = $this->findGiftCard(sprintf('FIXTUREEURO%04d', $i));
+            self::assertSame('EURO_CHANNEL', $euroCard->getChannel()?->getCode());
+            self::assertSame('EUR', $euroCard->getCurrencyCode());
+
+            $dollarCard = $this->findGiftCard(sprintf('FIXTUREUSD%05d', $i));
+            self::assertSame('TEST_CHANNEL', $dollarCard->getChannel()?->getCode());
+            self::assertSame('USD', $dollarCard->getCurrencyCode());
+        }
+    }
+
+    /**
+     * Applications building on the example factory may hand it the currency itself rather than its code
+     *
+     * @test
+     */
+    public function its_example_factory_issues_a_card_given_only_a_currency_on_a_channel_with_that_base_currency(): void
+    {
+        $euroChannel = $this->createChannelWithBaseCurrency('EURO_CHANNEL', 'EUR');
+
+        /** @var GiftCardExampleFactory $factory */
+        $factory = self::getContainer()->get(GiftCardExampleFactory::class);
+
+        for ($i = 1; $i <= 20; ++$i) {
+            $giftCard = $factory->create(['code' => sprintf('FACTORYEURO%04d', $i), 'currency' => $euroChannel->getBaseCurrency()]);
+
+            self::assertSame($euroChannel, $giftCard->getChannel());
+            self::assertSame('EUR', $giftCard->getCurrencyCode());
+        }
+    }
+
+    /**
+     * The currency handed to the factory need not be the managed instance: it is matched by its code, whether or not
+     * the channel is named
+     *
+     * @test
+     */
+    public function its_example_factory_matches_a_currency_it_is_handed_by_its_code(): void
+    {
+        $euroChannel = $this->createChannelWithBaseCurrency('EURO_CHANNEL', 'EUR');
+
+        $euro = new Currency();
+        $euro->setCode('EUR');
+
+        /** @var GiftCardExampleFactory $factory */
+        $factory = self::getContainer()->get(GiftCardExampleFactory::class);
+
+        $giftCard = $factory->create(['code' => 'FACTORYUNMANAGED01', 'currency' => $euro]);
+        self::assertSame($euroChannel, $giftCard->getChannel());
+        self::assertSame('EUR', $giftCard->getCurrencyCode());
+
+        $giftCard = $factory->create(['code' => 'FACTORYUNMANAGED02', 'channel' => 'EURO_CHANNEL', 'currency' => $euro]);
+        self::assertSame($euroChannel, $giftCard->getChannel());
+        self::assertSame('EUR', $giftCard->getCurrencyCode());
+    }
+
+    /**
+     * An entry that names its currency but no channel cannot be issued when no channel has that currency as its base
+     * currency, and the message says which currency that is, whichever channels the shop has
+     *
+     * @test
+     */
+    public function it_rejects_a_currency_that_is_no_channels_base_currency_when_no_channel_is_named(): void
+    {
+        $this->createChannelWithBaseCurrency('EURO_CHANNEL', 'EUR');
+        // Offered by the test channel, but the base currency of none
+        $this->createCurrency('GBP');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Gift cards are issued in the base currency of their channel, and no channel has GBP as its base currency');
+
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTUREBADCUR05', 'currency' => 'GBP']]]);
+    }
+
+    /**
+     * Naming the channel decides it: an entry is held to the base currency of the channel it names, and is not moved to
+     * another channel that has the currency it names
+     *
+     * @test
+     */
+    public function it_keeps_an_entry_on_the_channel_it_names(): void
+    {
+        $this->createChannelWithBaseCurrency('EURO_CHANNEL', 'EUR');
+
+        $this->loadFixture('setono_gift_card', ['custom' => [
+            ['code' => 'FIXTURENAMED001', 'channel' => 'EURO_CHANNEL', 'currency' => 'EUR'],
+            ['code' => 'FIXTURENAMED002', 'channel' => 'EURO_CHANNEL'],
+            ['code' => 'FIXTURENAMED003', 'channel' => 'TEST_CHANNEL', 'currency' => 'USD'],
+        ]]);
+
+        $first = $this->findGiftCard('FIXTURENAMED001');
+        self::assertSame('EURO_CHANNEL', $first->getChannel()?->getCode());
+        self::assertSame('EUR', $first->getCurrencyCode());
+
+        $second = $this->findGiftCard('FIXTURENAMED002');
+        self::assertSame('EURO_CHANNEL', $second->getChannel()?->getCode());
+        self::assertSame('EUR', $second->getCurrencyCode());
+
+        $third = $this->findGiftCard('FIXTURENAMED003');
+        self::assertSame('TEST_CHANNEL', $third->getChannel()?->getCode());
+        self::assertSame('USD', $third->getCurrencyCode());
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Gift cards are issued in the channel's base currency (USD for channel TEST_CHANNEL), got: EUR");
+
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTURENAMED004', 'channel' => 'TEST_CHANNEL', 'currency' => 'EUR']]]);
+    }
+
+    /**
      * Orders are kept in the base currency of their channel, so a card in another currency the channel offers could
      * never be redeemed. The admin refuses to issue one, and so does the fixture
      *
@@ -205,7 +333,7 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage("Gift cards are issued in the channel's base currency (USD for channel TEST_CHANNEL), got: EUR");
 
-        $factory->create(['code' => 'FIXTUREBADCUR04', 'currency' => $euro]);
+        $factory->create(['code' => 'FIXTUREBADCUR04', 'channel' => 'TEST_CHANNEL', 'currency' => $euro]);
     }
 
     /**
@@ -226,7 +354,7 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
     public function it_rejects_a_currency_that_does_not_exist(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage("Currency XYZ was not found. Gift cards are issued in the channel's base currency (USD for channel TEST_CHANNEL)");
+        $this->expectExceptionMessage('Currency XYZ was not found. Gift cards are issued in the base currency of their channel');
 
         $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTUREBADCUR01', 'currency' => 'XYZ']]]);
     }
@@ -239,13 +367,14 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage("Gift cards are issued in the channel's base currency (USD for channel TEST_CHANNEL), got: EUR");
 
-        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTUREBADCUR02', 'currency' => 'EUR']]]);
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTUREBADCUR02', 'channel' => 'TEST_CHANNEL', 'currency' => 'EUR']]]);
     }
 
     /** @test */
     public function it_rejects_a_channel_that_does_not_exist(): void
     {
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Channel UNKNOWN_CHANNEL was not found');
 
         $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTUREBADCHAN1', 'channel' => 'UNKNOWN_CHANNEL']]]);
     }
@@ -291,6 +420,22 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
         $this->manager->flush();
 
         return $currency;
+    }
+
+    /**
+     * Creates another channel whose base currency is a new currency, which the test channel does not offer. The new
+     * channel offers the test channel's USD as well
+     */
+    private function createChannelWithBaseCurrency(string $code, string $currencyCode): ChannelInterface
+    {
+        $currency = $this->createCurrency($currencyCode, false);
+
+        $channel = $this->createChannel($code);
+        $channel->setBaseCurrency($currency);
+        $channel->addCurrency($currency);
+        $this->manager->flush();
+
+        return $channel;
     }
 
     private function findGiftCard(string $code): GiftCardInterface
