@@ -235,7 +235,7 @@ jobs:
                 run: "vendor/bin/phpunit --testsuite functional"
 
     end-to-end-tests:
-        name: "End to end tests (PHP ${{ matrix.php-version }})"
+        name: "End to end tests (PHP ${{ matrix.php-version }} | Shard ${{ matrix.shard }}/3)"
 
         runs-on: "ubuntu-latest"
 
@@ -246,10 +246,19 @@ jobs:
             APP_DEBUG: "1"
             PLAYWRIGHT_BASE_URL: "http://127.0.0.1:8080"
 
+        # The suite runs one spec file at a time against one application, because the specs share its state. It is
+        # split across parallel jobs instead, each with an application and a freshly seeded database of its own, so
+        # the shards cannot disturb each other; a failing shard does not cancel the others
         strategy:
+            fail-fast: false
             matrix:
                 php-version:
                     - "8.3"
+
+                shard:
+                    - 1
+                    - 2
+                    - 3
 
         steps:
             -   name: "Start MySQL"
@@ -324,7 +333,7 @@ jobs:
                     npx playwright install chromium --with-deps
 
             -   name: "Run end to end tests"
-                run: "(cd tests/Playwright && npx playwright test)"
+                run: "(cd tests/Playwright && npx playwright test --shard=${{ matrix.shard }}/3)"
 
             -   name: "List the session files"
                 if: "always()"
@@ -334,7 +343,7 @@ jobs:
                 uses: "actions/upload-artifact@v4"
                 if: "failure()"
                 with:
-                    name: "playwright-report"
+                    name: "playwright-report-${{ matrix.shard }}"
                     path: |
                         tests/Playwright/playwright-report
                         tests/Application/var/log

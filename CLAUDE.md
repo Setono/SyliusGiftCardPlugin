@@ -55,7 +55,7 @@ npx playwright test --project=admin       # admin specs only
 npx playwright test --headed -g 'cart'    # watch a single test
 ```
 
-`PLAYWRIGHT_BASE_URL` overrides the default `https://127.0.0.1:8080`. The admin specs share a signed-in session created by `specs/auth.setup.js`; the shop specs run anonymously. Specs must **discover their subjects** (grid links, locale switcher) rather than hardcode ids, codes or locales, so they keep working against a freshly seeded database.
+`PLAYWRIGHT_BASE_URL` overrides the default `https://127.0.0.1:8080`. CI splits the suite into three parallel jobs (`npx playwright test --shard=N/3`), each against an application and a freshly seeded database of its own, so a spec cannot count on another spec having run before it. The admin specs share a signed-in session created by `specs/auth.setup.js`; the shop specs run anonymously. Specs must **discover their subjects** (grid links, locale switcher) rather than hardcode ids, codes or locales, so they keep working against a freshly seeded database.
 
 Any new UI needs a spec here. Coverage today: admin gift cards index/show/edit, designs index/edit, balance report, gift card and design preview PDFs, product edit for simple/configurable/gift card products, and the shop gift card product page, locales, add-to-cart and redemption.
 
