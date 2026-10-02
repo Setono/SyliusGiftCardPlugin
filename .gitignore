@@ -1,16 +1,16 @@
 /vendor/
-/node_modules/
+/node_modules
 /composer.lock
 
 /.build/
 /.phpunit.result.cache
 .php-version
 
-/tests/Application/yarn.lock
 /.playwright-mcp/
 /tests/Application/public/build/
 
-# The Playwright lock file is committed on purpose, so CI can install with --frozen-lockfile
+# The yarn lock files of the test application and the Playwright suite are committed on purpose, so CI's
+# --frozen-lockfile installs exactly the packages they name
 /tests/Playwright/node_modules/
 /tests/Playwright/test-results/
 /tests/Playwright/playwright-report/

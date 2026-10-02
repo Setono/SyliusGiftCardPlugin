@@ -14,14 +14,17 @@ Key feature set: customers buy gift cards choosing the amount themselves (virtua
 composer analyse           # PHPStan at max level (phpstan.neon)
 composer check-style       # ECS check (ecs.php)
 composer fix-style         # ECS auto-fix
+composer rector            # Rector dry run (rector.php)
+composer lint              # lint:container, lint:twig and lint:yaml through the test application (each is a script of its own too)
 composer phpunit           # full PHPUnit suite
 vendor/bin/phpunit --testsuite unit        # unit tests only (no database needed)
 vendor/bin/phpunit --testsuite functional  # functional tests (require MySQL with the schema, see below)
 (cd tests/Application && bin/console doctrine:database:create --env=test && bin/console doctrine:schema:create --env=test)  # once, before the first functional run
 vendor/bin/phpunit tests/Unit/Path/To/SomeTest.php   # single test file
 vendor/bin/phpunit --filter testMethodName           # single test method
-vendor/bin/rector --dry-run                # rector check (CI runs this)
 ```
+
+CI runs `composer rector`, `composer lint:yaml`, `composer lint:twig` and `composer lint:container` as they are, so a change to what they check goes in `composer.json`.
 
 ## Test application
 
