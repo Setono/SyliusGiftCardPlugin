@@ -219,8 +219,8 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     /**
      * The textarea's maxlength and the counter under it count a line break as one character, but the browser submits
      * it as CR LF. A message the browser let the customer type must not be refused as too long for its line breaks.
-     * Symfony's TextareaType normalizes line breaks itself since symfony/form 6.4.31; this holds for the earlier 6.4
-     * releases the plugin allows as well (CI's lowest dependencies)
+     * Symfony's TextareaType turns them into line feeds from symfony/form 6.4.31 on, which the plugin requires for this;
+     * the test pins it, so the lowest dependencies CI installs are held to it as well
      *
      * @test
      */

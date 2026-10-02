@@ -119,9 +119,6 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
 
     public function getCustomMessage(): ?string;
 
-    /**
-     * Line breaks are stored as line feeds, however they arrive (a browser submits a textarea's as CR LF)
-     */
     public function setCustomMessage(?string $customMessage): void;
 
     public function getExpiresAt(): ?\DateTimeInterface;

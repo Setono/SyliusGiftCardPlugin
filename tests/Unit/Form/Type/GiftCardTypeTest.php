@@ -304,8 +304,9 @@ final class GiftCardTypeTest extends TypeTestCase
 
     /**
      * The browser submits every line break of the textarea as CR LF, so the admin is held to the same message length
-     * as the customer only if a line break counts once. Symfony's TextareaType normalizes line breaks itself since
-     * symfony/form 6.4.31; this holds for the earlier 6.4 releases the plugin allows as well (CI's lowest dependencies)
+     * as the customer only if a line break counts once. Symfony's TextareaType turns them into line feeds from
+     * symfony/form 6.4.31 on, which the plugin requires for this; the test pins it, so the lowest dependencies CI
+     * installs are held to it as well
      *
      * @test
      */

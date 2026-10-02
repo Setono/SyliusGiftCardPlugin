@@ -248,11 +248,7 @@ class GiftCard implements GiftCardInterface
 
     public function setCustomMessage(?string $customMessage): void
     {
-        // A browser submits every line break of a textarea as CR LF, but counts it as one character for maxlength, so
-        // line breaks are stored as line feeds: the length validated and stored is the one the browser allowed.
-        // Symfony's TextareaType does the same since symfony/form 6.4.31, but not before, and not for a message set
-        // any other way
-        $this->customMessage = null === $customMessage ? null : str_replace(["\r\n", "\r"], "\n", $customMessage);
+        $this->customMessage = $customMessage;
     }
 
     public function getExpiresAt(): ?\DateTimeInterface

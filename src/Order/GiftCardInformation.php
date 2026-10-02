@@ -12,7 +12,6 @@ class GiftCardInformation implements GiftCardInformationInterface
 
     public function __construct(protected ?int $amount = null, protected ?string $customMessage = null)
     {
-        $this->setCustomMessage($customMessage);
     }
 
     public function getAmount(): ?int
@@ -32,10 +31,7 @@ class GiftCardInformation implements GiftCardInformationInterface
 
     public function setCustomMessage(?string $customMessage): void
     {
-        // A browser submits every line break of a textarea as CR LF, but counts it as one character for maxlength and
-        // the counter under the field, so line breaks are held as line feeds: the length validated is the one the
-        // customer was shown. Symfony's TextareaType does the same since symfony/form 6.4.31, but not before
-        $this->customMessage = null === $customMessage ? null : str_replace(["\r\n", "\r"], "\n", $customMessage);
+        $this->customMessage = $customMessage;
     }
 
     public function getDesign(): ?GiftCardDesignInterface
