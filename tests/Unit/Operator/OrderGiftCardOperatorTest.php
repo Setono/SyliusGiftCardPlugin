@@ -180,6 +180,36 @@ final class OrderGiftCardOperatorTest extends TestCase
     }
 
     /**
+     * The operator runs as state machine callbacks, and whatever applies the transition flushes afterwards: Sylius'
+     * resource controller, Payum's storage after a capture or notify, the unpaid order canceller. A flush of its own
+     * would write whatever else is pending in the middle of the transition, so the cards it creates are only persisted
+     *
+     * @test
+     */
+    public function it_never_flushes(): void
+    {
+        $addedToCart = self::giftCard('ADDEDTOCART');
+
+        $channel = new Channel();
+        $order = new Order();
+        $order->setChannel($channel);
+        $order->setCurrencyCode('USD');
+        self::addLine($order, true, [$addedToCart, null]);
+
+        $this->expiryResolver->resolve()->willReturn(null);
+        $this->giftCardFactory->createForChannel($channel)->will(static fn (): GiftCardInterface => self::giftCard('CREATED'));
+
+        $manager = $this->prophesize(EntityManagerInterface::class);
+        $manager->persist(Argument::type(GiftCardInterface::class))->shouldBeCalledOnce();
+        $manager->flush()->shouldNotBeCalled();
+        $this->managerRegistry->getManagerForClass(Argument::any())->willReturn($manager->reveal());
+
+        $this->operator->reconcile($order);
+        $this->operator->enable($order);
+        $this->operator->disable($order);
+    }
+
+    /**
      * @param list<GiftCardInterface|null> $giftCards one entry per unit
      */
     private static function addLine(Order $order, bool $giftCardProduct, array $giftCards): void

@@ -38,6 +38,14 @@ final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
 
     private const SYMFONY_WORKFLOW = 'symfony_workflow';
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // the gift card payments are made with it, and the shop refuses gift cards until it is set up
+        $this->createGiftCardPaymentMethod();
+    }
+
     /**
      * @test
      *

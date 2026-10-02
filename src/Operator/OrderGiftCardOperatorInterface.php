@@ -7,7 +7,10 @@ namespace Setono\SyliusGiftCardPlugin\Operator;
 use Sylius\Component\Core\Model\OrderInterface;
 
 /**
- * Operates on gift cards that were BOUGHT on an order (as opposed to gift cards used to pay for an order)
+ * Operates on gift cards that were BOUGHT on an order (as opposed to gift cards used to pay for an order).
+ *
+ * None of these methods flush: they run as state machine callbacks, and whatever applies the transition (Sylius'
+ * resource controller, Payum's storage after a capture or notify, the unpaid order canceller) flushes afterwards
  */
 interface OrderGiftCardOperatorInterface
 {

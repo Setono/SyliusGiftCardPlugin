@@ -8,6 +8,8 @@ const { test, expect } = require('@playwright/test');
 
 const TOPBAR_WARNING = '[data-test-gift-card-setup-warning]';
 const MESSAGE = '[data-test-gift-card-setup-warning-message]';
+const PAYMENT_METHOD_TOPBAR_WARNING = '[data-test-gift-card-payment-method-warning]';
+const PAYMENT_METHOD_MESSAGE = '[data-test-gift-card-payment-method-warning-message]';
 
 /**
  * Semantic UI lays its own label over a checkbox and toggles the input itself when that label is clicked, so a
@@ -59,9 +61,23 @@ test.describe('gift card setup warning', () => {
     test('the seeded shop is set up, so nothing is shown', async ({ page }) => {
         await page.goto('/admin/');
         await expect(page.locator(TOPBAR_WARNING)).toHaveCount(0);
+        await expect(page.locator(PAYMENT_METHOD_TOPBAR_WARNING)).toHaveCount(0);
 
         await page.goto('/admin/gift-card-designs/');
         await expect(page.locator(MESSAGE)).toHaveCount(0);
+        await expect(page.locator(PAYMENT_METHOD_MESSAGE)).toHaveCount(0);
+    });
+
+    /**
+     * The payment method gift card payments are made with is a setup step, which the plugin's fixture takes for the
+     * seeded shop. Sylius locks a payment method's code once it exists and refuses to delete one that payments use, so
+     * the shop cannot be made to lack it from here; GiftCardSetupWarningTest renders the warning for a shop without it
+     */
+    test('the seeded shop has the gift card payment method, so the payment methods say nothing about it', async ({ page }) => {
+        await page.goto('/admin/payment-methods/');
+
+        await expect(page.locator(PAYMENT_METHOD_MESSAGE)).toHaveCount(0);
+        await expect(page.locator('table tbody tr', { hasText: 'gift_card' })).toHaveCount(1);
     });
 
     test('a channel selling gift cards without an enabled design is pointed out everywhere', async ({ page }) => {

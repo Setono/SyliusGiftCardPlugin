@@ -19,12 +19,14 @@ use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsEligibleValidator;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
@@ -52,6 +54,8 @@ final class AddGiftCardToOrderActionTest extends TestCase
     private const GENERIC_ERROR = 'setono_sylius_gift_card.gift_card.could_not_be_applied';
 
     private const TOO_MANY_ATTEMPTS = 'setono_sylius_gift_card.gift_card.too_many_attempts';
+
+    private const REDEMPTION_UNAVAILABLE = 'setono_sylius_gift_card.gift_card.redemption_unavailable';
 
     /** @test */
     public function it_refuses_further_attempts_once_the_rate_limit_is_exhausted(): void
@@ -286,6 +290,40 @@ final class AddGiftCardToOrderActionTest extends TestCase
     }
 
     /**
+     * The gift card payments are made with a payment method the shop sets up once. Until it has, a card applied to the
+     * cart could not pay when the order is placed, so every code is refused, before the code is looked at: an unknown
+     * code and a usable one get the same answer, which tells a guesser nothing
+     *
+     * @test
+     */
+    public function it_refuses_every_gift_card_while_the_gift_card_payment_method_is_missing(): void
+    {
+        $paymentMethodProvider = $this->prophesize(GiftCardPaymentMethodProviderInterface::class);
+        $paymentMethodProvider->findPaymentMethod()->willReturn(null);
+
+        foreach ([$this->giftCard(), null] as $giftCard) {
+            $applicator = $this->prophesize(GiftCardApplicatorInterface::class);
+            $applicator->apply(Argument::cetera())->shouldNotBeCalled();
+
+            $action = $this->createAction(
+                $this->createFormFactory($giftCard),
+                $this->createRateLimiterFactory(3),
+                $this->createRateLimiterFactory(15),
+                null,
+                $applicator->reveal(),
+                $paymentMethodProvider->reveal(),
+            );
+
+            $session = $this->session();
+            $response = $action($this->createRequest('VALIDCODE123', $session));
+
+            self::assertInstanceOf(RedirectResponse::class, $response);
+            self::assertSame([self::REDEMPTION_UNAVAILABLE], $session->getFlashBag()->get('error'));
+            self::assertSame([], $session->getFlashBag()->get('success'));
+        }
+    }
+
+    /**
      * Runs a single attempt with the given gift card behind the submitted code and returns the error messages
      * the shop customer ends up with
      *
@@ -310,6 +348,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
         ?RateLimiterFactory $ipRateLimiterFactory,
         ?CartContextInterface $cartContext = null,
         ?GiftCardApplicatorInterface $applicator = null,
+        ?GiftCardPaymentMethodProviderInterface $paymentMethodProvider = null,
     ): AddGiftCardToOrderAction {
         if (null === $cartContext) {
             $cartContextProphecy = $this->prophesize(CartContextInterface::class);
@@ -325,12 +364,19 @@ final class AddGiftCardToOrderActionTest extends TestCase
         $managerRegistry = $this->prophesize(ManagerRegistry::class);
         $managerRegistry->getManagerForClass(Argument::any())->willReturn($entityManager->reveal());
 
+        if (null === $paymentMethodProvider) {
+            $paymentMethodProviderProphecy = $this->prophesize(GiftCardPaymentMethodProviderInterface::class);
+            $paymentMethodProviderProphecy->findPaymentMethod()->willReturn($this->prophesize(PaymentMethodInterface::class)->reveal());
+            $paymentMethodProvider = $paymentMethodProviderProphecy->reveal();
+        }
+
         return new AddGiftCardToOrderAction(
             $formFactory,
             $cartContext,
             $applicator ?? $this->prophesize(GiftCardApplicatorInterface::class)->reveal(),
             $redirectUrlResolver->reveal(),
             $managerRegistry->reveal(),
+            $paymentMethodProvider,
             $rateLimiterFactory,
             $ipRateLimiterFactory,
         );

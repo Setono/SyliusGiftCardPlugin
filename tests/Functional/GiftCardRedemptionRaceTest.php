@@ -52,6 +52,9 @@ final class GiftCardRedemptionRaceTest extends GiftCardFunctionalTestCase
         StaticDriver::setKeepStaticConnections(false);
 
         parent::setUp();
+
+        // the gift card payments are made with it, and the shop refuses gift cards until it is set up
+        $this->createGiftCardPaymentMethod();
     }
 
     protected function tearDown(): void

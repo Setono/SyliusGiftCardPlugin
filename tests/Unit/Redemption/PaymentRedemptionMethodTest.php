@@ -265,7 +265,7 @@ final class PaymentRedemptionMethodTest extends TestCase
         });
 
         $paymentMethodProvider = $this->prophesize(GiftCardPaymentMethodProviderInterface::class);
-        $paymentMethodProvider->getPaymentMethod(Argument::any())->willReturn(
+        $paymentMethodProvider->getPaymentMethod()->willReturn(
             $this->prophesize(PaymentMethodInterface::class)->reveal(),
         );
 

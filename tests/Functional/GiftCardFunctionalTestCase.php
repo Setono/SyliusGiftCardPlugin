@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
+use Setono\SyliusGiftCardPlugin\Factory\GiftCardPaymentMethodFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
@@ -15,6 +16,7 @@ use Sylius\Component\Channel\Factory\ChannelFactoryInterface;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\ChannelPricing;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Model\ProductVariant;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Locale\Model\Locale;
@@ -95,6 +97,26 @@ abstract class GiftCardFunctionalTestCase extends KernelTestCase
         $this->manager->flush();
 
         return $channel;
+    }
+
+    /**
+     * Sets up the payment method gift card payments are made with, in the test channel and every other channel that
+     * exists by then, the way setono:gift-card:create-payment-method does. A shop that has not set it up refuses gift
+     * cards, so a test that applies or redeems one needs it. It is flushed, as the command does, because the shop only
+     * finds the method once it is in the database
+     */
+    protected function createGiftCardPaymentMethod(): PaymentMethodInterface
+    {
+        $this->getChannel();
+
+        /** @var GiftCardPaymentMethodFactoryInterface $factory */
+        $factory = self::getContainer()->get(GiftCardPaymentMethodFactoryInterface::class);
+
+        $paymentMethod = $factory->create();
+        $this->manager->persist($paymentMethod);
+        $this->manager->flush();
+
+        return $paymentMethod;
     }
 
     /**

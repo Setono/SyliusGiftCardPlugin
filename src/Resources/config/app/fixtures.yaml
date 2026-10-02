@@ -25,3 +25,7 @@ sylius_fixtures:
                 setono_gift_card:
                     options:
                         random: 20
+
+                # the payment method gift card payments are made with, as setono:gift-card:create-payment-method
+                # creates it, so the seeded shop takes gift cards
+                setono_gift_card_payment_method: ~

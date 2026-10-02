@@ -16,9 +16,10 @@ use Sylius\Component\Core\Model\OrderInterface as CoreOrderInterface;
 interface GiftCardCoverageGuardInterface
 {
     /**
-     * Whether checkout may complete as far as the applied gift cards are concerned: every one of them can still pay
-     * for the order and, together with the order's other payments, they add up to its total. An order without gift
-     * cards is none of this guard's business and passes
+     * Whether checkout may complete as far as the applied gift cards are concerned: the shop has the payment method
+     * gift card payments are made with, every one of the cards can still pay for the order and, together with the
+     * order's other payments, they add up to its total. An order without gift cards is none of this guard's business
+     * and passes
      */
     public function isSatisfiedBy(CoreOrderInterface $order): bool;
 

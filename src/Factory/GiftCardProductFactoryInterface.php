@@ -15,7 +15,8 @@ interface GiftCardProductFactoryInterface
     /**
      * Creates a gift card product with the shared delivery option and one variant per delivery type.
      *
-     * The product is returned unmanaged: it is the caller's job to persist it.
+     * The product is returned unmanaged: it is the caller's job to persist and flush it. The delivery option, the
+     * first time one is created, is persisted, and written by that same flush.
      *
      * @param list<ChannelInterface> $channels the channels to sell the product in, defaulting to all of them
      * @param list<GiftCardDeliveryType> $deliveryTypes the delivery types to create variants for, defaulting to all of them

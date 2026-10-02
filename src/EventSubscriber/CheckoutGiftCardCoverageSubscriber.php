@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\EventSubscriber;
 
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
 use Sylius\Component\Core\OrderCheckoutTransitions;
 use Sylius\Component\Order\Context\CartContextInterface;
@@ -32,7 +35,11 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * told no, redirects to the step matching the cart's checkout state, which is the complete step again. So, before
  * the resolver gets to ask, this removes the cards that cannot be used any more (or, when they all still can but
  * cover less, re-sizes the gateway payment), tells the customer why and sends them back to the cart, from where
- * checkout starts over and the payment step is no longer skipped
+ * checkout starts over and the payment step is no longer skipped. While the shop has no payment method to make gift
+ * card payments with, no card can pay, so every card is removed.
+ *
+ * It answers the request with that redirect, which makes it the controller of the request: it flushes what it changed
+ * itself, as nothing after it does
  */
 final class CheckoutGiftCardCoverageSubscriber implements EventSubscriberInterface
 {
@@ -46,6 +53,8 @@ final class CheckoutGiftCardCoverageSubscriber implements EventSubscriberInterfa
         private readonly OrderProcessorInterface $orderProcessor,
         private readonly UrlGeneratorInterface $urlGenerator,
         ManagerRegistry $managerRegistry,
+        private readonly GiftCardPaymentMethodProviderInterface $paymentMethodProvider,
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {
         $this->managerRegistry = $managerRegistry;
     }
@@ -75,6 +84,51 @@ final class CheckoutGiftCardCoverageSubscriber implements EventSubscriberInterfa
             return;
         }
 
+        $flashes = null === $this->paymentMethodProvider->findPaymentMethod()
+            ? $this->removeEveryGiftCard($cart)
+            : $this->removeIneligibleGiftCards($cart);
+
+        $this->getManager($cart)->flush();
+
+        $session = $request->hasSession() ? $request->getSession() : null;
+        if ($session instanceof Session) {
+            foreach ($flashes as $flash) {
+                $session->getFlashBag()->add('error', $flash);
+            }
+        }
+
+        $event->setResponse(new RedirectResponse($this->urlGenerator->generate('sylius_shop_cart_summary')));
+    }
+
+    /**
+     * The shop has no payment method to make gift card payments with, so the cards cannot pay for the order at all. The
+     * shop refuses new cards while the method is missing, so these were applied before it went missing
+     *
+     * @return list<array{message: string, parameters: array<string, string>}>
+     */
+    private function removeEveryGiftCard(OrderInterface $cart): array
+    {
+        $this->logger->error(sprintf(
+            'The gift cards on cart %s were removed as checkout completed, because the gift card payment method does not exist. Create it with bin/console setono:gift-card:create-payment-method',
+            (string) $cart->getId(),
+        ));
+
+        foreach ($cart->getGiftCards()->toArray() as $giftCard) {
+            // detaches the card and re-processes the cart, so the gateway payment is sized to the whole order again
+            $this->giftCardApplicator->remove($cart, $giftCard);
+        }
+
+        return [[
+            'message' => 'setono_sylius_gift_card.gift_card.redemption_unavailable_removed',
+            'parameters' => [],
+        ]];
+    }
+
+    /**
+     * @return list<array{message: string, parameters: array<string, string>}>
+     */
+    private function removeIneligibleGiftCards(OrderInterface $cart): array
+    {
         $flashes = [];
 
         $removed = $this->guard->getIneligibleGiftCards($cart);
@@ -99,16 +153,7 @@ final class CheckoutGiftCardCoverageSubscriber implements EventSubscriberInterfa
             ];
         }
 
-        $this->getManager($cart)->flush();
-
-        $session = $request->hasSession() ? $request->getSession() : null;
-        if ($session instanceof Session) {
-            foreach ($flashes as $flash) {
-                $session->getFlashBag()->add('error', $flash);
-            }
-        }
-
-        $event->setResponse(new RedirectResponse($this->urlGenerator->generate('sylius_shop_cart_summary')));
+        return $flashes;
     }
 
     /**

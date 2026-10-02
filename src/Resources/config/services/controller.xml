@@ -14,9 +14,11 @@
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface"/>
             <argument type="service" id="doctrine"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface"/>
             <!-- The limiters setono_sylius_gift_card.redemption.rate_limiter and .ip_rate_limiter point at; each absent when its option is null -->
             <argument type="service" id="setono_sylius_gift_card.redemption.rate_limiter" on-invalid="null"/>
             <argument type="service" id="setono_sylius_gift_card.redemption.ip_rate_limiter" on-invalid="null"/>
+            <argument type="service" id="logger" on-invalid="null"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Controller\Action\RemoveGiftCardFromOrderAction"

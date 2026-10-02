@@ -53,5 +53,14 @@
 
             <tag name="sylius_fixtures.fixture"/>
         </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardPaymentMethodFixture"
+                 class="Setono\SyliusGiftCardPlugin\Fixture\GiftCardPaymentMethodFixture">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Factory\GiftCardPaymentMethodFactoryInterface"/>
+            <argument type="service" id="doctrine"/>
+
+            <tag name="sylius_fixtures.fixture"/>
+        </service>
     </services>
 </container>

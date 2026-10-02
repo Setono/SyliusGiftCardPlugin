@@ -13,6 +13,8 @@
             <argument type="service" id="sylius.order_processing.order_processor"/>
             <argument type="service" id="router"/>
             <argument type="service" id="doctrine"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface"/>
+            <argument type="service" id="logger" on-invalid="null"/>
 
             <tag name="kernel.event_subscriber"/>
         </service>
