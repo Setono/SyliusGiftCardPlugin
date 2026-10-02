@@ -18,6 +18,9 @@ interface GiftCardInformationInterface
 
     public function getCustomMessage(): ?string;
 
+    /**
+     * Line breaks are held as line feeds, however they arrive (a browser submits a textarea's as CR LF)
+     */
     public function setCustomMessage(?string $customMessage): void;
 
     public function getDesign(): ?GiftCardDesignInterface;

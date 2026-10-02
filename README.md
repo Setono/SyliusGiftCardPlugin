@@ -236,9 +236,10 @@ length, so cards brought over from `0.12.x` with shorter codes stay usable and e
 
 `maximum_message_length` is what both forms allow: it sets the shop textarea's `maxlength` and remaining-characters
 counter, and it is the limit enforced by the `GiftCardMessageLength` constraint on the gift card and on the shop's
-gift card information, so raising the setting raises the limit everywhere. The card shows the message with its line
-breaks intact and clamps it to four lines, so a message much longer than the default will be cut off on the gift
-card and in its PDF.
+gift card information, so raising the setting raises the limit everywhere. A line break counts as one character
+everywhere too: browsers submit it as CR LF, and the message is stored with line feeds only. The card shows the message
+with its line breaks intact and clamps it to four lines, so a message much longer than the default will be cut off on
+the gift card and in its PDF.
 
 ### Protecting codes from guessing
 

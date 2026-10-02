@@ -217,6 +217,42 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     }
 
     /**
+     * The textarea's maxlength and the counter under it count a line break as one character, but the browser submits
+     * it as CR LF. A message the browser let the customer type must not be refused as too long for its line breaks.
+     * Symfony's TextareaType normalizes line breaks itself since symfony/form 6.4.31; this holds for the earlier 6.4
+     * releases the plugin allows as well (CI's lowest dependencies)
+     *
+     * @test
+     */
+    public function it_counts_a_line_break_in_the_message_as_one_character_the_way_the_browser_does(): void
+    {
+        // 195 characters on 6 lines: 200 characters by the browser's count, 205 as submitted
+        $lines = str_split(str_repeat('a', 195), 33);
+        $information = $this->createInformation();
+
+        $form = $this->factory->create(GiftCardInformationType::class, $information);
+        $form->submit([
+            'amount' => '50.00',
+            'customMessage' => implode("\r\n", $lines),
+            'design' => 'classic',
+        ]);
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame(implode("\n", $lines), $information->getCustomMessage());
+
+        // One character more is still refused, whichever way its line breaks arrive
+        $form = $this->factory->create(GiftCardInformationType::class, $this->createInformation());
+        $form->submit([
+            'amount' => '50.00',
+            'customMessage' => implode("\r\n", $lines) . 'a',
+            'design' => 'classic',
+        ]);
+
+        self::assertFalse($form->isValid());
+        self::assertCount(1, $form->get('customMessage')->getErrors());
+    }
+
+    /**
      * The form factory is built in setUp() from what getExtensions() is told, so a test that changes that has to
      * build it again. Everything this test registers comes from getExtensions()
      */

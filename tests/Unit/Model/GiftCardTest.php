@@ -257,6 +257,23 @@ final class GiftCardTest extends TestCase
         self::assertTrue((new GiftCard())->getSendNotificationEmail());
     }
 
+    /**
+     * A browser submits every line break of a textarea as CR LF, while its maxlength counts it as one character, so
+     * the message is stored with line feeds only, and its length is the one the browser allowed
+     *
+     * @test
+     */
+    public function it_stores_the_line_breaks_of_its_message_as_line_feeds(): void
+    {
+        $giftCard = new GiftCard();
+
+        $giftCard->setCustomMessage("Happy\r\nbirthday\rfrom\nus\r\n\r\n");
+        self::assertSame("Happy\nbirthday\nfrom\nus\n\n", $giftCard->getCustomMessage());
+
+        $giftCard->setCustomMessage(null);
+        self::assertNull($giftCard->getCustomMessage());
+    }
+
     private function boughtGiftCard(): GiftCard
     {
         $giftCard = new GiftCard();

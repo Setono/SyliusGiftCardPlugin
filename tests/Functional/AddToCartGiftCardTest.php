@@ -182,6 +182,36 @@ final class AddToCartGiftCardTest extends GiftCardFunctionalTestCase
         self::assertSame([], $this->scheduledGiftCardInsertions());
     }
 
+    /**
+     * The browser counts a line break as one character, both for the textarea's maxlength and for the counter under
+     * it, and submits it as CR LF. A message the customer was allowed to type has to be accepted, and the card keeps it
+     * with the line breaks the customer typed
+     *
+     * @test
+     */
+    public function it_counts_a_line_break_in_the_message_as_one_character_the_way_the_browser_does(): void
+    {
+        $product = $this->createProduct('GIFT_CARD', giftCard: true);
+
+        // 195 characters on 6 lines: the configured limit of 200 by the browser's count, 205 as submitted
+        $lines = str_split(str_repeat('a', 195), 33);
+
+        $cart = $this->createCart();
+        $form = $this->createAddToCartForm($cart, $product);
+        $form->submit([
+            'cartItem' => ['quantity' => '1'],
+            'giftCardInformation' => ['amount' => '50.00', 'customMessage' => implode("\r\n", $lines)],
+        ]);
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+
+        $this->addToCart($form);
+
+        $unit = $this->reloadOnlyItem($cart)->getUnits()->first();
+        self::assertInstanceOf(OrderItemUnit::class, $unit);
+        self::assertSame(implode("\n", $lines), $unit->getGiftCard()?->getCustomMessage());
+    }
+
     /** @test */
     public function it_adds_any_other_product_the_way_sylius_does(): void
     {

@@ -303,6 +303,38 @@ final class GiftCardTypeTest extends TypeTestCase
     }
 
     /**
+     * The browser submits every line break of the textarea as CR LF, so the admin is held to the same message length
+     * as the customer only if a line break counts once. Symfony's TextareaType normalizes line breaks itself since
+     * symfony/form 6.4.31; this holds for the earlier 6.4 releases the plugin allows as well (CI's lowest dependencies)
+     *
+     * @test
+     */
+    public function it_counts_a_line_break_in_the_message_as_one_character_the_way_the_browser_does(): void
+    {
+        // 195 characters on 6 lines: 200 characters by the browser's count, 205 as submitted
+        $lines = str_split(str_repeat('a', 195), 33);
+        $giftCard = new GiftCard();
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission([
+            'code' => 'GIFTCARDCODE',
+            'customMessage' => implode("\r\n", $lines),
+        ]));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame(implode("\n", $lines), $giftCard->getCustomMessage());
+
+        $form = $this->factory->create(GiftCardType::class, new GiftCard());
+        $form->submit($this->validSubmission([
+            'code' => 'GIFTCARDCODE',
+            'customMessage' => implode("\r\n", $lines) . 'a',
+        ]));
+
+        self::assertFalse($form->isValid());
+        self::assertCount(1, $form->get('customMessage')->getErrors());
+    }
+
+    /**
      * Once issued, the code is what the customer was given
      *
      * @test
