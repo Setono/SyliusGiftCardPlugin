@@ -10,6 +10,8 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImageInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
+use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
+use Sylius\Component\Locale\Model\Locale;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -73,6 +75,34 @@ final class GiftCardValidationTest extends GiftCardFunctionalTestCase
         self::assertSame('amount', $violations[0]->getPropertyPath());
         self::assertSame('setono_sylius_gift_card.gift_card_information.amount.too_low', $violations[0]->getMessageTemplate());
         self::assertSame(['{{ minimum }}' => '$1.00'], $violations[0]->getParameters());
+    }
+
+    /**
+     * The amount field's help text quotes the minimum in the locale being browsed, so the error does too rather
+     * than in English. The expected figure comes from Sylius' money formatter, so the exact spacing the ICU
+     * version puts in French money does not matter
+     *
+     * @test
+     */
+    public function it_quotes_the_minimum_in_the_locale_being_browsed(): void
+    {
+        $french = new Locale();
+        $french->setCode('fr_FR');
+        $this->manager->persist($french);
+        $this->getChannel()->addLocale($french);
+        $this->manager->flush();
+
+        /** @var RequestStack $requestStack */
+        $requestStack = self::getContainer()->get('request_stack');
+        $requestStack->getMainRequest()?->attributes->set('_locale', 'fr_FR');
+
+        /** @var MoneyFormatterInterface $moneyFormatter */
+        $moneyFormatter = self::getContainer()->get('sylius.money_formatter');
+
+        $violations = $this->validate(new GiftCardInformation(99));
+
+        self::assertCount(1, $violations);
+        self::assertSame(['{{ minimum }}' => $moneyFormatter->format(100, 'USD', 'fr_FR')], $violations[0]->getParameters());
     }
 
     /**
