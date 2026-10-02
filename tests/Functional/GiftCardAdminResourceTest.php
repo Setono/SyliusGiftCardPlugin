@@ -186,6 +186,28 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
         self::assertSame('Happy birthday', $giftCard->getCustomMessage());
     }
 
+    /**
+     * The browser submits every line break of the message as CR LF, while the textarea counts it as one character, so
+     * a message at the limit by the browser's count must not be refused as too long
+     *
+     * @test
+     */
+    public function it_counts_a_line_break_in_the_message_as_one_character_the_way_the_browser_does(): void
+    {
+        // 195 characters on 6 lines: the configured limit of 200 by the browser's count, 205 as submitted
+        $lines = str_split(str_repeat('a', 195), 33);
+
+        $response = $this->issue([
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'USD',
+            'amount' => '10',
+            'customMessage' => implode("\r\n", $lines),
+        ]);
+
+        self::assertTrue($response->isRedirect(), sprintf('Expected a redirect after saving, got a %d response', $response->getStatusCode()));
+        self::assertSame(implode("\n", $lines), $this->findTheOnlyGiftCard()->getCustomMessage());
+    }
+
     /** @test */
     public function it_issues_nothing_when_the_form_is_invalid(): void
     {

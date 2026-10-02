@@ -273,6 +273,43 @@ test.describe('shop gift card product', () => {
         expect(preview.lines, 'the preview collapsed the line break').toBeGreaterThanOrEqual(2);
     });
 
+    /**
+     * The textarea's maxlength and the counter count a line break as one character, but the browser submits it as
+     * CR LF. A message the field let the customer type used to be refused as too long once it had line breaks in it
+     */
+    test('a message with line breaks up to the limit can be added to the cart', async ({ page }) => {
+        await page.goto(await giftCardProductPath(page));
+
+        const message = page.locator('[name*="giftCardInformation"][name*="[customMessage]"]').first();
+        const limit = Number(await message.getAttribute('maxlength'));
+        expect(limit, 'the message field has no maxlength').toBeGreaterThan(5);
+
+        // Six lines, so five line breaks, filling the limit exactly by the browser's count
+        const lineLength = Math.floor((limit - 5) / 6);
+        const lines = Array.from({ length: 6 }, () => 'a'.repeat(lineLength));
+        lines[5] += 'a'.repeat(limit - 5 - 6 * lineLength);
+        const typed = lines.join('\n');
+        await message.fill(typed);
+
+        // The field took all of it, and the counter says there is nothing left
+        expect(await message.inputValue()).toBe(typed);
+        await expect(page.locator('[data-js-gc-message-counter]')).toHaveText(/^\s*0\D/);
+
+        // The amount field starts at the product's price, which the shop sells, so only the message is under test
+        const form = page.locator('form[name="sylius_add_to_cart"]');
+        const cart = await form.getAttribute('data-redirect');
+        const action = await form.getAttribute('action');
+        const added = page.waitForResponse((response) => response.request().method() === 'POST'
+            && response.url().endsWith(action ?? ''));
+        await form.locator('button[type="submit"]').first().click();
+        const response = await added;
+
+        // A refused line keeps the customer on the page, so its errors can still be read; an added one sends them on
+        const refusal = response.ok() ? '' : await response.text();
+        expect(response.ok(), `adding to the cart was refused: ${refusal}`).toBe(true);
+        await page.waitForURL(`**${cart}`);
+    });
+
     test('a message of many lines is clamped instead of growing over the card', async ({ page }) => {
         await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
 

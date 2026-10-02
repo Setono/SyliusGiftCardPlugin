@@ -54,7 +54,7 @@ The thank you page of such an order shows how to pay the rest, e.g. where to sen
 |-------------|--------------------------------------------|
 | PHP         | >= 8.1                                      |
 | Sylius      | 1.13 and up (the `1.x` line)                |
-| Symfony     | ^6.4                                        |
+| Symfony     | ^6.4 (symfony/form 6.4.31 and up)           |
 | ORM         | doctrine/orm (the only supported driver)   |
 
 ## Installation
@@ -238,9 +238,11 @@ length, so cards brought over from `0.12.x` with shorter codes stay usable and e
 
 `maximum_message_length` is what both forms allow: it sets the shop textarea's `maxlength` and remaining-characters
 counter, and it is the limit enforced by the `GiftCardMessageLength` constraint on the gift card and on the shop's
-gift card information, so raising the setting raises the limit everywhere. The card shows the message with its line
-breaks intact and clamps it to four lines, so a message much longer than the default will be cut off on the gift
-card and in its PDF.
+gift card information, so raising the setting raises the limit everywhere. A line break counts as one character
+everywhere too: browsers submit it as CR LF, and Symfony's textarea field turns it into a line feed before the message
+is validated and stored (from symfony/form 6.4.31, which is why the plugin requires it). The card shows the message
+with its line breaks intact and clamps it to four lines, so a message much longer than the default will be cut off on
+the gift card and in its PDF.
 
 ### Protecting codes from guessing
 
