@@ -6,6 +6,7 @@ const { giftCardDetails, giftCardTransactions, issueGiftCard } = require('../sup
 const { moneyInCents } = require('../support/money');
 const { clickAndWaitForPage } = require('../support/navigation');
 const { cancelOrder, completeOrderPayments, openOrderOf, orderPayments, orderPaymentState } = require('../support/orders');
+const { givePaymentMethodInstructions } = require('../support/payment-methods');
 const { addGiftCardToCart, addOrdinaryProductToCart, cartFigure, redeemGiftCard, shopPath } = require('../support/shop');
 
 /**
@@ -122,6 +123,32 @@ test.describe('paying with a gift card', () => {
         expect(byOther).toEqual([expect.objectContaining({ amount: orderTotal - balance, state: 'New' })]);
 
         expect(moneyInCents((await giftCardDetails(admin.page, card.id)).Amount)).toBe(0);
+    });
+
+    /**
+     * Sylius' thank you page shows the instructions of the order's last payment, such as where to send a bank
+     * transfer. The card's payment is added to the order when it is placed, after the payment for the rest, and the
+     * instructions the customer needs are those for the rest
+     */
+    test('the thank you page shows how to pay the rest of an order the card paid in part', async ({ page }) => {
+        const email = uniqueEmail('part-paid-instructions');
+
+        const total = await cartWithSomethingToPayFor(page);
+        const card = await issueGiftCard(admin.page, { amount: Math.floor(total / 2) });
+        await redeemGiftCard(page, card.code);
+
+        const steps = await checkOutAsGuest(page, email);
+        expect(steps.paymentMethod, 'the rest has to be paid somehow, so a payment method should be chosen').not.toBeNull();
+
+        const instructions = `Transfer the rest to account 1234-${Date.now()}, quoting the order number`;
+        const restore = await givePaymentMethodInstructions(admin.page, /** @type {string} */ (steps.paymentMethod), instructions);
+        try {
+            await placeOrder(page);
+
+            await expect(page.locator('#sylius-payment-method-instructions')).toHaveText([instructions]);
+        } finally {
+            await restore();
+        }
     });
 
     /**

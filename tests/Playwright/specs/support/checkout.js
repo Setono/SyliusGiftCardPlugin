@@ -49,8 +49,8 @@ async function submitAddress(page, email, country) {
  *
  * @param {import('@playwright/test').Page} page a page whose session holds the cart
  * @param {string} email the guest's email; unique per spec, so the order can be found again in the admin
- * @returns {Promise<{shipping: boolean, payment: boolean}>} whether the checkout asked for a shipping method and for a
- *          payment method
+ * @returns {Promise<{shipping: boolean, payment: boolean, paymentMethod: string|null}>} whether the checkout asked for a
+ *          shipping method and for a payment method, and the code of the payment method chosen, if it asked for one
  */
 async function checkOutAsGuest(page, email) {
     return checkOut(page, email);
@@ -60,7 +60,7 @@ async function checkOutAsGuest(page, email) {
  * Takes the cart of a signed in customer through the checkout, the way checkOutAsGuest does for a guest
  *
  * @param {import('@playwright/test').Page} page a page signed in as the customer, whose session holds the cart
- * @returns {Promise<{shipping: boolean, payment: boolean}>}
+ * @returns {Promise<{shipping: boolean, payment: boolean, paymentMethod: string|null}>}
  */
 async function checkOutAsCustomer(page) {
     return checkOut(page, null);
@@ -69,7 +69,7 @@ async function checkOutAsCustomer(page) {
 /**
  * @param {import('@playwright/test').Page} page
  * @param {string|null} email the guest's email, or null for a signed in customer
- * @returns {Promise<{shipping: boolean, payment: boolean}>}
+ * @returns {Promise<{shipping: boolean, payment: boolean, paymentMethod: string|null}>}
  */
 async function checkOut(page, email) {
     await page.goto(await shopPath(page, 'checkout/address'));
@@ -78,7 +78,8 @@ async function checkOut(page, email) {
         .evaluateAll((options) => options.map((option) => option.value));
     expect(countries.length, 'the channel offers no country to ship to').toBeGreaterThan(0);
 
-    const steps = { shipping: false, payment: false };
+    /** @type {{shipping: boolean, payment: boolean, paymentMethod: string|null}} */
+    const steps = { shipping: false, payment: false, paymentMethod: null };
 
     // Sylius' fixtures give every shipping method a random zone, so no country is sure to be shipped to. Try the
     // offered countries in turn until the shipping step lists a method, or the cart turns out to need no shipping
@@ -109,6 +110,7 @@ async function checkOut(page, email) {
     if (page.url().includes('/checkout/select-payment')) {
         steps.payment = true;
         // the shop preselects a method, which is as good as any other here
+        steps.paymentMethod = await page.locator(`${PAYMENT_METHOD}:checked`).first().inputValue();
         await clickAndWaitForPage(page, page.locator('#next-step'));
     }
 

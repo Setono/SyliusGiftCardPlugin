@@ -4,18 +4,23 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Twig\Runtime;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardRedemptionRuntime;
+use Sylius\Component\Core\Model\OrderInterface as BaseOrderInterface;
+use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 
 /**
  * The cart prints what the gift cards cover and what is left to pay from these functions. The figures come from
- * the configured redemption method, so an application that substitutes its own sees its figures in the cart
+ * the configured redemption method, so an application that substitutes its own sees its figures in the cart. The
+ * thank you page shows the instructions of the payment for what the gift cards do not pay
  */
 final class GiftCardRedemptionRuntimeTest extends TestCase
 {
@@ -24,9 +29,13 @@ final class GiftCardRedemptionRuntimeTest extends TestCase
     /** @var ObjectProphecy<GiftCardRedemptionMethodInterface> */
     private ObjectProphecy $redemptionMethod;
 
+    /** @var ObjectProphecy<GiftCardPaymentCheckerInterface> */
+    private ObjectProphecy $paymentChecker;
+
     protected function setUp(): void
     {
         $this->redemptionMethod = $this->prophesize(GiftCardRedemptionMethodInterface::class);
+        $this->paymentChecker = $this->prophesize(GiftCardPaymentCheckerInterface::class);
     }
 
     /** @test */
@@ -69,12 +78,74 @@ final class GiftCardRedemptionRuntimeTest extends TestCase
         yield 'more than the order' => [12000, 0];
     }
 
+    /**
+     * The gift card payments are added when the order is placed, after the payment the customer chose for the rest
+     *
+     * @test
+     */
+    public function it_tells_the_payment_for_what_the_gift_cards_do_not_pay_although_a_gift_card_payment_follows_it(): void
+    {
+        $rest = $this->payment(false);
+
+        self::assertSame($rest, $this->runtime()->getRemainingPayment($this->orderWith($rest, $this->payment(true))));
+    }
+
+    /**
+     * Sylius replaces a payment for the rest that fails or is cancelled, and the replacement is the one to pay
+     *
+     * @test
+     */
+    public function it_tells_the_last_payment_that_is_not_a_gift_card_payment(): void
+    {
+        $replacement = $this->payment(false);
+        $order = $this->orderWith($this->payment(false), $this->payment(true), $replacement, $this->payment(true));
+
+        self::assertSame($replacement, $this->runtime()->getRemainingPayment($order));
+    }
+
+    /** @test */
+    public function it_tells_the_only_payment_of_an_order_without_gift_cards(): void
+    {
+        $payment = $this->payment(false);
+
+        self::assertSame($payment, $this->runtime()->getRemainingPayment($this->orderWith($payment)));
+    }
+
+    /** @test */
+    public function it_tells_no_payment_when_the_gift_cards_pay_the_whole_order(): void
+    {
+        self::assertNull($this->runtime()->getRemainingPayment($this->orderWith($this->payment(true), $this->payment(true))));
+    }
+
+    /** @test */
+    public function it_tells_no_payment_for_an_order_without_payments(): void
+    {
+        self::assertNull($this->runtime()->getRemainingPayment($this->orderWith()));
+    }
+
     private function runtime(): GiftCardRedemptionRuntime
     {
         return new GiftCardRedemptionRuntime(
             $this->redemptionMethod->reveal(),
             $this->prophesize(FormFactoryInterface::class)->reveal(),
+            $this->paymentChecker->reveal(),
         );
+    }
+
+    private function payment(bool $giftCard): PaymentInterface
+    {
+        $payment = $this->prophesize(PaymentInterface::class)->reveal();
+        $this->paymentChecker->isGiftCardPayment($payment)->willReturn($giftCard);
+
+        return $payment;
+    }
+
+    private function orderWith(PaymentInterface ...$payments): BaseOrderInterface
+    {
+        $order = $this->prophesize(BaseOrderInterface::class);
+        $order->getPayments()->willReturn(new ArrayCollection($payments));
+
+        return $order->reveal();
     }
 
     private function order(int $total): OrderInterface

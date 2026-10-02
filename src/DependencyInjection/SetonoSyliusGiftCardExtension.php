@@ -293,6 +293,17 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                             ],
                         ],
                     ],
+                    // Sylius shows the instructions of the order's last payment right below this event, and on an
+                    // order the gift cards pay in part that is a gift card payment. The instructions for the rest go
+                    // last on the event, after Sylius' legacy block (priority 0), so they sit where Sylius' would
+                    'sylius.shop.order.thank_you.after_message' => [
+                        'blocks' => [
+                            'setono_gift_card_payment_instructions' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/order/thank_you/_payment_instructions.html.twig',
+                                'priority' => -10,
+                            ],
+                        ],
+                    ],
                 ],
             ],
             'sylius_grid' => [
