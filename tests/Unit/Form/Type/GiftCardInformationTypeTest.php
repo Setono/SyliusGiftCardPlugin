@@ -228,7 +228,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     }
 
     /**
-     * Mirrors GiftCardInformationFactory, which seeds the information object with the order item's unit price
+     * Mirrors GiftCardInformationFactory, which seeds the information object with the price the variant is sold at
      */
     private function createInformation(): GiftCardInformation
     {
