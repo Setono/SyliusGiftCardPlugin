@@ -10,6 +10,8 @@ use Sylius\Component\Core\Model\ProductVariant;
 use Sylius\Component\Core\Model\ProductVariantInterface;
 use Sylius\Component\Locale\Model\Locale;
 use Sylius\Component\Product\Model\ProductOptionInterface;
+use Sylius\Component\Product\Model\ProductOptionValueInterface;
+use Sylius\Component\Resource\Factory\FactoryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -169,6 +171,59 @@ final class CreateGiftCardProductActionTest extends AdminFunctionalTestCase
         yield 'physical' => ['physical'];
     }
 
+    /**
+     * Option value codes are unique across all options, and a shop's own option may well have the values "physical"
+     * and "virtual" (a "Format" option, say). The delivery option is created on the first press whatever the product
+     * code, so its values need codes no other option uses
+     *
+     * @test
+     */
+    public function it_scaffolds_a_gift_card_product_in_a_shop_whose_own_option_has_the_values_virtual_and_physical(): void
+    {
+        $this->persistOption('format', ['physical', 'virtual']);
+
+        $response = $this->pressCreateGiftCardProduct();
+        self::assertTrue($response->isRedirect(), sprintf('Expected a redirect to the new product, got a %d response', $response->getStatusCode()));
+
+        $product = $this->findProduct('gift_card');
+        self::assertTrue($response->isRedirect(sprintf('/admin/products/%d/edit', (int) $product->getId())));
+
+        self::assertSame([
+            'gift_card_physical' => ['gift_card_delivery_physical'],
+            'gift_card_virtual' => ['gift_card_delivery_virtual'],
+        ], $this->variantOptionValueCodes($product));
+
+        // The shop's own option is left as it was
+        self::assertSame(['physical', 'virtual'], $this->optionValueCodes('format'));
+    }
+
+    /**
+     * A shop that pressed the button before the delivery option's values got codes of their own has an option whose
+     * values are coded with the bare delivery type. That option is reused as it is, so its gift card products keep
+     * sharing one delivery option
+     *
+     * @test
+     */
+    public function it_reuses_a_delivery_option_whose_values_are_coded_with_the_bare_delivery_type(): void
+    {
+        $this->persistOption('gift_card_delivery', ['virtual', 'physical']);
+
+        $response = $this->pressCreateGiftCardProduct();
+        self::assertTrue($response->isRedirect(), sprintf('Expected a redirect to the new product, got a %d response', $response->getStatusCode()));
+
+        $product = $this->findProduct('gift_card');
+        self::assertSame(['gift_card_delivery'], $this->optionCodes($product));
+        self::assertSame([
+            'gift_card_physical' => ['physical'],
+            'gift_card_virtual' => ['virtual'],
+        ], $this->variantOptionValueCodes($product));
+
+        /** @var RepositoryInterface<ProductOptionInterface> $optionRepository */
+        $optionRepository = self::getContainer()->get('sylius.repository.product_option');
+        self::assertCount(1, $optionRepository->findBy(['code' => 'gift_card_delivery']));
+        self::assertSame(['physical', 'virtual'], $this->optionValueCodes('gift_card_delivery'));
+    }
+
     /** @test */
     public function it_creates_nothing_without_the_token_of_the_grid_action(): void
     {
@@ -234,6 +289,75 @@ final class CreateGiftCardProductActionTest extends AdminFunctionalTestCase
 
         $this->manager->persist($product);
         $this->manager->flush();
+    }
+
+    /**
+     * An option the merchant created, with values of the given codes
+     *
+     * @param list<string> $valueCodes
+     */
+    private function persistOption(string $code, array $valueCodes): void
+    {
+        /** @var FactoryInterface<ProductOptionInterface> $optionFactory */
+        $optionFactory = self::getContainer()->get('sylius.factory.product_option');
+        /** @var FactoryInterface<ProductOptionValueInterface> $optionValueFactory */
+        $optionValueFactory = self::getContainer()->get('sylius.factory.product_option_value');
+
+        $option = $optionFactory->createNew();
+        $option->setCode($code);
+        $option->setCurrentLocale('en_US');
+        $option->setFallbackLocale('en_US');
+        $option->setName(ucfirst($code));
+
+        foreach ($valueCodes as $valueCode) {
+            $value = $optionValueFactory->createNew();
+            $value->setCode($valueCode);
+            $value->setCurrentLocale('en_US');
+            $value->setFallbackLocale('en_US');
+            $value->setValue(ucfirst($valueCode));
+            $option->addValue($value);
+        }
+
+        $this->manager->persist($option);
+        $this->manager->flush();
+    }
+
+    /**
+     * @return list<string> the codes of the option's values, sorted
+     */
+    private function optionValueCodes(string $optionCode): array
+    {
+        $this->manager->clear();
+
+        /** @var RepositoryInterface<ProductOptionInterface> $optionRepository */
+        $optionRepository = self::getContainer()->get('sylius.repository.product_option');
+        $option = $optionRepository->findOneBy(['code' => $optionCode]);
+        self::assertInstanceOf(ProductOptionInterface::class, $option);
+
+        $codes = [];
+        foreach ($option->getValues() as $value) {
+            $codes[] = (string) $value->getCode();
+        }
+        sort($codes);
+
+        return $codes;
+    }
+
+    /**
+     * @return array<string, list<string>> the codes of each variant's option values, by variant code, sorted
+     */
+    private function variantOptionValueCodes(ProductInterface $product): array
+    {
+        $codes = [];
+        foreach ($product->getVariants() as $variant) {
+            $codes[(string) $variant->getCode()] = array_values(array_map(
+                static fn (ProductOptionValueInterface $value): string => (string) $value->getCode(),
+                $variant->getOptionValues()->toArray(),
+            ));
+        }
+        ksort($codes);
+
+        return $codes;
     }
 
     /**

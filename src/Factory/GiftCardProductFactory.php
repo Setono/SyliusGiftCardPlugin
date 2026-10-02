@@ -83,10 +83,11 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         $product->addOption($option);
 
         foreach ($deliveryTypes as $deliveryType) {
-            $optionValue = $this->findOptionValue($option, $deliveryType->value);
+            $optionValue = $this->findOptionValue($option, $deliveryType);
             Assert::notNull($optionValue, sprintf(
-                'The product option "%s" has no value "%s"',
+                'The product option "%s" has no value "%s" (or "%s")',
                 self::DELIVERY_OPTION_CODE,
+                $this->getOptionValueCode($deliveryType),
                 $deliveryType->value,
             ));
 
@@ -145,7 +146,7 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
     }
 
     /**
-     * A variant is named after its product and its value of the delivery option, whose code is the delivery type
+     * A variant is named after its product and its delivery type
      */
     private function getVariantCode(string $productCode, GiftCardDeliveryType $deliveryType): string
     {
@@ -176,7 +177,7 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         foreach (GiftCardDeliveryType::cases() as $deliveryType) {
             /** @var ProductOptionValueInterface $value */
             $value = $this->productOptionValueFactory->createNew();
-            $value->setCode($deliveryType->value);
+            $value->setCode($this->getOptionValueCode($deliveryType));
 
             foreach ($this->getLocales() as $localeCode) {
                 $value->setCurrentLocale($localeCode);
@@ -192,15 +193,34 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         return $option;
     }
 
-    private function findOptionValue(ProductOptionInterface $option, string $valueCode): ?ProductOptionValueInterface
+    /**
+     * The delivery option created before its values got codes of their own has values coded with the bare delivery
+     * type. Such a value is still used for its delivery type, unless the option has one with the prefixed code too
+     */
+    private function findOptionValue(ProductOptionInterface $option, GiftCardDeliveryType $deliveryType): ?ProductOptionValueInterface
     {
+        $bareValue = null;
+
         foreach ($option->getValues() as $value) {
-            if ($value->getCode() === $valueCode) {
+            if ($value->getCode() === $this->getOptionValueCode($deliveryType)) {
                 return $value;
+            }
+
+            if ($value->getCode() === $deliveryType->value) {
+                $bareValue = $value;
             }
         }
 
-        return null;
+        return $bareValue;
+    }
+
+    /**
+     * Option value codes are unique across all options, and a shop's own option may well have a value "physical", so
+     * the delivery option's values are prefixed with the option's code
+     */
+    private function getOptionValueCode(GiftCardDeliveryType $deliveryType): string
+    {
+        return sprintf('%s_%s', self::DELIVERY_OPTION_CODE, $deliveryType->value);
     }
 
     /**
