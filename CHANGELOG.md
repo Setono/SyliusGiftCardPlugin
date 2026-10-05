@@ -10,8 +10,11 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - `GiftCardDesign` resource: translatable, with front and back images, admin CRUD and an example-PDF preview.
   Customers pick a design when buying a gift card
 - `GiftCardTransaction`, an append-only ledger recording every balance change, with nullable-unique
-  idempotency keys so a replayed state machine transition cannot double-spend
-- Admin **Adjust balance** action, writing a manual ledger entry with a reason
+  idempotency keys so a replayed state machine transition cannot double-spend. Each row names the order it belongs
+  to (the issuance of a card bought in the shop names the order that paid for it) and, for a manual adjustment or a
+  card issued in the admin, the admin who made it (`createdBy`, a copy of their user identifier). The gift card's
+  show page lists both
+- Admin **Adjust balance** action, writing a manual ledger entry with a reason and the admin who made it
 - Admin outstanding-balance dashboard, aggregating the balance of all usable gift cards per currency in SQL
 - One-click **Create gift card product** admin scaffold, building the delivery option and both variants
 - Live preview on the gift card product page — the chosen design with the amount and message overlaid,

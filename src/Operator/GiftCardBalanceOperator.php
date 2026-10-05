@@ -52,7 +52,7 @@ final class GiftCardBalanceOperator implements GiftCardBalanceOperatorInterface
 
         $giftCard->setAmount($giftCard->getAmount() - $amount);
 
-        $this->record($giftCard, -$amount, GiftCardTransactionInterface::TYPE_REDEEM, $order, $payment, $idempotencyKey, null);
+        $this->record($giftCard, -$amount, GiftCardTransactionInterface::TYPE_REDEEM, order: $order, payment: $payment, idempotencyKey: $idempotencyKey);
     }
 
     public function restore(
@@ -72,20 +72,20 @@ final class GiftCardBalanceOperator implements GiftCardBalanceOperatorInterface
 
         $giftCard->setAmount($giftCard->getAmount() + $amount);
 
-        $this->record($giftCard, $amount, GiftCardTransactionInterface::TYPE_RESTORE, $order, $payment, $idempotencyKey, null);
+        $this->record($giftCard, $amount, GiftCardTransactionInterface::TYPE_RESTORE, order: $order, payment: $payment, idempotencyKey: $idempotencyKey);
     }
 
-    public function adjust(GiftCardInterface $giftCard, int $delta, string $reason): void
+    public function adjust(GiftCardInterface $giftCard, int $delta, string $reason, ?string $createdBy = null): void
     {
         $newAmount = $giftCard->getAmount() + $delta;
         Assert::greaterThanEq($newAmount, 0, 'A manual gift card adjustment cannot make the balance negative');
 
         $giftCard->setAmount($newAmount);
 
-        $this->record($giftCard, $delta, GiftCardTransactionInterface::TYPE_MANUAL, null, null, null, $reason);
+        $this->record($giftCard, $delta, GiftCardTransactionInterface::TYPE_MANUAL, reason: $reason, createdBy: $createdBy);
     }
 
-    public function issue(GiftCardInterface $giftCard): void
+    public function issue(GiftCardInterface $giftCard, ?OrderInterface $order = null, ?string $createdBy = null): void
     {
         $amount = $giftCard->getAmount();
         if ($amount <= 0) {
@@ -100,7 +100,7 @@ final class GiftCardBalanceOperator implements GiftCardBalanceOperatorInterface
         }
 
         // Deliberately no setAmount(): the card already holds this balance, the ledger is only catching up
-        $this->record($giftCard, $amount, GiftCardTransactionInterface::TYPE_ISSUE, null, null, $idempotencyKey, null);
+        $this->record($giftCard, $amount, GiftCardTransactionInterface::TYPE_ISSUE, order: $order, idempotencyKey: $idempotencyKey, createdBy: $createdBy);
     }
 
     private static function issuanceIdempotencyKey(GiftCardInterface $giftCard): string
@@ -115,10 +115,11 @@ final class GiftCardBalanceOperator implements GiftCardBalanceOperatorInterface
         GiftCardInterface $giftCard,
         int $amount,
         string $type,
-        ?OrderInterface $order,
-        ?PaymentInterface $payment,
-        ?string $idempotencyKey,
-        ?string $reason,
+        ?OrderInterface $order = null,
+        ?PaymentInterface $payment = null,
+        ?string $idempotencyKey = null,
+        ?string $reason = null,
+        ?string $createdBy = null,
     ): void {
         $transaction = $this->transactionFactory->createNew();
         $transaction->setAmount($amount);
@@ -127,6 +128,7 @@ final class GiftCardBalanceOperator implements GiftCardBalanceOperatorInterface
         $transaction->setPayment($payment);
         $transaction->setIdempotencyKey($idempotencyKey);
         $transaction->setReason($reason);
+        $transaction->setCreatedBy($createdBy);
 
         $giftCard->addTransaction($transaction);
 

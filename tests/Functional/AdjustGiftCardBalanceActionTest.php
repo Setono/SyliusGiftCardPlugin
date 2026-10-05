@@ -10,7 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * A manual adjustment is the only way an admin moves a balance after issuance, so it has to leave a ledger row that
- * says by how much and why. This drives the form the admin fills in, from the rendered page to the persisted ledger
+ * says by how much, why and who made it. This drives the form the admin fills in, from the rendered page to the
+ * persisted ledger
  */
 final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
 {
@@ -37,7 +38,7 @@ final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
     }
 
     /** @test */
-    public function it_adjusts_the_balance_and_records_the_reason_in_the_ledger(): void
+    public function it_adjusts_the_balance_and_records_the_reason_and_the_administrator_in_the_ledger(): void
     {
         $giftCard = $this->persistGiftCard('ADJUSTME', 5000);
 
@@ -58,6 +59,9 @@ final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
         self::assertSame(GiftCardTransactionInterface::TYPE_MANUAL, $transaction->getType());
         self::assertSame(-1250, $transaction->getAmount());
         self::assertSame('Customer returned part of the goods', $transaction->getReason());
+        // The administrator's user identifier, their username, see AdminFunctionalTestCase::logInAsAdministrator()
+        self::assertSame('administrator', $transaction->getCreatedBy());
+        self::assertNull($transaction->getOrder());
 
         self::assertStringContainsString('The gift card balance was adjusted', (string) $this->followRedirect($response)->getContent());
     }

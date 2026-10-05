@@ -25,6 +25,8 @@ class GiftCardTransaction implements GiftCardTransactionInterface
 
     protected ?string $idempotencyKey = null;
 
+    protected ?string $createdBy = null;
+
     protected ?\DateTimeInterface $createdAt = null;
 
     public function getId(): ?int
@@ -100,6 +102,16 @@ class GiftCardTransaction implements GiftCardTransactionInterface
     public function setIdempotencyKey(?string $idempotencyKey): void
     {
         $this->idempotencyKey = $idempotencyKey;
+    }
+
+    public function getCreatedBy(): ?string
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?string $createdBy): void
+    {
+        $this->createdBy = $createdBy;
     }
 
     public function getCreatedAt(): ?\DateTimeInterface

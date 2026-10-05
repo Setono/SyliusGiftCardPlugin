@@ -11,7 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Issuing and deleting gift cards through Sylius' resource routes, with what the plugin hooks into them: the
- * opening balance is recorded when a card is issued, and a card whose balance has moved cannot be deleted
+ * opening balance is recorded when a card is issued, along with the administrator who issued it, and a card whose
+ * balance has moved cannot be deleted
  */
 final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
 {
@@ -52,6 +53,10 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
         self::assertInstanceOf(GiftCardTransactionInterface::class, $transaction);
         self::assertSame(GiftCardTransactionInterface::TYPE_ISSUE, $transaction->getType());
         self::assertSame(2550, $transaction->getAmount());
+        // Issuing a card hands out money as much as adjusting a balance does, so the administrator who did it is named.
+        // No order paid for it
+        self::assertSame('administrator', $transaction->getCreatedBy());
+        self::assertNull($transaction->getOrder());
     }
 
     /**

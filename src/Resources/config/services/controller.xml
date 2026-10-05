@@ -60,6 +60,7 @@
             <argument type="service" id="twig"/>
             <argument type="service" id="router"/>
             <argument type="service" id="doctrine"/>
+            <argument type="service" id="security.token_storage"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\SendGiftCardEmailAction"
