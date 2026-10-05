@@ -84,12 +84,12 @@ final class GiftCardSetupWarningTest extends AdminFunctionalTestCase
             self::assertCount(1, self::textsOf($response, self::PAYMENT_METHOD_TOP_BAR), $path);
 
             $message = implode(' ', self::textsOf($response, self::PAYMENT_METHOD_MESSAGE));
-            // the code the method has to have, and both ways to create it
+            // the code the method gets, and both ways to create it: the button, and the command for deploy scripts
             self::assertStringContainsString('gift_card', $message, $path);
             self::assertStringContainsString('setono:gift-card:create-payment-method', $message, $path);
             self::assertSame(
-                ['/admin/payment-methods/new/offline'],
-                self::textsOf($response, self::PAYMENT_METHOD_MESSAGE . '//a/@href'),
+                ['/admin/gift-cards/create-payment-method'],
+                self::textsOf($response, self::PAYMENT_METHOD_MESSAGE . '//form/@action'),
                 $path,
             );
         }

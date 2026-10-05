@@ -6,6 +6,8 @@ setono_sylius_gift_card:
         balance_adjusted: The gift card balance was adjusted
         changed_during_checkout: One of your gift cards changed while you were checking out. Please review your cart and try again.
         product_created: A gift card product was created. Review and enable it below.
+        payment_method_created: The gift card payment method was created in every channel. Customers can pay with gift cards now.
+        payment_method_already_exists: The gift card payment method already exists, so nothing was created.
         email_sent: The gift card was emailed to the customer
         email_not_sent_no_customer: The gift card has no customer email address, so it could not be sent.
         email_not_sent_disabled: The gift card is disabled, so it was not sent.

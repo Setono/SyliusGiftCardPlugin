@@ -81,5 +81,14 @@
             <argument type="service" id="router"/>
             <argument type="service" id="security.csrf.token_manager"/>
         </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardPaymentMethodAction"
+                 class="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardPaymentMethodAction">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Factory\GiftCardPaymentMethodFactoryInterface"/>
+            <argument type="service" id="doctrine"/>
+            <argument type="service" id="router"/>
+            <argument type="service" id="security.csrf.token_manager"/>
+        </service>
     </services>
 </container>

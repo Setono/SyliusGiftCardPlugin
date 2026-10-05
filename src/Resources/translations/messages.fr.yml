@@ -59,10 +59,9 @@ setono_sylius_gift_card:
             topbar: 'Configuration des chèques-cadeaux incomplète : aucun moyen de paiement par chèque-cadeau'
             header: Les clients ne peuvent pas encore payer avec des chèques-cadeaux
             explanation: 'La boutique vend des chèques-cadeaux mais n''a aucun moyen de paiement pour enregistrer les paiements par chèque-cadeau : elle refuse donc tous les chèques-cadeaux avec lesquels un client essaie de payer.'
-            create_payment_method: Créez un moyen de paiement hors ligne
-            create_payment_method_suffix: avec le code
-            or: ou
-            run_command: 'créez-le dans tous les canaux en exécutant'
+            create_button: Créer le moyen de paiement par chèque-cadeau
+            button_help: 'Le bouton le crée comme moyen de paiement hors ligne dans tous les canaux, nommé dans toutes les langues de la boutique et jamais proposé aux clients lors de la commande. Son code est'
+            run_command: 'Dans un script de déploiement, exécutez'
         setup_warning:
             topbar: 'Configuration des chèques-cadeaux incomplète : aucun modèle dans %channels%'
             header: La configuration des chèques-cadeaux n''est pas terminée

@@ -46,6 +46,16 @@ setono_sylius_gift_card_admin_create_gift_card_product:
             section: admin
             permission: true
 
+# Pressed from the setup warning while the gift card payment method is missing
+setono_sylius_gift_card_admin_create_gift_card_payment_method:
+    path: /gift-cards/create-payment-method
+    methods: [POST]
+    defaults:
+        _controller: Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardPaymentMethodAction
+        _sylius:
+            section: admin
+            permission: true
+
 setono_sylius_gift_card_admin_gift_card_pdf:
     path: /gift-cards/{id}/pdf
     methods: [GET]
