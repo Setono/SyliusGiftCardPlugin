@@ -72,7 +72,7 @@ If you overrode any of the removed templates (gift card configuration admin, the
 
 ## Gift card payment method
 
-A redeemed gift card becomes a payment made with an offline payment method with the code `gift_card` (the `redemption.payment_method_code` setting). It is not created automatically: run the command below once after upgrading. It creates the method in every channel and leaves an existing one alone, so it is safe on a shop that already has it.
+A redeemed gift card becomes a payment made with an offline payment method with the code `gift_card` (the `redemption.payment_method_code` setting). It is not created automatically: create it once after upgrading, either with the **Create gift card payment method** button in the warning the admin shows while it is missing (on the gift card index), or by running the command below in your deploy. Both create the method in every channel and leave an existing one alone, so they are safe on a shop that already has it.
 
 ```bash
 bin/console setono:gift-card:create-payment-method

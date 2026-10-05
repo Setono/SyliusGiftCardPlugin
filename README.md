@@ -196,21 +196,23 @@ A channel without an enabled design still works: the product page shows no desig
 ### Create the gift card payment method
 
 Every redeemed gift card becomes a payment made with a payment method of its own, an *offline* one with the code
-`gift_card` (the `redemption.payment_method_code` setting). The plugin does not create it on the fly, so create it once,
-in every channel, by running the command below. It is idempotent: when the method exists, whoever created it, it is left
-as it is.
+`gift_card` (the `redemption.payment_method_code` setting). The plugin does not create it on the fly, so create it once.
+
+Until the method exists the shop refuses every gift card a customer tries to pay with ("Gift cards cannot be used in this
+shop at the moment"), and every admin page carries a warning in the top bar. On the gift card, design and payment method
+indexes the warning has a **Create gift card payment method** button: it creates the method in every channel, named in
+every language of the shop, and the warning is gone.
+
+To set it up from a deploy script instead, run the command below. Like the button, it is idempotent: when the method
+exists, whoever created it, it is left as it is.
 
 ```bash
 bin/console setono:gift-card:create-payment-method
 ```
 
-You can also create it in the admin, as an offline payment method with that code, or seed it with the
-`setono_gift_card_payment_method` fixture, which the plugin's fixture suite includes. Checkout never offers the method to
+You can also seed it with the `setono_gift_card_payment_method` fixture, which the plugin's fixture suite includes, or
+create it yourself in the admin as an offline payment method with that code. Checkout never offers the method to
 customers, whichever channels it is in.
-
-Until the method exists the shop refuses every gift card a customer tries to pay with ("Gift cards cannot be used in this
-shop at the moment"), and every admin page carries a warning in the top bar; the gift card, design and payment method
-indexes explain how to fix it.
 
 ### Install assets
 

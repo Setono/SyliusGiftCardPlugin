@@ -1,4 +1,6 @@
 const { test, expect } = require('@playwright/test');
+const { clickAndConfirm, flashMessages } = require('../support/admin');
+const { clickAndWaitForPage } = require('../support/navigation');
 
 /**
  * The admin warns while a channel sells gift cards without an enabled design. The seeded shop has the classic
@@ -10,6 +12,19 @@ const TOPBAR_WARNING = '[data-test-gift-card-setup-warning]';
 const MESSAGE = '[data-test-gift-card-setup-warning-message]';
 const PAYMENT_METHOD_TOPBAR_WARNING = '[data-test-gift-card-payment-method-warning]';
 const PAYMENT_METHOD_MESSAGE = '[data-test-gift-card-payment-method-warning-message]';
+const CREATE_PAYMENT_METHOD_BUTTON = `${PAYMENT_METHOD_MESSAGE} form[action$="/admin/gift-cards/create-payment-method"] button[type="submit"]`;
+
+/**
+ * The row of the gift card payment method in Sylius' payment methods grid, found by the code the plugin gives it (the
+ * redemption.payment_method_code setting, which the test application leaves at gift_card)
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function giftCardPaymentMethodRow(page) {
+    await page.goto('/admin/payment-methods/');
+
+    return page.locator('table tbody tr', { hasText: 'gift_card' });
+}
 
 /**
  * Semantic UI lays its own label over a checkbox and toggles the input itself when that label is clicked, so a
@@ -66,12 +81,64 @@ test.describe('gift card setup warning', () => {
         await page.goto('/admin/gift-card-designs/');
         await expect(page.locator(MESSAGE)).toHaveCount(0);
         await expect(page.locator(PAYMENT_METHOD_MESSAGE)).toHaveCount(0);
+
+        // the button creating the payment method is part of the warning, so there is nothing to press either
+        await page.goto('/admin/gift-cards/');
+        await expect(page.locator(PAYMENT_METHOD_MESSAGE)).toHaveCount(0);
+        await expect(page.locator('form[action$="/admin/gift-cards/create-payment-method"]')).toHaveCount(0);
+    });
+
+    /**
+     * The fixture sets the payment method up for the seeded shop, so the spec deletes it to provoke the warning. Sylius
+     * only lets a payment method be deleted while no payment uses it, and gift card payments are made when an order is
+     * placed: the admin specs only apply cards to carts and run before the shop specs place orders, each CI shard on a
+     * database of its own, so here it still can be. On a database where it cannot, there is no missing method to fix and
+     * the test is skipped. Pressing the button puts the method back, and so does the finally, whatever fails in between,
+     * so the specs after this one find a shop that takes gift cards
+     */
+    test('while the gift card payment method is missing, the warning creates it with one click', async ({ page }) => {
+        const row = await giftCardPaymentMethodRow(page);
+        await expect(row, 'the seeded shop should have the gift card payment method').toHaveCount(1);
+
+        await clickAndConfirm(page, row.getByRole('button', { name: /delete/i }));
+        const deleted = 0 === (await (await giftCardPaymentMethodRow(page)).count());
+        test.skip(!deleted, 'The gift card payment method is in use, so Sylius does not let it be deleted to provoke the warning');
+
+        try {
+            // on a page that has nothing to do with gift cards, the top bar leads to the gift card index
+            await page.goto('/admin/products/');
+            const topbar = page.locator(PAYMENT_METHOD_TOPBAR_WARNING);
+            await expect(topbar).toBeVisible();
+            await clickAndWaitForPage(page, topbar);
+            await expect(page).toHaveURL(/\/admin\/gift-cards\/?$/);
+
+            // which explains it and offers the button, with the command for deploy scripts next to it
+            const message = page.locator(PAYMENT_METHOD_MESSAGE);
+            await expect(message).toBeVisible();
+            await expect(message).toContainText('gift_card');
+            await expect(message).toContainText('setono:gift-card:create-payment-method');
+
+            await clickAndWaitForPage(page, page.locator(CREATE_PAYMENT_METHOD_BUTTON));
+
+            await expect(page).toHaveURL(/\/admin\/gift-cards\/?$/);
+            expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/payment method was created/i));
+            await expect(page.locator(PAYMENT_METHOD_TOPBAR_WARNING)).toHaveCount(0);
+            await expect(page.locator(PAYMENT_METHOD_MESSAGE)).toHaveCount(0);
+
+            // and Sylius lists the method again
+            await expect(await giftCardPaymentMethodRow(page)).toHaveCount(1);
+        } finally {
+            await page.goto('/admin/gift-cards/');
+            const button = page.locator(CREATE_PAYMENT_METHOD_BUTTON);
+            if (0 < (await button.count())) {
+                await clickAndWaitForPage(page, button);
+            }
+        }
     });
 
     /**
      * The payment method gift card payments are made with is a setup step, which the plugin's fixture takes for the
-     * seeded shop. Sylius locks a payment method's code once it exists and refuses to delete one that payments use, so
-     * the shop cannot be made to lack it from here; GiftCardSetupWarningTest renders the warning for a shop without it
+     * seeded shop
      */
     test('the seeded shop has the gift card payment method, so the payment methods say nothing about it', async ({ page }) => {
         await page.goto('/admin/payment-methods/');
