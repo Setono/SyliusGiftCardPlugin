@@ -165,6 +165,27 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     }
 
     /**
+     * The picker only holds the designs the channel offers, so the code of any other design, one from another channel
+     * or a disabled one, is refused instead of ending up on the gift card
+     *
+     * @test
+     */
+    public function it_refuses_a_design_the_channel_does_not_offer(): void
+    {
+        $information = $this->createInformation();
+
+        $form = $this->factory->create(GiftCardInformationType::class, $information);
+        $form->submit([
+            'amount' => '50.00',
+            'design' => 'other-channels-design',
+        ]);
+
+        self::assertFalse($form->get('design')->isSynchronized());
+        self::assertFalse($form->isValid());
+        self::assertNull($information->getDesign());
+    }
+
+    /**
      * The live preview swaps the card artwork as the customer picks a design, reading it from the choice. A design
      * without front artwork previews the framed default, which an empty path tells the script
      *

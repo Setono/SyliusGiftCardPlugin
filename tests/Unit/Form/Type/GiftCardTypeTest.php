@@ -17,12 +17,16 @@ use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
 use Sylius\Bundle\ResourceBundle\Form\Type\ResourceAutocompleteChoiceType;
 use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\Customer;
+use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Registry\ServiceRegistryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormExtensionInterface;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\PreloadedExtension;
 use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -37,6 +41,9 @@ final class GiftCardTypeTest extends TypeTestCase
     use ProphecyTrait;
 
     private ChannelInterface $channel;
+
+    /** @var ObjectProphecy<RepositoryInterface<CustomerInterface>> */
+    private ObjectProphecy $customerRepository;
 
     /** @test */
     public function it_maps_a_valid_submission_and_seeds_the_initial_amount(): void
@@ -57,6 +64,68 @@ final class GiftCardTypeTest extends TypeTestCase
         // The admin types major units; the model keeps minor units
         self::assertSame(5000, $giftCard->getAmount());
         self::assertSame(5000, $giftCard->getInitialAmount());
+    }
+
+    /**
+     * Most amounts with cents have no exact binary representation: 0.29 * 100 is 28.999999999999996, so truncating
+     * would issue the card one minor unit short
+     *
+     * @test
+     *
+     * @dataProvider amountsWithCents
+     */
+    public function it_issues_an_amount_with_cents_to_the_exact_minor_unit(string $typed, int $minorUnits): void
+    {
+        $giftCard = new GiftCard();
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'amount' => $typed]));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame($minorUnits, $giftCard->getAmount());
+        self::assertSame($minorUnits, $giftCard->getInitialAmount());
+    }
+
+    /**
+     * @return iterable<string, array{string, int}>
+     */
+    public static function amountsWithCents(): iterable
+    {
+        yield '0.29' => ['0.29', 29];
+        yield '1.15' => ['1.15', 115];
+        yield '19.99' => ['19.99', 1999];
+    }
+
+    /**
+     * The channel and the customer are submitted by code and email and must reach the card as the objects they name.
+     * A new card is enabled and emailed to its customer unless the admin unticks those boxes, which the browser then
+     * leaves out of the request
+     *
+     * @test
+     */
+    public function it_issues_a_new_card_the_way_the_admin_filled_it_in(): void
+    {
+        $customer = new Customer();
+        $customer->setEmail('alice@example.com');
+        $this->customerRepository->findOneBy(['email' => 'alice@example.com'])->willReturn($customer);
+
+        $giftCard = new GiftCard();
+        self::assertTrue($giftCard->isEnabled());
+        self::assertTrue($giftCard->getSendNotificationEmail());
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission([
+            'code' => 'GIFTCARDCODE',
+            'customer' => 'alice@example.com',
+            'customMessage' => 'Happy birthday',
+        ]));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame($this->channel, $giftCard->getChannel());
+        self::assertSame($customer, $giftCard->getCustomer());
+        self::assertSame('Happy birthday', $giftCard->getCustomMessage());
+        self::assertFalse($giftCard->isEnabled());
+        self::assertFalse($giftCard->getSendNotificationEmail());
     }
 
     /**
@@ -106,6 +175,30 @@ final class GiftCardTypeTest extends TypeTestCase
 
         self::assertTrue($form->isSynchronized());
         self::assertSame('EUR', $giftCard->getCurrencyCode());
+    }
+
+    /**
+     * Order amounts are in the channel's base currency and a card's balance is compared one to one with them, so a card
+     * can only be issued in that currency. The violation is put on the currency field, where the admin chose it
+     *
+     * @test
+     */
+    public function it_refuses_a_currency_other_than_the_base_currency_of_the_channel(): void
+    {
+        $form = $this->factory->create(GiftCardType::class, new GiftCard());
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'currencyCode' => 'EUR']));
+
+        self::assertTrue($form->isSynchronized());
+        self::assertFalse($form->isValid());
+        self::assertSame(
+            ['setono_sylius_gift_card.gift_card.currency_code.not_base_currency'],
+            self::messageTemplates($form->get('currencyCode')),
+        );
+
+        $form = $this->factory->create(GiftCardType::class, new GiftCard());
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'currencyCode' => 'DKK']));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
     }
 
     /** @test */
@@ -413,6 +506,22 @@ final class GiftCardTypeTest extends TypeTestCase
         ];
     }
 
+    /**
+     * @param FormInterface<mixed> $form
+     *
+     * @return list<string>
+     */
+    private static function messageTemplates(FormInterface $form): array
+    {
+        $templates = [];
+        foreach ($form->getErrors() as $error) {
+            self::assertInstanceOf(FormError::class, $error);
+            $templates[] = $error->getMessageTemplate();
+        }
+
+        return $templates;
+    }
+
     private function existingGiftCard(): GiftCard
     {
         $giftCard = new GiftCard();
@@ -451,10 +560,12 @@ final class GiftCardTypeTest extends TypeTestCase
         $channelRepository = $this->prophesize(RepositoryInterface::class);
         $channelRepository->findAll()->willReturn([$this->channel]);
 
+        /** @var ObjectProphecy<RepositoryInterface<CustomerInterface>> $customerRepository */
         $customerRepository = $this->prophesize(RepositoryInterface::class);
+        $this->customerRepository = $customerRepository;
 
         $resourceRepositoryRegistry = $this->prophesize(ServiceRegistryInterface::class);
-        $resourceRepositoryRegistry->get('sylius.customer')->willReturn($customerRepository->reveal());
+        $resourceRepositoryRegistry->get('sylius.customer')->willReturn($this->customerRepository->reveal());
 
         $preloaded = new PreloadedExtension([
             $type,
