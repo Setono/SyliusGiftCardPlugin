@@ -16,10 +16,11 @@ use Symfony\Component\Workflow\WorkflowInterface;
 
 /**
  * The plugin hooks the order state machines twice: winzou callbacks prepended in the extension, and the
- * Symfony Workflow listeners in EventListener/Workflow. The winzou side is exercised by the rest of the
- * suite, since winzou is the default adapter; this covers the Symfony Workflow side by driving the
- * transition through Symfony Workflow itself, which is exactly what Sylius does when an application sets
- * sylius_core.state_machine.default_adapter to symfony_workflow
+ * Symfony Workflow subscribers in EventSubscriber/Workflow. This drives the pay transition through Symfony
+ * Workflow itself, so the card is enabled by EnableGiftCardsSubscriber rather than by the winzou callback.
+ * An application that sets sylius_state_machine_abstraction.default_adapter to symfony_workflow also has the
+ * transitions Sylius cascades go through Symfony Workflow; the tests built on OrderLifecycleTestCase take
+ * whole orders through either adapter that way
  */
 final class SymfonyWorkflowGiftCardTest extends GiftCardFunctionalTestCase
 {
@@ -35,7 +36,7 @@ final class SymfonyWorkflowGiftCardTest extends GiftCardFunctionalTestCase
 
         self::assertTrue(
             $giftCard->isEnabled(),
-            'EnableGiftCardsListener should have run off the workflow.sylius_order_payment.completed.pay event',
+            'EnableGiftCardsSubscriber should have run off the workflow.sylius_order_payment.completed.pay event',
         );
         self::assertSame(OrderPaymentStates::STATE_PAID, $order->getPaymentState());
     }
