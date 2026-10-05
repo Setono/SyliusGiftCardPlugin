@@ -25,6 +25,7 @@
             <argument type="service" id="sylius.repository.channel"/>
             <argument type="service" id="sylius.repository.locale"/>
             <argument type="service" id="sylius.generator.slug"/>
+            <argument type="service" id="translator"/>
             <argument type="service" id="doctrine"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface"
@@ -35,6 +36,8 @@
             <argument type="service" id="sylius.factory.payment_method"/>
             <argument type="service" id="sylius.repository.channel"/>
             <argument>%setono_sylius_gift_card.redemption.payment_method_code%</argument>
+            <argument type="service" id="translator"/>
+            <argument type="service" id="sylius.repository.locale"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardPaymentMethodFactoryInterface"
                  alias="Setono\SyliusGiftCardPlugin\Factory\GiftCardPaymentMethodFactory"/>

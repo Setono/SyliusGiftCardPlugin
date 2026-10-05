@@ -85,10 +85,17 @@ final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
         $response = $this->submit($giftCard, '10', '');
 
         self::assertSame(200, $response->getStatusCode(), 'the form is shown again with the error');
+        // the plugin's own message, not Symfony's "This value should not be blank."
+        self::assertStringContainsString('Please enter a reason for the adjustment', (string) $response->getContent());
         $this->assertBalanceUntouched($giftCard, 5000);
     }
 
-    /** @test */
+    /**
+     * An amount of 0 changes nothing, so the admin is told what the field expects rather than Symfony's "This value
+     * should not be equal to 0."
+     *
+     * @test
+     */
     public function it_refuses_an_adjustment_of_nothing(): void
     {
         $giftCard = $this->persistGiftCard('ADJUSTME', 5000);
@@ -96,6 +103,11 @@ final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
         $response = $this->submit($giftCard, '0', 'Nothing really');
 
         self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString(
+            'Enter an amount other than 0: a positive amount increases the balance, a negative amount decreases it.',
+            (string) $response->getContent(),
+        );
+        self::assertStringNotContainsString('should not be equal to', (string) $response->getContent());
         $this->assertBalanceUntouched($giftCard, 5000);
     }
 

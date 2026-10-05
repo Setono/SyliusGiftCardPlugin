@@ -302,9 +302,18 @@ Gift cards render to PDF with [dompdf](https://github.com/dompdf/dompdf). Overri
 
 The card is laid out on a fixed 560×396 pixel grid — A6 landscape — and is scaled onto whatever `pdf.page_size` is configured, so the layout is defined in one place and works on any paper.
 
+The texts on the card come from the plugin's translations (`setono_sylius_gift_card.pdf.*`, in English, Danish and French). The small print on the back, `setono_sylius_gift_card.pdf.terms`, is legal copy: the plugin's version ("not redeemable for cash and cannot be replaced if lost or stolen") is a placeholder, not your terms, so replace it in every language your shop uses. Translations in your application win over the plugin's:
+
+```yaml
+# translations/messages.en.yml
+setono_sylius_gift_card:
+    pdf:
+        terms: 'Valid for three years from the date of purchase. See example.com/gift-card-terms.'
+```
+
 ### Customizing the emails
 
-The plugin sends two emails: `setono_sylius_gift_card__gift_card` (a single gift card, sent when one is created in the admin panel) and `setono_sylius_gift_card__gift_cards_from_order` (all gift cards from a paid order, sent to the buyer). Override their templates at `@SetonoSyliusGiftCardPlugin/email/gift_card.html.twig` and `@SetonoSyliusGiftCardPlugin/email/gift_cards_from_order.html.twig`, or redefine the emails under the `sylius_mailer` key to change the sender or subject. Both include `@SetonoSyliusGiftCardPlugin/email/_gift_cards.html.twig`, which renders the cards themselves — override that one to change how a card is presented in both emails at once.
+The plugin sends two emails: `setono_sylius_gift_card__gift_card` (a single gift card, sent when one is created in the admin panel) and `setono_sylius_gift_card__gift_cards_from_order` (all gift cards from a paid order, sent to the buyer). Override their templates at `@SetonoSyliusGiftCardPlugin/email/gift_card.html.twig` and `@SetonoSyliusGiftCardPlugin/email/gift_cards_from_order.html.twig`, or redefine the emails under the `sylius_mailer` key to change the sender. Their subjects are the translations `setono_sylius_gift_card.email.new_gift_card` and `setono_sylius_gift_card.email.gift_cards_from_order_subject` (which gets the order number as `%number%`): Sylius takes the subject from the template's `subject` block, so override the translation, or the block, to change it. Both include `@SetonoSyliusGiftCardPlugin/email/_gift_cards.html.twig`, which renders the cards themselves — override that one to change how a card is presented in both emails at once.
 
 ### Changing what gift cards may pay for
 

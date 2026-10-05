@@ -46,7 +46,7 @@ class GiftCardProductExampleFactory extends AbstractExampleFactory implements Ex
         $code = $options['code'];
         Assert::string($code);
         $name = $options['name'];
-        Assert::string($name);
+        Assert::nullOrString($name);
         $price = $options['price'];
         Assert::integer($price);
 
@@ -69,13 +69,14 @@ class GiftCardProductExampleFactory extends AbstractExampleFactory implements Ex
     protected function configureOptions(OptionsResolver $resolver): void
     {
         $resolver
-            ->setDefault('name', 'Gift card')
-            ->setAllowedTypes('name', 'string')
+            // Left out, the factory names the product "Gift card" in the language of each locale
+            ->setDefault('name', null)
+            ->setAllowedTypes('name', ['null', 'string'])
             ->setDefault('code', function (Options $options): string {
                 $name = $options['name'];
-                Assert::string($name);
+                Assert::nullOrString($name);
 
-                return StringInflector::nameToCode($name);
+                return null === $name ? 'gift_card' : StringInflector::nameToCode($name);
             })
             ->setDefault('enabled', true)
             ->setAllowedTypes('enabled', 'bool')

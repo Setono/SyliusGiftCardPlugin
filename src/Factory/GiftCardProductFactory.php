@@ -17,6 +17,7 @@ use Sylius\Component\Product\Model\ProductOptionInterface;
 use Sylius\Component\Product\Model\ProductOptionValueInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Webmozart\Assert\Assert;
 
 final class GiftCardProductFactory implements GiftCardProductFactoryInterface
@@ -52,6 +53,7 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         private readonly RepositoryInterface $channelRepository,
         private readonly RepositoryInterface $localeRepository,
         private readonly SlugGeneratorInterface $slugGenerator,
+        private readonly TranslatorInterface $translator,
         ManagerRegistry $managerRegistry,
     ) {
         $this->managerRegistry = $managerRegistry;
@@ -59,7 +61,7 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
 
     public function create(
         string $code,
-        string $name,
+        ?string $name = null,
         int $price = self::DEFAULT_PRICE,
         bool $enabled = true,
         array $channels = [],
@@ -84,7 +86,7 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         foreach ($this->getLocales() as $localeCode) {
             $product->setCurrentLocale($localeCode);
             $product->setFallbackLocale($localeCode);
-            $product->setName($name);
+            $product->setName($name ?? $this->translate('setono_sylius_gift_card.ui.gift_card', $localeCode));
             $product->setSlug($this->getSlug($code));
         }
 
@@ -144,7 +146,9 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         foreach ($this->getLocales() as $localeCode) {
             $variant->setCurrentLocale($localeCode);
             $variant->setFallbackLocale($localeCode);
-            $variant->setName(ucfirst($deliveryType->value));
+            // The variant name is what the customer chooses between on the product page, so it says what the delivery
+            // type means for them
+            $variant->setName($this->translate(sprintf('setono_sylius_gift_card.ui.%s', $deliveryType->value), $localeCode));
         }
 
         foreach ($channels as $channel) {
@@ -190,7 +194,7 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         foreach ($this->getLocales() as $localeCode) {
             $option->setCurrentLocale($localeCode);
             $option->setFallbackLocale($localeCode);
-            $option->setName('Delivery');
+            $option->setName($this->translate('setono_sylius_gift_card.ui.delivery_type', $localeCode));
         }
 
         foreach (GiftCardDeliveryType::cases() as $deliveryType) {
@@ -201,7 +205,7 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
             foreach ($this->getLocales() as $localeCode) {
                 $value->setCurrentLocale($localeCode);
                 $value->setFallbackLocale($localeCode);
-                $value->setValue(ucfirst($deliveryType->value));
+                $value->setValue($this->translate(sprintf('setono_sylius_gift_card.ui.delivery_type_%s', $deliveryType->value), $localeCode));
             }
 
             $option->addValue($value);
@@ -240,6 +244,15 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
     private function getOptionValueCode(GiftCardDeliveryType $deliveryType): string
     {
         return sprintf('%s_%s', self::DELIVERY_OPTION_CODE, $deliveryType->value);
+    }
+
+    /**
+     * Everything the factory creates is named in the language of each locale of the shop, rather than in English for
+     * all of them, because the shop shows these names to its customers. The merchant can rename them afterwards
+     */
+    private function translate(string $key, string $localeCode): string
+    {
+        return $this->translator->trans($key, [], 'messages', $localeCode);
     }
 
     /**

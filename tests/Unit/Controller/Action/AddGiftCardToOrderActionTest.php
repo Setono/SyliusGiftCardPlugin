@@ -261,6 +261,25 @@ final class AddGiftCardToOrderActionTest extends TestCase
         self::assertSame($unknown, $this->errorsFor($otherCurrency));
     }
 
+    /**
+     * Submitting nothing says nothing about which codes exist, so the customer is asked for a code in the plugin's own
+     * words rather than with Symfony's "This value should not be blank."
+     *
+     * @test
+     */
+    public function it_asks_for_a_code_when_none_was_entered(): void
+    {
+        $action = $this->createAction($this->createFormFactory(null), null, null);
+
+        $session = $this->session();
+        $action($this->createRequest('', $session));
+
+        self::assertSame(
+            ['setono_sylius_gift_card.add_gift_card_to_order_command.gift_card.not_blank'],
+            $session->getFlashBag()->get('error'),
+        );
+    }
+
     /** @test */
     public function it_applies_a_gift_card_that_can_be_used(): void
     {

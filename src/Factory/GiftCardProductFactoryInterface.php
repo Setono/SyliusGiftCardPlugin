@@ -16,14 +16,17 @@ interface GiftCardProductFactoryInterface
      * Creates a gift card product with the shared delivery option and one variant per delivery type.
      *
      * The product is returned unmanaged: it is the caller's job to persist and flush it. The delivery option, the
-     * first time one is created, is persisted, and written by that same flush.
+     * first time one is created, is persisted, and written by that same flush. The variants, and the delivery option
+     * when it is created, are named in the language of each locale of the shop.
      *
+     * @param string|null $name the product's name in every locale. Left out, the product is named "Gift card" in the
+     *                          language of each locale
      * @param list<ChannelInterface> $channels the channels to sell the product in, defaulting to all of them
      * @param list<GiftCardDeliveryType> $deliveryTypes the delivery types to create variants for, defaulting to all of them
      */
     public function create(
         string $code,
-        string $name,
+        ?string $name = null,
         int $price = self::DEFAULT_PRICE,
         bool $enabled = true,
         array $channels = [],

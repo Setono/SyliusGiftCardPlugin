@@ -225,7 +225,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                         'template' => '@SetonoSyliusGiftCardPlugin/email/gift_card.html.twig',
                     ],
                     'setono_sylius_gift_card__gift_cards_from_order' => [
-                        'subject' => 'setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order',
+                        'subject' => 'setono_sylius_gift_card.email.gift_cards_from_order_subject',
                         'template' => '@SetonoSyliusGiftCardPlugin/email/gift_cards_from_order.html.twig',
                     ],
                 ],

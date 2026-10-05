@@ -9,6 +9,7 @@ use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Core\Model\ChannelPricingInterface;
 use Sylius\Component\Core\Model\ProductVariantInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
+use Sylius\Component\Locale\Model\Locale;
 use Sylius\Component\Product\Model\ProductOptionInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -109,12 +110,24 @@ final class GiftCardProductFixtureTest extends GiftCardFunctionalTestCase
         }
     }
 
-    /** @test */
-    public function it_names_the_product_gift_card_when_nothing_is_given(): void
+    /**
+     * Without a name the product is named "Gift card" in the language of each locale, the way the admin's button
+     * names it
+     *
+     * @test
+     */
+    public function it_names_the_product_gift_card_in_the_language_of_each_locale_when_nothing_is_given(): void
     {
+        $danish = new Locale();
+        $danish->setCode('da_DK');
+        $this->manager->persist($danish);
+        $this->manager->flush();
+
         $this->loadFixture('setono_gift_card_product', ['random' => 1]);
 
-        self::assertSame('Gift card', $this->findProduct('gift_card')->getTranslation('en_US')->getName());
+        $product = $this->findProduct('gift_card');
+        self::assertSame('Gift card', $product->getTranslation('en_US')->getName());
+        self::assertSame('Gavekort', $product->getTranslation('da_DK')->getName());
     }
 
     /**

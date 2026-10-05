@@ -85,18 +85,23 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * The payment method's name is what the order pages show for a gift card payment, so the method is named in the
-     * language of every channel rather than in a locale a channel may not have
+     * The payment method's name is what the order pages, the customer's account and the admin show for a gift card
+     * payment, so the method is named in the language of every locale of the shop, not in English for all of them
      *
      * @test
      */
-    public function the_payment_method_is_named_in_the_default_locale_of_every_channel(): void
+    public function the_payment_method_is_named_in_the_language_of_every_locale_of_the_shop(): void
     {
         $this->getChannel();
 
         $danish = new Locale();
         $danish->setCode('da_DK');
         $this->manager->persist($danish);
+
+        // a locale of the shop that no channel has as its default
+        $french = new Locale();
+        $french->setCode('fr_FR');
+        $this->manager->persist($french);
 
         $danishChannel = $this->createChannel('DANISH_CHANNEL');
         $danishChannel->addLocale($danish);
@@ -107,8 +112,14 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
         $this->manager->clear();
 
         $paymentMethod = $this->provider()->getPaymentMethod();
-        self::assertEqualsCanonicalizing(['en_US', 'da_DK'], array_keys($paymentMethod->getTranslations()->toArray()));
-        self::assertSame('Gift card', $paymentMethod->getTranslation('da_DK')->getName());
+
+        $names = [];
+        foreach ($paymentMethod->getTranslations()->getKeys() as $localeCode) {
+            $names[(string) $localeCode] = $paymentMethod->getTranslation((string) $localeCode)->getName();
+        }
+        ksort($names);
+
+        self::assertSame(['da_DK' => 'Gavekort', 'en_US' => 'Gift card', 'fr_FR' => 'Chèque-cadeau'], $names);
     }
 
     /**

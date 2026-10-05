@@ -3,7 +3,6 @@ setono_sylius_gift_card:
         product:
             gift_card: Gift card
         gift_card:
-            channel: Channel
             code_help: 'Generated for you. You can type a code of your own instead, of at least %minimum% letters and digits: it is saved in capitals, keeping only the letters A–Z and the digits.'
             custom_message: Custom message
             custom_message_placeholder: This message is printed on the gift card...
@@ -15,8 +14,6 @@ setono_sylius_gift_card:
             images: Images
             image_type: Image type
             image_file_help: 'Use a landscape image at least 1050×740px (JPG or PNG). It is used as the full-bleed background of the gift card, so keep important content away from the edges.'
-            front_image: Front image
-            back_image: Back image
         gift_card_information:
             amount: Amount
             amount_help_minimum: 'Choose any amount from %minimum%.'
@@ -31,19 +28,16 @@ setono_sylius_gift_card:
             reason: Reason
     ui:
         adjust_balance: Adjust balance
-        amount: Amount
         apply_gift_card: Apply
-        applied_gift_cards: Applied gift cards
         average: Average
         back: Back
         balance: Balance
         characters_left: '%remaining% characters left'
         count: Count
         current_balance: Current balance
-        create_gift_card: Create gift card
-        create_gift_card_design: Create gift card design
         create_gift_card_product: Create gift card product
         customer_help_text: When a customer is associated and notification is enabled, they receive the gift card by email
+        default_design_name: Classic
         edit_gift_card: Edit gift card
         edit_gift_card_design: Edit gift card design
         delivery_type: Delivery type
@@ -75,15 +69,13 @@ setono_sylius_gift_card:
             explanation: 'These channels sell gift cards but have no enabled gift card design, so their product pages show no design picker and physical cards print without artwork: %channels%.'
             create_design: Create a gift card design
             create_design_suffix: and enable it for the channel, or
-            run_command: 'install the bundled "Classic" design in every channel by running'
+            run_command: 'install the bundled "%design%" design in every channel by running'
         design_images: Design images
         design_images_help: 'Upload a front image (shown in the picker, preview and on the gift card) and, optionally, a back image. Landscape orientation, at least 1050×740px, JPG or PNG.'
         enter_gift_card_code: Enter gift card code
         front: Front
         gift_card: Gift card
-        gift_card_channel_does_not_match_channel: The gift card was bought on another channel, please use the gift card on %channel%
         gift_card_code: Gift card code
-        gift_card_code_is_invalid: Gift card code is invalid
         gift_cards: Gift cards
         gift_card_designs: Gift card designs
         has_no_gift_card: Has no gift card
@@ -104,11 +96,9 @@ setono_sylius_gift_card:
         transaction_type_manual: Manual adjustment
         transaction_type_redeem: Redeemed
         transaction_type_restore: Restored
-        virtual: 'Virtual — delivered instantly by email'
+        virtual: 'Virtual — delivered by email'
     pdf:
         valid_until: 'Valid until'
-        how_to_use: How to use your gift card
-        how_to_use_text: Enter the code below at checkout to redeem your gift card.
         gift_card: Gift Card
         tagline: The gift of choice
         value: Value
@@ -119,6 +109,8 @@ setono_sylius_gift_card:
         terms: 'Terms & conditions apply. This card is not redeemable for cash and cannot be replaced if lost or stolen.'
     email:
         balance: Balance
+        gift_cards_from_order_intro: 'These are the gift cards you bought with order no. %number%:'
+        gift_cards_from_order_subject: 'Your gift cards from order no. %number%'
         how_to_redeem: Enter the code at checkout to pay with your gift card. Whatever is left stays on the card for next time.
         new_gift_card: New gift card
         new_gift_card_intro: A new gift card was created for you
@@ -126,10 +118,3 @@ setono_sylius_gift_card:
         physical_code_on_card: The code is printed on the card itself, so you get it when the card arrives.
         physical_will_be_shipped: Your gift card will be shipped to you.
         valid_until: 'Valid until'
-        your_gift_card: Your gift card
-        your_gift_cards_you_bought_in_the_order: Your gift cards you bought in the order
-
-sylius:
-    form:
-        locale:
-            select: Select a locale

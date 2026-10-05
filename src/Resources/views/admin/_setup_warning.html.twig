@@ -13,7 +13,8 @@
                 {{ 'setono_sylius_gift_card.ui.setup_warning.create_design_suffix'|trans }}
             </li>
             <li>
-                {{ 'setono_sylius_gift_card.ui.setup_warning.run_command'|trans }}
+                {# the name the command gives the design in this locale, see CreateDefaultDesignCommand #}
+                {{ 'setono_sylius_gift_card.ui.setup_warning.run_command'|trans({'%design%': 'setono_sylius_gift_card.ui.default_design_name'|trans}) }}
                 <code>bin/console setono:gift-card:create-default-design</code>
             </li>
         </ul>

@@ -37,9 +37,4 @@ final class GiftCardDesignImageType extends AbstractResourceType
     {
         return 'setono_sylius_gift_card_gift_card_design_image';
     }
-
-    public function getDefaultType(): string
-    {
-        return GiftCardDesignImageInterface::TYPE_FRONT;
-    }
 }
