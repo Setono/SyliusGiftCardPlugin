@@ -146,6 +146,23 @@ test.describe('admin gift cards', () => {
     });
 
     /**
+     * An adjustment of 0 changes nothing. The admin is told what the field expects, in the plugin's words, rather than
+     * Symfony's "This value should not be equal to 0."
+     */
+    test('adjusting the balance by nothing is refused with a message that says what the field expects', async ({ page }) => {
+        const id = await firstGiftCardId(page);
+
+        await page.goto(`/admin/gift-cards/${id}/adjust-balance`);
+        await page.locator('input[name$="[amount]"]').fill('0');
+        await page.locator('textarea[name$="[reason]"]').fill('nothing to adjust');
+        await page.getByRole('button', { name: /save|adjust/i }).first().click();
+
+        const error = page.locator('.sylius-validation-error').first();
+        await expect(error).toContainText('Enter an amount other than 0');
+        await expect(error).not.toContainText(/should not be equal/i);
+    });
+
+    /**
      * Codes are grouped in fours for reading wherever they are shown (GiftCardCodeNormalizer::format()), so the
      * show page must not print the stored code as one unbroken run
      */

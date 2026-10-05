@@ -4,10 +4,10 @@
    when a card is resent from the admin, the default locale from the CLI or a webhook. #}
 {% extends '@SyliusShop/Email/layout.html.twig' %}
 
-{% block subject %}{{ 'setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order'|trans({}, 'messages', localeCode) }}{% endblock %}
+{% block subject %}{{ 'setono_sylius_gift_card.email.gift_cards_from_order_subject'|trans({'%number%': order.number}, 'messages', localeCode) }}{% endblock %}
 
 {% block content %}
-    <p>{{ 'setono_sylius_gift_card.email.your_gift_cards_you_bought_in_the_order'|trans({}, 'messages', localeCode) }} {{ order.number }}:</p>
+    <p>{{ 'setono_sylius_gift_card.email.gift_cards_from_order_intro'|trans({'%number%': order.number}, 'messages', localeCode) }}</p>
 
     {{ include('@SetonoSyliusGiftCardPlugin/email/_gift_cards.html.twig', {announceShipping: true}) }}
 {% endblock %}

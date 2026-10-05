@@ -62,7 +62,8 @@ final class CreateGiftCardProductAction
             throw new AccessDeniedHttpException('Invalid CSRF token.');
         }
 
-        $product = $this->productFactory->create($this->provideCode(), 'Gift card', enabled: false);
+        // Left without a name, the product is named in the language of each locale of the shop
+        $product = $this->productFactory->create($this->provideCode(), enabled: false);
 
         $manager = $this->getManager($product);
         $manager->persist($product);

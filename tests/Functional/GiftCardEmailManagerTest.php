@@ -248,6 +248,30 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
         self::assertStringNotContainsString('A new gift card was created for you', $email['html']);
     }
 
+    /**
+     * The buyer gets the email for the order they placed, so its subject says which order, in the language the order
+     * was placed in, and the sentence introducing the cards names it too
+     *
+     * @test
+     */
+    public function it_names_the_order_in_the_subject_of_the_order_email(): void
+    {
+        $giftCard = $this->createGiftCard('customer@example.com');
+
+        $this->emailManager->sendGiftCardsFromOrder($this->createOrder($giftCard), [$giftCard]);
+        $this->emailManager->sendGiftCardsFromOrder($this->createOrder($giftCard, 'da_DK'), [$giftCard]);
+
+        self::assertCount(2, $this->sentEmails);
+        [$english, $danish] = $this->sentEmails;
+
+        self::assertSame('Your gift cards from order no. 000000042', $english['subject']);
+        self::assertStringContainsString('These are the gift cards you bought with order no. 000000042:', $english['html']);
+
+        // from src/Resources/translations/messages.da.yml
+        self::assertSame('Dine gavekort fra ordre nr. 000000042', $danish['subject']);
+        self::assertStringContainsString('Her er de gavekort, du har købt med ordre nr. 000000042:', $danish['html']);
+    }
+
     private function createGiftCard(
         ?string $customerEmail,
         ?ChannelInterface $channel = null,
@@ -284,13 +308,13 @@ final class GiftCardEmailManagerTest extends GiftCardFunctionalTestCase
     /**
      * The order a gift card was bought on, as far as the order email reads it
      */
-    private function createOrder(GiftCardInterface $giftCard): OrderInterface
+    private function createOrder(GiftCardInterface $giftCard, string $localeCode = 'en_US'): OrderInterface
     {
         $order = new Order();
         $order->setNumber('000000042');
         $order->setChannel($giftCard->getChannel());
         $order->setCurrencyCode('USD');
-        $order->setLocaleCode('en_US');
+        $order->setLocaleCode($localeCode);
         $order->setCustomer($giftCard->getCustomer());
 
         return $order;

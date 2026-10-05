@@ -12,17 +12,21 @@ use Setono\SyliusGiftCardPlugin\Repository\GiftCardDesignRepositoryInterface;
 use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Uploader\ImageUploaderInterface;
+use Sylius\Component\Locale\Model\LocaleInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
+use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Webmozart\Assert\Assert;
 
 /**
- * Creates the bundled 'Classic' gift card design and makes it available in every channel.
+ * Creates the bundled gift card design ("Classic", in the language of each locale) and makes it available in every
+ * channel.
  *
  * This used to happen lazily while rendering the product page, i.e. during a GET request. Creating the design is
  * now an explicit, idempotent operation: an existing design with the default code is reused and only the channels
@@ -42,6 +46,7 @@ final class CreateDefaultDesignCommand extends Command
      * @param FactoryInterface<GiftCardDesignInterface> $designFactory
      * @param FactoryInterface<GiftCardDesignImageInterface> $designImageFactory
      * @param ChannelRepositoryInterface<ChannelInterface> $channelRepository
+     * @param RepositoryInterface<LocaleInterface> $localeRepository
      */
     public function __construct(
         private readonly GiftCardDesignRepositoryInterface $designRepository,
@@ -51,6 +56,8 @@ final class CreateDefaultDesignCommand extends Command
         private readonly ImageUploaderInterface $imageUploader,
         ManagerRegistry $managerRegistry,
         private readonly string $defaultImagePath,
+        private readonly TranslatorInterface $translator,
+        private readonly RepositoryInterface $localeRepository,
     ) {
         parent::__construct();
 
@@ -100,7 +107,6 @@ final class CreateDefaultDesignCommand extends Command
     {
         $design = $this->designFactory->createNew();
         $design->setCode(self::DEFAULT_DESIGN_CODE);
-        $design->setName('Classic');
         $design->setEnabled(true);
         $design->setPosition(0);
 
@@ -111,6 +117,19 @@ final class CreateDefaultDesignCommand extends Command
         $design->addImage($image);
 
         $this->imageUploader->upload($image);
+
+        // The design picker on the product page shows the name, so the design is named in the language of each locale
+        // of the shop, the locale the factory started the design in included
+        $design->setName($this->translator->trans('setono_sylius_gift_card.ui.default_design_name'));
+
+        /** @var LocaleInterface $locale */
+        foreach ($this->localeRepository->findAll() as $locale) {
+            $localeCode = (string) $locale->getCode();
+
+            $design->setCurrentLocale($localeCode);
+            $design->setFallbackLocale($localeCode);
+            $design->setName($this->translator->trans('setono_sylius_gift_card.ui.default_design_name', [], 'messages', $localeCode));
+        }
 
         return $design;
     }

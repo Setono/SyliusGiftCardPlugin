@@ -1,11 +1,13 @@
 setono_sylius_gift_card:
     add_gift_card_to_order_command:
         gift_card:
-            does_not_exist: Der findes ikke et gavekort med denne kode
-            is_expired: Gavekortet er udløbet
-            not_blank: Indtast venligst din kode
-    channel_configuration:
-        unique_channel_locale: Kombinationen af denne kanal og lokalitet er allerede brugt
+            not_blank: Indtast venligst en gavekortkode
+    adjust_gift_card_balance_command:
+        amount:
+            not_blank: Indtast venligst et beløb
+            not_zero: 'Indtast et andet beløb end 0: et positivt beløb øger saldoen, et negativt beløb mindsker den.'
+        reason:
+            not_blank: Angiv venligst en årsag til justeringen
     gift_card:
         custom_message:
             too_long: 'Beskeden må højst være {{ limit }} tegn lang.'
@@ -16,7 +18,6 @@ setono_sylius_gift_card:
         amount:
             not_blank: Indtast venligst beløb
             integer: Beløbet skal være et heltal
-            min: Beløbet kan ikke være mindre end 1
             greater_than_or_equal: Beløbet skal være større end eller lig med 1
         currency_code:
             not_blank: Vælg venligst en valuta
@@ -25,11 +26,6 @@ setono_sylius_gift_card:
         send_notification_email:
             boolean: Send notifikationsmail skal være en boolsk værdi
         could_not_be_applied: Gavekortet kunne ikke tilføjes til din ordre.
-        not_enabled: Dette gavekort er ikke aktivt.
-        expired: Dette gavekort er udløbet.
-        no_balance: Der er ingen saldo tilbage på dette gavekort.
-        channel_mismatch: Dette gavekort kan ikke bruges i denne kanal.
-        currency_mismatch: Dette gavekort er i en anden valuta end din ordre.
         already_applied: Dette gavekort er allerede tilføjet til din ordre.
         adjustment_makes_balance_negative: 'Du kan ikke trække mere fra, end gavekortet indeholder. Saldoen er {{ balance }}.'
     gift_card_information:
