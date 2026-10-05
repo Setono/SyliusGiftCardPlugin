@@ -381,7 +381,10 @@ jobs:
                     dependency-versions: "${{ matrix.dependencies }}"
 
             # Scoped to the unit suite: infection runs the test suite itself, and the functional one needs a
-            # booted kernel and a database that this job deliberately does not provision
+            # booted kernel and a database that this job deliberately does not provision. The job fails when the
+            # MSI or the covered code MSI falls below minMsi or minCoveredMsi in infection.json.dist. Those sit
+            # about a point below what the suite scores and only ever go up: a change whose tests raise a score
+            # raises its minimum too (Infection says so once a score is more than two points above it)
             -   name: "Run infection"
                 run: "vendor/bin/infection --threads=max --test-framework-options=\"--testsuite=unit\""
                 env:
@@ -434,6 +437,7 @@ jobs:
             -   name: "Collect code coverage with pcov and phpunit/phpunit"
                 run: "vendor/bin/phpunit --coverage-clover=.build/logs/clover.xml"
 
+            # Codecov's status checks hold this report to the targets in codecov.yml
             -   name: "Send code coverage report to Codecov.io"
                 uses: "codecov/codecov-action@v5"
                 env:

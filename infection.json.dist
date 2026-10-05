@@ -11,6 +11,6 @@
             "badge": "1.x"
         }
     },
-    "minMsi": 0,
-    "minCoveredMsi": 0
+    "minMsi": 63,
+    "minCoveredMsi": 74
 }

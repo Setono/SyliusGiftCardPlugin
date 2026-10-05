@@ -6,6 +6,7 @@
 /.gitignore                         export-ignore
 /.mcp.json                          export-ignore
 /CLAUDE.md                          export-ignore
+/codecov.yml                        export-ignore
 /composer-dependency-analyser.php   export-ignore
 /ecs.php                            export-ignore
 /infection.json.dist                export-ignore
