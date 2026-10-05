@@ -11,13 +11,18 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 /**
  * The warning about a channel selling gift cards without a design is asked for several times per admin page, so the
  * answer is kept for the request. The runtime keeping it is a shared service, and under a worker runtime it outlives
- * the request, so the kernel has to reset it: once the merchant has fixed the setup, the next page must stop warning
+ * the request, so the kernel has to reset it: once the merchant has fixed the setup, the next page must stop warning.
+ * The warning about the missing gift card payment method works the same way
  */
 final class GiftCardSetupWarningTest extends AdminFunctionalTestCase
 {
     private const TOP_BAR = '//a[@data-test-gift-card-setup-warning]';
 
     private const MESSAGE = '//*[@data-test-gift-card-setup-warning-message]';
+
+    private const PAYMENT_METHOD_TOP_BAR = '//a[@data-test-gift-card-payment-method-warning]';
+
+    private const PAYMENT_METHOD_MESSAGE = '//*[@data-test-gift-card-payment-method-warning-message]';
 
     protected function setUp(): void
     {
@@ -56,6 +61,52 @@ final class GiftCardSetupWarningTest extends AdminFunctionalTestCase
         self::assertSame(200, $response->getStatusCode());
         self::assertSame([], self::textsOf($response, self::TOP_BAR));
         self::assertSame([], self::textsOf($response, self::MESSAGE));
+    }
+
+    /**
+     * Without the payment method gift card payments are made with, the shop refuses every gift card, so every admin
+     * page says so, and the pages that can fix it explain how: the gift card index, and Sylius' payment methods
+     *
+     * @test
+     */
+    public function it_warns_on_every_admin_page_while_the_gift_card_payment_method_is_missing(): void
+    {
+        $dashboard = $this->request('GET', '/admin/');
+
+        self::assertSame(200, $dashboard->getStatusCode());
+        self::assertSame(['/admin/gift-cards/'], self::textsOf($dashboard, self::PAYMENT_METHOD_TOP_BAR . '/@href'));
+        self::assertSame([], self::textsOf($dashboard, self::PAYMENT_METHOD_MESSAGE), 'the dashboard only carries the top bar label');
+
+        foreach (['/admin/gift-cards/', '/admin/gift-card-designs/', '/admin/payment-methods/'] as $path) {
+            $response = $this->request('GET', $path);
+
+            self::assertSame(200, $response->getStatusCode(), $path);
+            self::assertCount(1, self::textsOf($response, self::PAYMENT_METHOD_TOP_BAR), $path);
+
+            $message = implode(' ', self::textsOf($response, self::PAYMENT_METHOD_MESSAGE));
+            // the code the method has to have, and both ways to create it
+            self::assertStringContainsString('gift_card', $message, $path);
+            self::assertStringContainsString('setono:gift-card:create-payment-method', $message, $path);
+            self::assertSame(
+                ['/admin/payment-methods/new/offline'],
+                self::textsOf($response, self::PAYMENT_METHOD_MESSAGE . '//a/@href'),
+                $path,
+            );
+        }
+    }
+
+    /** @test */
+    public function it_stops_warning_about_the_payment_method_on_the_next_page_once_it_exists(): void
+    {
+        self::assertCount(1, self::textsOf($this->request('GET', '/admin/gift-cards/'), self::PAYMENT_METHOD_TOP_BAR));
+
+        $this->createGiftCardPaymentMethod();
+
+        $response = $this->request('GET', '/admin/gift-cards/');
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame([], self::textsOf($response, self::PAYMENT_METHOD_TOP_BAR));
+        self::assertSame([], self::textsOf($response, self::PAYMENT_METHOD_MESSAGE));
     }
 
     private function persistDesign(): void

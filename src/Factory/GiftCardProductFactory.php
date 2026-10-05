@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Factory;
 
+use Doctrine\Persistence\ManagerRegistry;
+use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -20,7 +22,16 @@ use Webmozart\Assert\Assert;
 
 final class GiftCardProductFactory implements GiftCardProductFactoryInterface
 {
+    use ORMTrait;
+
     private const DELIVERY_OPTION_CODE = 'gift_card_delivery';
+
+    /**
+     * The delivery option this factory created and persisted, until whoever persists the product flushes it. A
+     * repository lookup only sees what is flushed, so a second product created before that flush (the product fixture
+     * creates several in one unit of work) would otherwise get a second option with the same, unique, code
+     */
+    private ?ProductOptionInterface $createdDeliveryOption = null;
 
     /**
      * @param FactoryInterface<ProductInterface> $productFactory
@@ -43,7 +54,9 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         private readonly RepositoryInterface $localeRepository,
         private readonly SlugGeneratorInterface $slugGenerator,
         private readonly TranslatorInterface $translator,
+        ManagerRegistry $managerRegistry,
     ) {
+        $this->managerRegistry = $managerRegistry;
     }
 
     public function create(
@@ -158,7 +171,8 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
     }
 
     /**
-     * The delivery option is shared by every gift card product, so it is created once and reused afterwards
+     * The delivery option is shared by every gift card product, so it is created once and reused afterwards. A new one
+     * is persisted, not flushed: the caller's flush writes it with the product
      */
     private function provideDeliveryOption(): ProductOptionInterface
     {
@@ -166,6 +180,11 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         $option = $this->productOptionRepository->findOneBy(['code' => self::DELIVERY_OPTION_CODE]);
         if (null !== $option) {
             return $option;
+        }
+
+        $created = $this->createdDeliveryOption;
+        if (null !== $created && $this->getManager($created)->contains($created)) {
+            return $created;
         }
 
         /** @var ProductOptionInterface $option */
@@ -192,9 +211,9 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
             $option->addValue($value);
         }
 
-        $this->productOptionRepository->add($option);
+        $this->getManager($option)->persist($option);
 
-        return $option;
+        return $this->createdDeliveryOption = $option;
     }
 
     /**

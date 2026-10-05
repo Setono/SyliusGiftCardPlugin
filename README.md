@@ -38,7 +38,7 @@ Promotions never discount a gift card: a card is worth the amount the customer c
 
 ### Redeeming a gift card
 
-The customer enters a gift card code in the cart. The order total stays intact and each applied gift card becomes a completed [`Payment`](https://docs.sylius.com/the-book/carts-and-orders/payments) using a lazily-created *offline* gift card payment method; the remainder is charged through the normal gateway, and the payment step is skipped automatically when gift cards cover the whole order.
+The customer enters a gift card code in the cart. The order total stays intact and each applied gift card becomes a completed [`Payment`](https://docs.sylius.com/the-book/carts-and-orders/payments) made with the shop's *offline* gift card payment method (see [Create the gift card payment method](#create-the-gift-card-payment-method)); the remainder is charged through the normal gateway, and the payment step is skipped automatically when gift cards cover the whole order.
 
 A gift card is treated as a means of payment rather than a discount, because that is what it is: selling one takes money for a liability the shop settles later, so redeeming it settles that liability instead of reducing what the order is worth. It also keeps gift cards out of the way of promotions, and matches what order management and accounting systems expect to receive.
 
@@ -193,6 +193,25 @@ bin/console setono:gift-card:create-default-design
 
 A channel without an enabled design still works: the product page shows no design picker and the card renders its framed default. The admin does point it out, though: while a channel sells gift cards without an enabled design, every admin page carries a warning in the top bar and the gift card and design indexes explain how to fix it.
 
+### Create the gift card payment method
+
+Every redeemed gift card becomes a payment made with a payment method of its own, an *offline* one with the code
+`gift_card` (the `redemption.payment_method_code` setting). The plugin does not create it on the fly, so create it once,
+in every channel, by running the command below. It is idempotent: when the method exists, whoever created it, it is left
+as it is.
+
+```bash
+bin/console setono:gift-card:create-payment-method
+```
+
+You can also create it in the admin, as an offline payment method with that code, or seed it with the
+`setono_gift_card_payment_method` fixture, which the plugin's fixture suite includes. Checkout never offers the method to
+customers, whichever channels it is in.
+
+Until the method exists the shop refuses every gift card a customer tries to pay with ("Gift cards cannot be used in this
+shop at the moment"), and every admin page carries a warning in the top bar; the gift card, design and payment method
+indexes explain how to fix it.
+
 ### Install assets
 
 ```bash
@@ -216,7 +235,7 @@ setono_sylius_gift_card:
     delivery:
         email_physical_cards: false      # true also emails the code and the PDF of a *physical* card when the order is paid, as a backup
     redemption:
-        payment_method_code: gift_card   # code of the (auto-created) payment method a redeemed gift card is paid with
+        payment_method_code: gift_card   # code of the payment method a redeemed gift card is paid with, see "Create the gift card payment method"
         rate_limiter: limiter.setono_sylius_gift_card_apply         # throttles attempts to apply a code per visitor (session), see below; ~ turns it off
         ip_rate_limiter: limiter.setono_sylius_gift_card_apply_ip   # throttles them per client IP, see below; ~ turns it off
     pdf:

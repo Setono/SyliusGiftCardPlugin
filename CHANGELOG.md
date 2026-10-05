@@ -48,6 +48,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   English: the gift card payment method, the product, variants and delivery option from **Create gift card
   product** and the fixture, and the bundled default design. The order email's subject names the order
   (`email.gift_cards_from_order_subject`), and unused translation keys are gone
+- The gift card payment method is no longer created the first time a customer pays with a gift card. Create it
+  once with `bin/console setono:gift-card:create-payment-method` (or the `setono_gift_card_payment_method`
+  fixture); until it exists the shop refuses gift cards and every admin page warns about it
 
 ### Removed
 - **The API layer** — the whole API Platform / `sylius/api-bundle` integration. Stay on `0.12.x` if you need it

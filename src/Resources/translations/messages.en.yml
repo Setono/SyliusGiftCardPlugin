@@ -55,6 +55,14 @@ setono_sylius_gift_card:
         your_message_here: Your message here
         design: Design
         designs: Designs
+        payment_method_warning:
+            topbar: 'Gift card setup incomplete: no gift card payment method'
+            header: Customers cannot pay with gift cards yet
+            explanation: 'The shop sells gift cards but has no payment method to make gift card payments with, so it refuses every gift card a customer tries to pay with.'
+            create_payment_method: Create an offline payment method
+            create_payment_method_suffix: with the code
+            or: or
+            run_command: 'create it in every channel by running'
         setup_warning:
             topbar: 'Gift card setup incomplete: no design in %channels%'
             header: The gift card setup is not complete

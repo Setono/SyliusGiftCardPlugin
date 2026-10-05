@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
+use Setono\SyliusGiftCardPlugin\Exception\GiftCardPaymentMethodNotFoundException;
 use Setono\SyliusGiftCardPlugin\Exception\UnderpaidOrderException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
@@ -15,6 +16,7 @@ use Sylius\Abstraction\StateMachine\Exception\StateMachineExecutionException;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Model\ProductVariant;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Core\OrderCheckoutTransitions;
@@ -33,6 +35,16 @@ use Symfony\Component\Workflow\WorkflowInterface;
  */
 final class StaleGiftCardAtCheckoutCompletionTest extends GiftCardFunctionalTestCase
 {
+    private PaymentMethodInterface $giftCardPaymentMethod;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // the gift card payments are made with it, and the shop refuses gift cards until it is set up
+        $this->giftCardPaymentMethod = $this->createGiftCardPaymentMethod();
+    }
+
     /** @test */
     public function a_usable_gift_card_pays_the_order_at_checkout_completion(): void
     {
@@ -131,6 +143,75 @@ final class StaleGiftCardAtCheckoutCompletionTest extends GiftCardFunctionalTest
         $this->assertNotPlaced($order);
     }
 
+    /**
+     * The gift card payments are made with a payment method the shop sets up once. Without it the cards cannot pay at
+     * all when the order is placed, however usable they are, so checkout does not complete
+     *
+     * @test
+     */
+    public function it_refuses_to_complete_checkout_while_the_gift_card_payment_method_is_missing(): void
+    {
+        $giftCard = $this->createEnabledGiftCard('NOMETHOD00000001', 5000);
+        $order = $this->createCheckoutReadyOrder($giftCard);
+
+        $this->removeGiftCardPaymentMethod();
+
+        $stateMachine = $this->stateMachine();
+        self::assertFalse($stateMachine->can($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_COMPLETE));
+
+        try {
+            $stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_COMPLETE);
+            self::fail('completing the checkout should have been refused');
+        } catch (StateMachineExecutionException) {
+        }
+        $this->manager->flush();
+
+        $this->assertNotPlaced($order);
+        self::assertSame(5000, $giftCard->getAmount(), 'the card should have kept its balance');
+    }
+
+    /** @test */
+    public function symfony_workflow_refuses_to_complete_checkout_while_the_gift_card_payment_method_is_missing(): void
+    {
+        $giftCard = $this->createEnabledGiftCard('NOMETHOD00000002', 5000);
+        $order = $this->createCheckoutReadyOrder($giftCard);
+
+        $this->removeGiftCardPaymentMethod();
+
+        $workflow = $this->checkoutWorkflow();
+        self::assertFalse($workflow->can($order, OrderCheckoutTransitions::TRANSITION_COMPLETE));
+
+        try {
+            $workflow->apply($order, OrderCheckoutTransitions::TRANSITION_COMPLETE);
+            self::fail('completing the checkout should have been refused');
+        } catch (NotEnabledTransitionException) {
+        }
+        $this->manager->flush();
+
+        $this->assertNotPlaced($order);
+    }
+
+    /**
+     * The checkout guard keeps an order with gift cards from being placed while the method is missing. Whatever places
+     * one some other way is stopped here rather than given a payment without a method
+     *
+     * @test
+     */
+    public function commit_refuses_to_make_a_gift_card_payment_without_the_gift_card_payment_method(): void
+    {
+        $giftCard = $this->createEnabledGiftCard('NOMETHOD00000003', 5000);
+        $order = $this->createCheckoutReadyOrder($giftCard);
+
+        $this->removeGiftCardPaymentMethod();
+
+        /** @var GiftCardRedemptionMethodInterface $redemptionMethod */
+        $redemptionMethod = self::getContainer()->get('setono_sylius_gift_card.redemption_method');
+
+        $this->expectException(GiftCardPaymentMethodNotFoundException::class);
+
+        $redemptionMethod->commit($order);
+    }
+
     /** @test */
     public function commit_refuses_to_place_an_order_its_gift_cards_no_longer_pay_for(): void
     {
@@ -168,6 +249,15 @@ final class StaleGiftCardAtCheckoutCompletionTest extends GiftCardFunctionalTest
         self::assertSame(OrderInterface::STATE_CART, $order->getState());
         self::assertSame(OrderPaymentStates::STATE_CART, $order->getPaymentState(), 'the order must not be marked paid');
         self::assertCount(0, $order->getPayments());
+    }
+
+    /**
+     * As if the merchant had deleted the method, or given it another code
+     */
+    private function removeGiftCardPaymentMethod(): void
+    {
+        $this->giftCardPaymentMethod->setCode('renamed');
+        $this->manager->flush();
     }
 
     private function stateMachine(): StateMachineInterface

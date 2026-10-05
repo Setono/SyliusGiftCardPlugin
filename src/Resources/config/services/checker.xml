@@ -10,6 +10,7 @@
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_design"/>
             <argument type="service" id="doctrine"/>
             <argument>%sylius.model.product.class%</argument>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Checker\GiftCardSetupCheckerInterface"
                  alias="Setono\SyliusGiftCardPlugin\Checker\GiftCardSetupChecker"/>

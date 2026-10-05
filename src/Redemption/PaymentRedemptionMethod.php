@@ -18,7 +18,6 @@ use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
-use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Sylius\Component\Payment\Model\PaymentInterface as BasePaymentInterface;
@@ -60,9 +59,6 @@ final class PaymentRedemptionMethod extends RedemptionMethod
 
     public function commit(OrderInterface $order): void
     {
-        $channel = $order->getChannel();
-        Assert::isInstanceOf($channel, ChannelInterface::class);
-
         $currencyCode = $order->getCurrencyCode();
         Assert::notNull($currencyCode);
 
@@ -76,7 +72,9 @@ final class PaymentRedemptionMethod extends RedemptionMethod
         $paymentMethod = null;
 
         foreach ($entries as ['giftCard' => $giftCard, 'amount' => $amount]) {
-            $paymentMethod ??= $this->paymentMethodProvider->getPaymentMethod($channel);
+            // The checkout guard does not let an order through with gift cards while the method is missing, so this
+            // only throws for an order placed some other way
+            $paymentMethod ??= $this->paymentMethodProvider->getPaymentMethod();
 
             $payment = $this->paymentFactory->createNew();
             $payment->setMethod($paymentMethod);

@@ -36,6 +36,7 @@
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface"/>
         </service>
         <!-- public because it is the guard the winzou state machine asks before completing a checkout. The guard
              callback names this interface rather than the class, so a decorator of the interface runs there too -->

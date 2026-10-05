@@ -18,5 +18,14 @@
 
             <tag name="console.command"/>
         </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Command\CreatePaymentMethodCommand"
+                 class="Setono\SyliusGiftCardPlugin\Command\CreatePaymentMethodCommand">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Factory\GiftCardPaymentMethodFactoryInterface"/>
+            <argument type="service" id="doctrine"/>
+
+            <tag name="console.command"/>
+        </service>
     </services>
 </container>

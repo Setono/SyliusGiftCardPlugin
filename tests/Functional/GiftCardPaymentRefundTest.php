@@ -33,6 +33,14 @@ use Symfony\Component\Workflow\WorkflowInterface;
  */
 final class GiftCardPaymentRefundTest extends GiftCardFunctionalTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // the gift card payments are made with it, and the shop refuses gift cards until it is set up
+        $this->createGiftCardPaymentMethod();
+    }
+
     /** @test */
     public function refunding_a_gift_card_payment_restores_the_balance_once(): void
     {

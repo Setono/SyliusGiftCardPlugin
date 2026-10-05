@@ -14,6 +14,7 @@ final class GiftCardSetupExtension extends AbstractExtension
     {
         return [
             new TwigFunction('setono_gift_card_channels_without_design', [GiftCardSetupRuntime::class, 'getChannelsWithoutDesign']),
+            new TwigFunction('setono_gift_card_missing_payment_method_code', [GiftCardSetupRuntime::class, 'getMissingPaymentMethodCode']),
         ];
     }
 }

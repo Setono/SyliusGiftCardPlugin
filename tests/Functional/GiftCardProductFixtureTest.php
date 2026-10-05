@@ -10,6 +10,8 @@ use Sylius\Component\Core\Model\ChannelPricingInterface;
 use Sylius\Component\Core\Model\ProductVariantInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Sylius\Component\Locale\Model\Locale;
+use Sylius\Component\Product\Model\ProductOptionInterface;
+use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 /**
@@ -55,6 +57,35 @@ final class GiftCardProductFixtureTest extends GiftCardFunctionalTestCase
             self::assertInstanceOf(ProductVariantInterface::class, $variant);
             self::assertSame(['TEST_CHANNEL' => 2500], $this->pricesOf($variant));
         }
+    }
+
+    /**
+     * The fixture creates every product before it flushes, and they all share the one delivery option, whose code is
+     * unique. The factory does not flush, so it hands the second product the option it created for the first instead of
+     * looking for one in the database, where it is not yet
+     *
+     * @test
+     */
+    public function it_loads_several_gift_card_products_sharing_one_delivery_option(): void
+    {
+        $this->loadFixture('setono_gift_card_product', ['custom' => [
+            ['code' => 'first_card', 'name' => 'First card'],
+            ['code' => 'second_card', 'name' => 'Second card'],
+        ]]);
+
+        $first = $this->findProduct('first_card');
+        $second = $this->findProduct('second_card');
+
+        $options = array_values($first->getOptions()->toArray());
+        self::assertCount(1, $options);
+        self::assertSame(
+            array_map(static fn (ProductOptionInterface $option): mixed => $option->getId(), $options),
+            array_map(static fn (ProductOptionInterface $option): mixed => $option->getId(), array_values($second->getOptions()->toArray())),
+        );
+
+        /** @var RepositoryInterface<ProductOptionInterface> $optionRepository */
+        $optionRepository = self::getContainer()->get('sylius.repository.product_option');
+        self::assertCount(1, $optionRepository->findBy(['code' => 'gift_card_delivery']));
     }
 
     /**

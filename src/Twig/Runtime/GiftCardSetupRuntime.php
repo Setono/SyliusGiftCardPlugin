@@ -19,8 +19,12 @@ final class GiftCardSetupRuntime implements RuntimeExtensionInterface, ResetInte
      */
     private ?array $channelsWithoutDesign = null;
 
-    public function __construct(private readonly GiftCardSetupCheckerInterface $setupChecker)
-    {
+    private ?bool $paymentMethodMissing = null;
+
+    public function __construct(
+        private readonly GiftCardSetupCheckerInterface $setupChecker,
+        private readonly string $paymentMethodCode,
+    ) {
     }
 
     /**
@@ -32,11 +36,24 @@ final class GiftCardSetupRuntime implements RuntimeExtensionInterface, ResetInte
     }
 
     /**
+     * The code the payment method gift card payments are made with has to have, while the shop sells gift cards
+     * without it, so the warning can tell the merchant which method to create; null when there is nothing to warn about
+     */
+    public function getMissingPaymentMethodCode(): ?string
+    {
+        $this->paymentMethodMissing ??= $this->setupChecker->isPaymentMethodMissing();
+
+        return $this->paymentMethodMissing ? $this->paymentMethodCode : null;
+    }
+
+    /**
      * The runtime is a shared service, so under a worker runtime (FrankenPHP's worker mode, RoadRunner) it outlives
-     * the request. The kernel resets it between requests, so a design created or disabled since is seen by the next
+     * the request. The kernel resets it between requests, so a design or payment method created or disabled since
+     * is seen by the next
      */
     public function reset(): void
     {
         $this->channelsWithoutDesign = null;
+        $this->paymentMethodMissing = null;
     }
 }

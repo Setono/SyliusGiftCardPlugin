@@ -15,7 +15,8 @@ interface GiftCardProductFactoryInterface
     /**
      * Creates a gift card product with the shared delivery option and one variant per delivery type.
      *
-     * The product is returned unmanaged: it is the caller's job to persist it. The variants, and the delivery option
+     * The product is returned unmanaged: it is the caller's job to persist and flush it. The delivery option, the
+     * first time one is created, is persisted, and written by that same flush. The variants, and the delivery option
      * when it is created, are named in the language of each locale of the shop.
      *
      * @param string|null $name the product's name in every locale. Left out, the product is named "Gift card" in the
