@@ -5,6 +5,9 @@
  * through the admin grids instead. That keeps the suite working against a freshly seeded database.
  */
 
+const { expect } = require('@playwright/test');
+const { clickAndWaitForPage } = require('./navigation');
+
 /**
  * Returns the id of the first row in an admin grid, taken from its show/edit link.
  *
@@ -56,69 +59,109 @@ async function giftCardCode(page, id) {
     return (await row.locator('td').nth(1).innerText()).trim();
 }
 
-/** @type {{simple: string|null, configurable: string|null, giftCard: string|null}|null} */
+/** @type {{simple: string|null, configurable: string|null, giftCard: string|null, ordinary: string|null}|null} */
 let productCache = null;
 
 /**
- * Products whose edit page must render. `simple` and `configurable` take different branches in the details
- * tab, and only the configurable one reaches the options autocomplete, so both have to be covered.
+ * The ids of the products on one page of the products grid
  *
- * Resolved by walking the products grid and opening candidates, because the fixtures do not guarantee ids.
- * The result is cached for the run — it costs several page loads.
+ * @param {import('@playwright/test').Page} page
+ * @param {number} number
+ * @returns {Promise<string[]>}
+ */
+async function productIdsOnGridPage(page, number) {
+    await page.goto(`/admin/products/?limit=50&page=${number}`);
+
+    const ids = await page.locator('[data-test-grid-table-body] a[href*="/admin/products/"]').evaluateAll((links) =>
+        links.map((link) => /\/admin\/products\/(\d+)\/edit$/.exec(link.getAttribute('href') ?? '')?.[1] ?? '').filter((id) => '' !== id),
+    );
+
+    return [...new Set(ids)];
+}
+
+/**
+ * Products of each kind the specs need, by id:
+ *
+ * - `simple` and `configurable`, whose edit pages take different branches in the details tab (only the configurable
+ *   one reaches the options autocomplete), so both have to be covered;
+ * - `giftCard`, an enabled product flagged as a gift card, and `ordinary`, an enabled product that is not. The flag is
+ *   the product form's checkbox, which every product's edit page renders, so it is its state that tells them apart.
+ *
+ * Resolved by walking the whole products grid and opening candidates until every kind is found, because the fixtures
+ * do not guarantee ids and specs add products of their own. The result is cached for the run, as it costs a page load
+ * per product opened.
  *
  * @param {import('@playwright/test').Page} page an authenticated admin page
- * @returns {Promise<{simple: string|null, configurable: string|null, giftCard: string|null}>}
+ * @returns {Promise<{simple: string|null, configurable: string|null, giftCard: string|null, ordinary: string|null}>}
  */
 async function productIdsByKind(page) {
     if (null !== productCache) {
         return productCache;
     }
 
-    const ids = [];
-    for (let p = 1; p <= 3; p++) {
-        await page.goto(`/admin/products/?page=${p}`);
-        const found = await page.locator('a[href*="/admin/products/"]').evaluateAll((links) =>
-            links
-                .map((l) => /\/admin\/products\/(\d+)\/edit$/.exec(l.getAttribute('href') ?? ''))
-                .filter((m) => null !== m)
-                .map((m) => m[1]),
-        );
-        if (0 === found.length) {
+    /** @type {{simple: string|null, configurable: string|null, giftCard: string|null, ordinary: string|null}} */
+    const result = { simple: null, configurable: null, giftCard: null, ordinary: null };
+    const complete = () => Object.values(result).every((id) => null !== id);
+    const opened = new Set();
+
+    for (let number = 1; !complete(); number++) {
+        // a page past the last one lists nothing new, whether the grid answers it with an empty page or the last one
+        const ids = (await productIdsOnGridPage(page, number)).filter((id) => !opened.has(id));
+        if (0 === ids.length) {
             break;
         }
-        ids.push(...found);
-    }
 
-    const result = { simple: null, configurable: null, giftCard: null };
+        for (const id of ids) {
+            opened.add(id);
+            await page.goto(`/admin/products/${id}/edit`);
 
-    for (const id of [...new Set(ids)]) {
-        await page.goto(`/admin/products/${id}/edit`);
+            const isGiftCard = await page.locator('input[name="sylius_product[giftCard]"]').isChecked();
+            const isEnabled = await page.locator('input[name="sylius_product[enabled]"]').isChecked();
+            // The variant shipping toggle only exists for simple products, so its presence is what distinguishes
+            // the two branches of the details tab
+            const isSimple = 0 < (await page.locator('input[name*="[variant]"][name*="[shippingRequired]"]').count());
 
-        // The checkbox is rendered on every product's edit page now, so only a ticked one is a gift card
-        const giftCardCheckbox = page.locator('input[name*="[giftCard]"]').first();
-        const isGiftCard = 0 < (await giftCardCheckbox.count()) && (await giftCardCheckbox.isChecked());
-        // The variant shipping toggle only exists for simple products, so its presence is what distinguishes
-        // the two branches of the details tab
-        const isSimple = 0 < await page.locator('input[name*="[variant]"][name*="[shippingRequired]"]').count();
+            if (isSimple) {
+                result.simple ??= id;
+            } else {
+                result.configurable ??= id;
+            }
+            if (isEnabled && isGiftCard) {
+                result.giftCard ??= id;
+            }
+            if (isEnabled && !isGiftCard) {
+                result.ordinary ??= id;
+            }
 
-        if (isGiftCard && null === result.giftCard) {
-            result.giftCard = id;
-        }
-        if (isSimple && null === result.simple) {
-            result.simple = id;
-        }
-        if (!isSimple && null === result.configurable) {
-            result.configurable = id;
-        }
-
-        if (null !== result.simple && null !== result.configurable && null !== result.giftCard) {
-            break;
+            if (complete()) {
+                break;
+            }
         }
     }
 
     productCache = result;
 
     return result;
+}
+
+/**
+ * The path of the product's page in the shop, taken from the "Show product in shop page" button of its edit page,
+ * or null while the shop does not show the product (it is disabled, or in no enabled channel)
+ *
+ * @param {import('@playwright/test').Page} page an authenticated admin page
+ * @param {string} id
+ * @returns {Promise<string|null>}
+ */
+async function productShopPath(page, id) {
+    await page.goto(`/admin/products/${id}/edit`);
+
+    const button = page.locator('a[data-test-show-product-in-shop-page]').first();
+    await expect(button, `the edit page of product ${id} has no button showing it in the shop`).toHaveCount(1);
+
+    const href = (await button.getAttribute('href')) ?? '#';
+
+    // a link to the channel's hostname, of which only the path is the same on the application under test
+    return '#' === href ? null : new URL(href, page.url()).pathname;
 }
 
 /**
@@ -194,10 +237,19 @@ async function currencyOtherThan(page, except) {
     }
 
     await select.selectOption(pick);
-    await page.getByRole('button', { name: /create/i }).first().click();
-    await page.waitForURL('**/admin/currencies/**');
+    await clickAndWaitForPage(page, page.locator('form[name="sylius_currency"] button[type="submit"]').first());
+    await expect(page, `creating the currency ${pick} should have led away from the form`).not.toHaveURL(/\/admin\/currencies\/new$/);
 
     return pick;
 }
 
-module.exports = { anyCustomerEmail, channelBaseCurrencyCode, currencyOtherThan, firstDesignId, firstGiftCardId, giftCardCode, productIdsByKind };
+module.exports = {
+    anyCustomerEmail,
+    channelBaseCurrencyCode,
+    currencyOtherThan,
+    firstDesignId,
+    firstGiftCardId,
+    giftCardCode,
+    productIdsByKind,
+    productShopPath,
+};

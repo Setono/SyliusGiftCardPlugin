@@ -3,6 +3,7 @@ const { signInAsAdministrator } = require('../support/admin');
 const { checkOutAsGuest, placeOrder, uniqueEmail } = require('../support/checkout');
 const { giftCardDetails, giftCardIds, giftCardRows, giftCardTransactions } = require('../support/gift-cards');
 const { moneyInCents } = require('../support/money');
+const { clickAndWaitForPage } = require('../support/navigation');
 const { cancelOrder, completeOrderPayments, openOrderOf, orderPayments } = require('../support/orders');
 const { addGiftCardToCart, addOrdinaryProductToCart, cartFigure, giftCardVariantCount, redeemGiftCard, shopPath } = require('../support/shop');
 
@@ -138,8 +139,7 @@ test.describe('buying a gift card', () => {
         // up first, then down again, so reconciliation has both a unit to add a card for and a card to drop
         for (const units of [3, 2]) {
             await quantity.fill(String(units));
-            await page.locator('#sylius-cart-update').click();
-            await page.waitForLoadState();
+            await clickAndWaitForPage(page, page.locator('[data-test-cart-update-button]'));
 
             expect(moneyInCents(await line.locator('.sylius-unit-price').innerText()), `unit price for ${units} units`).toBe(amount);
             expect(moneyInCents(await line.locator('.sylius-total').innerText()), `line total for ${units} units`).toBe(units * amount);

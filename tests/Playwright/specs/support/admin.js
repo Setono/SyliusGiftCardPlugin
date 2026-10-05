@@ -32,7 +32,6 @@ async function signInAsAdministrator(browser) {
     await page.fill('input[name="_password"]', 'sylius');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/admin/');
-    await page.waitForLoadState('networkidle');
 
     // Proven rather than assumed, so a session that did not survive shows up here and not as a failure elsewhere
     await page.goto('/admin/gift-cards/');

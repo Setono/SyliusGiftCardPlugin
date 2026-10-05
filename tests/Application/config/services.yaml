@@ -2,3 +2,21 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: en_US
+
+# Sylius renders its data-test-* hooks (sylius_test_html_attribute, which the plugin's templates use as well, and
+# sylius_test_form_attribute) only in an environment whose name starts with "test". The Playwright suite drives the
+# application served in dev, locally and in CI alike, because a real browser needs the real sessions the test
+# environment swaps for a mock storage. So in dev both extensions are told they run in "test", and the specs address
+# the hooks instead of the English text around them. A shop's own environments are untouched: in prod the plugin's
+# templates render no hooks at all
+when@dev:
+    services:
+        sylius.twig.extension.form_test_attribute_name:
+            class: Sylius\Bundle\UiBundle\Twig\TestHtmlAttributeExtension
+            arguments: ['test']
+            tags: ['twig.extension']
+
+        sylius.twig.extension.form_test_attribute_array:
+            class: Sylius\Bundle\UiBundle\Twig\TestFormAttributeExtension
+            arguments: ['test']
+            tags: ['twig.extension']

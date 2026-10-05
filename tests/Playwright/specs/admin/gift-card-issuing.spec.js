@@ -1,10 +1,10 @@
 const { test, expect } = require('@playwright/test');
 const { clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
-const { addSomethingToCart, applyGiftCard } = require('../support/cart');
 const { giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
 const { moneyInCents, typedAmount } = require('../support/money');
 const { anyCustomerEmail, channelBaseCurrencyCode } = require('../support/fixtures');
 const { clickAndWaitForPage } = require('../support/navigation');
+const { addOrdinaryProductToCart, redeemGiftCard } = require('../support/shop');
 
 /**
  * Issuing, changing and removing gift cards in the admin.
@@ -46,7 +46,7 @@ async function adjustBalance(page, id, amount, reason) {
     await page.locator('input[name$="[amount]"]').fill(`${amount < 0 ? '-' : ''}${typedAmount(Math.abs(amount))}`);
     await page.locator('textarea[name$="[reason]"]').fill(reason);
 
-    await clickAndWaitForPage(page, page.locator('form.ui.form button[type="submit"]').first());
+    await clickAndWaitForPage(page, page.locator('form[name="setono_sylius_gift_card_adjust_balance"] button[type="submit"]'));
     expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/balance was adjusted/i));
 }
 
@@ -84,12 +84,13 @@ test.describe('admin issuing gift cards', () => {
 
         // a customer of the shop, not the signed in administrator
         const shop = await browser.newContext({ storageState: { cookies: [], origins: [] } });
-        const customer = await shop.newPage();
-        await addSomethingToCart(customer);
-        await applyGiftCard(customer, typed);
-        // the cart lists the code grouped in fours, so the card is found through its remove form, which carries the stored code
-        await expect(customer.locator(`form[action*="/gift-cards/${card.code}/remove"]`)).toBeVisible();
-        await shop.close();
+        try {
+            const customer = await shop.newPage();
+            await addOrdinaryProductToCart(customer);
+            await redeemGiftCard(customer, card.code, typed);
+        } finally {
+            await shop.close();
+        }
     });
 
     /**

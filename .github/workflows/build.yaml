@@ -240,7 +240,8 @@ jobs:
         runs-on: "ubuntu-latest"
 
         # The test application is served for real here, so it needs an environment with a normal session
-        # storage rather than the mock one the test environment uses for functional tests
+        # storage rather than the mock one the test environment uses for functional tests. Its dev environment
+        # renders the data-test-* hooks the specs address all the same (tests/Application/config/services.yaml)
         env:
             APP_ENV: "dev"
             APP_DEBUG: "1"
