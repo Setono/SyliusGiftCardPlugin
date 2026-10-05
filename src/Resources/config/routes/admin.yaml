@@ -3,7 +3,9 @@ setono_sylius_gift_card_admin_gift_card:
         alias: setono_sylius_gift_card.gift_card
         section: admin
         permission: true
-        only: [index, create, update, delete, bulkDelete]
+        # No bulk delete: a card may only be deleted while nothing has happened to it, and Sylius' bulk delete stops at
+        # the first card it may not delete, after deleting the ones before it
+        only: [index, create, update, delete]
         templates: '@SyliusAdmin\\Crud'
         redirect: index
         grid: setono_sylius_gift_card_admin_gift_card
@@ -94,8 +96,9 @@ setono_sylius_gift_card_admin_gift_card_design:
         alias: setono_sylius_gift_card.gift_card_design
         section: admin
         permission: true
-        # A design has no show page, and Sylius' admin ships no show template to render one with
-        only: [index, create, update, delete, bulkDelete]
+        # A design has no show page, and Sylius' admin ships no show template to render one with. Its grid offers no
+        # bulk action either, so there is no bulk delete for one to post to
+        only: [index, create, update, delete]
         templates: '@SyliusAdmin\\Crud'
         redirect: index
         grid: setono_sylius_gift_card_admin_gift_card_design

@@ -93,6 +93,11 @@ test.describe('paying with a gift card', () => {
         expect(redemption).toEqual([
             expect.objectContaining({ type: 'Redeemed', amount: -orderTotal, order: `#${order.number}`, orderHref: order.url }),
         ]);
+
+        // and the card's details list the order among those it was applied to, leading to it
+        expect((await giftCardDetails(admin.page, card.id))['Applied to orders']).toBe(`#${order.number}`);
+        const appliedTo = admin.page.locator('table').first().locator('tr').filter({ has: admin.page.locator('td strong', { hasText: /^Applied to orders$/ }) });
+        await expect(appliedTo.locator('a')).toHaveAttribute('href', order.url);
     });
 
     test('an order the card covers in part is paid by the card and the method chosen for the rest', async ({ page }) => {

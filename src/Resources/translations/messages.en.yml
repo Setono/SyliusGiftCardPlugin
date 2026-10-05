@@ -28,6 +28,7 @@ setono_sylius_gift_card:
             reason: Reason
     ui:
         adjust_balance: Adjust balance
+        applied_to_orders: Applied to orders
         apply_gift_card: Apply
         average: Average
         back: Back
@@ -69,9 +70,11 @@ setono_sylius_gift_card:
             create_design: Create a gift card design
             create_design_suffix: and enable it for the channel, or
             run_command: 'install the bundled "%design%" design in every channel by running'
+        bought_with_order: Bought with order
         design_images: Design images
         design_images_help: 'Upload a front image (shown in the picker, preview and on the gift card) and, optionally, a back image. Landscape orientation, at least 1050×740px, JPG or PNG.'
         enter_gift_card_code: Enter gift card code
+        expired: Expired
         front: Front
         gift_card: Gift card
         gift_card_code: Gift card code
@@ -79,6 +82,7 @@ setono_sylius_gift_card:
         gift_card_designs: Gift card designs
         has_no_gift_card: Has no gift card
         image: Image
+        in_cart: 'In a cart, not ordered yet'
         manage_gift_cards: Manage gift cards
         manage_gift_card_designs: Manage gift card designs
         new_gift_card: New gift card
@@ -86,10 +90,20 @@ setono_sylius_gift_card:
         no_image: No image
         no_transactions: This gift card has no transactions yet.
         open_customer: 'Open customer %customer% in a new tab'
+        pending_gift_cards: Pending gift cards
+        pending_hide: Hide
+        pending_only: Show only these
+        pending_show: Show
         physical: 'Physical — shipped to you'
         position: Position
         remaining_to_pay: Remaining to pay
         remove_gift_card: 'Remove gift card %code%'
+        spent: Spent
+        status_disabled: Disabled
+        status_expired: Expired
+        status_pending: Pending
+        status_spent: Spent
+        status_usable: Usable
         transactions: Transactions
         transaction_type_issue: Issued
         transaction_type_manual: Manual adjustment

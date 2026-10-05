@@ -32,6 +32,17 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
     public function isPending(): bool;
 
     /**
+     * The one status the admin shows for the card. Where more than one would apply, the first of these wins:
+     *
+     * - pending: isPending(), the card waits for its order to be paid
+     * - disabled: any other disabled card
+     * - spent: enabled with nothing left on it, whether or not it has expired since, as there is nothing to lose
+     * - expired: enabled with a balance left, but past its expiry date (judged against $date, which defaults to now)
+     * - usable: everything else, which is exactly when isUsable() is true
+     */
+    public function getStatus(?\DateTimeInterface $date = null): GiftCardStatus;
+
+    /**
      * An admin cannot remove gift cards that were purchased with real money or (partially) spent.
      * Only pending or untouched gift cards can be removed
      */

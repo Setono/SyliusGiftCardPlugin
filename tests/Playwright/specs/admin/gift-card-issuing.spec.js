@@ -1,8 +1,8 @@
 const { test, expect } = require('@playwright/test');
 const { clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
 const { addSomethingToCart, applyGiftCard } = require('../support/cart');
-const { giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
-const { moneyInCents, typedAmount } = require('../support/money');
+const { adjustBalance, giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
+const { moneyInCents } = require('../support/money');
 const { anyCustomerEmail, channelBaseCurrencyCode } = require('../support/fixtures');
 const { clickAndWaitForPage } = require('../support/navigation');
 
@@ -31,23 +31,6 @@ async function outstandingBalances(page) {
     }
 
     return balances;
-}
-
-/**
- * Adjusts the balance through the adjust balance form and waits for the page it leads to
- *
- * @param {import('@playwright/test').Page} page
- * @param {string} id
- * @param {number} amount in minor units, negative to deduct
- * @param {string} reason
- */
-async function adjustBalance(page, id, amount, reason) {
-    await page.goto(`/admin/gift-cards/${id}/adjust-balance`);
-    await page.locator('input[name$="[amount]"]').fill(`${amount < 0 ? '-' : ''}${typedAmount(Math.abs(amount))}`);
-    await page.locator('textarea[name$="[reason]"]').fill(reason);
-
-    await clickAndWaitForPage(page, page.locator('form.ui.form button[type="submit"]').first());
-    expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/balance was adjusted/i));
 }
 
 test.describe('admin issuing gift cards', () => {
@@ -136,10 +119,13 @@ test.describe('admin issuing gift cards', () => {
         expect(details.Customer).toBe(email);
         expect(details['Custom message']).toBe('Thank you for your patience');
         expect(details.Enabled).toBe('Enabled');
+        expect(details.Status).toBe('Usable');
         expect(moneyInCents(details.Amount)).toBe(2500);
         expect(moneyInCents(details['Initial amount'])).toBe(2500);
-        // the customer row leads to the customer
-        await expect(page.locator('table').first().locator('a', { hasText: email })).toHaveAttribute('href', /\/admin\/customers\/\d+$/);
+        // the customer row does what the grid's customer column does: the email mails them, the icon opens them
+        const customerRow = page.locator('table').first().locator('tr').filter({ hasText: 'Customer' });
+        await expect(customerRow.locator(`a[href="mailto:${email}"]`)).toHaveText(email);
+        await expect(customerRow.getByRole('link', { name: `Open customer ${email} in a new tab` })).toHaveAttribute('href', /\/admin\/customers\/\d+$/);
 
         // The grid mails the customer from the email and opens the customer from the icon next to it
         const row = await giftCardRows(page, card.printedCode);
@@ -199,6 +185,7 @@ test.describe('admin issuing gift cards', () => {
         expect(details['Custom message']).toBe('After');
         expect(details['Expires at']).toBe('2031-01-31');
         expect(details.Enabled).toBe('Disabled');
+        expect(details.Status).toBe('Disabled');
         expect(moneyInCents(details.Amount)).toBe(5000);
         // editing is no movement of the balance
         expect((await giftCardTransactions(page, card.id)).map(({ type }) => type)).toEqual(['Issued']);
@@ -239,17 +226,40 @@ test.describe('admin issuing gift cards', () => {
     });
 
     /**
-     * Once money has moved on a card, deleting it would erase the ledger that accounts for that money
+     * Once money has moved on a card, deleting it would erase the ledger that accounts for that money, so its row no
+     * longer offers to. The server refuses as well, for a button on a page opened before (GiftCardAdminResourceTest)
      */
-    test('a card whose balance has moved cannot be deleted', async ({ page }) => {
+    test('a card whose balance has moved offers no delete button', async ({ page }) => {
         const card = await issueGiftCard(page, { amount: 1500 });
+        const untouched = await issueGiftCard(page, { amount: 1500 });
         await adjustBalance(page, card.id, -500, 'Partly used');
 
-        const row = await giftCardRows(page, card.printedCode);
-        await clickAndConfirm(page, row.getByRole('button', { name: /delete/i }));
+        await expect((await giftCardRows(page, card.printedCode)).getByRole('button', { name: /delete/i })).toHaveCount(0);
+        // the rest of the row's actions are still there, and so is the button on a card that may be deleted
+        await expect((await giftCardRows(page, card.printedCode)).getByRole('link', { name: /adjust balance/i })).toHaveCount(1);
+        const untouchedRow = await giftCardRows(page, untouched.printedCode);
+        await expect(untouchedRow.getByRole('button', { name: /delete/i })).toHaveCount(1);
 
-        expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/cannot be removed/i));
-        await expect(await giftCardRows(page, card.printedCode)).toHaveCount(1);
-        expect((await page.goto(`/admin/gift-cards/${card.id}`))?.status()).toBe(200);
+        // An untouched card can be deleted, which keeps it from topping the grid for other specs
+        await clickAndConfirm(page, untouchedRow.getByRole('button', { name: /delete/i }));
+        expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/successfully deleted/i));
+    });
+
+    /**
+     * The ledger the adjustment is written to is on the card's show page, so that is where saving the adjustment
+     * leads, and where the way back from the form leads too
+     */
+    test('adjusting the balance leads to the show page with the ledger', async ({ page }) => {
+        const card = await issueGiftCard(page, { amount: 3000 });
+
+        await page.goto(`/admin/gift-cards/${card.id}/adjust-balance`);
+        const showPage = `/admin/gift-cards/${card.id}`;
+        await expect(page.locator('.breadcrumb').getByRole('link', { name: card.printedCode })).toHaveAttribute('href', showPage);
+        await expect(page.locator('form.ui.form').getByRole('link', { name: 'Cancel' })).toHaveAttribute('href', showPage);
+
+        await adjustBalance(page, card.id, -1000, 'Paid at the till');
+
+        expect(new URL(page.url()).pathname).toBe(showPage);
+        await expect(page.locator('table').filter({ has: page.locator('thead') }).getByText('Paid at the till')).toBeVisible();
     });
 });

@@ -28,6 +28,7 @@ setono_sylius_gift_card:
             reason: Motif
     ui:
         adjust_balance: Ajuster le solde
+        applied_to_orders: Utilisé sur les commandes
         apply_gift_card: Appliquer
         average: Moyenne
         back: Retour
@@ -69,9 +70,11 @@ setono_sylius_gift_card:
             create_design: Créez un modèle de chèque-cadeau
             create_design_suffix: et activez-le pour le canal, ou
             run_command: 'installez le modèle « %design% » fourni dans tous les canaux en exécutant'
+        bought_with_order: Acheté avec la commande
         design_images: Images du modèle
         design_images_help: "Téléversez une image recto (affichée dans le sélecteur, l'aperçu et sur le chèque-cadeau) et, éventuellement, une image verso. Format paysage, au moins 1050×740px, JPG ou PNG."
         enter_gift_card_code: Renseignez le numéro de chèque-cadeau
+        expired: Expiré
         front: Recto
         gift_card: Chèque-cadeau
         gift_card_code: Numéro de chèque-cadeau
@@ -79,6 +82,7 @@ setono_sylius_gift_card:
         gift_card_designs: Modèles de chèques-cadeaux
         has_no_gift_card: Ne contient pas de chèque-cadeau
         image: Image
+        in_cart: 'Dans un panier, pas encore commandé'
         manage_gift_cards: Gérer les chèques-cadeaux
         manage_gift_card_designs: Gérer les modèles de chèques-cadeaux
         new_gift_card: Nouveau chèque-cadeau
@@ -86,10 +90,20 @@ setono_sylius_gift_card:
         no_image: Pas d'image
         no_transactions: Ce chèque-cadeau n'a encore aucune transaction.
         open_customer: 'Ouvrir le client %customer% dans un nouvel onglet'
+        pending_gift_cards: Chèques-cadeaux en attente
+        pending_hide: Masquer
+        pending_only: Afficher uniquement ceux-ci
+        pending_show: Afficher
         physical: 'Physique — expédié chez vous'
         position: Position
         remaining_to_pay: Reste à payer
         remove_gift_card: 'Retirer le chèque-cadeau %code%'
+        spent: Épuisé
+        status_disabled: Désactivé
+        status_expired: Expiré
+        status_pending: En attente
+        status_spent: Épuisé
+        status_usable: Utilisable
         transactions: Transactions
         transaction_type_issue: Émis
         transaction_type_manual: Ajustement manuel
