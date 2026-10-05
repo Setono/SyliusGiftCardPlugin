@@ -224,7 +224,7 @@ async function filterGiftCards(page, criteria) {
  * @returns {Promise<string[]>}
  */
 async function giftCardStatuses(rows) {
-    return (await rows.locator('[data-test-gift-card-status]').allInnerTexts()).map((status) => status.trim());
+    return (await rows.locator('[data-gift-card-status]').allInnerTexts()).map((status) => status.trim());
 }
 
 /**

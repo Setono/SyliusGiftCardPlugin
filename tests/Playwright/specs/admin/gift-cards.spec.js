@@ -339,11 +339,11 @@ test.describe('admin gift card designs', () => {
     test('the design grid lists the channels of every design', async ({ page }) => {
         await page.goto('/admin/gift-card-designs/');
 
-        const headers = (await page.locator('table thead th').allInnerTexts()).map((header) => header.trim());
+        const headers = (await page.locator('table.ui.table thead th').allInnerTexts()).map((header) => header.trim());
         const column = headers.indexOf('Channels');
         expect(column, 'the design grid shows no channels column').toBeGreaterThanOrEqual(0);
 
-        const row = page.locator('table tbody tr').first();
+        const row = page.locator('table.ui.table tbody tr').first();
         const listed = (await row.locator(`td:nth-child(${column + 1})`).innerText()).trim();
         const editUrl = /** @type {string} */ (await row.locator('a[href$="/edit"]').first().getAttribute('href'));
 
@@ -362,7 +362,7 @@ test.describe('admin gift card designs', () => {
     test('the design grid can be sorted by name', async ({ page }) => {
         await page.goto('/admin/gift-card-designs/');
 
-        const header = page.locator('table thead th').filter({ hasText: /^\s*Name/ }).locator('a');
+        const header = page.locator('table.ui.table thead th').filter({ hasText: /^\s*Name/ }).locator('a');
         await expect(header, 'the name column should be sortable').toHaveCount(1);
 
         for (let click = 0; click < 2; click++) {
@@ -371,8 +371,8 @@ test.describe('admin gift card designs', () => {
             const direction = new URL(page.url()).searchParams.get('sorting[name]');
             expect(['asc', 'desc'], 'the grid should now be sorted by name').toContain(direction);
 
-            const column = (await page.locator('table thead th').allInnerTexts()).findIndex((text) => /^\s*Name/.test(text));
-            const names = (await page.locator(`table tbody tr td:nth-child(${column + 1})`).allInnerTexts()).map((name) => name.trim());
+            const column = (await page.locator('table.ui.table thead th').allInnerTexts()).findIndex((text) => /^\s*Name/.test(text));
+            const names = (await page.locator(`table.ui.table tbody tr td:nth-child(${column + 1})`).allInnerTexts()).map((name) => name.trim());
             const sorted = [...names].sort((a, b) => a.localeCompare(b));
             expect(names).toEqual('asc' === direction ? sorted : sorted.reverse());
         }
