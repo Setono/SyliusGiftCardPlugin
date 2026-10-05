@@ -41,6 +41,21 @@ final class HasNoGiftCardConfigurationTypeTest extends TypeTestCase
     }
 
     /**
+     * A form theme reaches the rule's configuration through the block prefix derived from the class name, which is
+     * what an application that themed it relies on
+     *
+     * @test
+     */
+    public function it_is_themed_through_the_block_prefix_derived_from_its_class_name(): void
+    {
+        $vars = $this->factory->create(HasNoGiftCardConfigurationType::class)->createView()->vars;
+
+        self::assertIsArray($vars);
+        self::assertIsArray($vars['block_prefixes']);
+        self::assertSame(['form', 'has_no_gift_card_configuration'], array_slice($vars['block_prefixes'], 0, 2));
+    }
+
+    /**
      * @return iterable<string, array{?array<string, mixed>}>
      */
     public static function emptySubmissions(): iterable
