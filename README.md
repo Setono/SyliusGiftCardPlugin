@@ -18,6 +18,7 @@ Add gift card functionality to your Sylius store:
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
+- [Fixtures](#fixtures)
 - [Customization](#customization)
 - [Development](#development)
 - [License](#license)
@@ -288,6 +289,36 @@ Every rejected code gives the customer the same message, whatever the reason (un
 empty, wrong channel or currency), so the form cannot be used to find out which codes exist. The actual
 reason is written to the log at info level, with the code masked down to its last four characters
 (`************MNOP`): a code is a bearer token, and logs travel.
+
+## Fixtures
+
+The plugin adds four fixtures to `sylius:fixtures:load`: `setono_gift_card_design`, `setono_gift_card_product`,
+`setono_gift_card` and `setono_gift_card_payment_method`. The plugin's own demo data (a design, a gift card product,
+20 gift cards and the payment method) is the suite in `@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml`,
+which you can import into your configuration.
+
+A gift card product gets a variant for each delivery type unless `delivery_types` names the ones it should have, and a
+gift card is virtual unless its entry says `delivery_type: physical`:
+
+```yaml
+sylius_fixtures:
+    suites:
+        default:
+            fixtures:
+                setono_gift_card_product:
+                    options:
+                        custom:
+                            e_gift_card:
+                                code: e_gift_card
+                                name: E-gift card
+                                delivery_types: [virtual]   # virtual and/or physical; both when left out
+                setono_gift_card:
+                    options:
+                        custom:
+                            plastic_card:
+                                amount: 50                  # in major units, i.e. 50.00
+                                delivery_type: physical     # virtual or physical; virtual when left out
+```
 
 ## Customization
 

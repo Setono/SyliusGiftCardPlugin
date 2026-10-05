@@ -17,7 +17,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - Live preview on the gift card product page — the chosen design with the amount and message overlaid,
   updating as the customer types
 - Physical gift cards: a gift card is virtual or physical depending on the chosen variant's
-  *shipping required* flag, and physical ones ship through the normal Sylius shipping flow
+  *shipping required* flag, and physical ones ship through the normal Sylius shipping flow. Fixtures can seed
+  both: `delivery_type` on `setono_gift_card` (virtual when left out) and `delivery_types` on the new
+  `setono_gift_card_product` fixture (a variant for each when left out)
 - Support for both Sylius state machine adapters — winzou callbacks and the equivalent Symfony Workflow
   subscribers are both registered, so the plugin behaves the same whichever adapter is configured
 - A Playwright suite covering the admin and shop UI

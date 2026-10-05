@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Fixture;
 
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Sylius\Bundle\CoreBundle\Fixture\AbstractResourceFixture;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
@@ -32,6 +33,10 @@ class GiftCardFixture extends AbstractResourceFixture
                 ->end()
                 ->floatNode('amount')->end()
                 ->booleanNode('enabled')->end()
+                ->enumNode('delivery_type')
+                    ->info('Whether the card is virtual (delivered by email) or physical (shipped with the code printed on it). Virtual when left out')
+                    ->values(array_map(static fn (GiftCardDeliveryType $deliveryType): string => $deliveryType->value, GiftCardDeliveryType::cases()))
+                ->end()
         ;
     }
 }
