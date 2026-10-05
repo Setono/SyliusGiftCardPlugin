@@ -8,7 +8,7 @@ Add gift card functionality to your Sylius store:
 
 - **Buy gift cards** — customers choose the amount, a design and an optional message, and pick whether the gift card is **virtual** (delivered by email as a PDF) or **physical** (shipped like a normal product).
 - **Redeem gift cards** — customers apply a gift card code in the cart, and it becomes a **real payment** against the order rather than a discount on it.
-- **Admin management** — a gift card grid, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger), and an outstanding-balance dashboard.
+- **Admin management** — a gift card grid, issuing gift cards with the design and delivery type of your choice, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger), and an outstanding-balance dashboard.
 
 > This is the `1.x` line, for **Sylius 1.13 and up**. It is a ground-up rewrite of the `0.12.x` plugin. There is **no API layer** in 1.x — see [`UPGRADE-1.0.md`](UPGRADE-1.0.md) if you are coming from `0.12.x`.
 
@@ -29,6 +29,8 @@ Add gift card functionality to your Sylius store:
 Whether a gift card is virtual or physical is derived from the chosen product variant's `shipping required` flag — there is no special product type. The recommended setup is a single gift card product with a "delivery" product option producing a non-shippable *Virtual* variant and a shippable *Physical* variant. Virtual-only stores work too: just create a single non-shippable variant and the delivery selector disappears. Use the **Create gift card product** button in the admin gift card list to scaffold this in one click.
 
 The delivery type also decides what the buyer is emailed when the order is paid. A virtual card *is* delivered by the email: the code is in the body and the card is attached as a PDF. A physical card is shipped with the code printed on it, so its email only says that the card will be shipped — emailing the code would make the card spendable before it arrives, and duplicate what is in the envelope. Set `delivery.email_physical_cards: true` if you want the code and the PDF emailed for physical cards anyway, as a digital backup. **Send email** on a gift card in the admin always includes the code and the PDF, whatever the delivery type: that is how you replace a physical card the customer lost or never received. It is only offered for a card the customer can use (enabled, not expired and with a balance left), so a card that is still waiting for its order to be paid, or that was disabled when its order was cancelled or refunded, is never sent.
+
+A gift card issued in the admin is virtual unless you choose *Physical* on the create form, for a printed card you hand over or post yourself. No order or shipment comes with such a card, so its delivery type only records how it reaches the customer (the grid and the card's page show it), and the notification email sent when you issue it includes the code and the PDF whatever the type, like **Send email** does. The delivery type is settled when a card is issued and cannot be changed afterwards: a bought card takes it from its variant, which also decides whether its order ships it. The create form also takes the design printed on the card's PDF, picked from thumbnails of the designs enabled in the card's channel, or none for the default layout. The design can be changed on the edit form at any time; a card keeps its design when the design is disabled later.
 
 ### Buying a gift card
 

@@ -6,27 +6,35 @@ namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
 use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormInterface;
 
 final class GiftCardType extends AbstractResourceType
 {
     /**
      * @param RepositoryInterface<CurrencyInterface> $currencyRepository
+     * @param class-string<GiftCardDesignInterface> $designClass
+     * @param RepositoryInterface<ChannelInterface> $channelRepository
      * @param list<string> $validationGroups
      */
     public function __construct(
@@ -35,6 +43,9 @@ final class GiftCardType extends AbstractResourceType
         private readonly GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         private readonly GiftCardCodeNormalizerInterface $giftCardCodeNormalizer,
         private readonly int $minimumCodeLength,
+        private readonly string $designClass,
+        private readonly GiftCardDesignProviderInterface $designProvider,
+        private readonly RepositoryInterface $channelRepository,
         array $validationGroups = [],
     ) {
         parent::__construct($dataClass, $validationGroups);
@@ -147,6 +158,21 @@ final class GiftCardType extends AbstractResourceType
                 'preferred_choices' => $preferredChoices,
                 'disabled' => null !== $giftCard->getId(),
             ]);
+
+            // How the card reaches the customer is settled when it is issued. A card bought in the shop takes it from
+            // its variant, which also decides whether the order ships it, so changing it afterwards would only make
+            // the card disagree with its order: nothing is shipped, or held back, because of it
+            $event->getForm()->add('deliveryType', EnumType::class, [
+                'label' => 'setono_sylius_gift_card.ui.delivery_type',
+                'class' => GiftCardDeliveryType::class,
+                'choice_label' => static fn (GiftCardDeliveryType $deliveryType): string => 'setono_sylius_gift_card.ui.delivery_type_' . $deliveryType->value,
+                // A blank submission means the default, rather than a null the card cannot hold
+                'empty_data' => GiftCardDeliveryType::Virtual->value,
+                'disabled' => !$isNew,
+                'help' => $isNew ? 'setono_sylius_gift_card.form.gift_card.delivery_type_help' : null,
+            ]);
+
+            $this->addDesign($event->getForm(), $giftCard);
         });
 
         // The cart normalizes the code a customer types before looking it up, so a code stored the way the admin typed
@@ -181,5 +207,65 @@ final class GiftCardType extends AbstractResourceType
     public function getBlockPrefix(): string
     {
         return 'setono_sylius_gift_card_gift_card';
+    }
+
+    /**
+     * The design only decides what the card's PDF looks like, so it can be changed at any time. It is optional: a card
+     * without one prints the default layout.
+     *
+     * An existing card offers the designs its channel offers its customers, along with the one the card already has,
+     * so the card keeps its design when it is edited even if that design has been disabled since. A new card has its
+     * channel chosen on this same form, so it offers the designs of every channel, each telling which channels offer
+     * it, and a design its channel does not offer is turned down when the card is validated
+     *
+     * @param FormInterface<mixed> $form
+     */
+    private function addDesign(FormInterface $form, GiftCardInterface $giftCard): void
+    {
+        /** @var array<string, GiftCardDesignInterface> $designs by code */
+        $designs = [];
+
+        /** @var array<string, list<string>> $channelCodes the codes of the channels offering each design, by design code */
+        $channelCodes = [];
+
+        $channel = $giftCard->getChannel();
+        if (null !== $giftCard->getId() && null !== $channel) {
+            foreach ($this->designProvider->getDesigns($channel) as $design) {
+                $designs[(string) $design->getCode()] = $design;
+            }
+
+            $current = $giftCard->getDesign();
+            if (null !== $current) {
+                $designs[(string) $current->getCode()] ??= $current;
+            }
+        } else {
+            foreach ($this->channelRepository->findAll() as $offeringChannel) {
+                foreach ($this->designProvider->getDesigns($offeringChannel) as $design) {
+                    $designs[(string) $design->getCode()] ??= $design;
+                    $channelCodes[(string) $design->getCode()][] = (string) $offeringChannel->getCode();
+                }
+            }
+        }
+
+        $form->add('design', EntityType::class, [
+            'label' => 'setono_sylius_gift_card.ui.design',
+            'class' => $this->designClass,
+            'choices' => array_values($designs),
+            'choice_label' => 'name',
+            'choice_value' => 'code',
+            // The template shows each design's front image, and narrows a new card's designs to its channel
+            'choice_attr' => static function (GiftCardDesignInterface $design) use ($channelCodes): array {
+                $attr = ['data-image-path' => $design->getFrontImage()?->getPath() ?? ''];
+                if (isset($channelCodes[(string) $design->getCode()])) {
+                    $attr['data-channels'] = implode(' ', $channelCodes[(string) $design->getCode()]);
+                }
+
+                return $attr;
+            },
+            'expanded' => true,
+            'required' => false,
+            'placeholder' => 'setono_sylius_gift_card.form.gift_card.no_design',
+            'help' => 'setono_sylius_gift_card.form.gift_card.design_help',
+        ]);
     }
 }
