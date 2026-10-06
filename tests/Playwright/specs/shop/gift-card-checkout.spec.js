@@ -56,8 +56,10 @@ test.describe('paying with a gift card', () => {
      * @param {import('@playwright/test').Page} page the order's page in the shop
      */
     async function expectOnlyTheRestToBePayable(page) {
-        await expect(page.getByText('You can no longer change payment method of this order')).toHaveCount(0);
-        await expect(page.locator('#sylius-pay-link')).toBeEnabled();
+        // Sylius only renders the payment form while the order awaits payment, and says it can no longer be changed
+        // otherwise
+        await expect(page.locator('form[name="sylius_checkout_select_payment"]')).toBeVisible();
+        await expect(page.locator('[data-test-pay-link]')).toBeEnabled();
 
         const payments = await payablePayments(page);
         expect(payments, 'the rest should be the one payment left to pay').toHaveLength(1);
@@ -86,6 +88,7 @@ test.describe('paying with a gift card', () => {
         const orderTotal = moneyInCents(await admin.page.locator('#total').innerText());
         const payments = await orderPayments(admin.page);
         expect(payments).toEqual([{ method: 'Gift card', amount: orderTotal, state: 'Completed' }]);
+        expect(await orderPaymentState(admin.page), 'the card paid the whole order').toBe('Paid');
 
         // The card paid exactly the order total, and its ledger says which order it paid for
         expect(moneyInCents((await giftCardDetails(admin.page, card.id)).Amount)).toBe(balance - orderTotal);
@@ -96,7 +99,7 @@ test.describe('paying with a gift card', () => {
 
         // and the card's details list the order among those it was applied to, leading to it
         expect((await giftCardDetails(admin.page, card.id))['Applied to orders']).toBe(`#${order.number}`);
-        const appliedTo = admin.page.locator('table').first().locator('tr').filter({ has: admin.page.locator('td strong', { hasText: /^Applied to orders$/ }) });
+        const appliedTo = admin.page.locator('table.ui.table').first().locator('tr').filter({ has: admin.page.locator('td strong', { hasText: /^Applied to orders$/ }) });
         await expect(appliedTo.locator('a')).toHaveAttribute('href', order.url);
     });
 
@@ -126,6 +129,8 @@ test.describe('paying with a gift card', () => {
         const byOther = payments.filter(({ method }) => 'Gift card' !== method);
         expect(byCard).toEqual([{ method: 'Gift card', amount: balance, state: 'Completed' }]);
         expect(byOther).toEqual([expect.objectContaining({ amount: orderTotal - balance, state: 'New' })]);
+        // not "Partially paid", which Sylius' shop never lets a customer pay
+        expect(await orderPaymentState(admin.page), 'the order should wait for the rest to be paid').toBe('Awaiting payment');
 
         expect(moneyInCents((await giftCardDetails(admin.page, card.id)).Amount)).toBe(0);
     });
@@ -217,12 +222,13 @@ test.describe('paying with a gift card', () => {
         const number = /\/account\/orders\/(\d+)$/.exec(new URL(page.url()).pathname)?.[1] ?? '';
         expect(number, `the thank you page should have led to the order in the account, not ${page.url()}`).toMatch(/^\d+$/);
 
-        const payFromOrder = page.locator('a[href*="/order/"]').filter({ hasText: 'Pay' });
+        // the button leading to the order's own page, the one the customer pays from
+        const payFromOrder = page.locator('a[href*="/order/"]');
         await expect(payFromOrder, 'the order in the account should offer to pay it').toHaveCount(1);
         const orderPage = await payFromOrder.getAttribute('href');
 
         // and so does the list of the customer's orders, leading to the same page
-        const payFromList = (await accountOrderRow(page, number)).locator('a').filter({ hasText: 'Pay' });
+        const payFromList = (await accountOrderRow(page, number)).locator('a[href*="/order/"]');
         await expect(payFromList, "the customer's orders should offer to pay the order").toHaveAttribute('href', /** @type {string} */ (orderPage));
 
         await clickAndWaitForPage(page, payFromList);

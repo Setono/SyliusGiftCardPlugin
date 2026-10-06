@@ -1,8 +1,7 @@
+# For a shop whose URLs carry no locale: the routes of routes.yaml, with the shop routes at the root of the shop instead
+# of under /{_locale}, as such a shop imports Sylius' own
 setono_sylius_gift_card_shop:
     resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/shop.yaml"
-    prefix: /{_locale}
-    requirements:
-        _locale: ^[A-Za-z]{2,4}(_([A-Za-z]{4}|[0-9]{3}))?(_([A-Za-z]{2}|[0-9]{3}))?$
 
 # Under the application's admin path (SYLIUS_ADMIN_ROUTING_PATH_NAME) like Sylius' own admin, because that is the path
 # its admin firewall and access control cover

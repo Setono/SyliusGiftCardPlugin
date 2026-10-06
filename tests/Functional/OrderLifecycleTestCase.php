@@ -253,14 +253,14 @@ abstract class OrderLifecycleTestCase extends GiftCardFunctionalTestCase
     /**
      * The card's ledger as it is in the database, oldest row first
      *
-     * @return list<array{type: string, amount: int, idempotencyKey: string|null, order: int|null, payment: int|null}>
+     * @return list<array{type: string, amount: int, idempotencyKey: string|null, order: int|null, payment: int|null, createdBy: string|null}>
      */
     protected function persistedLedgerOf(GiftCardInterface $giftCard): array
     {
-        /** @var list<array{type: string, amount: int, idempotencyKey: string|null, orderId: int|string|null, paymentId: int|string|null}> $rows */
+        /** @var list<array{type: string, amount: int, idempotencyKey: string|null, orderId: int|string|null, paymentId: int|string|null, createdBy: string|null}> $rows */
         $rows = $this->manager
             ->createQuery(sprintf(
-                'SELECT t.type, t.amount, t.idempotencyKey, IDENTITY(t.order) AS orderId, IDENTITY(t.payment) AS paymentId FROM %s t WHERE t.giftCard = :giftCard ORDER BY t.id',
+                'SELECT t.type, t.amount, t.idempotencyKey, IDENTITY(t.order) AS orderId, IDENTITY(t.payment) AS paymentId, t.createdBy FROM %s t WHERE t.giftCard = :giftCard ORDER BY t.id',
                 $this->manager->getClassMetadata(GiftCardTransactionInterface::class)->getName(),
             ))
             ->setParameter('giftCard', $giftCard->getId())
@@ -273,6 +273,7 @@ abstract class OrderLifecycleTestCase extends GiftCardFunctionalTestCase
             'idempotencyKey' => $row['idempotencyKey'],
             'order' => null === $row['orderId'] ? null : (int) $row['orderId'],
             'payment' => null === $row['paymentId'] ? null : (int) $row['paymentId'],
+            'createdBy' => $row['createdBy'],
         ], $rows);
     }
 }

@@ -30,7 +30,8 @@ test.describe('admin icons', () => {
 
             const response = await page.goto(url);
             expect(response?.status(), url).toBe(200);
-            // the header's icon is the one that went missing, so there has to be one to check
+            // The header's icon is the one that went missing, so there has to be one to check. Sylius' header macro has
+            // no hook, so the header is found by its Semantic UI classes, the way a table without one is
             await expect(page.locator('h1.ui.header i.icon')).toHaveCount(1);
 
             expect(await blankIcons(page), `the icons on ${url} that draw nothing`).toEqual([]);

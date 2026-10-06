@@ -1,8 +1,9 @@
 const { test, expect } = require('@playwright/test');
-const { signInAsAdministrator } = require('../support/admin');
+const { GRID_ROWS, signInAsAdministrator } = require('../support/admin');
 const { checkOutAsGuest, placeOrder, uniqueEmail } = require('../support/checkout');
 const { filterGiftCards, giftCardDetails, giftCardIds, giftCardRows, giftCardStatuses, giftCardTransactions } = require('../support/gift-cards');
 const { moneyInCents } = require('../support/money');
+const { clickAndWaitForPage } = require('../support/navigation');
 const { cancelOrder, completeOrderPayments, openOrderOf, orderPayments } = require('../support/orders');
 const { addGiftCardToCart, addOrdinaryProductToCart, cartFigure, giftCardVariantCount, redeemGiftCard, shopPath } = require('../support/shop');
 
@@ -47,7 +48,7 @@ test.describe('buying a gift card', () => {
 
         // ... unless the admin asks for the pending cards
         await filterGiftCards(admin.page, { customer: email, pending: 'only' });
-        const pending = admin.page.locator('table tbody tr').filter({ hasText: email });
+        const pending = admin.page.locator(GRID_ROWS).filter({ hasText: email });
         await expect(pending).toHaveCount(1);
         expect(await giftCardStatuses(pending)).toEqual(['Pending']);
 
@@ -69,15 +70,19 @@ test.describe('buying a gift card', () => {
         expect(details.Design).toBe(design);
 
         // The show page leads to the order the card was bought with, and to the design with its front image
-        const detailRow = (label) => admin.page.locator('table').first().locator('tr').filter({ has: admin.page.locator('td strong', { hasText: new RegExp(`^${label}$`) }) });
+        const detailRow = (label) => admin.page.locator('table.ui.table').first().locator('tr').filter({ has: admin.page.locator('td strong', { hasText: new RegExp(`^${label}$`) }) });
         expect(details['Bought with order']).toBe(`#${order.number}`);
         await expect(detailRow('Bought with order').locator('a')).toHaveAttribute('href', order.url);
         await expect(detailRow('Design').locator('a')).toHaveAttribute('href', /\/admin\/gift-card-designs\/\d+\/edit$/);
         await expect(detailRow('Design').locator('a img')).toBeVisible();
 
-        // Issuance is recorded when the order is paid, the first moment the balance is final
+        // Issuance is recorded when the order is paid, the first moment the balance is final, and leads back to the
+        // order that paid for the card. The admin who marked the payment completed is not named as having issued it:
+        // the order did
         const transactions = await giftCardTransactions(admin.page, id);
-        expect(transactions.map(({ type, amount: moved }) => [type, moved])).toEqual([['Issued', amount]]);
+        expect(transactions.map(({ type, amount: moved, order: number, orderHref, createdBy }) => [type, moved, number, orderHref, createdBy])).toEqual([
+            ['Issued', amount, `#${order.number}`, order.url, '-'],
+        ]);
 
         // The card now pays for something else, in a cart of a customer of its own
         const code = details.Code.replace(/-/g, '');
@@ -153,8 +158,7 @@ test.describe('buying a gift card', () => {
         // up first, then down again, so reconciliation has both a unit to add a card for and a card to drop
         for (const units of [3, 2]) {
             await quantity.fill(String(units));
-            await page.locator('#sylius-cart-update').click();
-            await page.waitForLoadState();
+            await clickAndWaitForPage(page, page.locator('[data-test-cart-update-button]'));
 
             expect(moneyInCents(await line.locator('.sylius-unit-price').innerText()), `unit price for ${units} units`).toBe(amount);
             expect(moneyInCents(await line.locator('.sylius-total').innerText()), `line total for ${units} units`).toBe(units * amount);

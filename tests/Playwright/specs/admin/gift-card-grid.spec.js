@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { clickAndConfirm } = require('../support/admin');
+const { GRID_ROWS, clickAndConfirm } = require('../support/admin');
 const { firstGiftCardId, giftCardCode } = require('../support/fixtures');
 const { adjustBalance, filterGiftCards, giftCardIds, giftCardRows, giftCardStatuses, issueGiftCard } = require('../support/gift-cards');
 const { blankIcons } = require('../support/icons');
@@ -8,15 +8,16 @@ const { clickAndWaitForPage } = require('../support/navigation');
 
 /**
  * The filters, sorting and status column the gift card grid offers. The grid is where an admin looks a card up when a
- * customer asks about one, so finding a card by its code and telling usable cards from the others have to work.
+ * customer asks about one, so finding a card by its code, telling usable cards from the others and physical cards from
+ * virtual ones have to work.
  */
 
 /**
- * The grid's rows and column headers. The test application runs in the dev environment, whose web debug toolbar lists
- * the page's AJAX requests in a table of its own, so a bare `table tbody tr` also counts those
+ * The grid's rows and column headers, by Sylius' hooks on the grid's table. A bare `table tbody tr` also counts the rows
+ * of any other table on the page, such as the web debug toolbar's list of AJAX requests in the dev environment (#427)
  */
-const ROWS = 'table.ui.table tbody tr';
-const HEADERS = 'table.ui.table thead th';
+const ROWS = GRID_ROWS;
+const HEADERS = '[data-test-grid-table] thead th';
 
 /**
  * The code column of every row the grid lists, without the grouping the grid shows a code in, so it compares with the
@@ -25,7 +26,7 @@ const HEADERS = 'table.ui.table thead th';
  * @param {import('@playwright/test').Page} page
  */
 async function listedCodes(page) {
-    return (await page.locator(`${ROWS} td:first-child`).allInnerTexts()).map((code) => code.trim().replace(/-/g, ''));
+    return (await page.locator(`${ROWS} > td:first-child`).allInnerTexts()).map((code) => code.trim().replace(/-/g, ''));
 }
 
 /**
@@ -38,10 +39,26 @@ async function listedAmounts(page) {
     expect(column, 'the grid shows no amount column').toBeGreaterThanOrEqual(0);
 
     // the cell names the initial amount below a balance that has moved, so only its first line is the balance
-    const cells = await page.locator(`${ROWS} td:nth-child(${column + 1})`).allInnerTexts();
+    const cells = await page.locator(`${ROWS} > td:nth-child(${column + 1})`).allInnerTexts();
 
     return cells.map((cell) => moneyInCents(cell.split('\n')[0]));
 }
+
+/**
+ * The delivery type column of every row the grid lists
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function listedDeliveryTypes(page) {
+    const column = await page.locator(HEADERS).evaluateAll((headers) => headers.findIndex((header) => /^\s*Delivery type/.test(header.textContent ?? '')));
+    expect(column, 'the grid shows no delivery type column').toBeGreaterThanOrEqual(0);
+
+    return (await page.locator(`${ROWS} > td:nth-child(${column + 1})`).allInnerTexts()).map((deliveryType) => deliveryType.trim());
+}
+
+// Seeded with known codes by the test application's fixtures: a physical card, and a virtual one
+const PHYSICAL_GIFT_CARD_CODE = 'E2EPHYSICAL001';
+const VIRTUAL_GIFT_CARD_CODE = 'E2EREDEMPTION01';
 
 /**
  * Deletes the given untouched cards through their rows, which keeps them from topping the grid for other specs
@@ -50,8 +67,15 @@ async function listedAmounts(page) {
  * @param {Array<{printedCode: string}>} cards
  */
 async function deleteCards(page, cards) {
+    await page.goto('/admin/gift-cards/');
+
     for (const card of cards) {
-        await clickAndConfirm(page, (await giftCardRows(page, card.printedCode)).getByRole('button', { name: /delete/i }));
+        // deleting leads back to the grid, which lists the next card too, unless the grid was filtered it away
+        let row = page.locator(ROWS).filter({ hasText: card.printedCode });
+        if (0 === (await row.count())) {
+            row = await giftCardRows(page, card.printedCode);
+        }
+        await clickAndConfirm(page, row.getByRole('button', { name: /delete/i }));
     }
 }
 
@@ -107,24 +131,33 @@ test.describe('admin gift card grid', () => {
      * per card instead, the same the show page shows
      */
     test('the status column tells usable, disabled, expired and spent cards apart', async ({ page }) => {
+        // four cards issued through the admin form, one of them spent, each shown, and three deleted again: a couple of
+        // dozen page loads, which on a busy runner come close to the default timeout. CI does not retry
+        test.slow();
+
         const usable = await issueGiftCard(page, { amount: 1000 });
         const disabled = await issueGiftCard(page, { amount: 1000, enabled: false });
         const expired = await issueGiftCard(page, { amount: 1000, expiresAt: '2020-01-31' });
         const spent = await issueGiftCard(page, { amount: 1000 });
         await adjustBalance(page, spent.id, -1000, 'Paid in the physical store');
 
+        const cards = [[usable, 'Usable'], [disabled, 'Disabled'], [expired, 'Expired'], [spent, 'Spent']];
+
         try {
+            // the grid lists the newest cards first, so one page shows all four
             await page.goto('/admin/gift-cards/');
             await expect(page.locator(HEADERS).filter({ hasText: /^\s*Enabled/ })).toHaveCount(0);
-
-            for (const [card, status] of [[usable, 'Usable'], [disabled, 'Disabled'], [expired, 'Expired'], [spent, 'Spent']]) {
-                const row = await giftCardRows(page, card.printedCode);
+            for (const [card, status] of cards) {
+                const row = page.locator(ROWS).filter({ hasText: card.printedCode });
+                await expect(row, `the grid should list ${card.printedCode}`).toHaveCount(1);
                 expect(await giftCardStatuses(row), `the status of ${card.printedCode}`).toEqual([status]);
                 // each status has an icon of its own, which only a card in that status shows
-                expect(await blankIcons(row.locator('[data-gift-card-status]')), `the icon of the ${status} status`).toEqual([]);
+                expect(await blankIcons(row.locator('[data-test-gift-card-status]')), `the icon of the ${status} status`).toEqual([]);
+            }
 
+            for (const [card, status] of cards) {
                 await page.goto(`/admin/gift-cards/${card.id}`);
-                await expect(page.locator('table').first().locator('[data-gift-card-status]'), `the show page of ${card.printedCode}`).toHaveText(status);
+                await expect(page.locator('table.ui.table').first().locator('[data-test-gift-card-status]'), `the show page of ${card.printedCode}`).toHaveText(status);
             }
         } finally {
             await deleteCards(page, [usable, disabled, expired]);
@@ -179,6 +212,22 @@ test.describe('admin gift card grid', () => {
             expect(new Set(await giftCardStatuses(page.locator(ROWS))), 'enabled, not expired and not spent is usable').toEqual(new Set(['Usable']));
         } finally {
             await deleteCards(page, [expired]);
+        }
+    });
+
+    /**
+     * A physical card is shipped with its code printed on it and a virtual one is emailed, which is the first thing
+     * support needs to know when a customer asks where their card is
+     */
+    test('the grid tells a physical card from a virtual one', async ({ page }) => {
+        for (const [code, deliveryType] of [
+            [PHYSICAL_GIFT_CARD_CODE, 'Physical'],
+            [VIRTUAL_GIFT_CARD_CODE, 'Virtual'],
+        ]) {
+            await filterGiftCards(page, { code: { type: 'equal', value: code } });
+
+            expect(await listedCodes(page)).toEqual([code]);
+            expect(await listedDeliveryTypes(page), `the delivery type of ${code}`).toEqual([deliveryType]);
         }
     });
 

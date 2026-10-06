@@ -87,6 +87,21 @@ class GiftCardProductExampleFactory extends AbstractExampleFactory implements Ex
             ->setNormalizer('channels', LazyOption::findBy($this->channelRepository, 'code'))
             ->setDefault('delivery_types', GiftCardDeliveryType::cases())
             ->setAllowedTypes('delivery_types', 'array')
+            // A fixture file gives the values, an application building on this factory may give the cases, and the
+            // product factory takes cases. A type given twice still gets one variant, since a variant code is unique
+            ->setNormalizer('delivery_types', static function (Options $options, array $deliveryTypes): array {
+                $cases = [];
+                foreach ($deliveryTypes as $deliveryType) {
+                    if (!$deliveryType instanceof GiftCardDeliveryType) {
+                        Assert::string($deliveryType);
+                        $deliveryType = GiftCardDeliveryType::from($deliveryType);
+                    }
+
+                    $cases[$deliveryType->value] = $deliveryType;
+                }
+
+                return array_values($cases);
+            })
         ;
     }
 }

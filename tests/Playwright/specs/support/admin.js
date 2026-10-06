@@ -7,6 +7,12 @@ const { expect } = require('@playwright/test');
 const { clickAndWaitForPage } = require('./navigation');
 
 /**
+ * The rows of the admin grid on the page, by the hook Sylius puts on the grid's body. A bare `table tbody tr` also
+ * matches the rows of every other table on the page, such as the web debug toolbar's list of AJAX requests (#427)
+ */
+const GRID_ROWS = '[data-test-grid-table-body] > tr';
+
+/**
  * An administrator signed in through the login form, in a browser context of its own.
  *
  * A customer journey in the shop often ends in the admin (a payment is completed, an order cancelled, a card looked
@@ -32,7 +38,6 @@ async function signInAsAdministrator(browser) {
     await page.fill('input[name="_password"]', 'sylius');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/admin/');
-    await page.waitForLoadState('networkidle');
 
     // Proven rather than assumed, so a session that did not survive shows up here and not as a failure elsewhere
     await page.goto('/admin/gift-cards/');
@@ -80,4 +85,26 @@ async function flashMessages(page) {
     return (await page.locator('.sylius-flash-message').allInnerTexts()).map((text) => text.replace(/\s+/g, ' ').trim());
 }
 
-module.exports = { clickAndConfirm, flashMessages, setChecked, signInAsAdministrator };
+/**
+ * The user identifier of the administrator the page is signed in as, which is how a gift card's ledger names the
+ * administrator who adjusted a balance or issued a card. Read from their account, which the "My account" link in the
+ * admin's top bar leads to: Sylius identifies an administrator by their username in lower case (`usernameCanonical`),
+ * whether they signed in with it or with their email
+ *
+ * @param {import('@playwright/test').Page} page an authenticated admin page
+ * @returns {Promise<string>}
+ */
+async function signedInAdministrator(page) {
+    await page.goto('/admin/');
+
+    const account = await page.locator('.ui.dropdown .menu a.item').filter({ has: page.locator('i.user.icon') }).getAttribute('href');
+    expect(account, 'the admin top bar has no link to the account of the signed in administrator').toMatch(/^\/admin\/users\/\d+\/edit$/);
+
+    await page.goto(/** @type {string} */ (account));
+    const username = await page.locator('input[name="sylius_admin_user[username]"]').inputValue();
+    expect(username, 'the account of the signed in administrator shows no username').not.toBe('');
+
+    return username.toLowerCase();
+}
+
+module.exports = { GRID_ROWS, clickAndConfirm, flashMessages, setChecked, signedInAdministrator, signInAsAdministrator };

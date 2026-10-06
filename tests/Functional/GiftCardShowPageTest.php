@@ -9,6 +9,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImageInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
+use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -78,7 +79,7 @@ final class GiftCardShowPageTest extends AdminFunctionalTestCase
         self::assertSame(['Expired'], $this->detail($this->show($expired), 'Status'));
         self::assertSame(
             ['expired'],
-            self::textsOf($this->show($expired), '//tr[td[1]/strong[normalize-space() = "Status"]]//*[contains(@class, "ui orange label")]/@data-gift-card-status'),
+            self::textsOf($this->show($expired), '//tr[td[1]/strong[normalize-space() = "Status"]]//*[contains(@class, "ui orange label")]/@data-test-gift-card-status'),
         );
     }
 
@@ -212,6 +213,37 @@ final class GiftCardShowPageTest extends AdminFunctionalTestCase
         $links = '//tr[td[1]/strong[normalize-space() = "Customer"]]/td[2]/a/@href';
         self::assertSame(['mailto:customer@example.com', sprintf('/admin/customers/%d', (int) $customer->getId())], self::textsOf($response, $links));
         self::assertSame(self::textsOf($response, $links), self::textsOf($index, '//tbody[@data-test-grid-table-body]/tr/td[2]/a/@href'));
+    }
+
+    /**
+     * The ledger is the audit trail for the card's money: each row says which order it belongs to, linked to that
+     * order, and which administrator made a movement by hand. The administrator is a copy of their user identifier,
+     * not a reference to their account, so it is shown as text
+     *
+     * @test
+     */
+    public function it_shows_the_order_and_the_administrator_of_each_ledger_row(): void
+    {
+        $order = $this->persistOrder('000042');
+        $giftCard = $this->persistGiftCard('SHOWPAGELEDGER01', 5000);
+
+        /** @var GiftCardBalanceOperatorInterface $balanceOperator */
+        $balanceOperator = self::getContainer()->get(GiftCardBalanceOperatorInterface::class);
+        $balanceOperator->issue($giftCard, $order);
+        $balanceOperator->adjust($giftCard, -1000, 'Paid in the physical store', 'jane');
+        $this->manager->flush();
+
+        $response = $this->show($giftCard);
+
+        $ledger = '//table[thead/tr/th[normalize-space() = "Created by"]]';
+        self::assertSame(['Date', 'Type', 'Amount', 'Reason', 'Order', 'Created by'], self::textsOf($response, $ledger . '/thead/tr/th'));
+        // type, order and administrator of each row, oldest first
+        self::assertSame(['Issued', '#000042', '-'], self::textsOf($response, $ledger . '/tbody/tr[1]/td[position() = 2 or position() >= 5]'));
+        self::assertSame(['Manual adjustment', '-', 'jane'], self::textsOf($response, $ledger . '/tbody/tr[2]/td[position() = 2 or position() >= 5]'));
+        self::assertSame(
+            [sprintf('/admin/orders/%d', (int) $order->getId())],
+            self::textsOf($response, $ledger . '/tbody/tr[1]/td[5]/a/@href'),
+        );
     }
 
     private function show(GiftCardInterface $giftCard): Response

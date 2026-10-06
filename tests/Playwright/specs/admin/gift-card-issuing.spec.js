@@ -1,12 +1,31 @@
 const { test, expect } = require('@playwright/test');
-const { clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
-const { addSomethingToCart, applyGiftCard } = require('../support/cart');
+const { clickAndConfirm, flashMessages, setChecked, signedInAdministrator } = require('../support/admin');
 const { adjustBalance, giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
 const { moneyInCents } = require('../support/money');
 const { anyCustomerEmail, channelBaseCurrencyCode } = require('../support/fixtures');
 const { clickAndWaitForPage } = require('../support/navigation');
+const { addOrdinaryProductToCart, redeemGiftCard } = require('../support/shop');
 
 const FORM = 'form[name="setono_sylius_gift_card_gift_card"]';
+
+// The design picker's choice of no design, Symfony's placeholder, whose value is empty
+const NO_DESIGN = 'input[type="radio"][name$="[design]"][value=""]';
+
+/**
+ * The create and edit forms' design picker, a radio group named by its legend. The legend is translated, so it is
+ * read off the form, and the group is then found by that name, the way assistive technology finds it
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function designPicker(page) {
+    const legend = (await page.locator(`${FORM} fieldset[data-js-gift-card-design-picker] > legend`).innerText()).trim();
+    expect(legend, 'the design picker needs a legend to name it').not.toBe('');
+
+    const picker = page.getByRole('group', { name: legend, exact: true });
+    await expect(picker).toHaveCount(1);
+
+    return picker;
+}
 
 /**
  * Issuing, changing and removing gift cards in the admin.
@@ -25,7 +44,8 @@ async function outstandingBalances(page) {
     await page.goto('/admin/gift-cards/balance');
 
     const balances = new Map();
-    for (const row of await page.locator('table tbody tr').all()) {
+    // the report's own table, not the rows of any other table on the page (#427)
+    for (const row of await page.locator('table.ui.table tbody tr').all()) {
         const cells = await row.locator('td').allInnerTexts();
         if (4 === cells.length) {
             balances.set(cells[0].trim(), { count: Number(cells[1].trim()), total: moneyInCents(cells[2]) });
@@ -69,12 +89,13 @@ test.describe('admin issuing gift cards', () => {
 
         // a customer of the shop, not the signed in administrator
         const shop = await browser.newContext({ storageState: { cookies: [], origins: [] } });
-        const customer = await shop.newPage();
-        await addSomethingToCart(customer);
-        await applyGiftCard(customer, typed);
-        // the cart lists the code grouped in fours, so the card is found through its remove form, which carries the stored code
-        await expect(customer.locator(`form[action*="/gift-cards/${card.code}/remove"]`)).toBeVisible();
-        await shop.close();
+        try {
+            const customer = await shop.newPage();
+            await addOrdinaryProductToCart(customer);
+            await redeemGiftCard(customer, card.code, typed);
+        } finally {
+            await shop.close();
+        }
     });
 
     /**
@@ -120,8 +141,8 @@ test.describe('admin issuing gift cards', () => {
         await expect(page.locator(`${FORM} select[name$="[deliveryType]"]`)).toHaveValue('virtual');
 
         // A radio group named by its legend
-        const picker = page.getByRole('group', { name: 'Design' });
-        await expect(picker.getByRole('radio', { name: 'None (default layout)' })).toBeChecked();
+        const picker = await designPicker(page);
+        await expect(picker.locator(NO_DESIGN)).toBeChecked();
 
         // Any design the chosen channel offers with front artwork will do; it is shown as a thumbnail
         const choice = picker.locator(`label[data-channels~="${channel}"]`).filter({ has: page.locator('img') }).first();
@@ -143,11 +164,11 @@ test.describe('admin issuing gift cards', () => {
 
         // The design can be changed afterwards; the delivery type is shown, but settled at issuance
         await page.goto(`/admin/gift-cards/${card.id}/edit`);
-        await expect(page.getByRole('group', { name: 'Design' }).getByRole('radio', { name, exact: true })).toBeChecked();
+        await expect((await designPicker(page)).getByRole('radio', { name, exact: true })).toBeChecked();
         await expect(page.locator(`${FORM} select[name$="[deliveryType]"]`)).toHaveValue('physical');
         await expect(page.locator(`${FORM} select[name$="[deliveryType]"]`)).toBeDisabled();
 
-        await page.getByRole('group', { name: 'Design' }).getByRole('radio', { name: 'None (default layout)' }).check();
+        await (await designPicker(page)).locator(NO_DESIGN).check();
         await clickAndWaitForPage(page, page.locator(`${FORM} button[type="submit"]`).first());
         expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/successfully updated/i));
 
@@ -163,7 +184,7 @@ test.describe('admin issuing gift cards', () => {
     test('the design picker shows the designs the chosen channel offers', async ({ page }) => {
         await page.goto('/admin/gift-cards/new');
         const channelSelect = page.locator(`${FORM} select[name$="[channel]"]`);
-        const picker = page.getByRole('group', { name: 'Design' });
+        const picker = await designPicker(page);
 
         const channels = await channelSelect.locator('option').evaluateAll((options) => options.map((option) => option.value));
         for (const channel of channels) {
@@ -179,7 +200,7 @@ test.describe('admin issuing gift cards', () => {
             }
 
             // a card can always be issued without a design
-            await expect(picker.getByRole('radio', { name: 'None (default layout)' })).toBeVisible();
+            await expect(picker.locator(NO_DESIGN)).toBeVisible();
         }
     });
 
@@ -200,7 +221,7 @@ test.describe('admin issuing gift cards', () => {
         expect(moneyInCents(details.Amount)).toBe(2500);
         expect(moneyInCents(details['Initial amount'])).toBe(2500);
         // the customer row does what the grid's customer column does: the email mails them, the icon opens them
-        const customerRow = page.locator('table').first().locator('tr').filter({ hasText: 'Customer' });
+        const customerRow = page.locator('table.ui.table').first().locator('tr').filter({ hasText: 'Customer' });
         await expect(customerRow.locator(`a[href="mailto:${email}"]`)).toHaveText(email);
         await expect(customerRow.getByRole('link', { name: `Open customer ${email} in a new tab` })).toHaveAttribute('href', /\/admin\/customers\/\d+$/);
 
@@ -225,7 +246,7 @@ test.describe('admin issuing gift cards', () => {
         const card = await issueGiftCard(page, { amount: 1500, customMessage: message });
 
         await page.goto(`/admin/gift-cards/${card.id}`);
-        const shown = page.locator('table').first().locator('tbody tr').filter({ hasText: 'Custom message' }).locator('td').nth(1);
+        const shown = page.locator('table.ui.table').first().locator('tbody tr').filter({ hasText: 'Custom message' }).locator('td').nth(1);
 
         expect(await shown.innerText()).toBe(message);
         await expect(shown.locator('b')).toHaveCount(0);
@@ -268,7 +289,12 @@ test.describe('admin issuing gift cards', () => {
         expect((await giftCardTransactions(page, card.id)).map(({ type }) => type)).toEqual(['Issued']);
     });
 
-    test('adjusting the balance is recorded in the ledger with its reason', async ({ page }) => {
+    /**
+     * The ledger is the audit trail for the card's money, so a movement an admin makes by hand says why and who made
+     * it: each adjustment, and issuing the card in the first place. None of them belongs to an order
+     */
+    test('adjusting the balance is recorded in the ledger with its reason and the admin who made it', async ({ page }) => {
+        const administrator = await signedInAdministrator(page);
         const card = await issueGiftCard(page, { amount: 10_000 });
 
         await adjustBalance(page, card.id, 2500, 'Goodwill after a late delivery');
@@ -278,11 +304,11 @@ test.describe('admin issuing gift cards', () => {
         expect(moneyInCents(details.Amount)).toBe(8500);
         expect(moneyInCents(details['Initial amount'])).toBe(10_000);
 
-        const ledger = (await giftCardTransactions(page, card.id)).map(({ type, amount, reason }) => [type, amount, reason]);
+        const ledger = (await giftCardTransactions(page, card.id)).map(({ type, amount, reason, order, createdBy }) => [type, amount, reason, order, createdBy]);
         expect(ledger).toEqual([
-            ['Issued', 10_000, '-'],
-            ['Manual adjustment', 2500, 'Goodwill after a late delivery'],
-            ['Manual adjustment', -4000, 'Paid in the physical store'],
+            ['Issued', 10_000, '-', null, administrator],
+            ['Manual adjustment', 2500, 'Goodwill after a late delivery', null, administrator],
+            ['Manual adjustment', -4000, 'Paid in the physical store', null, administrator],
         ]);
 
         // The grid tells a card that has been spent from apart from a fresh one
@@ -332,11 +358,11 @@ test.describe('admin issuing gift cards', () => {
         await page.goto(`/admin/gift-cards/${card.id}/adjust-balance`);
         const showPage = `/admin/gift-cards/${card.id}`;
         await expect(page.locator('.breadcrumb').getByRole('link', { name: card.printedCode })).toHaveAttribute('href', showPage);
-        await expect(page.locator('form.ui.form').getByRole('link', { name: 'Cancel' })).toHaveAttribute('href', showPage);
+        await expect(page.locator('form[name="setono_sylius_gift_card_adjust_balance"]').getByRole('link', { name: 'Cancel' })).toHaveAttribute('href', showPage);
 
         await adjustBalance(page, card.id, -1000, 'Paid at the till');
 
         expect(new URL(page.url()).pathname).toBe(showPage);
-        await expect(page.locator('table').filter({ has: page.locator('thead') }).getByText('Paid at the till')).toBeVisible();
+        await expect(page.locator('[data-test-gift-card-transaction="manual"]').filter({ hasText: 'Paid at the till' })).toBeVisible();
     });
 });

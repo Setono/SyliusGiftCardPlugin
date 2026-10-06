@@ -6,6 +6,7 @@ Version `1.0` is a ground-up rewrite. It is a **clean break**: there is no autom
 
 - Sylius `1.13` and up (was `^1.11`) — `1.13` is the floor because the plugin uses `Sylius\Abstraction\StateMachine`, which Sylius introduced in `1.13`
 - PHP `>= 8.1`, Symfony `^6.4` only (Symfony 5.4 support dropped)
+- Twig below `3.29`. The plugin conflicts with `twig/twig` `>=3.29`, because `sylius/mailer-bundle` up to 2.2.0 cannot send emails on newer Twig releases, and the fixed 2.2.1 needs PHP 8.2. If your application has Twig 3.29 or newer locked, update with `composer require setono/sylius-gift-card-plugin:^1.0 --with-all-dependencies` so Composer can move Twig back to 3.28. The README's [Twig below 3.29](README.md#twig-below-329) section explains it in full
 
 ## Removed: the API layer
 
@@ -14,10 +15,10 @@ The entire API Platform / `sylius/api-bundle` integration has been removed. If y
 ## Feature changes
 
 - **One gift card type.** The customer always chooses the amount. The `giftCardAmountConfigurable` product flag is gone; a product is simply a gift card product or not (`ProductTrait` now exposes a single `giftCard` flag).
-- **Virtual vs physical.** New: a gift card is virtual or physical based on the chosen variant's `shipping required` flag. Physical gift cards ship through the normal Sylius shipping flow.
+- **Virtual vs physical.** New: a gift card is virtual or physical based on the chosen variant's `shipping required` flag. Physical gift cards ship through the normal Sylius shipping flow. The `setono_gift_card` fixture seeds virtual cards, unless an entry says `delivery_type: physical`.
 - **Designs.** New `GiftCardDesign` resource (translatable, with front/back images). The old `GiftCardConfiguration` / `GiftCardChannelConfiguration` / `GiftCardConfigurationImage` entities and the DB-stored Twig template are **removed** — the PDF is now a normal, overridable Twig template file.
 - **Redemption is a payment, not an adjustment.** Where 0.12.x reduced the order total with a negative adjustment, a redeemed gift card is now a completed `Payment` against the order, leaving the total intact. This matches how gift cards work on other platforms and how accounting and order management systems expect to see them: selling a gift card takes money for a liability, and redeeming it settles that liability rather than discounting the order. Anything reading `order_gift_card` adjustments must read the order's gift card payments instead.
-- **Ledger.** New `GiftCardTransaction` append-only ledger records every balance change; admins can adjust balances with a reason.
+- **Ledger.** New `GiftCardTransaction` append-only ledger records every balance change; admins can adjust balances with a reason. A row names the admin who adjusted the balance or issued the card in the admin, and the issuance of a card bought in the shop names the order that paid for it.
 - **Dropped features.** The public balance-lookup page and the shop "my gift cards" account section were removed.
 
 ## Configuration migration
@@ -28,6 +29,14 @@ Two changes deserve a closer look, because a gift card code is a bearer token (w
 
 - **`code_length` must be at least 12.** `0.12.x` accepted anything from 1 and defaulted to 20. A shorter setting now stops the container from compiling with `The value 8 is too small for path "setono_sylius_gift_card.code_length". Should be greater than or equal to 12`. Raise it or drop it (the default is 16). Codes already issued keep working whatever their length; the setting only applies to codes generated from now on. The same floor applies to a code an admin types when issuing a card and to codes given to the `setono_gift_card` fixture, through the new `minimum_code_length` setting (12 by default, and it cannot be lowered); a fixture file naming a shorter code now fails to load.
 - **Applying a code is rate limited**, per session and per client IP, through two limiters the plugin registers under `framework.rate_limiter` (see the README). Behind a reverse proxy or load balancer, configure `framework.trusted_proxies` first: without it every customer's requests come from the proxy's address, so they all share one IP budget.
+
+## Routing
+
+`@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml` now puts the admin routes under your admin path (`/%sylius_admin.path_name%`, which `SYLIUS_ADMIN_ROUTING_PATH_NAME` sets), where `0.12.x` always put them under `/admin`. So does `@SetonoSyliusGiftCardPlugin/Resources/config/routes_no_locale.yaml`, which a shop whose URLs carry no locale keeps importing instead, and which still puts the shop routes at the root of the shop. On the default admin path nothing moves.
+
+If your admin lives somewhere else, you will find the plugin's admin pages under your admin path, whichever of the two files you import: for an admin at `/backoffice`, `/admin/gift-cards/...` becomes `/backoffice/gift-cards/...` and `/admin/ajax/customer/...` becomes `/backoffice/ajax/customer/...`. Update any link or bookmark to the old addresses. Those were outside the admin firewall, where a gift card's PDF with its code and the customer search answered without a login; under your admin path they sit behind it with the rest of the admin.
+
+If you imported the plugin's route files yourself, to get the admin pages under your admin path or because `routes_no_locale.yaml` was missing from `1.x` development versions for a while, you can go back to importing `routes.yaml` or `routes_no_locale.yaml`.
 
 ## Entity / schema changes
 
@@ -47,6 +56,18 @@ UPDATE setono_sylius_gift_card__gift_card SET initial_amount = amount WHERE init
 ```
 
 Write a data migration for your own data as needed.
+
+### The ledger table
+
+`setono_sylius_gift_card__gift_card_transaction` has the columns `amount`, `type`, `reason`, `idempotency_key` (nullable, unique), `created_by` (nullable), `created_at`, and the foreign keys `gift_card_id` (`CASCADE` on delete), `order_id` and `payment_id` (both `SET NULL` on delete).
+
+`created_by` holds the user identifier of the admin who adjusted a balance or issued a card in the admin. It is a copy of the identifier as text, not a foreign key to `sylius_admin_user`, so the ledger keeps naming the admin after their account is renamed or deleted. An application that created this table from a `1.x` development version before `created_by` existed gets this from `doctrine:migrations:diff`:
+
+```sql
+ALTER TABLE setono_sylius_gift_card__gift_card_transaction ADD created_by VARCHAR(255) DEFAULT NULL;
+```
+
+The rows such an application already has keep `created_by` `NULL`, and the issuance rows of cards bought in the shop before then have no `order_id`. The card's order item still leads to that order.
 
 ### Column names
 

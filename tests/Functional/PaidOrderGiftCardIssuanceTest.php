@@ -15,7 +15,7 @@ use Symfony\Component\Mime\Part\DataPart;
 
 /**
  * Paying the order is what turns the gift cards it bought into money the shop owes: they are enabled, their issuance
- * goes into the ledger, and the buyer gets them in one email with a PDF of each card attached
+ * goes into the ledger against the order, and the buyer gets them in one email with a PDF of each card attached
  */
 final class PaidOrderGiftCardIssuanceTest extends OrderLifecycleTestCase
 {
@@ -57,10 +57,11 @@ final class PaidOrderGiftCardIssuanceTest extends OrderLifecycleTestCase
             $code = (string) $giftCard->getCode();
 
             self::assertTrue($giftCard->isEnabled(), sprintf('%s should have been enabled', $code));
+            // Recorded once, against the order that paid for the card, and naming nobody: the order issued it
             self::assertSame(
-                [['type' => GiftCardTransactionInterface::TYPE_ISSUE, 'amount' => 5000, 'idempotencyKey' => 'issue-' . $code, 'order' => null, 'payment' => null]],
+                [['type' => GiftCardTransactionInterface::TYPE_ISSUE, 'amount' => 5000, 'idempotencyKey' => 'issue-' . $code, 'order' => $order->getId(), 'payment' => null, 'createdBy' => null]],
                 $this->persistedLedgerOf($giftCard),
-                sprintf('the issuance of %s should have been recorded once', $code),
+                sprintf('the issuance of %s should have been recorded once, against its order', $code),
             );
 
             $attachments[] = sprintf('gift-card-%s.pdf', $code);

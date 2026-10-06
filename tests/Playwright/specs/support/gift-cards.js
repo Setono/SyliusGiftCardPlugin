@@ -7,7 +7,7 @@
  */
 
 const { expect } = require('@playwright/test');
-const { flashMessages, setChecked } = require('./admin');
+const { GRID_ROWS, flashMessages, setChecked } = require('./admin');
 const { channelBaseCurrencyCode } = require('./fixtures');
 const { moneyInCents, typedAmount } = require('./money');
 const { clickAndWaitForPage } = require('./navigation');
@@ -119,7 +119,7 @@ async function adjustBalance(page, id, amount, reason) {
     await page.locator('input[name$="[amount]"]').fill(`${amount < 0 ? '-' : ''}${typedAmount(Math.abs(amount))}`);
     await page.locator('textarea[name$="[reason]"]').fill(reason);
 
-    await clickAndWaitForPage(page, page.locator('form.ui.form button[type="submit"]').first());
+    await clickAndWaitForPage(page, page.locator('form[name="setono_sylius_gift_card_adjust_balance"] button[type="submit"]'));
     expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/balance was adjusted/i));
 }
 
@@ -133,7 +133,8 @@ async function adjustBalance(page, id, amount, reason) {
 async function giftCardDetails(page, id) {
     await page.goto(`/admin/gift-cards/${id}`);
 
-    const rows = page.locator('table').first().locator('tbody tr');
+    // the first of Sylius' tables on the page: the details, which the ledger follows
+    const rows = page.locator('table.ui.table').first().locator('tbody tr');
     const details = {};
     for (const row of await rows.all()) {
         const cells = await row.locator('td').allInnerTexts();
@@ -144,18 +145,18 @@ async function giftCardDetails(page, id) {
 }
 
 /**
- * The card's ledger as its show page lists it, oldest first
+ * The card's ledger as its show page lists it, oldest first. `createdBy` is the administrator who made a movement by
+ * hand (an adjustment, or issuing the card in the admin), and '-' for everything else
  *
  * @param {import('@playwright/test').Page} page
  * @param {string} id
- * @returns {Promise<Array<{type: string, amount: number, reason: string, order: string|null, orderHref: string|null}>>}
+ * @returns {Promise<Array<{type: string, amount: number, reason: string, order: string|null, orderHref: string|null, createdBy: string}>>}
  */
 async function giftCardTransactions(page, id) {
     await page.goto(`/admin/gift-cards/${id}`);
 
-    const table = page.locator('table').filter({ has: page.locator('thead') });
     const transactions = [];
-    for (const row of await table.locator('tbody tr').all()) {
+    for (const row of await page.locator('[data-test-gift-card-transaction]').all()) {
         const cells = await row.locator('td').allInnerTexts();
         const orderLink = row.locator('td').nth(4).locator('a');
         const hasOrder = 0 < (await orderLink.count());
@@ -166,6 +167,7 @@ async function giftCardTransactions(page, id) {
             reason: cells[3].trim(),
             order: hasOrder ? (await orderLink.innerText()).trim() : null,
             orderHref: hasOrder ? await orderLink.getAttribute('href') : null,
+            createdBy: cells[5].trim(),
         });
     }
 
@@ -183,7 +185,7 @@ async function giftCardTransactions(page, id) {
 async function giftCardRows(page, text) {
     await page.goto('/admin/gift-cards/');
 
-    return page.locator('table tbody tr').filter({ hasText: text });
+    return page.locator(GRID_ROWS).filter({ hasText: text });
 }
 
 /**
@@ -225,13 +227,13 @@ async function filterGiftCards(page, criteria) {
 }
 
 /**
- * The status the grid shows in each of the given rows, e.g. "Usable" or "Pending"
+ * The status label the grid shows in each of the given rows, e.g. "Usable" or "Pending", found by its hook
  *
  * @param {import('@playwright/test').Locator} rows
  * @returns {Promise<string[]>}
  */
 async function giftCardStatuses(rows) {
-    return (await rows.locator('[data-gift-card-status]').allInnerTexts()).map((status) => status.trim());
+    return (await rows.locator('[data-test-gift-card-status]').allInnerTexts()).map((status) => status.trim());
 }
 
 /**

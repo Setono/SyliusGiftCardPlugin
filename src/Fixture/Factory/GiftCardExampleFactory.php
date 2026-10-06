@@ -76,7 +76,7 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
         Assert::notNull($currency);
 
         /** @var GiftCardDeliveryType $deliveryType */
-        $deliveryType = $options['deliveryType'];
+        $deliveryType = $options['delivery_type'];
 
         $code = $options['code'];
         Assert::string($code);
@@ -202,9 +202,11 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
             ->setDefault('enabled', true)
             ->setAllowedTypes('enabled', 'bool')
 
-            ->setDefault('deliveryType', GiftCardDeliveryType::Virtual)
-            ->setAllowedTypes('deliveryType', ['string', GiftCardDeliveryType::class])
-            ->setNormalizer('deliveryType', static function (Options $options, $deliveryType): GiftCardDeliveryType {
+            // Named like the fixture's node, because the fixture hands each entry to this factory as it is. A fixture
+            // file gives the value, an application building on the factory may give the case
+            ->setDefault('delivery_type', GiftCardDeliveryType::Virtual)
+            ->setAllowedTypes('delivery_type', ['string', GiftCardDeliveryType::class])
+            ->setNormalizer('delivery_type', static function (Options $options, $deliveryType): GiftCardDeliveryType {
                 if ($deliveryType instanceof GiftCardDeliveryType) {
                     return $deliveryType;
                 }
