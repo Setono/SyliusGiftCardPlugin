@@ -61,6 +61,8 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - The `GiftCardConfiguration` entity family, along with the database-stored PDF template and its live editor
 - The public balance-lookup page and the shop account "my gift cards" section
 - The `origin` property on gift cards
+- `OrderRepositoryTrait` and `Repository\OrderRepositoryInterface`: nothing in the plugin used their queries any
+  more, so an application no longer overrides Sylius' order repository for the plugin
 - The Behat and phpspec suites, replaced by PHPUnit and Playwright
 
 ## 0.6.0
