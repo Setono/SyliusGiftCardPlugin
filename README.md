@@ -467,7 +467,7 @@ All settings are optional and shown here with their defaults:
 setono_sylius_gift_card:
     code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…); at least minimum_code_length, at most 255
     minimum_code_length: 12              # fewest significant characters of any code a card is issued with, generated or typed; 12 to 255, never below 12 because a code is a bearer token and must not be guessable; see below
-    default_validity_period: '3 years'   # how long a card stays valid (any strtotime-compatible interval), or null to never expire; see below
+    default_validity_period: '3 years'   # how long a card stays valid (an interval such as '18 months' or '1 year 6 months'), or null to never expire; see below
     purchase:
         minimum_amount: 100              # minor units (e.g. cents), at least 1
         maximum_amount: ~                # minor units, at least minimum_amount, or ~ for no maximum
@@ -501,14 +501,22 @@ card bought on one order expires on the same day. It does not count from payment
 with a bank transfer. A change to the setting applies to the cards bought or issued after it; existing cards keep their
 expiry.
 
+`default_validity_period` takes an interval that moves a date forward, in units `strtotime()` knows, such as
+`'3 years'`, `'18 months'`, `'2 weeks'`, `'90 days'` or `'1 year 6 months'`, and nothing else. Whether `strtotime()`
+can read a value is not the test, since it reads far more than intervals: it reads a unit it does not know (`'3 yrs'`,
+`'18 mnths'`) or a bare number (`'3'`) as a timezone, which would make every card expire the day it is issued. Such a
+value stops the container from compiling, and so do a day name (`'3 mon'` is the third Monday from now, not 3 months),
+a date, a time of day, a timezone, and an interval of nothing or one that goes back (`'0 days'`, `'-1 year'`,
+`'3 years ago'`).
+
 `default_validity_period` can also be taken from an environment variable, such as
 `default_validity_period: '%env(GIFT_CARD_VALIDITY)%'`. Its value is only known at runtime, so the container compiles
-whatever the variable holds, and the interval is checked where it is used instead. While the variable holds nothing
-`strtotime()` can read, whatever gives a gift card its expiry throws with a message naming the setting, such as
-`The default_validity_period must be a valid strtotime interval, e.g. "3 years": "P3Y"`: adding a gift card to the
-cart, completing an order that buys one, the *New gift card* form, the fixture, and the admin's design preview, which
-draws a sample card. The rest of the shop keeps working. The variable has to give a string, so `%env(int:...)%` is
-refused while the container compiles. To let the variable mean *never expire*, read it as
+whatever the variable holds, and the interval is checked by the same rules where it is used instead. While the variable
+holds anything but such an interval, whatever gives a gift card its expiry throws with a message naming the setting,
+such as `The default_validity_period must be a valid strtotime interval, e.g. "3 years": "3 yrs"`: adding a gift card
+to the cart, completing an order that buys one, the *New gift card* form, the fixture, and the admin's design preview,
+which draws a sample card. The rest of the shop keeps working. The variable has to give a string, so `%env(int:...)%`
+is refused while the container compiles. To let the variable mean *never expire*, read it as
 `%env(default::GIFT_CARD_VALIDITY)%`: an empty or unset variable is then null. The container accepts `default::` here
 from symfony/dependency-injection 6.4.19; before it, Symfony takes `default::` to give any type, an array included,
 and refuses it for this option, as it did before the option could be taken from a variable at all.

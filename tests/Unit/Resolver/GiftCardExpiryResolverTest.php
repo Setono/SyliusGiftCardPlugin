@@ -21,15 +21,30 @@ final class GiftCardExpiryResolverTest extends TestCase
         self::assertContains($expiresAt->format('Y-m-d'), [$before, $after]);
     }
 
-    /** @test */
-    public function it_accepts_any_strtotime_compatible_interval(): void
+    /**
+     * @dataProvider provideIntervals
+     *
+     * @test
+     */
+    public function it_accepts_an_interval_in_any_unit(string $period): void
     {
-        $before = (new \DateTimeImmutable('+18 months'))->format('Y-m-d');
-        $expiresAt = (new GiftCardExpiryResolver('18 months'))->resolve();
-        $after = (new \DateTimeImmutable('+18 months'))->format('Y-m-d');
+        $before = (new \DateTimeImmutable('+' . $period))->format('Y-m-d');
+        $expiresAt = (new GiftCardExpiryResolver($period))->resolve();
+        $after = (new \DateTimeImmutable('+' . $period))->format('Y-m-d');
 
         self::assertNotNull($expiresAt);
         self::assertContains($expiresAt->format('Y-m-d'), [$before, $after]);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideIntervals(): iterable
+    {
+        yield 'months' => ['18 months'];
+        yield 'weeks' => ['2 weeks'];
+        yield 'days' => ['90 days'];
+        yield 'more than one unit' => ['1 year 6 months'];
     }
 
     /**
@@ -56,26 +71,44 @@ final class GiftCardExpiryResolverTest extends TestCase
      * known at runtime. The resolver is built on every product page and for every order, so it only refuses once it is
      * asked for an expiry, with the message the configuration gives
      *
-     * @dataProvider providePeriodsStrtotimeCannotRead
+     * @dataProvider providePeriodsThatAreNotIntervals
      *
      * @test
      */
-    public function it_refuses_a_period_strtotime_cannot_read(string $period, string $expectedMessage): void
+    public function it_refuses_a_period_that_is_not_an_interval(string $period): void
     {
         $resolver = new GiftCardExpiryResolver($period);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessage(sprintf('The default_validity_period must be a valid strtotime interval, e.g. "3 years": "%s"', $period));
 
         $resolver->resolve();
     }
 
     /**
-     * @return iterable<string, array{string, string}>
+     * strtotime() cannot read the first two, or the last. It reads the others, but not as an interval and nothing else,
+     * and most of them would give a card that expires the day it is issued, or before
+     *
+     * @return iterable<string, array{string}>
      */
-    public static function providePeriodsStrtotimeCannotRead(): iterable
+    public static function providePeriodsThatAreNotIntervals(): iterable
     {
-        yield 'not an interval' => ['not a period', 'The default_validity_period must be a valid strtotime interval, e.g. "3 years": "not a period"'];
-        yield 'empty, as a variable that is set to nothing' => ['', 'The default_validity_period must be a valid strtotime interval, e.g. "3 years": ""'];
+        yield 'not an interval' => ['not a period'];
+        yield 'empty, as a variable that is set to nothing' => [''];
+        yield 'a unit strtotime() does not know, read as a timezone' => ['3 yrs'];
+        yield 'a misspelled unit' => ['3 yeers'];
+        yield 'another misspelled unit' => ['18 mnths'];
+        yield 'a unit in another language' => ['2 jahre'];
+        yield 'a number without a unit, read as a timezone' => ['3'];
+        yield 'a day name, read as the third Monday from now' => ['3 mon'];
+        yield 'a day of the month' => ['1 month last day of'];
+        yield 'a date' => ['2030-01-01'];
+        yield 'a time of day' => ['3 years noon'];
+        yield 'a timezone' => ['3 years UTC'];
+        yield 'an interval of nothing' => ['0 days'];
+        yield 'a negative interval' => ['-1 year'];
+        yield 'an interval into the past' => ['3 years ago'];
+        yield 'a unit that goes back, after one that goes forward' => ['1 year -18 months'];
+        yield 'a percent sign, which the message keeps as it is' => ['3 years %'];
     }
 }
