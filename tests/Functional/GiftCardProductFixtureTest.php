@@ -131,6 +131,20 @@ final class GiftCardProductFixtureTest extends GiftCardFunctionalTestCase
     }
 
     /**
+     * Sylius keeps the price in an integer column, a signed 32-bit integer, so a larger price is refused before the
+     * database refuses the product
+     *
+     * @test
+     */
+    public function it_rejects_a_price_the_price_column_cannot_hold(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('A gift card product price has to fit Sylius\' integer price column, from -2147483648 to 2147483647 minor units, got: 2147483648');
+
+        $this->loadFixture('setono_gift_card_product', ['custom' => [['name' => 'Priceless gift card', 'price' => 2147483648]]]);
+    }
+
+    /**
      * @test
      *
      * @dataProvider provideInvalidProductOptions

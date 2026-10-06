@@ -103,7 +103,7 @@ final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
 
         $response = $this->submit($giftCard, '10', '');
 
-        self::assertSame(200, $response->getStatusCode(), 'the form is shown again with the error');
+        self::assertSame(422, $response->getStatusCode(), 'the form is shown again with the error');
         // the plugin's own message, not Symfony's "This value should not be blank."
         self::assertStringContainsString('Please enter a reason for the adjustment', (string) $response->getContent());
         $this->assertBalanceUntouched($giftCard, 5000);
@@ -121,12 +121,64 @@ final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
 
         $response = $this->submit($giftCard, '0', 'Nothing really');
 
-        self::assertSame(200, $response->getStatusCode());
+        self::assertSame(422, $response->getStatusCode());
         self::assertStringContainsString(
             'Enter an amount other than 0: a positive amount increases the balance, a negative amount decreases it.',
             (string) $response->getContent(),
         );
         self::assertStringNotContainsString('should not be equal to', (string) $response->getContent());
+        $this->assertBalanceUntouched($giftCard, 5000);
+    }
+
+    /**
+     * The balance is kept in an integer column, a signed 32-bit integer, so a card holds at most $21,474,836.47. Adding
+     * more used to end in a 500 when the database refused the new balance
+     *
+     * @test
+     */
+    public function it_raises_the_balance_to_the_most_a_card_can_hold_but_no_more(): void
+    {
+        $giftCard = $this->persistGiftCard('ADJUSTME', 5000);
+
+        foreach (['21474786.48', '30000000'] as $amount) {
+            $response = $this->submit($giftCard, $amount, 'Corporate gift');
+
+            self::assertSame(422, $response->getStatusCode(), $amount);
+            self::assertSame(
+                ['A gift card cannot hold more than $21,474,836.47. The balance is $50.00.'],
+                self::amountErrors($response),
+                $amount,
+            );
+            $this->assertBalanceUntouched($giftCard, 5000);
+        }
+
+        $response = $this->submit($giftCard, '21474786.47', 'Corporate gift');
+
+        self::assertTrue($response->isRedirect());
+        $reloaded = $this->reloadGiftCard($giftCard);
+        self::assertSame(2147483647, $reloaded->getAmount());
+
+        $transactions = $reloaded->getTransactions();
+        self::assertCount(1, $transactions);
+        $transaction = $transactions->first();
+        self::assertInstanceOf(GiftCardTransactionInterface::class, $transaction);
+        self::assertSame(2147478647, $transaction->getAmount());
+    }
+
+    /**
+     * The minor units of this amount are beyond PHP's integer range, where Sylius' money field wraps them around: it
+     * used to add $4,464.64 to the balance. The field cannot read it instead, like any other amount it cannot read
+     *
+     * @test
+     */
+    public function it_refuses_an_amount_whose_minor_units_php_cannot_hold(): void
+    {
+        $giftCard = $this->persistGiftCard('ADJUSTME', 5000);
+
+        $response = $this->submit($giftCard, '184467440737095560', 'Goodwill');
+
+        self::assertSame(422, $response->getStatusCode());
+        self::assertSame(['Please enter a valid money amount.'], self::amountErrors($response));
         $this->assertBalanceUntouched($giftCard, 5000);
     }
 
@@ -140,7 +192,7 @@ final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
             'reason' => 'Forged',
         ]]);
 
-        self::assertSame(200, $response->getStatusCode());
+        self::assertSame(422, $response->getStatusCode());
         $this->assertBalanceUntouched($giftCard, 5000);
     }
 
@@ -173,6 +225,17 @@ final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
             'reason' => $reason,
             '_token' => self::valueOf($form, sprintf('//input[@name="%s[_token]"]', self::FORM)),
         ]]);
+    }
+
+    /**
+     * @return list<string> the validation errors the page shows on the amount field
+     */
+    private static function amountErrors(Response $response): array
+    {
+        return self::textsOf($response, sprintf(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " field ")][.//input[@name="%s[amount]"]]//*[contains(@class, "sylius-validation-error")]',
+            self::FORM,
+        ));
     }
 
     private function assertBalanceUntouched(GiftCardInterface $giftCard, int $balance): void

@@ -17,6 +17,7 @@ use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\CallbackTransformer;
+use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -200,7 +201,16 @@ final class GiftCardType extends AbstractResourceType
                 return null;
             }
 
-            return (int) round($amount * 100);
+            $minorUnits = round($amount * 100);
+
+            // PHP wraps a float beyond its integer range around to an arbitrary integer, which the constraints could
+            // take for a valid amount. The number field refuses a number beyond the range, but only before it is
+            // multiplied here. (float) PHP_INT_MAX is 2^63, one more than the largest integer
+            if ($minorUnits >= \PHP_INT_MAX || $minorUnits < \PHP_INT_MIN) {
+                throw new TransformationFailedException(sprintf('The amount %s is beyond the range of an integer in minor units.', (string) $amount));
+            }
+
+            return (int) $minorUnits;
         }));
     }
 

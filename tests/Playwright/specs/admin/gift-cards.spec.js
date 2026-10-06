@@ -298,6 +298,47 @@ test.describe('admin gift cards', () => {
     });
 
     /**
+     * The balance is kept in an integer column, a signed 32-bit integer, so a card holds at most 21,474,836.47. The
+     * amount is a text field the browser lets any number through, and a larger one used to end the request in a 500
+     * when the database refused the card
+     */
+    test('issuing a card for more than a card can hold is a validation error, not a crash', async ({ page }) => {
+        await page.goto('/admin/gift-cards/new');
+
+        const amount = page.locator('input[name$="[amount]"]');
+        await amount.fill('30000000');
+
+        const [response] = await Promise.all([
+            page.waitForResponse((r) => r.request().method() === 'POST'),
+            page.locator('form[name="setono_sylius_gift_card_gift_card"] button[type="submit"]').first().click(),
+        ]);
+
+        expect(response.status()).toBe(422);
+        await expect(page.locator('.field', { has: amount }).locator('.sylius-validation-error'))
+            .toContainText(/more than a gift card can hold/i);
+    });
+
+    /**
+     * Adding to the balance is held to the same ceiling: an adjustment taking the balance above it used to end the
+     * request in a 500 too
+     */
+    test('adding more than a card can hold is a validation error, not a crash', async ({ page }) => {
+        const id = await firstGiftCardId(page);
+
+        await page.goto(`/admin/gift-cards/${id}/adjust-balance`);
+        await page.locator('input[name$="[amount]"]').fill('30000000');
+        await page.locator('textarea[name$="[reason]"]').fill('trying to overfill');
+
+        const [response] = await Promise.all([
+            page.waitForResponse((r) => r.request().method() === 'POST'),
+            page.getByRole('button', { name: /save|adjust/i }).first().click(),
+        ]);
+
+        expect(response.status()).toBe(422);
+        await expect(page.locator('.sylius-validation-error').first()).toContainText(/cannot hold more than/i);
+    });
+
+    /**
      * The back of the card is the only place the customer finds the code again, so it is not enough that the
      * endpoint answers with a valid PDF: the code and the redemption copy have to be drawn on it
      */
@@ -418,6 +459,28 @@ test.describe('admin gift card designs', () => {
 
         expect(response.status()).toBeLessThan(500);
         await expect(page.locator('.sylius-validation-error').first()).toBeVisible();
+    });
+
+    /**
+     * The position is kept in an integer column, a signed 32-bit integer. The browser's number field takes a larger
+     * one, which used to end the request in a 500 when the database refused the design
+     */
+    test('a design position its column cannot hold is a validation error, not a crash', async ({ page }) => {
+        const id = await firstDesignId(page);
+
+        await page.goto(`/admin/gift-card-designs/${id}/edit`);
+        await page.locator('input[name$="[position]"]').fill('99999999999');
+
+        const [response] = await Promise.all([
+            page.waitForResponse((r) => r.request().method() === 'POST'),
+            page
+                .locator('form[name="setono_sylius_gift_card_gift_card_design"] button[type="submit"]')
+                .first()
+                .click(),
+        ]);
+
+        expect(response.status()).toBe(422);
+        await expect(page.locator('.sylius-validation-error').first()).toContainText(/position must be between/i);
     });
 
     /**

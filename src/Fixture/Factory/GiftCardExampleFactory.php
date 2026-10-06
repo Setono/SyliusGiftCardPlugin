@@ -197,7 +197,19 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
                 return $amount;
             })
             ->setAllowedTypes('amount', ['float', 'int'])
-            ->setNormalizer('amount', fn (Options $options, float $amount): int => (int) round($amount * 100))
+            ->setNormalizer('amount', static function (Options $options, float $amount): int {
+                $minorUnits = round($amount * 100);
+
+                // The balance is mapped as Doctrine's integer type, a signed 32-bit integer in its portable type system,
+                // which the database holds a card to. It is checked before the cast, which would wrap a larger float
+                // around to an arbitrary amount instead
+                Assert::range($minorUnits, -2147483648, 2147483647, sprintf(
+                    'A gift card amount has to fit the integer column its balance is kept in, from -21474836.48 to 21474836.47, got: %s',
+                    $amount,
+                ));
+
+                return (int) $minorUnits;
+            })
 
             ->setDefault('enabled', true)
             ->setAllowedTypes('enabled', 'bool')

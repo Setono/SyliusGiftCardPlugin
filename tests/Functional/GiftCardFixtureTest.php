@@ -350,6 +350,43 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
         $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'SHORTCODE01', 'amount' => 10]]]);
     }
 
+    /**
+     * The balance is kept in an integer column, a signed 32-bit integer, so 21474836.47 is the most a card can hold
+     *
+     * @test
+     */
+    public function it_loads_a_gift_card_holding_the_most_a_card_can_hold(): void
+    {
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTURELARGEST1', 'amount' => 21474836.47]]]);
+
+        self::assertSame(2147483647, $this->findGiftCard('FIXTURELARGEST1')->getAmount());
+    }
+
+    /**
+     * More than the column holds used to fail when the database refused the card, and an amount whose minor units are
+     * beyond PHP's integer range was cast, which wraps around: the second used to load as a card holding 40.96
+     *
+     * @test
+     *
+     * @dataProvider amountsTheBalanceColumnCannotHold
+     */
+    public function it_rejects_an_amount_the_balance_column_cannot_hold(float $amount): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage(sprintf('A gift card amount has to fit the integer column its balance is kept in, from -21474836.48 to 21474836.47, got: %s', $amount));
+
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTURETOOLARGE', 'amount' => $amount]]]);
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function amountsTheBalanceColumnCannotHold(): iterable
+    {
+        yield 'a cent more than the column holds' => [21474836.48];
+        yield 'beyond the integer range in minor units' => [184467440737095560.0];
+    }
+
     /** @test */
     public function it_rejects_a_currency_that_does_not_exist(): void
     {

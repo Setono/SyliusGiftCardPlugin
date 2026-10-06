@@ -28,6 +28,15 @@
                 <option name="message">setono_sylius_gift_card.gift_card_design.position.not_null</option>
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
+            <!-- Not a business rule but the column's range: the position is mapped as Doctrine's integer type, a signed
+                 32-bit integer in its portable type system (INT on MySQL, INTEGER on PostgreSQL). The database would
+                 refuse a design at any other position -->
+            <constraint name="Range">
+                <option name="min">-2147483648</option>
+                <option name="max">2147483647</option>
+                <option name="notInRangeMessage">setono_sylius_gift_card.gift_card_design.position.out_of_range</option>
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
         </property>
     </class>
 </constraint-mapping>

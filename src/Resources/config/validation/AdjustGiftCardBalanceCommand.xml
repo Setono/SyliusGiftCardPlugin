@@ -6,6 +6,11 @@
 
     <class name="Setono\SyliusGiftCardPlugin\Controller\Action\Admin\AdjustGiftCardBalanceCommand">
         <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\BalanceAdjustmentIsEligible">
+            <!-- Not a business rule but the column's ceiling: the balance is mapped as Doctrine's integer type, a signed
+                 32-bit integer in its portable type system (INT on MySQL, INTEGER on PostgreSQL). Holding the balance
+                 between 0 and this also holds the amount, which the ledger row records in a column of the same type,
+                 so the amount needs no bound of its own -->
+            <option name="maximumBalance">2147483647</option>
             <option name="groups">setono_sylius_gift_card</option>
         </constraint>
         <property name="amount">

@@ -62,9 +62,10 @@ final class AdjustGiftCardBalanceAction
             return new RedirectResponse($this->urlGenerator->generate('setono_sylius_gift_card_admin_gift_card_show', ['id' => $id]));
         }
 
+        // A submission that is shown again with its errors answers 422, like the admin's resource forms do
         return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/admin/gift_card/adjust_balance.html.twig', [
             'giftCard' => $giftCard,
             'form' => $form->createView(),
-        ]));
+        ]), $form->isSubmitted() ? Response::HTTP_UNPROCESSABLE_ENTITY : Response::HTTP_OK);
     }
 }

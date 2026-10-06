@@ -367,6 +367,69 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
         self::assertSame([], $repository->findAll());
     }
 
+    /**
+     * The balance is kept in an integer column, a signed 32-bit integer, so 21474836.47 is the most a card can hold.
+     * The amount field is a text field the browser lets any number through, and more used to end in a 500 when the
+     * database refused the card
+     *
+     * @test
+     */
+    public function it_issues_the_most_a_gift_card_can_hold_and_refuses_more(): void
+    {
+        foreach (['21474836.48', '30000000'] as $amount) {
+            $response = $this->issue([
+                'channel' => 'TEST_CHANNEL',
+                'currencyCode' => 'USD',
+                'amount' => $amount,
+            ]);
+
+            self::assertSame(422, $response->getStatusCode(), $amount);
+            self::assertSame(['The amount is more than a gift card can hold.'], self::amountErrors($response), $amount);
+        }
+
+        /** @var GiftCardRepositoryInterface $repository */
+        $repository = self::getContainer()->get('setono_sylius_gift_card.repository.gift_card');
+        self::assertSame([], $repository->findAll());
+
+        $response = $this->issue([
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'USD',
+            'amount' => '21474836.47',
+        ]);
+
+        self::assertTrue($response->isRedirect(), sprintf('Expected a redirect after saving, got a %d response', $response->getStatusCode()));
+
+        $giftCard = $this->findTheOnlyGiftCard();
+        self::assertSame(2147483647, $giftCard->getAmount());
+        self::assertSame(2147483647, $giftCard->getInitialAmount());
+
+        $transaction = $giftCard->getTransactions()->first();
+        self::assertInstanceOf(GiftCardTransactionInterface::class, $transaction);
+        self::assertSame(2147483647, $transaction->getAmount());
+    }
+
+    /**
+     * The minor units of this amount are beyond PHP's integer range, where a cast wraps around: the form used to issue
+     * a card holding $40.96. The field cannot read it instead, like any other number it cannot read
+     *
+     * @test
+     */
+    public function it_issues_nothing_for_an_amount_whose_minor_units_php_cannot_hold(): void
+    {
+        $response = $this->issue([
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'USD',
+            'amount' => '184467440737095560',
+        ]);
+
+        self::assertSame(422, $response->getStatusCode());
+        self::assertSame(['Please enter a number.'], self::amountErrors($response));
+
+        /** @var GiftCardRepositoryInterface $repository */
+        $repository = self::getContainer()->get('setono_sylius_gift_card.repository.gift_card');
+        self::assertSame([], $repository->findAll());
+    }
+
     /** @test */
     public function it_deletes_a_gift_card_that_was_never_used(): void
     {
@@ -442,6 +505,17 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
     {
         return self::textsOf($response, sprintf(
             '//fieldset[.//input[@name="%s[design]"]]//*[contains(@class, "sylius-validation-error")]',
+            self::FORM,
+        ));
+    }
+
+    /**
+     * @return list<string> the validation errors the page shows on the amount field
+     */
+    private static function amountErrors(Response $response): array
+    {
+        return self::textsOf($response, sprintf(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " field ")][.//input[@name="%s[amount]"]]//*[contains(@class, "sylius-validation-error")]',
             self::FORM,
         ));
     }
