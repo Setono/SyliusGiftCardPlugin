@@ -88,6 +88,8 @@ Only doctrine/orm is supported. Resources: `gift_card`, `gift_card_design` (tran
 
 Code in `src/` stays **database agnostic**: applications run whatever database they choose, so no vendor error codes, vendor SQL or checks for a particular server. Database conditions are expressed through Doctrine's portable API (`LockMode`, and DBAL's exception classes such as `DeadlockException` or `UniqueConstraintViolationException`), and what those do not map is left alone. Tests may rely on the test application's MySQL.
 
+A fixture (`AbstractResourceFixture`) hands each entry to its example factory as it is, so every option its tree declares has the same snake_case name in the example factory (`delivery_type`, `delivery_types`). The factory's normalizers turn what a YAML file can hold into domain types (enum cases with `::from()`, entities by code) and accept those types as they are. Random entries come from the fixture's `prototype`, which skips the tree, so the factory never relies on the tree having checked a value.
+
 ### Domain rules
 
 - `GiftCard.amount`/`initialAmount` are integers in minor units (Sylius money convention). `initialAmount` is set explicitly — no implicit seeding.

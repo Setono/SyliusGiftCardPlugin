@@ -136,8 +136,45 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * The fixture tree does not expose the delivery type, but the example factory takes it, as a value or as the
-     * enum, for applications building on it
+     * Demo data and the end to end suite need physical cards too, and a card is virtual unless its entry says
+     * otherwise, as every seeded card was before the fixture took a delivery type
+     *
+     * @test
+     */
+    public function it_loads_gift_cards_with_the_given_delivery_type(): void
+    {
+        $this->loadFixture('setono_gift_card', ['custom' => [
+            ['code' => 'FIXTUREPHYSICAL1', 'delivery_type' => 'physical'],
+            ['code' => 'FIXTUREVIRTUAL01', 'delivery_type' => 'virtual'],
+            ['code' => 'FIXTURENODELIVE1'],
+        ]]);
+
+        self::assertSame(GiftCardDeliveryType::Physical, $this->findGiftCard('FIXTUREPHYSICAL1')->getDeliveryType());
+        self::assertSame(GiftCardDeliveryType::Virtual, $this->findGiftCard('FIXTUREVIRTUAL01')->getDeliveryType());
+        self::assertSame(GiftCardDeliveryType::Virtual, $this->findGiftCard('FIXTURENODELIVE1')->getDeliveryType());
+    }
+
+    /**
+     * Random cards are built from the prototype, which reaches the example factory without passing the fixture's
+     * tree, so the option has the same name in both
+     *
+     * @test
+     */
+    public function it_seeds_random_physical_gift_cards_from_the_prototype(): void
+    {
+        $this->loadFixture('setono_gift_card', ['random' => 2, 'prototype' => ['delivery_type' => 'physical']]);
+
+        $giftCards = $this->repository->findAll();
+        self::assertCount(2, $giftCards);
+
+        foreach ($giftCards as $giftCard) {
+            self::assertInstanceOf(GiftCardInterface::class, $giftCard);
+            self::assertSame(GiftCardDeliveryType::Physical, $giftCard->getDeliveryType());
+        }
+    }
+
+    /**
+     * Applications building on the example factory may hand it the delivery type as the enum rather than its value
      *
      * @test
      */
@@ -148,11 +185,11 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
 
         self::assertSame(
             GiftCardDeliveryType::Physical,
-            $factory->create(['code' => 'PHYSICALVALUE01', 'deliveryType' => 'physical'])->getDeliveryType(),
+            $factory->create(['code' => 'PHYSICALVALUE01', 'delivery_type' => 'physical'])->getDeliveryType(),
         );
         self::assertSame(
             GiftCardDeliveryType::Physical,
-            $factory->create(['code' => 'PHYSICALENUM001', 'deliveryType' => GiftCardDeliveryType::Physical])->getDeliveryType(),
+            $factory->create(['code' => 'PHYSICALENUM001', 'delivery_type' => GiftCardDeliveryType::Physical])->getDeliveryType(),
         );
     }
 
@@ -438,6 +475,9 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
         yield 'an empty code' => [['code' => '']];
         yield 'an amount that is not a number' => [['amount' => 'fifty']];
         yield 'enabled that is not a boolean' => [['enabled' => 'yes']];
+        yield 'a delivery type that is neither virtual nor physical' => [['delivery_type' => 'digital']];
+        yield 'a delivery type spelled as the enum case rather than its value' => [['delivery_type' => 'Physical']];
+        yield 'a list of delivery types' => [['delivery_type' => ['physical']]];
         yield 'an unknown option' => [['colour' => 'gold']];
     }
 
