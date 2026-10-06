@@ -32,6 +32,11 @@ interface GiftCardTransactionInterface extends ResourceInterface
 
     public function setGiftCard(?GiftCardInterface $giftCard): void;
 
+    /**
+     * The order the movement belongs to: the order a redemption paid for or a restoration gave back to, and for the
+     * issuance of a card bought in the shop, the order that paid for it. Null for a manual adjustment and for the
+     * issuance of a card created in the admin, from a fixture or from code
+     */
     public function getOrder(): ?OrderInterface;
 
     public function setOrder(?OrderInterface $order): void;
@@ -62,6 +67,20 @@ interface GiftCardTransactionInterface extends ResourceInterface
     public function getIdempotencyKey(): ?string;
 
     public function setIdempotencyKey(?string $idempotencyKey): void;
+
+    /**
+     * Who made the movement, for one an administrator made by hand: a manual adjustment, or the issuance of a card
+     * created in the admin. It is the administrator's user identifier at the time (Symfony's getUserIdentifier(),
+     * which Sylius makes the username in lower case), a copy rather than a reference to the user, so the ledger keeps
+     * naming them after their account is renamed or deleted.
+     *
+     * Null for the movements the order and payment state machines make (redemption, restoration, issuing a bought
+     * card), even when an administrator's click set the transition off, and for what a console command or a fixture
+     * does
+     */
+    public function getCreatedBy(): ?string;
+
+    public function setCreatedBy(?string $createdBy): void;
 
     public function getCreatedAt(): ?\DateTimeInterface;
 

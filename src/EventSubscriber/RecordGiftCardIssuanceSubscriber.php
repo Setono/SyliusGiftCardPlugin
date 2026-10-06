@@ -8,6 +8,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
 use Sylius\Bundle\ResourceBundle\Event\ResourceControllerEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * Records the opening balance of a gift card created from the admin.
@@ -18,12 +19,17 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * reaches both paths is still only issued once.
  *
  * It is recorded before the card is saved rather than after: Sylius' resource controller saves (and flushes) the new
- * card between the pre and the post create event, so the ledger row is written with the card, in the same flush
+ * card between the pre and the post create event, so the ledger row is written with the card, in the same flush.
+ *
+ * Issuing a card from the admin hands out money as much as adjusting a balance does, so the ledger row names the
+ * administrator who did it, by their user identifier
  */
 final class RecordGiftCardIssuanceSubscriber implements EventSubscriberInterface
 {
-    public function __construct(private readonly GiftCardBalanceOperatorInterface $balanceOperator)
-    {
+    public function __construct(
+        private readonly GiftCardBalanceOperatorInterface $balanceOperator,
+        private readonly TokenStorageInterface $tokenStorage,
+    ) {
     }
 
     public static function getSubscribedEvents(): array
@@ -41,6 +47,7 @@ final class RecordGiftCardIssuanceSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $this->balanceOperator->issue($giftCard);
+        // No order paid for a card issued here
+        $this->balanceOperator->issue($giftCard, null, $this->tokenStorage->getToken()?->getUser()?->getUserIdentifier());
     }
 }

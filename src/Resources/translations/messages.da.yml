@@ -40,6 +40,7 @@ setono_sylius_gift_card:
         count: Antal
         current_balance: Nuværende saldo
         create_gift_card_product: Opret gavekortprodukt
+        created_by: Oprettet af
         customer_help_text: Når en kunde er tilknyttet og notifikation er slået til, modtager kunden gavekortet på email
         default_design_name: Klassisk
         edit_gift_card: Rediger gavekort

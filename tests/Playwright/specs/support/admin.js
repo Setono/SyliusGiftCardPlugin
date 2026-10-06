@@ -80,4 +80,26 @@ async function flashMessages(page) {
     return (await page.locator('.sylius-flash-message').allInnerTexts()).map((text) => text.replace(/\s+/g, ' ').trim());
 }
 
-module.exports = { clickAndConfirm, flashMessages, setChecked, signInAsAdministrator };
+/**
+ * The user identifier of the administrator the page is signed in as, which is how a gift card's ledger names the
+ * administrator who adjusted a balance or issued a card. Read from their account, which the "My account" link in the
+ * admin's top bar leads to: Sylius identifies an administrator by their username in lower case (`usernameCanonical`),
+ * whether they signed in with it or with their email
+ *
+ * @param {import('@playwright/test').Page} page an authenticated admin page
+ * @returns {Promise<string>}
+ */
+async function signedInAdministrator(page) {
+    await page.goto('/admin/');
+
+    const account = await page.locator('.ui.dropdown .menu a.item').filter({ has: page.locator('i.user.icon') }).getAttribute('href');
+    expect(account, 'the admin top bar has no link to the account of the signed in administrator').toMatch(/^\/admin\/users\/\d+\/edit$/);
+
+    await page.goto(/** @type {string} */ (account));
+    const username = await page.locator('input[name="sylius_admin_user[username]"]').inputValue();
+    expect(username, 'the account of the signed in administrator shows no username').not.toBe('');
+
+    return username.toLowerCase();
+}
+
+module.exports = { clickAndConfirm, flashMessages, setChecked, signedInAdministrator, signInAsAdministrator };

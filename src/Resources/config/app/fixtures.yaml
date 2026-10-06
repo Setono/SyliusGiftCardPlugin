@@ -21,9 +21,13 @@ sylius_fixtures:
                                 code: gift_card
                                 name: Gift card
                                 price: 5000
+                                # delivery_types is left out, which gives a variant for each delivery type. Spelled out
+                                # here, a suite importing this one could only add to it; left out, such a suite can set
+                                # delivery_types: [virtual] (or [physical]) to seed the product with that variant only
 
                 setono_gift_card:
                     options:
+                        # virtual cards; an entry with delivery_type: physical seeds a physical one
                         random: 20
 
                 # the payment method gift card payments are made with, as setono:gift-card:create-payment-method
