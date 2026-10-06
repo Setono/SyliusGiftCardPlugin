@@ -7,7 +7,8 @@ const { clickAndWaitForPage } = require('../support/navigation');
 
 /**
  * The filters, sorting and status column the gift card grid offers. The grid is where an admin looks a card up when a
- * customer asks about one, so finding a card by its code and telling usable cards from the others have to work.
+ * customer asks about one, so finding a card by its code, telling usable cards from the others and physical cards from
+ * virtual ones have to work.
  */
 
 /**
@@ -41,6 +42,22 @@ async function listedAmounts(page) {
 
     return cells.map((cell) => moneyInCents(cell.split('\n')[0]));
 }
+
+/**
+ * The delivery type column of every row the grid lists
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function listedDeliveryTypes(page) {
+    const column = await page.locator(HEADERS).evaluateAll((headers) => headers.findIndex((header) => /^\s*Delivery type/.test(header.textContent ?? '')));
+    expect(column, 'the grid shows no delivery type column').toBeGreaterThanOrEqual(0);
+
+    return (await page.locator(`${ROWS} td:nth-child(${column + 1})`).allInnerTexts()).map((deliveryType) => deliveryType.trim());
+}
+
+// Seeded with known codes by the test application's fixtures: a physical card, and a virtual one
+const PHYSICAL_GIFT_CARD_CODE = 'E2EPHYSICAL001';
+const VIRTUAL_GIFT_CARD_CODE = 'E2EREDEMPTION01';
 
 /**
  * Deletes the given untouched cards through their rows, which keeps them from topping the grid for other specs
@@ -176,6 +193,22 @@ test.describe('admin gift card grid', () => {
             expect(new Set(await giftCardStatuses(page.locator(ROWS))), 'enabled, not expired and not spent is usable').toEqual(new Set(['Usable']));
         } finally {
             await deleteCards(page, [expired]);
+        }
+    });
+
+    /**
+     * A physical card is shipped with its code printed on it and a virtual one is emailed, which is the first thing
+     * support needs to know when a customer asks where their card is
+     */
+    test('the grid tells a physical card from a virtual one', async ({ page }) => {
+        for (const [code, deliveryType] of [
+            [PHYSICAL_GIFT_CARD_CODE, 'Physical'],
+            [VIRTUAL_GIFT_CARD_CODE, 'Virtual'],
+        ]) {
+            await filterGiftCards(page, { code: { type: 'equal', value: code } });
+
+            expect(await listedCodes(page)).toEqual([code]);
+            expect(await listedDeliveryTypes(page), `the delivery type of ${code}`).toEqual([deliveryType]);
         }
     });
 

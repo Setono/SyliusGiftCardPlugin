@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
+use Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardProductExampleFactory;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
 use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Core\Model\ChannelPricingInterface;
@@ -57,6 +59,79 @@ final class GiftCardProductFixtureTest extends GiftCardFunctionalTestCase
             self::assertInstanceOf(ProductVariantInterface::class, $variant);
             self::assertSame(['TEST_CHANNEL' => 2500], $this->pricesOf($variant));
         }
+    }
+
+    /**
+     * A shop may sell only one kind of gift card, so a product can be seeded with the variants for the delivery types
+     * named and no others. Without delivery types it gets both, as the test above shows
+     *
+     * @test
+     */
+    public function it_loads_gift_card_products_with_only_the_given_delivery_types(): void
+    {
+        $this->loadFixture('setono_gift_card_product', ['custom' => [
+            ['code' => 'virtual_card', 'name' => 'Virtual card', 'delivery_types' => ['virtual']],
+            ['code' => 'physical_card', 'name' => 'Physical card', 'delivery_types' => ['physical']],
+            ['code' => 'both_card', 'name' => 'Both card', 'delivery_types' => ['physical', 'virtual']],
+        ]]);
+
+        $virtual = $this->findProduct('virtual_card');
+        self::assertTrue($virtual->isGiftCard());
+        self::assertSame(['virtual_card_virtual' => false], $this->shippingRequiredByVariantCode($virtual));
+
+        self::assertSame(['physical_card_physical' => true], $this->shippingRequiredByVariantCode($this->findProduct('physical_card')));
+
+        self::assertSame(
+            ['both_card_physical' => true, 'both_card_virtual' => false],
+            $this->shippingRequiredByVariantCode($this->findProduct('both_card')),
+        );
+    }
+
+    /**
+     * A variant code is unique, so a delivery type named twice gets one variant rather than failing the flush
+     *
+     * @test
+     */
+    public function it_creates_one_variant_for_a_delivery_type_given_twice(): void
+    {
+        $this->loadFixture('setono_gift_card_product', ['custom' => [
+            ['code' => 'twice_card', 'name' => 'Twice card', 'delivery_types' => ['virtual', 'virtual']],
+        ]]);
+
+        self::assertSame(['twice_card_virtual' => false], $this->shippingRequiredByVariantCode($this->findProduct('twice_card')));
+    }
+
+    /**
+     * Random products are built from the prototype, which reaches the example factory without passing the fixture's
+     * tree, so the example factory turns the values into the enum itself
+     *
+     * @test
+     */
+    public function it_seeds_a_random_product_with_the_delivery_types_of_the_prototype(): void
+    {
+        $this->loadFixture('setono_gift_card_product', ['random' => 1, 'prototype' => ['delivery_types' => ['virtual']]]);
+
+        self::assertSame(['gift_card_virtual' => false], $this->shippingRequiredByVariantCode($this->findProduct('gift_card')));
+    }
+
+    /**
+     * Applications building on the example factory may hand it the delivery types as the enum rather than their values
+     *
+     * @test
+     */
+    public function its_example_factory_takes_delivery_types_as_values_or_as_the_enum(): void
+    {
+        /** @var GiftCardProductExampleFactory $factory */
+        $factory = self::getContainer()->get(GiftCardProductExampleFactory::class);
+
+        self::assertSame(
+            ['by_value_physical' => true],
+            $this->shippingRequiredByVariantCode($factory->create(['code' => 'by_value', 'delivery_types' => ['physical']])),
+        );
+        self::assertSame(
+            ['by_case_virtual' => false],
+            $this->shippingRequiredByVariantCode($factory->create(['code' => 'by_case', 'delivery_types' => [GiftCardDeliveryType::Virtual]])),
+        );
     }
 
     /**
@@ -152,6 +227,11 @@ final class GiftCardProductFixtureTest extends GiftCardFunctionalTestCase
         yield 'an empty code' => [['code' => '']];
         yield 'a price that is not an integer' => [['price' => 25.5]];
         yield 'a price that is not a number' => [['price' => 'free']];
+        yield 'a delivery type that is neither virtual nor physical' => [['delivery_types' => ['virtual', 'digital']]];
+        yield 'a delivery type spelled as the enum case rather than its value' => [['delivery_types' => ['Virtual']]];
+        yield 'a delivery type that is not in a list' => [['delivery_types' => 'virtual']];
+        // a product without a variant cannot be sold, so an empty list is a mistake rather than a way to say "both"
+        yield 'no delivery types' => [['delivery_types' => []]];
         yield 'an unknown option' => [['colour' => 'gold']];
     }
 
