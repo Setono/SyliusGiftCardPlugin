@@ -77,8 +77,12 @@ final class Configuration implements ConfigurationInterface
                 ->scalarNode('default_validity_period')
                     ->info('A strtotime compatible interval (e.g. "3 years") added to the purchase date. Set to null to make gift cards valid forever')
                     ->defaultValue('3 years')
+                    // Symfony runs this rule on a dummy value in place of an environment variable ('' for a string, 0
+                    // for an int), so it only holds the period to its type, which the dummy shares with the variable.
+                    // Whether a string is an interval is checked by the extension, which can tell a variable from a
+                    // period written here, and for a variable by GiftCardExpiryResolver, where it is used
                     ->validate()
-                        ->ifTrue(static fn ($value): bool => null !== $value && (!is_string($value) || false === strtotime(sprintf('+%s', $value))))
+                        ->ifTrue(static fn ($value): bool => null !== $value && !is_string($value))
                         ->thenInvalid('The default_validity_period must be a valid strtotime interval, e.g. "3 years": %s')
                     ->end()
                 ->end()

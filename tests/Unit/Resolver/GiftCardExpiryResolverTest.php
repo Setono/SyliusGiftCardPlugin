@@ -50,4 +50,32 @@ final class GiftCardExpiryResolverTest extends TestCase
     {
         self::assertNull((new GiftCardExpiryResolver(null))->resolve());
     }
+
+    /**
+     * The configuration refuses these periods, but not one taken from an environment variable, whose value is only
+     * known at runtime. The resolver is built on every product page and for every order, so it only refuses once it is
+     * asked for an expiry, with the message the configuration gives
+     *
+     * @dataProvider providePeriodsStrtotimeCannotRead
+     *
+     * @test
+     */
+    public function it_refuses_a_period_strtotime_cannot_read(string $period, string $expectedMessage): void
+    {
+        $resolver = new GiftCardExpiryResolver($period);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        $resolver->resolve();
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function providePeriodsStrtotimeCannotRead(): iterable
+    {
+        yield 'not an interval' => ['not a period', 'The default_validity_period must be a valid strtotime interval, e.g. "3 years": "not a period"'];
+        yield 'empty, as a variable that is set to nothing' => ['', 'The default_validity_period must be a valid strtotime interval, e.g. "3 years": ""'];
+    }
 }
