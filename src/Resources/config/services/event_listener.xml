@@ -4,10 +4,13 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardDeletionSubscriber"
-                 class="Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardDeletionSubscriber">
-            <tag name="kernel.event_subscriber"/>
-        </service>
+        <!--
+            Only what genuinely is a listener. Anything reacting to a Symfony event is an event subscriber and goes in
+            event_subscriber.xml; this file holds the two kinds of exception:
+            - kernel.event_listener, where a subscriber is impossible because the class is not the plugin's to change
+              (Sylius' ImagesUploadListener)
+            - Doctrine event listeners (doctrine.event_listener), since a Doctrine event is not a Symfony one
+        -->
 
         <service id="setono_sylius_gift_card.listener.gift_card_design_images_upload"
                  class="Sylius\Bundle\CoreBundle\EventListener\ImagesUploadListener"
@@ -16,13 +19,6 @@
 
             <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_design.pre_create" method="uploadImages"/>
             <tag name="kernel.event_listener" event="setono_sylius_gift_card.gift_card_design.pre_update" method="uploadImages"/>
-        </service>
-
-        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\RecordGiftCardIssuanceSubscriber"
-                 class="Setono\SyliusGiftCardPlugin\EventSubscriber\RecordGiftCardIssuanceSubscriber">
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface"/>
-
-            <tag name="kernel.event_subscriber"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\EventListener\PendingGiftCardCleanupListener"
