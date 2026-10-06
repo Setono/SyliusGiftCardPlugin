@@ -11,5 +11,15 @@
         <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardQuantityFitsCart">
             <option name="groups">sylius</option>
         </constraint>
+        <!-- Gift card lines never merge, so Sylius' stock checks, which look at one line, never see all the cards of a
+             tracked variant together. In the groups Sylius checks a line's stock in (InStock): its own, which the cart
+             page and the checkout's steps validate the order in, and sylius_checkout_complete, which placing the order
+             adds. A constraint validated in both groups at once runs once -->
+        <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardOrderItemsAvailability">
+            <option name="groups">
+                <value>sylius</value>
+                <value>sylius_checkout_complete</value>
+            </option>
+        </constraint>
     </class>
 </constraint-mapping>

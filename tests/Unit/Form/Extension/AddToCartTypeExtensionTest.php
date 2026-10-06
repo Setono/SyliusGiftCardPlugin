@@ -23,6 +23,7 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCartItemAvailabilityValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCartValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
@@ -331,6 +332,7 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
                     $localeContext->reveal(),
                 ),
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
+                GiftCardCartItemAvailabilityValidator::class => new GiftCardCartItemAvailabilityValidator(new AvailabilityChecker()),
                 GiftCardDesignRequiredValidator::class => new GiftCardDesignRequiredValidator(
                     $channelContext->reveal(),
                     $designProvider->reveal(),
