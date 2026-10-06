@@ -11,7 +11,7 @@ use Symfony\Component\Form\Extension\Core\DataTransformer\MoneyToLocalizedString
  * Turns an amount typed into a money field into an integer of minor units, like Sylius' own money transformer does,
  * except for an amount whose minor units are beyond PHP's integer range. Sylius' transformer casts that float to an int,
  * which PHP wraps around to an arbitrary integer, possibly a small positive one that every constraint accepts:
- * 184467440737095560 typed into the field used to arrive as 4096. Symfony's number transformer underneath refuses a
+ * 184467440737095560 typed into the field used to arrive as 446464. Symfony's number transformer underneath refuses a
  * number beyond the range the same way, but only before the divisor has made it a hundred times larger
  */
 final class MinorUnitsToLocalizedStringTransformer extends MoneyToLocalizedStringTransformer

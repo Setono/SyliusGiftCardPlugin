@@ -74,7 +74,7 @@ final class GiftCardProductPageAddToCartTest extends AdminFunctionalTestCase
 
     /**
      * The minor units of this amount are beyond PHP's integer range, where Sylius' money field wraps them around: it
-     * used to put a gift card of $40.96 in the cart. The field cannot read it instead
+     * used to put a gift card of $4,464.64 in the cart. The field cannot read it instead
      *
      * @test
      */

@@ -137,7 +137,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
 
     /**
      * The minor units of this amount are beyond PHP's integer range, where Sylius' money field wraps them around to
-     * 4096, an amount of 40.96 the shop sells. The field cannot read it instead
+     * 446464, an amount of 4,464.64 the shop sells. The field cannot read it instead
      *
      * @test
      */

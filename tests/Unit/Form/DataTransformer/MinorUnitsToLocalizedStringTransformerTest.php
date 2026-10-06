@@ -44,8 +44,8 @@ final class MinorUnitsToLocalizedStringTransformerTest extends TestCase
     }
 
     /**
-     * Sylius' money transformer casts these to an int, and PHP wraps them around: the first used to arrive as 4096, an
-     * amount of 40.96 every constraint accepts
+     * Sylius' money transformer casts these to an int, and PHP wraps them around: the first used to arrive as 446464,
+     * an amount of 4,464.64 every constraint accepts
      *
      * @test
      *
@@ -63,7 +63,7 @@ final class MinorUnitsToLocalizedStringTransformerTest extends TestCase
      */
     public static function amountsBeyondTheIntegerRange(): iterable
     {
-        yield 'wrapping around to 40.96' => ['184467440737095560'];
+        yield 'wrapping around to 4,464.64' => ['184467440737095560'];
         yield 'a deduction wrapping around' => ['-184467440737095560'];
         yield 'a hundredth of the largest integer, made too large by the divisor' => ['92233720368547760'];
     }

@@ -28,7 +28,7 @@ final class MinorUnitsMoneyTypeTest extends TypeTestCase
 
     /**
      * The minor units of this amount are beyond PHP's integer range. Sylius' field casts them, which PHP 8.4 wraps
-     * around to 4096; this one cannot read the amount, which the form reports with the money field's invalid message
+     * around to 446464; this one cannot read the amount, which the form reports with the money field's invalid message
      *
      * @test
      */
