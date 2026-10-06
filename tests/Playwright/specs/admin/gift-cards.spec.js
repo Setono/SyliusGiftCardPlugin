@@ -355,10 +355,11 @@ test.describe('admin gift cards', () => {
 
         const [response] = await Promise.all([
             page.waitForResponse((r) => r.request().method() === 'POST'),
-            page.getByRole('button', { name: /save|adjust/i }).first().click(),
+            page.locator(ADJUST_BALANCE_SUBMIT).click(),
         ]);
 
         expect(response.status()).toBe(422);
+        // The plugin's message, translated, quoting the most a card holds
         await expect(page.locator('.sylius-validation-error').first()).toContainText(/cannot hold more than/i);
     });
 

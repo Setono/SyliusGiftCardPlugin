@@ -389,28 +389,28 @@ test.describe('shop gift card product', () => {
 
     /**
      * The seeded shop configures no maximum, so an amount used to be held to the minimum only. One above what a gift
-     * card's balance column holds, a signed 32-bit integer, made the database refuse the cart with a 500, and the
-     * button kept spinning. It is reported on the form like a blank amount
+     * card's balance column holds, a signed 32-bit integer (at most 21,474,836.47), made the database refuse the cart
+     * with a 500, and the button kept spinning. It is refused like a blank amount, on the amount field
      */
     test('an amount more than a gift card can hold is reported instead of failing the request', async ({ page }) => {
-        const serverErrors = [];
-        page.on('response', (response) => {
-            if (response.status() >= 500) {
-                serverErrors.push(`${response.status()} ${response.url()}`);
-            }
-        });
-
         await page.goto(await giftCardProductPath(page));
-        await page.locator('[name*="giftCardInformation"][name*="[amount]"]').first().fill('30000000');
 
+        const amount = page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first();
+        await amount.fill(typedAmount(3000000000));
+
+        const form = page.locator('form[name="sylius_add_to_cart"]');
+        const action = await form.getAttribute('action');
         const [response] = await Promise.all([
-            page.waitForResponse((r) => r.request().method() === 'POST'),
-            page.locator('form[name="sylius_add_to_cart"] button[type="submit"]').first().click(),
+            page.waitForResponse((r) => 'POST' === r.request().method() && r.url().endsWith(action ?? '')),
+            form.locator('button[type="submit"]').first().click(),
         ]);
-        expect(response.status()).toBe(400);
+
+        expect(response.status(), 'adding to the cart must be refused as invalid, not fail with a server error').toBe(400);
+        const { errors } = await response.json();
+        const amountErrors = errors?.form?.errors?.children?.giftCardInformation?.children?.amount?.errors ?? [];
+        expect(amountErrors, 'the refusal should be about the amount').toHaveLength(1);
 
         // Sylius' add to cart script renders the 400 payload into this element
-        await expect(page.locator('#sylius-cart-validation-error')).toContainText(/more than a gift card can hold/i);
-        expect(serverErrors, 'adding to the cart must not fail with a server error').toEqual([]);
+        await expect(page.locator('#sylius-cart-validation-error')).toContainText(amountErrors[0]);
     });
 });
