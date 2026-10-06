@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
+const { GRID_ROWS, clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
 const { clickAndWaitForPage } = require('../support/navigation');
 
 /**
@@ -23,7 +23,7 @@ const CREATE_PAYMENT_METHOD_BUTTON = `${PAYMENT_METHOD_MESSAGE} form[action$="/a
 async function giftCardPaymentMethodRow(page) {
     await page.goto('/admin/payment-methods/');
 
-    return page.locator('table tbody tr', { hasText: 'gift_card' });
+    return page.locator(GRID_ROWS, { hasText: 'gift_card' });
 }
 
 /**
@@ -129,7 +129,7 @@ test.describe('gift card setup warning', () => {
         await page.goto('/admin/payment-methods/');
 
         await expect(page.locator(PAYMENT_METHOD_MESSAGE)).toHaveCount(0);
-        await expect(page.locator('table tbody tr', { hasText: 'gift_card' })).toHaveCount(1);
+        await expect(page.locator(GRID_ROWS, { hasText: 'gift_card' })).toHaveCount(1);
     });
 
     test('a channel selling gift cards without an enabled design is pointed out everywhere', async ({ page }) => {

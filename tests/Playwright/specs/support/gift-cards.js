@@ -7,7 +7,7 @@
  */
 
 const { expect } = require('@playwright/test');
-const { setChecked } = require('./admin');
+const { GRID_ROWS, setChecked } = require('./admin');
 const { channelBaseCurrencyCode } = require('./fixtures');
 const { moneyInCents, typedAmount } = require('./money');
 const { clickAndWaitForPage } = require('./navigation');
@@ -109,7 +109,8 @@ async function issueGiftCard(page, { amount, code = null, enabled = true, custom
 async function giftCardDetails(page, id) {
     await page.goto(`/admin/gift-cards/${id}`);
 
-    const rows = page.locator('table').first().locator('tbody tr');
+    // the first of Sylius' tables on the page: the details, which the ledger follows
+    const rows = page.locator('table.ui.table').first().locator('tbody tr');
     const details = {};
     for (const row of await rows.all()) {
         const cells = await row.locator('td').allInnerTexts();
@@ -129,9 +130,8 @@ async function giftCardDetails(page, id) {
 async function giftCardTransactions(page, id) {
     await page.goto(`/admin/gift-cards/${id}`);
 
-    const table = page.locator('table').filter({ has: page.locator('thead') });
     const transactions = [];
-    for (const row of await table.locator('tbody tr').all()) {
+    for (const row of await page.locator('[data-test-gift-card-transaction]').all()) {
         const cells = await row.locator('td').allInnerTexts();
         const orderLink = row.locator('td').nth(4).locator('a');
         const hasOrder = 0 < (await orderLink.count());
@@ -159,7 +159,7 @@ async function giftCardTransactions(page, id) {
 async function giftCardRows(page, text) {
     await page.goto('/admin/gift-cards/');
 
-    return page.locator('table tbody tr').filter({ hasText: text });
+    return page.locator(GRID_ROWS).filter({ hasText: text });
 }
 
 /**

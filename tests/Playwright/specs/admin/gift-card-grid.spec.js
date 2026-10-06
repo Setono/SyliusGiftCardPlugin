@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { clickAndConfirm } = require('../support/admin');
+const { GRID_ROWS, clickAndConfirm } = require('../support/admin');
 const { firstGiftCardId, giftCardCode } = require('../support/fixtures');
 const { giftCardIds, giftCardRows, issueGiftCard } = require('../support/gift-cards');
 const { clickAndWaitForPage } = require('../support/navigation');
@@ -41,7 +41,7 @@ async function filterGrid(page, { code = { type: 'contains', value: '' }, enable
  * @param {import('@playwright/test').Page} page
  */
 async function listedCodes(page) {
-    return (await page.locator('table tbody tr td:first-child').allInnerTexts()).map((code) => code.trim().replace(/-/g, ''));
+    return (await page.locator(`${GRID_ROWS} > td:first-child`).allInnerTexts()).map((code) => code.trim().replace(/-/g, ''));
 }
 
 /**
@@ -50,7 +50,7 @@ async function listedCodes(page) {
  * @param {import('@playwright/test').Page} page
  */
 async function listedStates(page) {
-    return (await page.locator('table tbody tr td:nth-child(5)').allInnerTexts()).map((state) => state.trim());
+    return (await page.locator(`${GRID_ROWS} > td:nth-child(5)`).allInnerTexts()).map((state) => state.trim());
 }
 
 test.describe('admin gift card grid', () => {
@@ -86,14 +86,14 @@ test.describe('admin gift card grid', () => {
             { type: 'equal', value: printed.toLowerCase().replace(/-/g, ' ') },
         ]) {
             await filterGrid(page, { code });
-            expect(await giftCardIds(page.locator('table tbody tr')), `filtering by ${code.type} "${code.value}"`).toEqual([id]);
+            expect(await giftCardIds(page.locator(GRID_ROWS)), `filtering by ${code.type} "${code.value}"`).toEqual([id]);
         }
     });
 
     test('the grid shows a code the way the show page prints it', async ({ page }) => {
         await page.goto('/admin/gift-cards/');
 
-        const row = page.locator('table tbody tr').first();
+        const row = page.locator(GRID_ROWS).first();
         const listed = (await row.locator('td').first().innerText()).trim();
         const [id] = await giftCardIds(row);
 
@@ -120,7 +120,7 @@ test.describe('admin gift card grid', () => {
     test('the grid can be sorted by code both ways', async ({ page }) => {
         await page.goto('/admin/gift-cards/');
 
-        const header = page.locator('table thead th').filter({ hasText: /^\s*Code/ }).locator('a');
+        const header = page.locator('[data-test-grid-table] thead th').filter({ hasText: /^\s*Code/ }).locator('a');
         await expect(header, 'the code column should be sortable').toHaveCount(1);
 
         // Each click on the header sorts by code, turning the direction around on the next one

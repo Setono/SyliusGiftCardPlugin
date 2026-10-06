@@ -23,7 +23,8 @@ async function outstandingBalances(page) {
     await page.goto('/admin/gift-cards/balance');
 
     const balances = new Map();
-    for (const row of await page.locator('table tbody tr').all()) {
+    // the report's own table, not the rows of any other table on the page (#427)
+    for (const row of await page.locator('table.ui.table tbody tr').all()) {
         const cells = await row.locator('td').allInnerTexts();
         if (4 === cells.length) {
             balances.set(cells[0].trim(), { count: Number(cells[1].trim()), total: moneyInCents(cells[2]) });
@@ -140,7 +141,7 @@ test.describe('admin issuing gift cards', () => {
         expect(moneyInCents(details.Amount)).toBe(2500);
         expect(moneyInCents(details['Initial amount'])).toBe(2500);
         // the customer row leads to the customer
-        await expect(page.locator('table').first().locator('a', { hasText: email })).toHaveAttribute('href', /\/admin\/customers\/\d+$/);
+        await expect(page.locator('table.ui.table').first().locator('a', { hasText: email })).toHaveAttribute('href', /\/admin\/customers\/\d+$/);
 
         // The grid mails the customer from the email and opens the customer from the icon next to it
         const row = await giftCardRows(page, card.printedCode);
@@ -163,7 +164,7 @@ test.describe('admin issuing gift cards', () => {
         const card = await issueGiftCard(page, { amount: 1500, customMessage: message });
 
         await page.goto(`/admin/gift-cards/${card.id}`);
-        const shown = page.locator('table').first().locator('tbody tr').filter({ hasText: 'Custom message' }).locator('td').nth(1);
+        const shown = page.locator('table.ui.table').first().locator('tbody tr').filter({ hasText: 'Custom message' }).locator('td').nth(1);
 
         expect(await shown.innerText()).toBe(message);
         await expect(shown.locator('b')).toHaveCount(0);

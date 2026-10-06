@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { flashMessages, setChecked } = require('../support/admin');
+const { GRID_ROWS, flashMessages, setChecked } = require('../support/admin');
 const { anyCustomerEmail, firstGiftCardId, firstDesignId, giftCardCode, channelBaseCurrencyCode, currencyOtherThan } = require('../support/fixtures');
 const { giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
 const { moneyInCents } = require('../support/money');
@@ -14,7 +14,7 @@ test.describe('admin gift cards', () => {
         const response = await page.goto('/admin/gift-cards/');
 
         expect(response?.status()).toBe(200);
-        await expect(page.locator('table tbody tr').first()).toBeVisible();
+        await expect(page.locator(GRID_ROWS).first()).toBeVisible();
 
         // Designs and the balance report were moved out of the admin menu onto this page
         await expect(page.locator('a[href="/admin/gift-card-designs/"]')).toBeVisible();
@@ -58,7 +58,7 @@ test.describe('admin gift cards', () => {
         await expect(page.locator('.breadcrumb a[href="/admin/gift-cards/"]')).toBeVisible();
 
         // The fixtures seed usable cards, so the report has a currency they are counted and summed in
-        const rows = page.locator('table tbody tr').filter({ has: page.locator('td:nth-child(4)') });
+        const rows = page.locator('table.ui.table tbody tr').filter({ has: page.locator('td:nth-child(4)') });
         expect(await rows.count(), 'the report should list the currency the seeded cards hold money in').toBeGreaterThan(0);
         for (const row of await rows.all()) {
             const cells = await row.locator('td').allInnerTexts();
@@ -196,7 +196,7 @@ test.describe('admin gift cards', () => {
         await page.goto(`/admin/gift-cards/${id}`);
 
         // the details table row labelled "Code"; the seeded codes are generated, so the value is discovered, not known
-        const codeRow = page.locator('table tr').filter({ has: page.locator('td strong', { hasText: /^Code$/ }) });
+        const codeRow = page.locator('table.ui.table tr').filter({ has: page.locator('td strong', { hasText: /^Code$/ }) });
         const displayed = (await codeRow.locator('td').nth(1).innerText()).trim();
 
         expect(displayed).toMatch(/^([A-Z0-9]{4}-)*[A-Z0-9]{1,4}$/);
@@ -357,7 +357,7 @@ test.describe('admin gift card designs', () => {
         // a button next to the header, not the admin menu's entry, which every page has
         await expect(page.locator('.admin-layout__content a[href="/admin/gift-cards/"]')).toBeVisible();
         // the seeded design is listed, with a way to edit it
-        await expect(page.locator('[data-test-grid-table-body] a[href$="/edit"]').first()).toBeVisible();
+        await expect(page.locator(`${GRID_ROWS} a[href$="/edit"]`).first()).toBeVisible();
     });
 
     test('a design can be edited', async ({ page }) => {

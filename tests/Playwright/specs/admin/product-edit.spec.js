@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { clickAndConfirm } = require('../support/admin');
+const { GRID_ROWS, clickAndConfirm } = require('../support/admin');
 const { productIdsByKind } = require('../support/fixtures');
 const { clickAndWaitForPage } = require('../support/navigation');
 
@@ -126,7 +126,7 @@ test.describe('admin product edit', () => {
 
             // One variant per delivery type, so the customer can pick virtual or physical straight away
             await page.goto(`/admin/products/${productId}/variants/`);
-            await expect(page.locator('[data-test-grid-table-body] tr')).toHaveCount(2);
+            await expect(page.locator(GRID_ROWS)).toHaveCount(2);
         } finally {
             await deleteProduct(page, productId);
         }

@@ -5,3 +5,9 @@ services:
         decorates: Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface
         arguments: ['@.inner']
         public: true
+
+    # The session storage of the test environment: the mock file storage for the functional tests, which send their
+    # requests through the kernel from the command line, and PHP's native, locking session for the Playwright suite's
+    # browser, which the application is served to in this environment (see the class)
+    Setono\SyliusGiftCardPlugin\Tests\Application\Session\ServedOrMockSessionStorageFactory:
+        arguments: ['@session.storage.factory.native', '@session.storage.factory.mock_file']

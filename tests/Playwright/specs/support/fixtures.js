@@ -6,6 +6,7 @@
  */
 
 const { expect } = require('@playwright/test');
+const { GRID_ROWS } = require('./admin');
 const { clickAndWaitForPage } = require('./navigation');
 
 /**
@@ -18,7 +19,7 @@ const { clickAndWaitForPage } = require('./navigation');
 async function firstIdFromGrid(page, indexUrl, hrefPattern) {
     await page.goto(indexUrl);
 
-    const hrefs = await page.locator('table a').evaluateAll((links) => links.map((l) => l.getAttribute('href') ?? ''));
+    const hrefs = await page.locator(`${GRID_ROWS} a`).evaluateAll((links) => links.map((l) => l.getAttribute('href') ?? ''));
 
     for (const href of hrefs) {
         const match = hrefPattern.exec(href);
@@ -54,7 +55,7 @@ function firstDesignId(page) {
 async function giftCardCode(page, id) {
     await page.goto(`/admin/gift-cards/${id}`);
 
-    const row = page.locator('table tr').filter({ has: page.locator('td strong', { hasText: /^Code$/ }) });
+    const row = page.locator('table.ui.table tr').filter({ has: page.locator('td strong', { hasText: /^Code$/ }) });
 
     return (await row.locator('td').nth(1).innerText()).trim();
 }
@@ -72,7 +73,7 @@ let productCache = null;
 async function productIdsOnGridPage(page, number) {
     await page.goto(`/admin/products/?limit=50&page=${number}`);
 
-    const ids = await page.locator('[data-test-grid-table-body] a[href*="/admin/products/"]').evaluateAll((links) =>
+    const ids = await page.locator(`${GRID_ROWS} a[href*="/admin/products/"]`).evaluateAll((links) =>
         links.map((link) => /\/admin\/products\/(\d+)\/edit$/.exec(link.getAttribute('href') ?? '')?.[1] ?? '').filter((id) => '' !== id),
     );
 
@@ -176,7 +177,7 @@ async function channelBaseCurrencyCode(page, channelCode) {
     await page.goto('/admin/channels/');
 
     const editUrl = await page
-        .locator('table tbody tr', { hasText: channelCode })
+        .locator(GRID_ROWS, { hasText: channelCode })
         .locator('a[href$="/edit"]')
         .first()
         .getAttribute('href');
@@ -204,7 +205,7 @@ async function channelBaseCurrencyCode(page, channelCode) {
 async function anyCustomerEmail(page) {
     await page.goto('/admin/customers/');
 
-    const email = (await page.locator('table tbody tr td').allInnerTexts()).map((text) => text.trim()).find((text) => /^\S+@\S+$/.test(text));
+    const email = (await page.locator(`${GRID_ROWS} > td`).allInnerTexts()).map((text) => text.trim()).find((text) => /^\S+@\S+$/.test(text));
     if (undefined === email) {
         throw new Error('The shop has no customer to issue a card to');
     }
@@ -222,7 +223,7 @@ async function anyCustomerEmail(page) {
  */
 async function currencyOtherThan(page, except) {
     await page.goto('/admin/currencies/');
-    const listed = await page.locator('table tbody tr td:first-child').allInnerTexts();
+    const listed = await page.locator(`${GRID_ROWS} > td:first-child`).allInnerTexts();
     const existing = listed.map((text) => text.trim()).find((code) => '' !== code && code !== except);
     if (undefined !== existing) {
         return existing;

@@ -66,7 +66,8 @@ async function signInToShop(page, email, password) {
 async function accountOrderRow(page, number) {
     await page.goto(await shopPath(page, 'account/orders/'));
 
-    const row = page.locator('table tbody tr').filter({ hasText: `#${number}` });
+    // the shop's grid of orders, a Sylius table, and nothing else on the page
+    const row = page.locator('table.ui.table tbody tr').filter({ hasText: `#${number}` });
     await expect(row, `the customer's orders should list #${number}`).toHaveCount(1);
 
     return row;
