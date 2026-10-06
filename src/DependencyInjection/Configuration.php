@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
+use Setono\SyliusGiftCardPlugin\DependencyInjection\Definition\Builder\NullableIntegerNodeDefinition;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardDesignRepository;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepository;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignType;
@@ -75,11 +76,13 @@ final class Configuration implements ConfigurationInterface
                             ->defaultValue(100)
                             ->min(1)
                         ->end()
-                        ->integerNode('maximum_amount')
-                            ->info('The maximum purchasable gift card amount in minor units. Set to null for no maximum')
-                            ->defaultNull()
-                            ->min(1)
-                        ->end()
+                        // An integer node refuses an explicit null, which is what this option says to write
+                        ->append(
+                            (new NullableIntegerNodeDefinition('maximum_amount'))
+                                ->info('The maximum purchasable gift card amount in minor units. Set to null for no maximum')
+                                ->defaultNull()
+                                ->min(1),
+                        )
                         ->integerNode('maximum_message_length')
                             ->info('The maximum number of characters a customer may write on a gift card. The column is a TEXT, so the only hard ceiling is what fits in one')
                             ->defaultValue(200)

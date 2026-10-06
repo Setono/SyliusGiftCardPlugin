@@ -45,8 +45,11 @@ interface GiftCardBalanceOperatorInterface
 
     /**
      * Manually changes the balance by $delta (positive or negative) for administrative reasons, recording the reason
+     *
+     * @param string|null $createdBy who made the adjustment, typically the signed in administrator's user identifier.
+     *                               It is stored as given, see GiftCardTransactionInterface::getCreatedBy()
      */
-    public function adjust(GiftCardInterface $giftCard, int $delta, string $reason): void;
+    public function adjust(GiftCardInterface $giftCard, int $delta, string $reason, ?string $createdBy = null): void;
 
     /**
      * Records the balance a gift card was issued with, so the ledger accounts for the opening balance and not
@@ -54,6 +57,10 @@ interface GiftCardBalanceOperatorInterface
      *
      * Recording is idempotent per gift card, so callers do not have to know whether issuance was already
      * recorded — a card whose amount is re-snapshotted before it becomes usable is still only issued once.
+     *
+     * @param OrderInterface|null $order the order that paid for the card, when it was bought in the shop
+     * @param string|null $createdBy who issued the card, typically the signed in administrator's user identifier
+     *                               when it was created in the admin
      */
-    public function issue(GiftCardInterface $giftCard): void;
+    public function issue(GiftCardInterface $giftCard, ?OrderInterface $order = null, ?string $createdBy = null): void;
 }
