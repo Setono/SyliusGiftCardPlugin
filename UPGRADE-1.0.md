@@ -29,6 +29,12 @@ Two changes deserve a closer look, because a gift card code is a bearer token (w
 - **`code_length` must be at least 12.** `0.12.x` accepted anything from 1 and defaulted to 20. A shorter setting now stops the container from compiling with `The value 8 is too small for path "setono_sylius_gift_card.code_length". Should be greater than or equal to 12`. Raise it or drop it (the default is 16). Codes already issued keep working whatever their length; the setting only applies to codes generated from now on. The same floor applies to a code an admin types when issuing a card and to codes given to the `setono_gift_card` fixture, through the new `minimum_code_length` setting (12 by default, and it cannot be lowered); a fixture file naming a shorter code now fails to load.
 - **Applying a code is rate limited**, per session and per client IP, through two limiters the plugin registers under `framework.rate_limiter` (see the README). Behind a reverse proxy or load balancer, configure `framework.trusted_proxies` first: without it every customer's requests come from the proxy's address, so they all share one IP budget.
 
+## Routing
+
+`@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml` now puts the admin routes under your admin path (`/%sylius_admin.path_name%`, which `SYLIUS_ADMIN_ROUTING_PATH_NAME` sets), where `0.12.x` always put them under `/admin`. On the default admin path nothing moves.
+
+If your admin lives somewhere else and you import `routes.yaml`, you will find the plugin's admin pages under your admin path: for an admin at `/backoffice`, `/admin/gift-cards/...` becomes `/backoffice/gift-cards/...` and `/admin/ajax/customer/...` becomes `/backoffice/ajax/customer/...`. Update any link or bookmark to the old addresses. Those were outside the admin firewall, where a gift card's PDF with its code and the customer search answered without a login; under your admin path they sit behind it with the rest of the admin. If you imported `routes/admin.yaml` and `routes/admin_ajax.yaml` yourself to get them there, you can go back to importing `routes.yaml`.
+
 ## Entity / schema changes
 
 The `GiftCard` entity changed: `origin` was removed; `deliveryType`, `design`, an optimistic-lock `version` column and a `transactions` relation were added; `initialAmount` is now set explicitly; the `orderItemUnit` foreign key changed from `CASCADE` to `SET NULL`. New tables are created for `gift_card_design` (+ translation + image + channel join) and `gift_card_transaction`; the `gift_card_configuration*` tables are no longer used.

@@ -4,10 +4,12 @@ setono_sylius_gift_card_shop:
     requirements:
         _locale: ^[A-Za-z]{2,4}(_([A-Za-z]{4}|[0-9]{3}))?(_([A-Za-z]{2}|[0-9]{3}))?$
 
+# Under the application's admin path (SYLIUS_ADMIN_ROUTING_PATH_NAME) like Sylius' own admin, because that is the path
+# its admin firewall and access control cover
 setono_sylius_gift_card_admin:
     resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/admin.yaml"
-    prefix: /admin
+    prefix: /%sylius_admin.path_name%
 
 setono_sylius_gift_card_admin_ajax:
     resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/admin_ajax.yaml"
-    prefix: /admin/ajax
+    prefix: /%sylius_admin.path_name%/ajax

@@ -126,26 +126,9 @@ setono_sylius_gift_card:
     resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml"
 ```
 
-This file puts the shop routes under `/{_locale}` and the admin routes under `/admin`, as Sylius-Standard does with
-Sylius' own. If your admin lives somewhere else (`SYLIUS_ADMIN_ROUTING_PATH_NAME`), import the three route files
-yourself instead, so the plugin's admin pages sit behind the admin firewall with the rest of the admin:
-
-```yaml
-# config/routes/setono_sylius_gift_card.yaml
-setono_sylius_gift_card_shop:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/shop.yaml"
-    prefix: /{_locale}
-    requirements:
-        _locale: ^[A-Za-z]{2,4}(_([A-Za-z]{4}|[0-9]{3}))?(_([A-Za-z]{2}|[0-9]{3}))?$
-
-setono_sylius_gift_card_admin:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/admin.yaml"
-    prefix: /%sylius_admin.path_name%
-
-setono_sylius_gift_card_admin_ajax:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/admin_ajax.yaml"
-    prefix: /%sylius_admin.path_name%/ajax
-```
+This file puts the shop routes under `/{_locale}` and the admin routes under your admin path, as Sylius-Standard does
+with Sylius' own: `/admin`, or whatever `SYLIUS_ADMIN_ROUTING_PATH_NAME` names. The plugin's admin pages sit behind the
+admin firewall with the rest of the admin, wherever it lives.
 
 ### Apply the traits/interfaces to your entities
 
