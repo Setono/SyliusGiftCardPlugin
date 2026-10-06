@@ -37,9 +37,11 @@ final class GiftCardInformationFactory implements GiftCardInformationFactoryInte
      * price: Sylius only prices a line once it has been added to the cart, so on the product page the line costs 0.
      * The channel price is in the channel's base currency, which is the currency the amount field is in.
      *
-     * Without a variant, a channel or a price for the variant in the channel there is nothing to suggest. A price the
-     * shop refuses as an amount, because the product is sold for nothing or for less or more than the purchase limits
-     * allow, would start the customer off at an error. In each case the field starts out empty
+     * Without a variant or a channel there is nothing to suggest. A shop whose maximum equals its minimum sells gift
+     * cards of that one amount, so the field starts out at it, whatever the product is priced at. Otherwise, without a
+     * price for the variant in the channel there is nothing to suggest either, and a price the shop refuses as an
+     * amount, because the product is sold for nothing or for less or more than the purchase limits allow, would start
+     * the customer off at an error. In each of those cases the field starts out empty
      */
     private function resolveInitialAmount(OrderInterface $cart, OrderItemInterface $cartItem): ?int
     {
@@ -50,13 +52,17 @@ final class GiftCardInformationFactory implements GiftCardInformationFactoryInte
             return null;
         }
 
+        $limits = $this->amountLimitsProvider->getLimits($channel);
+        if ($limits->maximum === $limits->minimum) {
+            return $limits->minimum;
+        }
+
         try {
             $price = $this->productVariantPricesCalculator->calculate($variant, ['channel' => $channel]);
         } catch (MissingChannelConfigurationException) {
             return null;
         }
 
-        $limits = $this->amountLimitsProvider->getLimits($channel);
         if ($price <= 0 || $price < $limits->minimum || (null !== $limits->maximum && $price > $limits->maximum)) {
             return null;
         }

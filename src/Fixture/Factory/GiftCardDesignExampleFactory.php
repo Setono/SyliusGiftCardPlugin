@@ -116,6 +116,13 @@ class GiftCardDesignExampleFactory extends AbstractExampleFactory implements Exa
             })
             ->setDefault('position', 0)
             ->setAllowedTypes('position', 'int')
+            // Mapped as Doctrine's integer type, a signed 32-bit integer in its portable type system, which the database
+            // holds the design to
+            ->setNormalizer('position', static function (Options $options, int $position): int {
+                Assert::range($position, -2147483648, 2147483647, 'A design position has to fit its integer column, from %2$s to %3$s, got: %s');
+
+                return $position;
+            })
             ->setDefault('enabled', true)
             ->setAllowedTypes('enabled', 'bool')
             ->setDefault('front_image', '@SetonoSyliusGiftCardPlugin/Resources/fixtures/default_background.png')

@@ -8,6 +8,9 @@
          the interfaces a class implements into the class's own. The cart page's form validates the cart in Sylius'
          group (sylius.form.type.cart.validation_groups) -->
     <class name="Setono\SyliusGiftCardPlugin\Model\OrderInterface">
+        <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardQuantityFitsCart">
+            <option name="groups">sylius</option>
+        </constraint>
         <!-- Gift card lines never merge, so Sylius' stock checks, which look at one line, never see all the cards of a
              tracked variant together. In the groups Sylius checks a line's stock in (InStock): its own, which the cart
              page and the checkout's steps validate the order in, and sylius_checkout_complete, which placing the order

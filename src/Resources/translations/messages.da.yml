@@ -19,6 +19,7 @@ setono_sylius_gift_card:
             image_file_help: 'Brug et liggende billede på mindst 1050×740px (JPG eller PNG). Det bruges som gavekortets gennemgående baggrund, så hold vigtigt indhold væk fra kanterne.'
         gift_card_information:
             amount: Beløb
+            amount_help_fixed: 'Beløbet er %amount%.'
             amount_help_minimum: 'Vælg et beløb på mindst %minimum%.'
             amount_help_range: 'Vælg et beløb mellem %minimum% og %maximum%.'
             custom_message: Besked

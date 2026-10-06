@@ -9,7 +9,20 @@
             <constraint name="NotBlank">
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
-            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmount">
+            <!-- In sequence, so an amount above both the configured maximum and the ceiling is told the maximum once,
+                 rather than told twice that it is too much -->
+            <constraint name="Sequentially">
+                <option name="constraints">
+                    <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmount"/>
+                    <!-- Not a business rule but the column's ceiling, which holds when no maximum is configured: the
+                         amount becomes the balance of a gift card, mapped as Doctrine's integer type, a signed 32-bit
+                         integer in its portable type system (INT on MySQL, INTEGER on PostgreSQL). It is the unit
+                         price of the order line too, which Sylius keeps in an integer column as well -->
+                    <constraint name="LessThanOrEqual">
+                        <option name="value">2147483647</option>
+                        <option name="message">setono_sylius_gift_card.gift_card_information.amount.too_large</option>
+                    </constraint>
+                </option>
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>
