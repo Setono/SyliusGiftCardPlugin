@@ -11,9 +11,17 @@ const { moneyInCents, typedAmount } = require('./money');
 
 const GIFT_CARD_INFORMATION = '[name*="giftCardInformation"]';
 const REDEMPTION_FIELD = '[name="setono_sylius_gift_card_add_gift_card_to_order[giftCard]"]';
+/** The radio buttons of Sylius' variant table, which a product with one variant and no options does not get */
+const VARIANT_CHOICE = '[name="sylius_add_to_cart[cartItem][variant]"]';
 
-/** @type {{locale: string|null, giftCard: string|null, ordinary: string|null}} */
-const discovered = { locale: null, giftCard: null, ordinary: null };
+/**
+ * The product pages found so far: the gift card product offering a choice of delivery types, a gift card product
+ * with a single delivery type (a simple product, without a variant choice) and an ordinary product
+ *
+ * @typedef {'giftCard'|'singleDeliveryTypeGiftCard'|'ordinary'} ProductKind
+ * @type {{locale: string|null, giftCard: string|null, singleDeliveryTypeGiftCard: string|null, ordinary: string|null}}
+ */
+const discovered = { locale: null, giftCard: null, singleDeliveryTypeGiftCard: null, ordinary: null };
 
 /**
  * A path in the shop, prefixed with the locale the shop sends a visitor to when none is given
@@ -33,13 +41,20 @@ async function shopPath(page, path = '') {
 }
 
 /**
- * Finds the product pages the home page links to: the first one that renders the gift card form and the first one
- * that renders an add to cart form without it. Cached for the run, as it costs a page load per candidate.
+ * Finds the product pages the home page links to, the first of each kind asked for: a page rendering the gift card
+ * form and a variant choice, one rendering the gift card form without a variant choice, and one rendering an add to
+ * cart form without the gift card form. Cached for the run, as it costs a page load per candidate.
+ *
+ * The seeded gift card products are the newest products, so the home page lists them all, in no particular order.
+ * That is why the gift card product the specs buy is the one offering a choice of delivery types, rather than
+ * whichever gift card product comes first.
  *
  * @param {import('@playwright/test').Page} page
+ * @param {ProductKind[]} kinds
  */
-async function discoverProducts(page) {
-    if (null !== discovered.giftCard && null !== discovered.ordinary) {
+async function discoverProducts(page, kinds = ['giftCard', 'ordinary']) {
+    const found = () => kinds.every((kind) => null !== discovered[kind]);
+    if (found()) {
         return;
     }
 
@@ -54,22 +69,26 @@ async function discoverProducts(page) {
             continue;
         }
 
-        const isGiftCard = 0 < (await page.locator(GIFT_CARD_INFORMATION).count());
-        if (isGiftCard && null === discovered.giftCard) {
-            discovered.giftCard = href;
+        /** @type {ProductKind} */
+        let kind = 'ordinary';
+        if (0 < (await page.locator(GIFT_CARD_INFORMATION).count())) {
+            kind = 0 < (await page.locator(VARIANT_CHOICE).count()) ? 'giftCard' : 'singleDeliveryTypeGiftCard';
         }
-        if (!isGiftCard && null === discovered.ordinary) {
-            discovered.ordinary = href;
+        if (null === discovered[kind]) {
+            discovered[kind] = href;
         }
-        if (null !== discovered.giftCard && null !== discovered.ordinary) {
+        if (found()) {
             return;
         }
     }
 
-    throw new Error(`The home page links to no gift card product or no ordinary product (checked ${hrefs.join(', ')})`);
+    const missing = kinds.filter((kind) => null === discovered[kind]);
+    throw new Error(`The home page links to no product of the kind ${missing.join(', ')} (checked ${hrefs.join(', ')})`);
 }
 
 /**
+ * The page of the gift card product offering a choice of delivery types
+ *
  * @param {import('@playwright/test').Page} page
  * @returns {Promise<string>}
  */
@@ -77,6 +96,18 @@ async function giftCardProductPath(page) {
     await discoverProducts(page);
 
     return /** @type {string} */ (discovered.giftCard);
+}
+
+/**
+ * The page of a gift card product with a single delivery type, which Sylius treats as a simple product
+ *
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string>}
+ */
+async function singleDeliveryTypeGiftCardProductPath(page) {
+    await discoverProducts(page, ['singleDeliveryTypeGiftCard']);
+
+    return /** @type {string} */ (discovered.singleDeliveryTypeGiftCard);
 }
 
 /**
@@ -96,15 +127,16 @@ async function submitAddToCart(page) {
  * Puts a gift card in the cart the way a customer does on the product page.
  *
  * @param {import('@playwright/test').Page} page
- * @param {{amount: number, message?: string|null, variant?: number}} card amount in minor units; variant is the
- *        position of the variant in the product's variant table, the one the page preselects when left out
+ * @param {{amount: number, message?: string|null, variant?: number|null, productPath?: string|null}} card amount in
+ *        minor units; variant is the position of the variant in the product's variant table, the one the page
+ *        preselects when left out; productPath is the product page, the gift card product's when left out
  * @returns {Promise<{design: string}>} the name of the design the card is bought with
  */
-async function addGiftCardToCart(page, { amount, message = null, variant = null }) {
-    await page.goto(await giftCardProductPath(page));
+async function addGiftCardToCart(page, { amount, message = null, variant = null, productPath = null }) {
+    await page.goto(productPath ?? (await giftCardProductPath(page)));
 
     if (null !== variant) {
-        await page.locator('[name="sylius_add_to_cart[cartItem][variant]"]').nth(variant).check();
+        await page.locator(VARIANT_CHOICE).nth(variant).check();
     }
 
     await page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first().fill(typedAmount(amount));
@@ -131,7 +163,7 @@ async function addGiftCardToCart(page, { amount, message = null, variant = null 
 async function giftCardVariantCount(page) {
     await page.goto(await giftCardProductPath(page));
 
-    return page.locator('[name="sylius_add_to_cart[cartItem][variant]"]').count();
+    return page.locator(VARIANT_CHOICE).count();
 }
 
 /**
@@ -188,5 +220,7 @@ module.exports = {
     giftCardVariantCount,
     redeemGiftCard,
     shopPath,
+    singleDeliveryTypeGiftCardProductPath,
     submitAddToCart,
+    VARIANT_CHOICE,
 };
