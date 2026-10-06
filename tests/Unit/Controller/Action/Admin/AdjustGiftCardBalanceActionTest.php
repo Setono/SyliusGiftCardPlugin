@@ -137,7 +137,12 @@ final class AdjustGiftCardBalanceActionTest extends TestCase
         yield 'a token without a user' => [new NullToken()];
     }
 
-    /** @test */
+    /**
+     * With 422, like the admin's resource forms, so a client tells a refused submission from a page that only shows the
+     * form
+     *
+     * @test
+     */
     public function it_shows_the_form_again_without_adjusting_anything_when_the_submission_is_invalid(): void
     {
         $this->balanceOperator->adjust(Argument::cetera())->shouldNotBeCalled();
@@ -145,7 +150,7 @@ final class AdjustGiftCardBalanceActionTest extends TestCase
 
         $response = $this->action($this->giftCard())($this->submission('10', ''), self::ID);
 
-        self::assertSame(200, $response->getStatusCode());
+        self::assertSame(422, $response->getStatusCode());
         self::assertSame('ADJUSTME in DKK', $response->getContent());
     }
 

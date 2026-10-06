@@ -105,6 +105,20 @@ final class GiftCardDesignFixtureTest extends GiftCardFunctionalTestCase
     }
 
     /**
+     * The position is kept in an integer column, a signed 32-bit integer, so a position outside it is refused before
+     * the database refuses the design
+     *
+     * @test
+     */
+    public function it_rejects_a_position_its_column_cannot_hold(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('A design position has to fit its integer column, from -2147483648 to 2147483647, got: 2147483648');
+
+        $this->loadFixture('setono_gift_card_design', ['custom' => [['code' => 'last', 'position' => 2147483648]]]);
+    }
+
+    /**
      * @test
      *
      * @dataProvider provideInvalidDesignOptions
