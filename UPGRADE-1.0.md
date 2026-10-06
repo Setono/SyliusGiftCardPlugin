@@ -17,7 +17,7 @@ The entire API Platform / `sylius/api-bundle` integration has been removed. If y
 - **Virtual vs physical.** New: a gift card is virtual or physical based on the chosen variant's `shipping required` flag. Physical gift cards ship through the normal Sylius shipping flow.
 - **Designs.** New `GiftCardDesign` resource (translatable, with front/back images). The old `GiftCardConfiguration` / `GiftCardChannelConfiguration` / `GiftCardConfigurationImage` entities and the DB-stored Twig template are **removed** — the PDF is now a normal, overridable Twig template file.
 - **Redemption is a payment, not an adjustment.** Where 0.12.x reduced the order total with a negative adjustment, a redeemed gift card is now a completed `Payment` against the order, leaving the total intact. This matches how gift cards work on other platforms and how accounting and order management systems expect to see them: selling a gift card takes money for a liability, and redeeming it settles that liability rather than discounting the order. Anything reading `order_gift_card` adjustments must read the order's gift card payments instead.
-- **Ledger.** New `GiftCardTransaction` append-only ledger records every balance change; admins can adjust balances with a reason.
+- **Ledger.** New `GiftCardTransaction` append-only ledger records every balance change; admins can adjust balances with a reason. A row names the admin who adjusted the balance or issued the card in the admin, and the issuance of a card bought in the shop names the order that paid for it.
 - **Dropped features.** The public balance-lookup page and the shop "my gift cards" account section were removed.
 
 ## Configuration migration
@@ -47,6 +47,18 @@ UPDATE setono_sylius_gift_card__gift_card SET initial_amount = amount WHERE init
 ```
 
 Write a data migration for your own data as needed.
+
+### The ledger table
+
+`setono_sylius_gift_card__gift_card_transaction` has the columns `amount`, `type`, `reason`, `idempotency_key` (nullable, unique), `created_by` (nullable), `created_at`, and the foreign keys `gift_card_id` (`CASCADE` on delete), `order_id` and `payment_id` (both `SET NULL` on delete).
+
+`created_by` holds the user identifier of the admin who adjusted a balance or issued a card in the admin. It is a copy of the identifier as text, not a foreign key to `sylius_admin_user`, so the ledger keeps naming the admin after their account is renamed or deleted. An application that created this table from a `1.x` development version before `created_by` existed gets this from `doctrine:migrations:diff`:
+
+```sql
+ALTER TABLE setono_sylius_gift_card__gift_card_transaction ADD created_by VARCHAR(255) DEFAULT NULL;
+```
+
+The rows such an application already has keep `created_by` `NULL`, and the issuance rows of cards bought in the shop before then have no `order_id`. The card's order item still leads to that order.
 
 ### Column names
 
