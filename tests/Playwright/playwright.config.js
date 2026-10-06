@@ -13,7 +13,8 @@ module.exports = defineConfig({
     workers: 1,
     fullyParallel: false,
     forbidOnly: !!process.env.CI,
-    retries: process.env.CI ? 1 : 0,
+    // No retries, in CI either: a spec that only passes at the second attempt is flaky, and a retry would hide that
+    retries: 0,
     reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
 
     use: {

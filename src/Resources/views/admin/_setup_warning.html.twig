@@ -4,7 +4,7 @@
 {{ include('@SetonoSyliusGiftCardPlugin/admin/_payment_method_warning.html.twig') }}
 {% set channels = setono_gift_card_channels_without_design() %}
 {% if channels is not empty %}
-    <div class="ui warning message" data-test-gift-card-setup-warning-message>
+    <div class="ui warning message" {{ sylius_test_html_attribute('gift-card-setup-warning-message') }}>
         <div class="header">{{ 'setono_sylius_gift_card.ui.setup_warning.header'|trans }}</div>
         <p>{{ 'setono_sylius_gift_card.ui.setup_warning.explanation'|trans({'%channels%': channels|map(channel => channel.name)|join(', ')}) }}</p>
         <ul class="list">

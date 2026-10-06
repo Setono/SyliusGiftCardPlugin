@@ -13,7 +13,7 @@
     pending: {color: 'yellow', icon: 'clock'},
     disabled: {color: 'red', icon: 'remove'},
 } %}
-<span class="ui {{ looks[status].color }} label" data-gift-card-status="{{ status }}">
+<span class="ui {{ looks[status].color }} label" {{ sylius_test_html_attribute('gift-card-status', status) }}>
     <i class="{{ looks[status].icon }} icon"></i>
     {{ ('setono_sylius_gift_card.ui.status_' ~ status)|trans }}
 </span>

@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { clickAndConfirm, flashMessages } = require('../support/admin');
+const { GRID_ROWS, clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
 const { clickAndWaitForPage } = require('../support/navigation');
 
 /**
@@ -23,21 +23,7 @@ const CREATE_PAYMENT_METHOD_BUTTON = `${PAYMENT_METHOD_MESSAGE} form[action$="/a
 async function giftCardPaymentMethodRow(page) {
     await page.goto('/admin/payment-methods/');
 
-    return page.locator('table tbody tr', { hasText: 'gift_card' });
-}
-
-/**
- * Semantic UI lays its own label over a checkbox and toggles the input itself when that label is clicked, so a
- * forced click on the input races the label's handler; the state is set on the input instead
- *
- * @param {import('@playwright/test').Locator} checkbox
- * @param {boolean} checked
- */
-async function setChecked(checkbox, checked) {
-    await checkbox.evaluate((input, value) => {
-        input.checked = value;
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-    }, checked);
+    return page.locator(GRID_ROWS, { hasText: 'gift_card' });
 }
 
 /**
@@ -61,14 +47,13 @@ async function designEditUrls(page) {
  * @param {boolean} enabled
  */
 async function setDesignsEnabled(page, editUrls, enabled) {
+    const form = 'form[name="setono_sylius_gift_card_gift_card_design"]';
+
     for (const editUrl of editUrls) {
         await page.goto(editUrl);
-        await setChecked(page.locator('input[name$="[enabled]"]'), enabled);
-        await Promise.all([
-            page.waitForResponse((response) => response.request().method() === 'POST'),
-            page.locator('form[name="setono_sylius_gift_card_gift_card_design"] button[type="submit"]').first().click(),
-        ]);
-        await page.waitForLoadState('networkidle');
+        await setChecked(page.locator(`${form} input[name$="[enabled]"]`), enabled);
+        await clickAndWaitForPage(page, page.locator(`${form} button[type="submit"]`).first());
+        await expect(page.locator(`${form} .sylius-validation-error`), `saving ${editUrl} was refused`).toHaveCount(0);
     }
 }
 
@@ -144,7 +129,7 @@ test.describe('gift card setup warning', () => {
         await page.goto('/admin/payment-methods/');
 
         await expect(page.locator(PAYMENT_METHOD_MESSAGE)).toHaveCount(0);
-        await expect(page.locator('table tbody tr', { hasText: 'gift_card' })).toHaveCount(1);
+        await expect(page.locator(GRID_ROWS, { hasText: 'gift_card' })).toHaveCount(1);
     });
 
     test('a channel selling gift cards without an enabled design is pointed out everywhere', async ({ page }) => {
@@ -164,7 +149,7 @@ test.describe('gift card setup warning', () => {
             await expect(topbar).toContainText(/setup incomplete/i);
 
             // it leads to the designs, which explain the two ways out
-            await topbar.click();
+            await clickAndWaitForPage(page, topbar);
             await expect(page).toHaveURL(/\/admin\/gift-card-designs\/?$/);
             const message = page.locator(MESSAGE);
             await expect(message).toBeVisible();

@@ -1,4 +1,5 @@
 framework:
     test: ~
     session:
-        storage_factory_id: session.storage.factory.mock_file
+        # mock file sessions under PHPUnit, native ones when the application is served (see services_test.yaml)
+        storage_factory_id: Setono\SyliusGiftCardPlugin\Tests\Application\Session\ServedOrMockSessionStorageFactory
