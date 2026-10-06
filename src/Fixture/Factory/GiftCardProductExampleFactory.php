@@ -82,6 +82,13 @@ class GiftCardProductExampleFactory extends AbstractExampleFactory implements Ex
             ->setAllowedTypes('enabled', 'bool')
             ->setDefault('price', GiftCardProductFactoryInterface::DEFAULT_PRICE)
             ->setAllowedTypes('price', 'int')
+            // Sylius maps the channel price as Doctrine's integer type, a signed 32-bit integer in its portable type
+            // system, which the database holds the product to
+            ->setNormalizer('price', static function (Options $options, int $price): int {
+                Assert::range($price, -2147483648, 2147483647, 'A gift card product price has to fit Sylius\' integer price column, from %2$s to %3$s minor units, got: %s');
+
+                return $price;
+            })
             ->setDefault('channels', LazyOption::all($this->channelRepository))
             ->setAllowedTypes('channels', 'array')
             ->setNormalizer('channels', LazyOption::findBy($this->channelRepository, 'code'))

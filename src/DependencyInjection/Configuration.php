@@ -38,6 +38,13 @@ final class Configuration implements ConfigurationInterface
      */
     public const MAXIMUM_CODE_LENGTH = 255;
 
+    /**
+     * The most a gift card can hold, in minor units. Not a business rule but the ceiling of the columns its balance is
+     * kept in, which are mapped as Doctrine's integer type, a signed 32-bit integer in its portable type system. The
+     * validation mapping holds every amount to it as well, and repeats the number, since XML cannot name a constant
+     */
+    public const MAXIMUM_AMOUNT = 2147483647;
+
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('setono_sylius_gift_card');
@@ -89,13 +96,17 @@ final class Configuration implements ConfigurationInterface
                             ->info('The minimum purchasable gift card amount in minor units (e.g. cents)')
                             ->defaultValue(100)
                             ->min(1)
+                            // Above what a card can hold, no amount would be left that the shop accepts
+                            ->max(self::MAXIMUM_AMOUNT)
                         ->end()
                         // An integer node refuses an explicit null, which is what this option says to write
                         ->append(
                             (new NullableIntegerNodeDefinition('maximum_amount'))
                                 ->info('The maximum purchasable gift card amount in minor units. At least minimum_amount; set to null for no maximum')
                                 ->defaultNull()
-                                ->min(1),
+                                ->min(1)
+                                // Above what a card can hold, the help text would quote a maximum the shop refuses
+                                ->max(self::MAXIMUM_AMOUNT),
                         )
                         ->integerNode('maximum_message_length')
                             ->info('The maximum number of characters a customer may write on a gift card. The column is a TEXT, so the only hard ceiling is what fits in one')

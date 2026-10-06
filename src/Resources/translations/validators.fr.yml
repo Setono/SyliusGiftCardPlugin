@@ -21,6 +21,7 @@ setono_sylius_gift_card:
             not_blank: Veuillez renseigner un montant
             integer: Le montant doit être un entier
             greater_than_or_equal: Le montant doit être supérieur ou égal à 1
+            too_large: Le montant dépasse ce qu'un chèque-cadeau peut contenir.
         currency_code:
             not_blank: Veuillez choisir une devise
             invalid: Cette devise n'est pas valide
@@ -32,10 +33,12 @@ setono_sylius_gift_card:
         could_not_be_applied: Le chèque-cadeau n'a pas pu être appliqué à votre commande.
         already_applied: Ce chèque-cadeau est déjà appliqué à votre commande.
         adjustment_makes_balance_negative: 'Vous ne pouvez pas déduire plus que le solde du chèque-cadeau. Le solde est de {{ balance }}.'
+        adjustment_makes_balance_too_large: 'Un chèque-cadeau ne peut pas contenir plus de {{ maximum }}. Le solde est de {{ balance }}.'
     gift_card_information:
         amount:
             too_low: 'Le montant du chèque-cadeau doit être au moins de {{ minimum }}.'
             too_high: 'Le montant du chèque-cadeau ne peut pas dépasser {{ maximum }}.'
+            too_large: Le montant du chèque-cadeau dépasse ce qu'un chèque-cadeau peut contenir.
         design:
             required: 'Veuillez choisir un modèle.'
     gift_card_design:
@@ -44,6 +47,7 @@ setono_sylius_gift_card:
             unique: Ce code est déjà utilisé par un autre modèle
         position:
             not_null: Veuillez saisir une position
+            out_of_range: 'La position doit être comprise entre {{ min }} et {{ max }}.'
         name:
             not_blank: Veuillez renseigner un nom
         images:

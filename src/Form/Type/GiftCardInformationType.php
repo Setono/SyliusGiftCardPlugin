@@ -7,7 +7,6 @@ namespace Setono\SyliusGiftCardPlugin\Form\Type;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
-use Sylius\Bundle\MoneyBundle\Form\Type\MoneyType;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -47,7 +46,7 @@ final class GiftCardInformationType extends AbstractType
         $designs = $this->designProvider->getDesigns($channel);
 
         $builder
-            ->add('amount', MoneyType::class, array_merge([
+            ->add('amount', MinorUnitsMoneyType::class, array_merge([
                 'label' => 'setono_sylius_gift_card.form.gift_card_information.amount',
                 'currency' => $currencyCode,
                 'attr' => [

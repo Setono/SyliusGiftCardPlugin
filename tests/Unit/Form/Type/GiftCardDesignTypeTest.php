@@ -71,6 +71,49 @@ final class GiftCardDesignTypeTest extends TypeTestCase
     }
 
     /**
+     * The position is kept in an integer column, a signed 32-bit integer, and a position outside it used to pass the
+     * form and end the request in a 500 when the database refused the design
+     *
+     * @test
+     *
+     * @dataProvider positions
+     */
+    public function it_takes_a_position_its_column_holds_and_refuses_any_other(string $position, bool $valid): void
+    {
+        $design = new GiftCardDesign();
+
+        $form = $this->factory->create(GiftCardDesignType::class, $design);
+        $form->submit($this->submission($position));
+
+        self::assertTrue($form->isSynchronized());
+        if ($valid) {
+            self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+            self::assertSame((int) $position, $design->getPosition());
+
+            return;
+        }
+
+        self::assertFalse($form->isValid());
+        $errors = iterator_to_array($form->get('position')->getErrors());
+        self::assertCount(1, $errors);
+        self::assertInstanceOf(FormError::class, $errors[0]);
+        self::assertSame('setono_sylius_gift_card.gift_card_design.position.out_of_range', $errors[0]->getMessageTemplate());
+        self::assertSame(['{{ value }}' => $position, '{{ min }}' => '-2147483648', '{{ max }}' => '2147483647'], $errors[0]->getMessageParameters());
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function positions(): iterable
+    {
+        yield 'the highest' => ['2147483647', true];
+        yield 'the lowest' => ['-2147483648', true];
+        yield 'one above the highest' => ['2147483648', false];
+        yield 'one below the lowest' => ['-2147483649', false];
+        yield 'the one from the issue' => ['99999999999', false];
+    }
+
+    /**
      * The code is a unique, non nullable column, so a blank one used to pass the form and end the request in a 500
      * when the database refused it
      *

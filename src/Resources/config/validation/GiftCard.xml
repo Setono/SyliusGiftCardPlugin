@@ -50,6 +50,14 @@
                 <option name="message">setono_sylius_gift_card.gift_card.amount.greater_than_or_equal</option>
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
+            <!-- Not a business rule but the column's ceiling: the amount, the initial amount seeded from it and the
+                 ledger row recording it are mapped as Doctrine's integer type, a signed 32-bit integer in its portable
+                 type system (INT on MySQL, INTEGER on PostgreSQL). The database would refuse a card holding more -->
+            <constraint name="LessThanOrEqual">
+                <option name="value">2147483647</option>
+                <option name="message">setono_sylius_gift_card.gift_card.amount.too_large</option>
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
         </property>
         <property name="currencyCode">
             <constraint name="NotBlank">

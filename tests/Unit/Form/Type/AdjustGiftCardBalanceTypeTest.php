@@ -144,6 +144,53 @@ final class AdjustGiftCardBalanceTypeTest extends TypeTestCase
         self::assertSame(['{{ balance }}' => 'DKK 50.00'], $errors[0]->getMessageParameters());
     }
 
+    /**
+     * The balance is kept in an integer column, a signed 32-bit integer, so a card holds at most 21474836.47. Adding
+     * more used to reach the database, which refused it with a 500. The admin is told the most a card holds and the
+     * balance instead
+     *
+     * @test
+     */
+    public function it_lets_the_balance_be_raised_to_the_most_a_card_can_hold_but_no_more(): void
+    {
+        $command = new AdjustGiftCardBalanceCommand($this->giftCard());
+        $form = $this->factory->create(AdjustGiftCardBalanceType::class, $command, ['currency' => 'DKK']);
+        $form->submit(['amount' => '21474786.47', 'reason' => 'Corporate gift']);
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame(2147478647, $command->getAmount());
+
+        $form = $this->factory->create(AdjustGiftCardBalanceType::class, new AdjustGiftCardBalanceCommand($this->giftCard()), [
+            'currency' => 'DKK',
+        ]);
+        $form->submit(['amount' => '21474786.48', 'reason' => 'Corporate gift']);
+
+        self::assertFalse($form->isValid());
+        $errors = self::errors($form->get('amount'));
+        self::assertCount(1, $errors);
+        self::assertSame('setono_sylius_gift_card.gift_card.adjustment_makes_balance_too_large', $errors[0]->getMessageTemplate());
+        self::assertSame(['{{ balance }}' => 'DKK 50.00', '{{ maximum }}' => 'DKK 21,474,836.47'], $errors[0]->getMessageParameters());
+    }
+
+    /**
+     * The minor units of this amount are beyond PHP's integer range, where Sylius' money field wraps them around: it
+     * used to add 4,464.64 to the balance. The field cannot read it instead
+     *
+     * @test
+     */
+    public function it_refuses_an_amount_whose_minor_units_php_cannot_hold(): void
+    {
+        $command = new AdjustGiftCardBalanceCommand($this->giftCard());
+
+        $form = $this->factory->create(AdjustGiftCardBalanceType::class, $command, ['currency' => 'DKK']);
+        $form->submit(['amount' => '184467440737095560', 'reason' => 'Goodwill']);
+
+        self::assertFalse($form->get('amount')->isSynchronized());
+        self::assertFalse($form->isValid());
+        self::assertNull($command->getAmount());
+        self::assertSame(['Please enter a valid money amount.'], self::errorMessageTemplates($form->get('amount')));
+    }
+
     private function giftCard(): GiftCard
     {
         $giftCard = new GiftCard();
@@ -160,6 +207,7 @@ final class AdjustGiftCardBalanceTypeTest extends TypeTestCase
     {
         $moneyFormatter = $this->prophesize(MoneyFormatterInterface::class);
         $moneyFormatter->format(5000, 'DKK')->willReturn('DKK 50.00');
+        $moneyFormatter->format(2147483647, 'DKK')->willReturn('DKK 21,474,836.47');
 
         // The rules live in the command's validation mapping rather than on the form, so the mapping is what is loaded
         $validator = Validation::createValidatorBuilder()
