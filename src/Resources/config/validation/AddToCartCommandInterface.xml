@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<constraint-mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://symfony.com/schema/dic/constraint-mapping"
+                    xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/services/constraint-mapping-1.0.xsd">
+
+    <!-- Mapped on the interface, as an application's own command may implement it instead of extending the plugin's:
+         the validator merges the constraints of the interfaces a class implements into the class's own. The shop's add
+         to cart form validates the command in Sylius' group (sylius.form.type.add_to_cart.validation_groups) -->
+    <class name="Setono\SyliusGiftCardPlugin\Order\AddToCartCommandInterface">
+        <!-- Gift card lines never merge, so Sylius' stock checks, which look at one line, miss the cards of a tracked
+             variant the cart holds in its other lines: what is added, with those, has to be in stock -->
+        <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCartItemAvailability">
+            <option name="groups">sylius</option>
+        </constraint>
+    </class>
+</constraint-mapping>

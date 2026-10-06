@@ -58,5 +58,22 @@
 
             <tag name="validator.constraint_validator"/>
         </service>
+
+        <!-- Sylius' availability checker, which Sylius' own stock checks ask as well. The interface alias exists on
+             Sylius 1.13 and 1.14, and on 1.14 it leads through sylius.checker.inventory.availability and
+             sylius.availability_checker, so a decorator of either applies here too -->
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCartItemAvailabilityValidator"
+                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCartItemAvailabilityValidator">
+            <argument type="service" id="Sylius\Component\Inventory\Checker\AvailabilityCheckerInterface"/>
+
+            <tag name="validator.constraint_validator"/>
+        </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardOrderItemsAvailabilityValidator"
+                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardOrderItemsAvailabilityValidator">
+            <argument type="service" id="Sylius\Component\Inventory\Checker\AvailabilityCheckerInterface"/>
+
+            <tag name="validator.constraint_validator"/>
+        </service>
     </services>
 </container>

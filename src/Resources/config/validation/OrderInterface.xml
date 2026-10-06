@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<constraint-mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://symfony.com/schema/dic/constraint-mapping"
+                    xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/services/constraint-mapping-1.0.xsd">
+
+    <!-- The order class is the application's, and implements this interface: the validator merges the constraints of
+         the interfaces a class implements into the class's own. The cart page's form validates the cart in Sylius'
+         group (sylius.form.type.cart.validation_groups) -->
+    <class name="Setono\SyliusGiftCardPlugin\Model\OrderInterface">
+        <!-- Gift card lines never merge, so Sylius' stock checks, which look at one line, never see all the cards of a
+             tracked variant together. In the groups Sylius checks a line's stock in (InStock): its own, which the cart
+             page and the checkout's steps validate the order in, and sylius_checkout_complete, which placing the order
+             adds. A constraint validated in both groups at once runs once -->
+        <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardOrderItemsAvailability">
+            <option name="groups">
+                <value>sylius</value>
+                <value>sylius_checkout_complete</value>
+            </option>
+        </constraint>
+    </class>
+</constraint-mapping>
