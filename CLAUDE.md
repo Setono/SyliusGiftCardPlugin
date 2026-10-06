@@ -35,6 +35,8 @@ CI runs `composer rector`, `composer lint:yaml`, `composer lint:twig` and `compo
 
 **Always run the web server with `symfony serve`** (e.g. `(cd tests/Application && symfony serve -d --port=8080)`) — never `php -S` / `symfony php -S ... router.php`. `symfony serve` handles routing itself (no `router.php` needed) and serves from `public/` automatically.
 
+`public/index.php` leaves deprecations out of PHP's own error reporting before Composer's autoloader runs, so no deprecation ends up in a page on any PHP version; Symfony still logs every one its error handler receives. Keep it: on PHP 8.4 the autoloader runs api-platform 2.7's `deprecation.php`, which compiles interfaces PHP reports as deprecated, and under OPcache those notices reach PHP's own handler rather than Symfony's (php-src GH-17422). A development php.ini printed them at the top of the response whenever OPcache compiled those files afresh (after the server started, and after a few container rebuilds had filled OPcache's memory), and the page failed with a 500 because its session could not start (#434).
+
 **Assets: use Node 20** (`tests/Application/.nvmrc` pins it — run `nvm use` before `yarn install`/`yarn build`). The frontend uses `@sylius-ui/frontend` (Dart Sass); Node 22+ breaks the build. `package.json` also pins `jquery` via `resolutions` so the admin JS (`jquery.dirtyforms`) loads — without it the admin console throws `jQuery.dirtyForms is not a function` and JS-driven form submits fail.
 
 ## Testing conventions
