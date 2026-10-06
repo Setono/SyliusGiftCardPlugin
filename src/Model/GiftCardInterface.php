@@ -27,15 +27,17 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
 
     /**
      * A gift card is pending when it has been created as part of a cart, but the order has not been paid yet.
-     * Pending gift cards are disabled and have never had any balance mutations
+     * Pending gift cards are disabled and have never had any balance mutations. That includes the card of an order
+     * cancelled before it was paid, which was never issued either, so it may be deleted and goes with its unit, but
+     * getStatus() calls it disabled
      */
     public function isPending(): bool;
 
     /**
      * The one status the admin shows for the card. Where more than one would apply, the first of these wins:
      *
-     * - pending: isPending(), the card waits for its order to be paid
-     * - disabled: any other disabled card
+     * - pending: isPending() and its order is not cancelled, so the card waits for that order to be paid
+     * - disabled: any other disabled card, the card of an order cancelled before it was paid included
      * - spent: enabled with nothing left on it, whether or not it has expired since, as there is nothing to lose
      * - expired: enabled with a balance left, but past its expiry date (judged against $date, which defaults to now)
      * - usable: everything else, which is exactly when isUsable() is true

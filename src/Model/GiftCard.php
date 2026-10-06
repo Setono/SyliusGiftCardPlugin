@@ -94,7 +94,10 @@ class GiftCard implements GiftCardInterface
     public function getStatus(?\DateTimeInterface $date = null): GiftCardStatus
     {
         if ($this->isPending()) {
-            return GiftCardStatus::Pending;
+            // A bought card is only issued once its order is paid, so the card of an order cancelled before then is
+            // still pending by isPending(), though it waits for nothing any more (sylius:cancel-unpaid-orders leaves
+            // one behind for every expired order with a gift card in it)
+            return OrderInterface::STATE_CANCELLED === $this->getOrder()?->getState() ? GiftCardStatus::Disabled : GiftCardStatus::Pending;
         }
 
         if (!$this->enabled) {

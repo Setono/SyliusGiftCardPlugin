@@ -18,8 +18,15 @@ final class GiftCardPendingFilterTest extends TestCase
 {
     use ProphecyTrait;
 
-    /** GiftCard::isPending(): disabled, on a unit, and no ledger row yet */
-    private const PENDING = 'o.enabled = false AND o.orderItemUnit IS NOT NULL AND o.transactions IS EMPTY';
+    /**
+     * GiftCard::isPending() (disabled, on a unit, and no ledger row yet), on an order that is not cancelled: the card of
+     * an order cancelled before it was paid waits for nothing, and its status is disabled
+     */
+    private const PENDING = 'o.enabled = false AND o.orderItemUnit IS NOT NULL AND o.transactions IS EMPTY'
+        . ' AND NOT EXISTS (SELECT 1 FROM Setono\SyliusGiftCardPlugin\Model\GiftCardInterface pendingFilterCard'
+        . ' JOIN pendingFilterCard.orderItemUnit pendingFilterUnit JOIN pendingFilterUnit.orderItem pendingFilterItem'
+        . ' JOIN pendingFilterItem.order pendingFilterOrder'
+        . " WHERE pendingFilterCard = o AND pendingFilterOrder.state = 'cancelled')";
 
     /** @var ObjectProphecy<DataSourceInterface> */
     private ObjectProphecy $dataSource;

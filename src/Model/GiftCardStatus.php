@@ -26,12 +26,14 @@ enum GiftCardStatus: string
     case Spent = 'spent';
 
     /**
-     * Created when the gift card was put in a cart, and waiting for its order to be paid (GiftCardInterface::isPending())
+     * Created when the gift card was put in a cart, and waiting for its order to be paid: GiftCardInterface::isPending(),
+     * on an order that is not cancelled
      */
     case Pending = 'pending';
 
     /**
-     * Disabled, by an admin or because the order that bought it was cancelled or refunded in full
+     * Disabled, by an admin or because the order that bought it was cancelled (before or after it was paid) or refunded
+     * in full
      */
     case Disabled = 'disabled';
 }

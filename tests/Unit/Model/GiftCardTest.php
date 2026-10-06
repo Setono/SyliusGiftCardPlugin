@@ -11,6 +11,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardTransaction;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
+use Sylius\Component\Core\Model\OrderInterface;
 
 final class GiftCardTest extends TestCase
 {
@@ -157,6 +158,43 @@ final class GiftCardTest extends TestCase
         // the ledger row tells a card whose order was cancelled after it was paid from one still waiting for payment
         yield 'bought, then disabled when its order was cancelled' => [GiftCardStatus::Disabled, true, false, 5000, null, true];
         yield 'disabled, spent and expired' => [GiftCardStatus::Disabled, false, false, 0, '-1 day', true];
+    }
+
+    /**
+     * A bought card is only issued once its order is paid, so the card of an order cancelled before then is still
+     * pending by isPending(). It waits for nothing any more, so its status says it is disabled, like the card of an
+     * order cancelled after it was paid. isPending() itself keeps calling it pending: it was never issued, so it may
+     * still be deleted and goes with its unit
+     *
+     * @test
+     *
+     * @dataProvider stillWaitingOrNot
+     */
+    public function it_is_disabled_rather_than_pending_once_its_unpaid_order_is_cancelled(string $orderState, GiftCardStatus $expected): void
+    {
+        $order = new Order();
+        $order->setState($orderState);
+        $item = new OrderItem();
+        $order->addItem($item);
+
+        $giftCard = new GiftCard();
+        $giftCard->setOrderItemUnit(new OrderItemUnit($item));
+        $giftCard->disable();
+        $giftCard->setAmount(5000);
+
+        self::assertTrue($giftCard->isPending());
+        self::assertTrue($giftCard->isDeletable());
+        self::assertSame($expected, $giftCard->getStatus());
+    }
+
+    /**
+     * @return iterable<string, array{string, GiftCardStatus}>
+     */
+    public static function stillWaitingOrNot(): iterable
+    {
+        yield 'still in the cart' => [OrderInterface::STATE_CART, GiftCardStatus::Pending];
+        yield 'placed and awaiting payment' => [OrderInterface::STATE_NEW, GiftCardStatus::Pending];
+        yield 'cancelled before it was paid' => [OrderInterface::STATE_CANCELLED, GiftCardStatus::Disabled];
     }
 
     /** @test */

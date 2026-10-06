@@ -113,6 +113,25 @@ final class GiftCardShowPageTest extends AdminFunctionalTestCase
         self::assertSame([], self::textsOf($response, '//tr[td[1]/strong[normalize-space() = "Bought with order"]]/td[2]/a'));
     }
 
+    /**
+     * The card of an order cancelled before it was paid was never issued, but it waits for nothing any more, so the
+     * show page calls it disabled like the card of an order cancelled after it was paid, and still links the order
+     *
+     * @test
+     */
+    public function it_shows_the_card_of_an_order_cancelled_before_payment_as_disabled(): void
+    {
+        $order = $this->persistOrder('000077');
+        $giftCard = $this->persistGiftCardBoughtWith($order, 'SHOWPAGECANCEL01', enabled: false);
+        $order->setState(OrderInterface::STATE_CANCELLED);
+        $this->manager->flush();
+
+        $response = $this->show($giftCard);
+
+        self::assertSame(['Disabled'], $this->detail($response, 'Status'));
+        self::assertSame(['#000077'], $this->detail($response, 'Bought with order'));
+    }
+
     /** @test */
     public function it_shows_a_dash_for_a_card_issued_in_the_admin(): void
     {

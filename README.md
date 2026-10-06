@@ -56,11 +56,11 @@ The gift card grid and a card's page show one status per card:
 - **Expired**: enabled with a balance left, but past its expiry date
 - **Spent**: enabled with nothing left on it, whether or not it has expired since
 - **Pending**: created when the gift card was put in a cart, and waiting for its order to be paid
-- **Disabled**: disabled by an admin, or because the order that bought it was cancelled or refunded in full
+- **Disabled**: disabled by an admin, or because the order that bought it was cancelled or refunded in full. A card is only issued once its order is paid, so the card of an order cancelled before then (as `sylius:cancel-unpaid-orders` cancels every expired one) was never issued, but it waits for nothing any more and is disabled too
 
 Where more than one would apply, the first of pending, disabled, spent and expired wins; `GiftCardInterface::getStatus()` gives it in your own code. The grid filters by code, part of the customer's email, channel, currency, delivery type, enabled, expired, spent and creation date, and sorts by code, customer, amount and creation date. Expired and spent look at the expiry date and the balance alone, so they also find a disabled card past its date or with nothing left. Pending cards are left out unless the *Pending gift cards* filter is set to show them, because most carts are never paid for and a pending card is no liability yet.
 
-A card can only be deleted while nothing has happened to it: a card issued in the admin whose balance has not moved, or a pending one. The grid only offers to delete those, the server refuses the others, and there is no bulk delete. A card's page links the order it was bought with, the orders it was applied to and its design, and adjusting the balance leads back to it, where the ledger lists the adjustment.
+A card can only be deleted while nothing has happened to it: a card issued in the admin whose balance has not moved, or a card bought on an order that was never paid (pending, or disabled because that order was cancelled before it was paid). The grid only offers to delete those, the server refuses the others, and there is no bulk delete. A card's page links the order it was bought with, the orders it was applied to and its design, and adjusting the balance leads back to it, where the ledger lists the adjustment.
 
 ## Requirements
 

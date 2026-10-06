@@ -12,6 +12,7 @@ use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\CustomerInterface;
+use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -201,6 +202,30 @@ final class AdminGridTest extends AdminFunctionalTestCase
         self::assertSame('Disabled', $this->statuses($shown)['CANC-ELLE-D']);
 
         self::assertSame(['PEND-ING'], $this->codes($this->request('GET', '/admin/gift-cards/', ['criteria' => ['pending' => 'only']])));
+    }
+
+    /**
+     * A bought card is only issued once its order is paid, so the card of an order cancelled before then (as
+     * sylius:cancel-unpaid-orders cancels every expired one) is still disabled, on its unit and without a ledger row.
+     * It waits for nothing any more, so it is listed as disabled with the other cards and is no pending card
+     *
+     * @test
+     */
+    public function it_lists_the_card_of_an_order_cancelled_before_payment_as_disabled_rather_than_pending(): void
+    {
+        $this->persistBoughtGiftCard('WAITING', enabled: false);
+        $cancelled = $this->persistBoughtGiftCard('CANCELLEDUNPAID', enabled: false);
+        $cancelled->getOrder()?->setState(OrderInterface::STATE_CANCELLED);
+        $this->manager->flush();
+
+        $index = $this->request('GET', '/admin/gift-cards/');
+        self::assertSame(['CANC-ELLE-DUNP-AID' => 'Disabled'], $this->statuses($index));
+
+        self::assertSame(['WAIT-ING'], $this->codes($this->request('GET', '/admin/gift-cards/', ['criteria' => ['pending' => 'only']])));
+        self::assertSame(
+            ['CANC-ELLE-DUNP-AID' => 'Disabled', 'WAIT-ING' => 'Pending'],
+            $this->statuses($this->request('GET', '/admin/gift-cards/', ['criteria' => ['pending' => 'show']])),
+        );
     }
 
     /**
