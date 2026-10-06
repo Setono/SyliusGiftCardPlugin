@@ -6,7 +6,10 @@ setono_sylius_gift_card:
             code_help: 'Genereret til dig. Du kan skrive din egen kode i stedet, med mindst %minimum% bogstaver og tal: den gemmes med store bogstaver, og kun bogstaverne A–Z og tal bevares.'
             custom_message: Personlig besked
             custom_message_placeholder: Denne besked printes på gavekortet...
+            delivery_type_help: 'Vælg Fysisk, når du selv udleverer eller sender et trykt gavekort: butikken sender det ikke. Notifikationsmailen indeholder koden og PDF''en uanset hvad. Det kan ikke ændres, når gavekortet er udstedt.'
+            design_help: 'Vises på gavekortets PDF. Kun designs, der er aktiveret i gavekortets kanal, kan vælges.'
             expires_at: Udløber
+            no_design: Intet (standardlayout)
             send_notification_email: Send email med gavekort til kunde
             send_notification_email_help: 'Sendes kun, når gavekortet kan bruges: aktiveret, ikke udløbet og med saldo tilbage. Ellers send det fra gavekortsiden, når det kan.'
         gift_card_design:

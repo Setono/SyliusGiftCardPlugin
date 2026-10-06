@@ -25,7 +25,6 @@ sylius_order:
         order:
             classes:
                 model: Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order
-                repository: Setono\SyliusGiftCardPlugin\Tests\Application\Doctrine\ORM\OrderRepository
         order_item:
             classes:
                 model: Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem

@@ -13,6 +13,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   idempotency keys so a replayed state machine transition cannot double-spend
 - Admin **Adjust balance** action, writing a manual ledger entry with a reason, which leads back to the card's page
   where the ledger is
+- The admin's gift card form takes a design, picked from thumbnails of the designs enabled in the card's channel,
+  and a delivery type, virtual unless chosen otherwise. The design can be changed later; the delivery type is
+  settled when the card is issued
 - A status for every gift card (`GiftCardInterface::getStatus()`: usable, expired, spent, pending or disabled), shown
   in the admin gift card grid in place of the enabled column and on the card's page
 - Admin gift card grid filters by customer email, channel, currency, delivery type, expired, spent and creation date,
@@ -68,6 +71,8 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - The `GiftCardConfiguration` entity family, along with the database-stored PDF template and its live editor
 - The public balance-lookup page and the shop account "my gift cards" section
 - The `origin` property on gift cards
+- `OrderRepositoryTrait` and `Repository\OrderRepositoryInterface`: nothing in the plugin used their queries any
+  more, so an application no longer overrides Sylius' order repository for the plugin
 - The Behat and phpspec suites, replaced by PHPUnit and Playwright
 
 ## 0.6.0

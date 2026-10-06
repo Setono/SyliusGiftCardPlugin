@@ -9,8 +9,14 @@
             Sylius applies transitions through a single configured adapter (sylius_core.state_machine.default_adapter),
             so exactly one of the two sets runs for any given transition and the work is never done twice.
 
-            Each subscriber names the transition it reacts to, and its priority where one matters, in
-            getSubscribedEvents().
+            They are event subscribers, but they live here rather than in event_subscriber.xml on purpose: they are the
+            twins of the winzou callbacks and change together with them, so they stay together as the Symfony Workflow
+            half of the plugin's state machine wiring instead of mixing with subscribers to unrelated events. A new
+            state machine hook needs both halves: a callback in prepend() and a subscriber in EventSubscriber/Workflow,
+            registered here.
+
+            Each subscriber names the transitions it reacts to, each with its priority (the winzou priority negated), in
+            getSubscribedEvents(). StateMachineCallbackParityTest fails when the two sets drift apart.
         -->
 
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\GuardCheckoutCompletionSubscriber">
