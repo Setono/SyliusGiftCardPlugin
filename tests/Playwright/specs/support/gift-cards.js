@@ -46,14 +46,15 @@ async function pickCustomer(page, email) {
  * channel the form proposes, the only currency a card may be issued in.
  *
  * @param {import('@playwright/test').Page} page an authenticated admin page
- * @param {{amount: number, code?: string|null, enabled?: boolean, customerEmail?: string|null, customMessage?: string|null, expiresAt?: string|null}} card
+ * @param {{amount: number, code?: string|null, enabled?: boolean, customerEmail?: string|null, customMessage?: string|null, expiresAt?: string|null, deliveryType?: string|null, design?: string|null}} card
  *        amount in minor units; code typed over the generated one the form proposes, left as proposed when null;
- *        expiresAt as YYYY-MM-DD
+ *        expiresAt as YYYY-MM-DD; deliveryType as its value (virtual or physical), left at the form's default when
+ *        null; design as the code of a design the picker offers, none when null
  * @returns {Promise<{id: string, code: string, printedCode: string, shownCode: string, currency: string}>} the code as
  *          stored, without separators; as printed (the show page, the grid, the PDF and the emails group it, e.g.
  *          ABCD-EFGH-JKMN-PQRS); and the code the form held when it was submitted
  */
-async function issueGiftCard(page, { amount, code = null, enabled = true, customerEmail = null, customMessage = null, expiresAt = null }) {
+async function issueGiftCard(page, { amount, code = null, enabled = true, customerEmail = null, customMessage = null, expiresAt = null, deliveryType = null, design = null }) {
     await page.goto('/admin/gift-cards/new');
     const channel = await page.locator(`${FORM} select[name$="[channel]"]`).inputValue();
     if (!baseCurrencies.has(channel)) {
@@ -79,6 +80,12 @@ async function issueGiftCard(page, { amount, code = null, enabled = true, custom
     }
     if (null !== code) {
         await page.locator(`${FORM} [name$="[code]"]`).fill(code);
+    }
+    if (null !== deliveryType) {
+        await page.locator(`${FORM} select[name$="[deliveryType]"]`).selectOption(deliveryType);
+    }
+    if (null !== design) {
+        await page.locator(`${FORM} input[type="radio"][name$="[design]"][value="${design}"]`).check();
     }
     const shownCode = await page.locator(`${FORM} [name$="[code]"]`).inputValue();
 

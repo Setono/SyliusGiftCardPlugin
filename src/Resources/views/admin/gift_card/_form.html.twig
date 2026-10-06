@@ -6,6 +6,7 @@
             {% if form.channel is defined %}
                 {{ form_row(form.channel) }}
             {% endif %}
+            {{ form_row(form.deliveryType) }}
             {{ form_row(form.enabled) }}
             {{ form_row(form.expiresAt) }}
             {{ form_row(form.customer) }}
@@ -25,6 +26,49 @@
                 {{ form_row(form.amount) }}
             {% endif %}
             {{ form_row(form.customMessage) }}
+
+            {% set design_field = form.design %}
+            {% if design_field.vars.choices is empty %}
+                {# Without a design to offer there is nothing to pick, and the card prints the default layout #}
+                {% do design_field.setRendered %}
+            {% else %}
+                {# A radio group is named by a legend: a `<label for>` can only point at one control, so it never names
+                   the group as a whole. On a new card the script narrows the designs to the ones the chosen channel
+                   offers; every design tells which channels offer it, and the form turns down any other #}
+                <div class="field{% if not design_field.vars.valid %} error{% endif %}">
+                    <fieldset class="setono-gift-card-design-picker"
+                              data-js-gift-card-design-picker
+                              {% if form.channel is defined %}data-channel-field="{{ form.channel.vars.id }}"{% endif %}
+                              aria-describedby="{{ design_field.vars.id }}_help">
+                        <legend>{{ design_field.vars.label|trans }}</legend>
+                        <div class="setono-gift-card-design-picker__choices">
+                            {% for choice in design_field %}
+                                {% set image_path = choice.vars.attr['data-image-path']|default('') %}
+                                <label class="setono-gift-card-design-picker__choice"
+                                       {% if choice.vars.attr['data-channels'] is defined %}data-channels="{{ choice.vars.attr['data-channels'] }}"{% endif %}>
+                                    {{ form_widget(choice) }}
+                                    {# The name follows, so the image adds nothing to what the choice is called #}
+                                    {% if image_path is not empty %}
+                                        <img src="{{ image_path|imagine_filter('setono_sylius_gift_card_design_thumbnail') }}" alt=""/>
+                                    {% else %}
+                                        <span class="setono-gift-card-design-picker__no-image"></span>
+                                    {% endif %}
+                                    {# Design names are the merchant's own and stay as written. The choice of none is the
+                                       placeholder, which Symfony leaves untranslated along with them #}
+                                    <span>{{ choice.vars.name == 'placeholder' ? choice.vars.label|trans : choice.vars.label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        {{ form_errors(design_field) }}
+                        {{ form_help(design_field) }}
+                    </fieldset>
+                </div>
+
+                <link rel="stylesheet" href="{{ asset('bundles/setonosyliusgiftcardplugin/css/admin-gift-card.css') }}"/>
+                {% if form.channel is defined %}
+                    <script defer src="{{ asset('bundles/setonosyliusgiftcardplugin/js/admin-gift-card-design-picker.js') }}"></script>
+                {% endif %}
+            {% endif %}
         </div>
     </div>
 </div>
