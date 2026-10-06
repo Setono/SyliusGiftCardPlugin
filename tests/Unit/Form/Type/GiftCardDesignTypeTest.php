@@ -14,6 +14,8 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImageInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignTranslation;
 use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
 use Sylius\Bundle\ResourceBundle\Form\Type\ResourceTranslationsType;
+use Sylius\Component\Core\Model\Channel;
+use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Sylius\Resource\Translation\Provider\TranslationLocaleProviderInterface;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
@@ -31,6 +33,10 @@ final class GiftCardDesignTypeTest extends TypeTestCase
     private const LOCALE = 'en_US';
 
     use ProphecyTrait;
+
+    private ChannelInterface $webChannel;
+
+    private ChannelInterface $mobileChannel;
 
     /** @test */
     public function it_maps_a_submitted_position(): void
@@ -132,6 +138,24 @@ final class GiftCardDesignTypeTest extends TypeTestCase
     }
 
     /**
+     * The shop offers a design in the channels it is ticked for, so unticking one takes the design out of that
+     * channel's design picker
+     *
+     * @test
+     */
+    public function it_offers_the_design_in_the_channels_ticked_for_it(): void
+    {
+        $design = new GiftCardDesign();
+        $design->addChannel($this->webChannel);
+
+        $form = $this->factory->create(GiftCardDesignType::class, $design);
+        $form->submit(['channels' => ['MOBILE']] + $this->submission('0'));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame([$this->mobileChannel], array_values($design->getChannels()->toArray()));
+    }
+
+    /**
      * A design has one front and one back; a second image of either would never be shown. The images collection
      * bubbles its errors up, so the violation is reported on the form, whose errors the admin template renders
      *
@@ -169,6 +193,15 @@ final class GiftCardDesignTypeTest extends TypeTestCase
         ];
     }
 
+    private function channel(string $code): ChannelInterface
+    {
+        $channel = new Channel();
+        $channel->setCode($code);
+        $channel->setName($code);
+
+        return $channel;
+    }
+
     private function image(string $type): GiftCardDesignImage
     {
         $image = new GiftCardDesignImage();
@@ -186,8 +219,11 @@ final class GiftCardDesignTypeTest extends TypeTestCase
         $localeProvider->getDefinedLocalesCodes()->willReturn([self::LOCALE]);
         $localeProvider->getDefaultLocaleCode()->willReturn(self::LOCALE);
 
+        $this->webChannel = $this->channel('WEB');
+        $this->mobileChannel = $this->channel('MOBILE');
+
         $channelRepository = $this->prophesize(RepositoryInterface::class);
-        $channelRepository->findAll()->willReturn([]);
+        $channelRepository->findAll()->willReturn([$this->webChannel, $this->mobileChannel]);
 
         $preloaded = new PreloadedExtension([
             new GiftCardDesignType(GiftCardDesign::class, ['setono_sylius_gift_card']),

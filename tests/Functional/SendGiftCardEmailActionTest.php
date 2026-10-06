@@ -177,6 +177,15 @@ final class SendGiftCardEmailActionTest extends AdminFunctionalTestCase
         self::assertSame([], $this->recipients);
     }
 
+    /** @test */
+    public function it_answers_not_found_for_an_unknown_gift_card(): void
+    {
+        $token = $this->tokenOnShowPage($this->persistGiftCardFor('customer@example.com'));
+
+        self::assertSame(404, $this->request('POST', '/admin/gift-cards/987654/send-email', ['_csrf_token' => $token])->getStatusCode());
+        self::assertSame([], $this->recipients);
+    }
+
     private function persistGiftCardFor(string $email, string $code = 'SENDME', bool $enabled = true): GiftCardInterface
     {
         $customer = new Customer();

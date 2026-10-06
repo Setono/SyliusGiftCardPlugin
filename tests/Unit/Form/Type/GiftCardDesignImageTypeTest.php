@@ -7,9 +7,11 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Form\Type;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignImageType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImage;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImageInterface;
+use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
 use Symfony\Component\Form\FormExtensionInterface;
 use Symfony\Component\Form\PreloadedExtension;
 use Symfony\Component\Form\Test\TypeTestCase;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class GiftCardDesignImageTypeTest extends TypeTestCase
 {
@@ -37,6 +39,30 @@ final class GiftCardDesignImageTypeTest extends TypeTestCase
     {
         yield 'the front' => [GiftCardDesignImageInterface::TYPE_FRONT];
         yield 'the back' => [GiftCardDesignImageInterface::TYPE_BACK];
+    }
+
+    /**
+     * Sylius' images upload listener stores the file the form puts on the image, so the file the admin chose has to
+     * end up there
+     *
+     * @test
+     */
+    public function it_puts_the_chosen_file_on_the_image(): void
+    {
+        $file = new UploadedFile(
+            __DIR__ . '/../../../../src/Resources/fixtures/default_background.png',
+            'birthday.png',
+            'image/png',
+            null,
+            true,
+        );
+        $image = new GiftCardDesignImage();
+
+        $form = $this->factory->create(GiftCardDesignImageType::class, $image);
+        $form->submit(['type' => GiftCardDesignImageInterface::TYPE_BACK, 'file' => $file]);
+
+        self::assertTrue($form->isSynchronized());
+        self::assertSame($file, $image->getFile());
     }
 
     /**
@@ -78,6 +104,8 @@ final class GiftCardDesignImageTypeTest extends TypeTestCase
             new PreloadedExtension([
                 new GiftCardDesignImageType(GiftCardDesignImage::class, ['setono_sylius_gift_card']),
             ], []),
+            // the request handler the application's forms use, which is what tells an uploaded file apart from text
+            new HttpFoundationExtension(),
         ];
     }
 }

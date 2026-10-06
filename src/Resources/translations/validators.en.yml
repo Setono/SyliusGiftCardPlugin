@@ -23,6 +23,8 @@ setono_sylius_gift_card:
             not_blank: Please choose a currency
             invalid: This is not a valid currency
             not_base_currency: 'The currency {{ currency }} is not the base currency of the channel {{ channel }} ({{ base_currency }}). Gift card balances are kept in the channel''s base currency, so a card can only be issued in it.'
+        design:
+            not_available_in_channel: 'The design {{ design }} is not available in the channel {{ channel }}. Choose one of the channel''s designs, or none.'
         send_notification_email:
             boolean: Send notification email must be a boolean
         could_not_be_applied: The gift card could not be applied to your order.

@@ -37,7 +37,7 @@ parameters:
             reportUnmatched: false
 
         # These traits are the plugin's public API: host applications apply them to their own Product, Order,
-        # OrderItemUnit and repository classes. Nothing inside the plugin uses them, and tests/Application —
+        # OrderItemUnit and customer repository classes. Nothing inside the plugin uses them, and tests/Application —
         # which does — is excluded from analysis, so PHPStan can only ever see them as unused.
         -
             identifier: trait.unused
@@ -46,7 +46,6 @@ parameters:
                 - src/Model/OrderTrait.php
                 - src/Model/ProductTrait.php
                 - src/Doctrine/ORM/CustomerRepositoryTrait.php
-                - src/Doctrine/ORM/OrderRepositoryTrait.php
 
         # Plugin resources map associations to Sylius interfaces which the host application resolves to
         # concrete classes via Doctrine's ResolveTargetEntityListener. phpstan-doctrine sees the resolved

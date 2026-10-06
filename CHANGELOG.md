@@ -12,6 +12,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - `GiftCardTransaction`, an append-only ledger recording every balance change, with nullable-unique
   idempotency keys so a replayed state machine transition cannot double-spend
 - Admin **Adjust balance** action, writing a manual ledger entry with a reason
+- The admin's gift card form takes a design, picked from thumbnails of the designs enabled in the card's channel,
+  and a delivery type, virtual unless chosen otherwise. The design can be changed later; the delivery type is
+  settled when the card is issued
 - Admin outstanding-balance dashboard, aggregating the balance of all usable gift cards per currency in SQL
 - One-click **Create gift card product** admin scaffold, building the delivery option and both variants
 - Live preview on the gift card product page — the chosen design with the amount and message overlaid,
@@ -60,6 +63,8 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - The `GiftCardConfiguration` entity family, along with the database-stored PDF template and its live editor
 - The public balance-lookup page and the shop account "my gift cards" section
 - The `origin` property on gift cards
+- `OrderRepositoryTrait` and `Repository\OrderRepositoryInterface`: nothing in the plugin used their queries any
+  more, so an application no longer overrides Sylius' order repository for the plugin
 - The Behat and phpspec suites, replaced by PHPUnit and Playwright
 
 ## 0.6.0

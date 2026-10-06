@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Form\Type;
 
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\Mapping\ClassMetadata;
+use Doctrine\Persistence\ObjectManager;
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Form\Type\CustomerAutocompleteChoiceType;
@@ -11,18 +15,30 @@ use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesign;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImage;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImageInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCodeLengthValidator;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignIsAvailableInChannelValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
 use Sylius\Bundle\ResourceBundle\Form\Type\ResourceAutocompleteChoiceType;
 use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\Customer;
+use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Registry\ServiceRegistryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\ChoiceList\View\ChoiceView;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormExtensionInterface;
+use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\PreloadedExtension;
 use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -34,9 +50,25 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class GiftCardTypeTest extends TypeTestCase
 {
+    use FormErrorsTrait;
     use ProphecyTrait;
 
     private ChannelInterface $channel;
+
+    /** @var ObjectProphecy<RepositoryInterface<CustomerInterface>> */
+    private ObjectProphecy $customerRepository;
+
+    /** Offered in the web store only */
+    private GiftCardDesignInterface $classic;
+
+    /** Offered in the web store and the outlet, and the one design with front artwork */
+    private GiftCardDesignInterface $birthday;
+
+    /** Offered in the outlet only */
+    private GiftCardDesignInterface $christmas;
+
+    /** Offered nowhere any longer */
+    private GiftCardDesignInterface $retired;
 
     /** @test */
     public function it_maps_a_valid_submission_and_seeds_the_initial_amount(): void
@@ -57,6 +89,68 @@ final class GiftCardTypeTest extends TypeTestCase
         // The admin types major units; the model keeps minor units
         self::assertSame(5000, $giftCard->getAmount());
         self::assertSame(5000, $giftCard->getInitialAmount());
+    }
+
+    /**
+     * Most amounts with cents have no exact binary representation: 0.29 * 100 is 28.999999999999996, so truncating
+     * would issue the card one minor unit short
+     *
+     * @test
+     *
+     * @dataProvider amountsWithCents
+     */
+    public function it_issues_an_amount_with_cents_to_the_exact_minor_unit(string $typed, int $minorUnits): void
+    {
+        $giftCard = new GiftCard();
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'amount' => $typed]));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame($minorUnits, $giftCard->getAmount());
+        self::assertSame($minorUnits, $giftCard->getInitialAmount());
+    }
+
+    /**
+     * @return iterable<string, array{string, int}>
+     */
+    public static function amountsWithCents(): iterable
+    {
+        yield '0.29' => ['0.29', 29];
+        yield '1.15' => ['1.15', 115];
+        yield '19.99' => ['19.99', 1999];
+    }
+
+    /**
+     * The channel and the customer are submitted by code and email and must reach the card as the objects they name.
+     * A new card is enabled and emailed to its customer unless the admin unticks those boxes, which the browser then
+     * leaves out of the request
+     *
+     * @test
+     */
+    public function it_issues_a_new_card_the_way_the_admin_filled_it_in(): void
+    {
+        $customer = new Customer();
+        $customer->setEmail('alice@example.com');
+        $this->customerRepository->findOneBy(['email' => 'alice@example.com'])->willReturn($customer);
+
+        $giftCard = new GiftCard();
+        self::assertTrue($giftCard->isEnabled());
+        self::assertTrue($giftCard->getSendNotificationEmail());
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission([
+            'code' => 'GIFTCARDCODE',
+            'customer' => 'alice@example.com',
+            'customMessage' => 'Happy birthday',
+        ]));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame($this->channel, $giftCard->getChannel());
+        self::assertSame($customer, $giftCard->getCustomer());
+        self::assertSame('Happy birthday', $giftCard->getCustomMessage());
+        self::assertFalse($giftCard->isEnabled());
+        self::assertFalse($giftCard->getSendNotificationEmail());
     }
 
     /**
@@ -106,6 +200,30 @@ final class GiftCardTypeTest extends TypeTestCase
 
         self::assertTrue($form->isSynchronized());
         self::assertSame('EUR', $giftCard->getCurrencyCode());
+    }
+
+    /**
+     * Order amounts are in the channel's base currency and a card's balance is compared one to one with them, so a card
+     * can only be issued in that currency. The violation is put on the currency field, where the admin chose it
+     *
+     * @test
+     */
+    public function it_refuses_a_currency_other_than_the_base_currency_of_the_channel(): void
+    {
+        $form = $this->factory->create(GiftCardType::class, new GiftCard());
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'currencyCode' => 'EUR']));
+
+        self::assertTrue($form->isSynchronized());
+        self::assertFalse($form->isValid());
+        self::assertSame(
+            ['setono_sylius_gift_card.gift_card.currency_code.not_base_currency'],
+            self::errorMessageTemplates($form->get('currencyCode')),
+        );
+
+        $form = $this->factory->create(GiftCardType::class, new GiftCard());
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'currencyCode' => 'DKK']));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
     }
 
     /** @test */
@@ -400,6 +518,230 @@ final class GiftCardTypeTest extends TypeTestCase
     }
 
     /**
+     * Every card issued in the admin used to be virtual and printed with the default layout, and that is still what a
+     * card gets unless the admin picks otherwise
+     *
+     * @test
+     */
+    public function it_issues_a_virtual_card_without_a_design_unless_told_otherwise(): void
+    {
+        $giftCard = new GiftCard();
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $view = $form->createView();
+
+        self::assertFalse($form->get('deliveryType')->isDisabled());
+        $deliveryType = $view['deliveryType']->vars;
+        self::assertIsArray($deliveryType);
+        self::assertSame('setono_sylius_gift_card.ui.delivery_type', $deliveryType['label']);
+        self::assertSame('virtual', $deliveryType['value']);
+        self::assertSame('setono_sylius_gift_card.form.gift_card.delivery_type_help', $form->get('deliveryType')->getConfig()->getOption('help'));
+        // each type is named by the label the grid and the show page use
+        self::assertIsArray($deliveryType['choices']);
+        $labels = [];
+        foreach ($deliveryType['choices'] as $choice) {
+            self::assertInstanceOf(ChoiceView::class, $choice);
+            self::assertIsString($choice->value);
+            $labels[$choice->value] = $choice->label;
+        }
+        self::assertSame([
+            'virtual' => 'setono_sylius_gift_card.ui.delivery_type_virtual',
+            'physical' => 'setono_sylius_gift_card.ui.delivery_type_physical',
+        ], $labels);
+
+        self::assertFalse($form->get('design')->isRequired());
+        self::assertSame('setono_sylius_gift_card.ui.design', $form->get('design')->getConfig()->getOption('label'));
+        // the choice of no design is the one checked
+        $none = $view['design']['placeholder']->vars;
+        self::assertIsArray($none);
+        self::assertSame('setono_sylius_gift_card.form.gift_card.no_design', $none['label']);
+        self::assertTrue($none['checked']);
+
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE']));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame(GiftCardDeliveryType::Virtual, $giftCard->getDeliveryType());
+        self::assertNull($giftCard->getDesign());
+    }
+
+    /** @test */
+    public function it_issues_a_card_with_the_design_and_delivery_type_the_admin_picks(): void
+    {
+        $giftCard = new GiftCard();
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission([
+            'code' => 'GIFTCARDCODE',
+            'deliveryType' => 'physical',
+            'design' => 'birthday',
+        ]));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame(GiftCardDeliveryType::Physical, $giftCard->getDeliveryType());
+        self::assertSame($this->birthday, $giftCard->getDesign());
+    }
+
+    /**
+     * A blank delivery type means the default rather than a null the card cannot hold, which would end the request in
+     * a 500, and one the card does not know is refused
+     *
+     * @test
+     */
+    public function it_takes_a_blank_delivery_type_for_the_default_and_refuses_an_unknown_one(): void
+    {
+        $giftCard = new GiftCard();
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'deliveryType' => '']));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame(GiftCardDeliveryType::Virtual, $giftCard->getDeliveryType());
+
+        $giftCard = new GiftCard();
+        $giftCard->setDeliveryType(GiftCardDeliveryType::Physical);
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'deliveryType' => 'pigeon']));
+
+        self::assertFalse($form->isValid());
+        self::assertCount(1, $form->get('deliveryType')->getErrors());
+        self::assertSame(GiftCardDeliveryType::Physical, $giftCard->getDeliveryType());
+    }
+
+    /**
+     * The channel is chosen on the same form, so the designs of every channel are offered, each telling which channels
+     * offer it, for the template to narrow the picker to the chosen channel
+     *
+     * @test
+     */
+    public function it_offers_a_new_card_the_designs_of_every_channel(): void
+    {
+        $expected = [
+            'classic' => ['data-image-path' => '', 'data-channels' => 'WEB'],
+            'birthday' => ['data-image-path' => 'ab/cd/birthday.png', 'data-channels' => 'WEB OUTLET'],
+            'christmas' => ['data-image-path' => '', 'data-channels' => 'OUTLET'],
+        ];
+
+        $view = $this->factory->create(GiftCardType::class, new GiftCard())->createView();
+
+        self::assertSame($expected, self::designChoices($view['design']));
+
+        // A new card that already has a channel, as GiftCardFactory::createForChannel() makes one, can still be moved
+        // to another channel on the form, so it is offered the same
+        $giftCard = new GiftCard();
+        $giftCard->setChannel($this->channel);
+
+        self::assertSame($expected, self::designChoices($this->factory->create(GiftCardType::class, $giftCard)->createView()['design']));
+    }
+
+    /**
+     * The form offers designs of channels other than the one chosen, so it is the validation that holds the design
+     * to the card's channel
+     *
+     * @test
+     */
+    public function it_refuses_a_design_the_chosen_channel_does_not_offer(): void
+    {
+        $giftCard = new GiftCard();
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'design' => 'christmas']));
+
+        self::assertTrue($form->isSynchronized());
+        self::assertFalse($form->isValid());
+        self::assertCount(1, $form->getErrors(true));
+        $error = $form->get('design')->getErrors()[0] ?? null;
+        self::assertNotNull($error);
+        self::assertSame('setono_sylius_gift_card.gift_card.design.not_available_in_channel', $error->getMessage());
+        self::assertSame(['{{ design }}' => 'Christmas', '{{ channel }}' => 'Web store'], $error->getMessageParameters());
+
+        // The outlet offers it
+        $giftCard = new GiftCard();
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'channel' => 'OUTLET', 'design' => 'christmas']));
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame($this->christmas, $giftCard->getDesign());
+    }
+
+    /**
+     * The design only decides what the card's PDF looks like, so it can be changed after issuance, to another design
+     * the card's channel offers
+     *
+     * @test
+     */
+    public function it_lets_the_design_of_an_existing_card_be_changed_to_another_its_channel_offers(): void
+    {
+        $giftCard = $this->existingGiftCard();
+        $giftCard->setInitialAmount(5000);
+        $giftCard->setAmount(5000);
+        $giftCard->setDesign($this->classic);
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+
+        // which channels offer a design only matters while the channel can still be chosen
+        self::assertSame([
+            'classic' => ['data-image-path' => ''],
+            'birthday' => ['data-image-path' => 'ab/cd/birthday.png'],
+        ], self::designChoices($form->createView()['design']));
+        self::assertSame('classic', $form->get('design')->getViewData());
+
+        $form->submit(['design' => 'birthday']);
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame($this->birthday, $giftCard->getDesign());
+    }
+
+    /**
+     * A design that is disabled, or taken out of the channel, after a card was issued with it still prints on that
+     * card. Editing the card must neither drop the design nor refuse to save it
+     *
+     * @test
+     */
+    public function it_keeps_the_design_of_an_existing_card_that_its_channel_no_longer_offers(): void
+    {
+        $giftCard = $this->existingGiftCard();
+        $giftCard->setInitialAmount(5000);
+        $giftCard->setAmount(5000);
+        $giftCard->setDesign($this->retired);
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+
+        self::assertSame(['classic', 'birthday', 'retired'], array_keys(self::designChoices($form->createView()['design'])));
+        self::assertSame('retired', $form->get('design')->getViewData());
+
+        $form->submit(['design' => 'retired', 'customMessage' => 'Enjoy']);
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame($this->retired, $giftCard->getDesign());
+        self::assertSame('Enjoy', $giftCard->getCustomMessage());
+    }
+
+    /**
+     * A card bought in the shop takes its delivery type from the variant, which also decides whether the order ships
+     * it, so changing it once the card exists would only make the card disagree with its order
+     *
+     * @test
+     */
+    public function it_shows_the_delivery_type_but_locks_it_once_the_card_exists(): void
+    {
+        $giftCard = $this->existingGiftCard();
+        $giftCard->setDeliveryType(GiftCardDeliveryType::Physical);
+
+        $form = $this->factory->create(GiftCardType::class, $giftCard);
+
+        self::assertTrue($form->get('deliveryType')->isDisabled());
+        self::assertSame('physical', $form->get('deliveryType')->getViewData());
+        self::assertNull($form->get('deliveryType')->getConfig()->getOption('help'));
+
+        $form->submit(['deliveryType' => 'virtual']);
+
+        self::assertTrue($form->isSynchronized());
+        self::assertSame(GiftCardDeliveryType::Physical, $giftCard->getDeliveryType());
+    }
+
+    /**
      * @param array<string, string> $fields
      *
      * @return array<string, string>
@@ -429,7 +771,23 @@ final class GiftCardTypeTest extends TypeTestCase
      */
     protected function getExtensions(): array
     {
-        $this->channel = $this->channel();
+        $this->channel = $this->channel('WEB', 'Web store');
+        $outlet = $this->channel('OUTLET', 'Outlet');
+
+        $frontImage = new GiftCardDesignImage();
+        $frontImage->setPath('ab/cd/birthday.png');
+
+        $this->classic = $this->design('classic', 'Classic');
+        $this->birthday = $this->design('birthday', 'Birthday', $frontImage);
+        $this->christmas = $this->design('christmas', 'Christmas');
+        $this->retired = $this->design('retired', 'Retired');
+
+        $designProvider = $this->prophesize(GiftCardDesignProviderInterface::class);
+        $designProvider->getDesigns($this->channel)->willReturn([$this->classic, $this->birthday]);
+        $designProvider->getDesigns($outlet)->willReturn([$this->birthday, $this->christmas]);
+
+        $channelRepository = $this->prophesize(RepositoryInterface::class);
+        $channelRepository->findAll()->willReturn([$this->channel, $outlet]);
 
         /** @var ObjectProphecy<RepositoryInterface<CurrencyInterface>> $currencyRepositoryProphecy */
         $currencyRepositoryProphecy = $this->prophesize(RepositoryInterface::class);
@@ -445,28 +803,37 @@ final class GiftCardTypeTest extends TypeTestCase
             $codeGenerator->reveal(),
             new GiftCardCodeNormalizer(),
             12,
+            GiftCardDesign::class,
+            $designProvider->reveal(),
+            $channelRepository->reveal(),
             ['setono_sylius_gift_card'],
         );
 
-        $channelRepository = $this->prophesize(RepositoryInterface::class);
-        $channelRepository->findAll()->willReturn([$this->channel]);
-
+        /** @var ObjectProphecy<RepositoryInterface<CustomerInterface>> $customerRepository */
         $customerRepository = $this->prophesize(RepositoryInterface::class);
+        $this->customerRepository = $customerRepository;
 
         $resourceRepositoryRegistry = $this->prophesize(ServiceRegistryInterface::class);
-        $resourceRepositoryRegistry->get('sylius.customer')->willReturn($customerRepository->reveal());
+        $resourceRepositoryRegistry->get('sylius.customer')->willReturn($this->customerRepository->reveal());
+
+        // The customer autocomplete names its search endpoints when the form is rendered
+        $urlGenerator = $this->prophesize(UrlGeneratorInterface::class);
+        $urlGenerator->generate(Argument::cetera())->willReturn('/admin/ajax/customers');
 
         $preloaded = new PreloadedExtension([
             $type,
             new ChannelChoiceType($channelRepository->reveal()),
-            new CustomerAutocompleteChoiceType($this->prophesize(UrlGeneratorInterface::class)->reveal()),
+            new CustomerAutocompleteChoiceType($urlGenerator->reveal()),
             new ResourceAutocompleteChoiceType($resourceRepositoryRegistry->reveal()),
+            // The design picker is an EntityType, but the choices are handed to it explicitly, so only the identifier
+            // metadata is ever read from Doctrine
+            new EntityType($this->createManagerRegistry()),
         ], []);
 
-        return [$preloaded, new ValidatorExtension($this->createValidator())];
+        return [$preloaded, new ValidatorExtension($this->createValidator($designProvider->reveal()))];
     }
 
-    private function createValidator(): ValidatorInterface
+    private function createValidator(GiftCardDesignProviderInterface $designProvider): ValidatorInterface
     {
         $uniqueEntityValidator = new class() extends ConstraintValidator {
             public function validate(mixed $value, Constraint $constraint): void
@@ -483,19 +850,67 @@ final class GiftCardTypeTest extends TypeTestCase
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
                 // built by the container with the configured minimum, 12 unless raised
                 GiftCardCodeLengthValidator::class => new GiftCardCodeLengthValidator(12),
+                GiftCardDesignIsAvailableInChannelValidator::class => new GiftCardDesignIsAvailableInChannelValidator($designProvider),
             ]))
             ->getValidator()
         ;
     }
 
-    private function channel(): ChannelInterface
+    private function createManagerRegistry(): ManagerRegistry
+    {
+        $classMetadata = $this->prophesize(ClassMetadata::class);
+        $classMetadata->getIdentifierFieldNames()->willReturn(['id']);
+        $classMetadata->getTypeOfField('id')->willReturn('integer');
+        $classMetadata->hasAssociation('id')->willReturn(false);
+
+        $manager = $this->prophesize(ObjectManager::class);
+        $manager->getClassMetadata(GiftCardDesign::class)->willReturn($classMetadata->reveal());
+
+        $registry = $this->prophesize(ManagerRegistry::class);
+        $registry->getManagerForClass(GiftCardDesign::class)->willReturn($manager->reveal());
+
+        return $registry->reveal();
+    }
+
+    /**
+     * @return array<string, array<array-key, mixed>> the attributes of each design the picker offers, by its value
+     */
+    private static function designChoices(FormView $design): array
+    {
+        $vars = $design->vars;
+        self::assertIsArray($vars);
+        self::assertIsArray($vars['choices']);
+
+        $choices = [];
+        foreach ($vars['choices'] as $choice) {
+            self::assertInstanceOf(ChoiceView::class, $choice);
+            self::assertIsString($choice->value);
+            self::assertIsArray($choice->attr);
+
+            $choices[$choice->value] = $choice->attr;
+        }
+
+        return $choices;
+    }
+
+    private function channel(string $code, string $name): ChannelInterface
     {
         $channel = new Channel();
-        $channel->setCode('WEB');
-        $channel->setName('Web store');
+        $channel->setCode($code);
+        $channel->setName($name);
         $channel->setBaseCurrency($this->currency('DKK'));
 
         return $channel;
+    }
+
+    private function design(string $code, string $name, ?GiftCardDesignImageInterface $frontImage = null): GiftCardDesignInterface
+    {
+        $design = $this->prophesize(GiftCardDesignInterface::class);
+        $design->getCode()->willReturn($code);
+        $design->getName()->willReturn($name);
+        $design->getFrontImage()->willReturn($frontImage);
+
+        return $design->reveal();
     }
 
     private function currency(string $code): CurrencyInterface

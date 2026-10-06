@@ -6,6 +6,8 @@ const { moneyInCents, typedAmount } = require('../support/money');
 const { anyCustomerEmail, channelBaseCurrencyCode } = require('../support/fixtures');
 const { clickAndWaitForPage } = require('../support/navigation');
 
+const FORM = 'form[name="setono_sylius_gift_card_gift_card"]';
+
 /**
  * Issuing, changing and removing gift cards in the admin.
  *
@@ -121,6 +123,81 @@ test.describe('admin issuing gift cards', () => {
 
         await expect(codeField.locator('.sylius-validation-error')).toHaveText(/at least 12 letters and digits/);
         await expect(await giftCardRows(page, 'ABCD-EFGH-JKM')).toHaveCount(0);
+    });
+
+    /**
+     * The design decides what the card's PDF looks like, and a physical card is a printed one the shop hands over or
+     * posts itself. Both are picked when the card is issued, the design from thumbnails like the shop's picker, and the
+     * show page tells them. A card is virtual and printed with the default layout unless the admin picks otherwise
+     */
+    test('a card is issued with the design and delivery type picked on the create form', async ({ page }) => {
+        await page.goto('/admin/gift-cards/new');
+        const channel = await page.locator(`${FORM} select[name$="[channel]"]`).inputValue();
+
+        await expect(page.locator(`${FORM} select[name$="[deliveryType]"]`)).toHaveValue('virtual');
+
+        // A radio group named by its legend
+        const picker = page.getByRole('group', { name: 'Design' });
+        await expect(picker.getByRole('radio', { name: 'None (default layout)' })).toBeChecked();
+
+        // Any design the chosen channel offers with front artwork will do; it is shown as a thumbnail
+        const choice = picker.locator(`label[data-channels~="${channel}"]`).filter({ has: page.locator('img') }).first();
+        await expect(choice, `the channel ${channel} should offer a design with artwork`).toBeVisible();
+        const thumbnail = choice.locator('img');
+        await expect(thumbnail).toHaveAttribute('src', /\/setono_sylius_gift_card_design_thumbnail\//);
+        await expect.poll(() => thumbnail.evaluate((image) => image.complete && image.naturalWidth), { message: 'the thumbnail should load' }).toBeGreaterThan(0);
+
+        const design = /** @type {string} */ (await choice.locator('input[type="radio"]').getAttribute('value'));
+        const name = (await choice.innerText()).trim();
+        // the image is the design's, and its name is what the choice is called
+        await expect(picker.getByRole('radio', { name, exact: true })).toHaveValue(design);
+
+        const card = await issueGiftCard(page, { amount: 1500, deliveryType: 'physical', design });
+
+        const details = await giftCardDetails(page, card.id);
+        expect(details.Design).toBe(name);
+        expect(details['Delivery type']).toBe('Physical');
+
+        // The design can be changed afterwards; the delivery type is shown, but settled at issuance
+        await page.goto(`/admin/gift-cards/${card.id}/edit`);
+        await expect(page.getByRole('group', { name: 'Design' }).getByRole('radio', { name, exact: true })).toBeChecked();
+        await expect(page.locator(`${FORM} select[name$="[deliveryType]"]`)).toHaveValue('physical');
+        await expect(page.locator(`${FORM} select[name$="[deliveryType]"]`)).toBeDisabled();
+
+        await page.getByRole('group', { name: 'Design' }).getByRole('radio', { name: 'None (default layout)' }).check();
+        await clickAndWaitForPage(page, page.locator(`${FORM} button[type="submit"]`).first());
+        expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/successfully updated/i));
+
+        const edited = await giftCardDetails(page, card.id);
+        expect(edited.Design).toBe('-');
+        expect(edited['Delivery type']).toBe('Physical');
+    });
+
+    /**
+     * The channel is chosen on the same form, so the picker holds the designs of every channel, each telling which
+     * channels offer it, and shows the ones the chosen channel offers. A design of another channel would be refused
+     */
+    test('the design picker shows the designs the chosen channel offers', async ({ page }) => {
+        await page.goto('/admin/gift-cards/new');
+        const channelSelect = page.locator(`${FORM} select[name$="[channel]"]`);
+        const picker = page.getByRole('group', { name: 'Design' });
+
+        const channels = await channelSelect.locator('option').evaluateAll((options) => options.map((option) => option.value));
+        for (const channel of channels) {
+            await channelSelect.selectOption(channel);
+
+            for (const choice of await picker.locator('label[data-channels]').all()) {
+                const offeredIn = (/** @type {string} */ (await choice.getAttribute('data-channels'))).split(' ');
+                if (offeredIn.includes(channel)) {
+                    await expect(choice).toBeVisible();
+                } else {
+                    await expect(choice).toBeHidden();
+                }
+            }
+
+            // a card can always be issued without a design
+            await expect(picker.getByRole('radio', { name: 'None (default layout)' })).toBeVisible();
+        }
     });
 
     /**
