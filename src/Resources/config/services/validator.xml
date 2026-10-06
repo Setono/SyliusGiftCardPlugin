@@ -79,19 +79,20 @@
             <tag name="validator.constraint_validator"/>
         </service>
 
-        <!-- Sylius' availability checker, which Sylius' own stock checks ask as well. The interface alias exists on
-             Sylius 1.13 and 1.14, and on 1.14 it leads through sylius.checker.inventory.availability and
-             sylius.availability_checker, so a decorator of either applies here too -->
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCartItemAvailabilityValidator"
-                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCartItemAvailabilityValidator">
-            <argument type="service" id="Sylius\Component\Inventory\Checker\AvailabilityCheckerInterface"/>
+        <!-- Sylius' availability checker by sylius.availability_checker: the id Sylius' own stock checks are given on
+             1.13, and the one the id they are given on 1.14 (sylius.checker.inventory.availability) is an alias of. So
+             a decorator of it reaches these and Sylius' checks alike on either version, and they never disagree about
+             a line. The interface would miss it on 1.13, where it points straight at the configured checker. The
+             plugin injects its own services by their interface alias; this is Sylius' service, injected the way
+             Sylius injects it -->
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCartItemAvailabilityValidator">
+            <argument type="service" id="sylius.availability_checker"/>
 
             <tag name="validator.constraint_validator"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardOrderItemsAvailabilityValidator"
-                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardOrderItemsAvailabilityValidator">
-            <argument type="service" id="Sylius\Component\Inventory\Checker\AvailabilityCheckerInterface"/>
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardOrderItemsAvailabilityValidator">
+            <argument type="service" id="sylius.availability_checker"/>
 
             <tag name="validator.constraint_validator"/>
         </service>
