@@ -36,22 +36,33 @@ async function filterGrid(page, { code = { type: 'contains', value: '' }, enable
 }
 
 /**
+ * The grid's rows and column headers. The test application runs in the dev environment, whose web debug toolbar lists
+ * the page's AJAX requests in a table of its own, so a bare `table tbody tr` also counts those
+ */
+const ROWS = 'table.ui.table tbody tr';
+const HEADERS = 'table.ui.table thead th';
+
+/**
  * The code column of every row the grid lists, without the grouping the grid shows a code in, so it compares with the
  * code issueGiftCard() returns
  *
  * @param {import('@playwright/test').Page} page
  */
 async function listedCodes(page) {
-    return (await page.locator('table tbody tr td:first-child').allInnerTexts()).map((code) => code.trim().replace(/-/g, ''));
+    return (await page.locator(`${ROWS} td:first-child`).allInnerTexts()).map((code) => code.trim().replace(/-/g, ''));
 }
 
 /**
- * The delivery type column of every row the grid lists
+ * The delivery type column of every row the grid lists, found by its header so a column added before it does not
+ * shift it
  *
  * @param {import('@playwright/test').Page} page
  */
 async function listedDeliveryTypes(page) {
-    return (await page.locator('table tbody tr td:nth-child(4)').allInnerTexts()).map((deliveryType) => deliveryType.trim());
+    const column = await page.locator(HEADERS).evaluateAll((headers) => headers.findIndex((header) => /^\s*Delivery type/.test(header.textContent ?? '')));
+    expect(column, 'the grid shows no delivery type column').toBeGreaterThanOrEqual(0);
+
+    return (await page.locator(`${ROWS} td:nth-child(${column + 1})`).allInnerTexts()).map((deliveryType) => deliveryType.trim());
 }
 
 /**
