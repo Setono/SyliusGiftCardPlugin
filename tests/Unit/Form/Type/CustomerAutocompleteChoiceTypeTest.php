@@ -60,6 +60,22 @@ final class CustomerAutocompleteChoiceTypeTest extends TypeTestCase
     }
 
     /**
+     * A mistyped email must not quietly issue the card to nobody
+     *
+     * @test
+     */
+    public function it_refuses_an_email_no_customer_has(): void
+    {
+        $this->customerRepository->findOneBy(['email' => 'nobody@example.com'])->willReturn(null);
+
+        $form = $this->factory->create(CustomerAutocompleteChoiceType::class);
+        $form->submit('nobody@example.com');
+
+        self::assertFalse($form->isSynchronized());
+        self::assertNull($form->getData());
+    }
+
+    /**
      * Rendered as a field of a gift card that already has a customer, the way the edit form uses it
      *
      * @test
