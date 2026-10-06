@@ -108,7 +108,8 @@ setono_sylius_gift_card_admin_gift_card_design:
                 templates:
                     form: "@SetonoSyliusGiftCardPlugin/admin/gift_card_design/_form.html.twig"
             index:
-                icon: 'palette'
+                # The icon of the Designs action that leads here. The Semantic UI Sylius' admin ships has no palette icon
+                icon: 'paint brush'
     type: sylius.resource
 
 setono_sylius_gift_card_admin_gift_card_design_preview_pdf:

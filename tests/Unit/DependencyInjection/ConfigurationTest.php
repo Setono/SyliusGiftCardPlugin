@@ -263,9 +263,10 @@ final class ConfigurationTest extends TestCase
             'purchase' => ['maximum_amount' => 50000],
         ], 'purchase.maximum_amount');
 
-        $this->assertProcessedConfigurationEquals([['purchase' => ['maximum_amount' => 1]]], [
-            'purchase' => ['maximum_amount' => 1],
-        ], 'purchase.maximum_amount');
+        // 1 is the lowest maximum there is, and it takes a minimum as low, since the maximum cannot be below the minimum
+        $this->assertProcessedConfigurationEquals([['purchase' => ['minimum_amount' => 1, 'maximum_amount' => 1]]], [
+            'purchase' => ['minimum_amount' => 1, 'maximum_amount' => 1, 'maximum_message_length' => 200],
+        ], 'purchase');
     }
 
     /**
@@ -405,6 +406,133 @@ final class ConfigurationTest extends TestCase
             [['purchase' => ['maximum_message_length' => 65536]]],
             'purchase.maximum_message_length',
         );
+    }
+
+    /**
+     * A maximum below the minimum leaves no amount the shop accepts, so it could not sell a gift card at all. The two
+     * are compared once every configuration file is merged, so they may be set in different files
+     *
+     * @param list<array<string, mixed>> $configs
+     *
+     * @dataProvider provideMaximumAmountsBelowTheMinimumAmount
+     *
+     * @test
+     */
+    public function it_rejects_a_maximum_amount_below_the_minimum_amount(array $configs, string $expectedMessage): void
+    {
+        $this->assertConfigurationIsInvalid($configs, $expectedMessage);
+    }
+
+    /**
+     * @return iterable<string, array{list<array<string, mixed>>, string}>
+     */
+    public static function provideMaximumAmountsBelowTheMinimumAmount(): iterable
+    {
+        yield 'far below' => [
+            [['purchase' => ['minimum_amount' => 1000, 'maximum_amount' => 500]]],
+            'Invalid configuration for path "setono_sylius_gift_card.purchase": The maximum_amount (500) must be at least the minimum_amount (1000)',
+        ];
+
+        yield 'one below' => [
+            [['purchase' => ['minimum_amount' => 1000, 'maximum_amount' => 999]]],
+            'Invalid configuration for path "setono_sylius_gift_card.purchase": The maximum_amount (999) must be at least the minimum_amount (1000)',
+        ];
+
+        yield 'below the default minimum' => [
+            [['purchase' => ['maximum_amount' => 50]]],
+            'Invalid configuration for path "setono_sylius_gift_card.purchase": The maximum_amount (50) must be at least the minimum_amount (100)',
+        ];
+
+        yield 'set in different files' => [
+            [['purchase' => ['maximum_amount' => 5000]], ['purchase' => ['minimum_amount' => 10000]]],
+            'Invalid configuration for path "setono_sylius_gift_card.purchase": The maximum_amount (5000) must be at least the minimum_amount (10000)',
+        ];
+    }
+
+    /**
+     * A maximum equal to the minimum is a shop selling gift cards of a single amount
+     *
+     * @test
+     */
+    public function it_allows_a_maximum_amount_equal_to_the_minimum_amount(): void
+    {
+        $this->assertProcessedConfigurationEquals([['purchase' => ['minimum_amount' => 5000, 'maximum_amount' => 5000]]], [
+            'purchase' => ['minimum_amount' => 5000, 'maximum_amount' => 5000, 'maximum_message_length' => 200],
+        ], 'purchase');
+    }
+
+    /** @test */
+    public function it_allows_a_maximum_amount_above_the_minimum_amount(): void
+    {
+        $this->assertProcessedConfigurationEquals([['purchase' => ['minimum_amount' => 1000, 'maximum_amount' => 50000]]], [
+            'purchase' => ['minimum_amount' => 1000, 'maximum_amount' => 50000, 'maximum_message_length' => 200],
+        ], 'purchase');
+
+        $this->assertProcessedConfigurationEquals([['purchase' => ['minimum_amount' => 1000, 'maximum_amount' => 1001]]], [
+            'purchase' => ['minimum_amount' => 1000, 'maximum_amount' => 1001, 'maximum_message_length' => 200],
+        ], 'purchase');
+    }
+
+    /**
+     * Without a maximum there is nothing for the minimum to exceed, however high it is: with the key left out, with
+     * null, or with the option missing from the tree altogether, as in a tree processed for one path of it
+     *
+     * @test
+     */
+    public function it_allows_any_minimum_amount_without_a_maximum_amount(): void
+    {
+        $this->assertProcessedConfigurationEquals([['purchase' => ['minimum_amount' => 10000000]]], [
+            'purchase' => ['minimum_amount' => 10000000, 'maximum_amount' => null, 'maximum_message_length' => 200],
+        ], 'purchase');
+
+        $this->assertProcessedConfigurationEquals([['purchase' => ['minimum_amount' => 10000000, 'maximum_amount' => null]]], [
+            'purchase' => ['minimum_amount' => 10000000, 'maximum_amount' => null, 'maximum_message_length' => 200],
+        ], 'purchase');
+
+        $this->assertProcessedConfigurationEquals([['purchase' => ['minimum_amount' => 10000000]]], [
+            'purchase' => ['minimum_amount' => 10000000],
+        ], 'purchase.minimum_amount');
+    }
+
+    /**
+     * While it compiles the container, Symfony holds a placeholder for a value taken from an environment variable,
+     * and the value itself is only known at runtime. The amounts are then not compared, rather than the placeholder
+     * being compared as though it were an amount
+     *
+     * @param array{minimum_amount: int|string, maximum_amount: int|string} $purchase
+     *
+     * @dataProvider provideAmountsTakenFromEnvironmentVariables
+     *
+     * @test
+     */
+    public function it_does_not_compare_an_amount_taken_from_an_environment_variable(array $purchase): void
+    {
+        if (version_compare((string) InstalledVersions::getVersion('symfony/config'), '6.4.37', '<')) {
+            self::markTestSkipped('Before symfony/config 6.4.37 an integer node held the dummy value of an environment variable to its minimum, so no integer option with a minimum took an environment variable');
+        }
+
+        $container = new ContainerBuilder();
+        $container->register('env_var_processor', EnvVarProcessor::class)->addTag('container.env_var_processor');
+        $container->registerExtension(new SetonoSyliusGiftCardExtension());
+        $container->loadFromExtension('setono_sylius_gift_card', ['purchase' => $purchase]);
+
+        (new RegisterEnvVarProcessorsPass())->process($container);
+        (new MergeExtensionConfigurationPass())->process($container);
+        (new ValidateEnvPlaceholdersPass())->process($container);
+
+        foreach ($purchase as $option => $value) {
+            self::assertSame($value, $container->resolveEnvPlaceholders($container->getParameter('setono_sylius_gift_card.purchase.' . $option)));
+        }
+    }
+
+    /**
+     * @return iterable<string, array{array{minimum_amount: int|string, maximum_amount: int|string}}>
+     */
+    public static function provideAmountsTakenFromEnvironmentVariables(): iterable
+    {
+        yield 'the minimum' => [['minimum_amount' => '%env(int:GIFT_CARD_MINIMUM_AMOUNT)%', 'maximum_amount' => 50000]];
+        yield 'the maximum' => [['minimum_amount' => 1000, 'maximum_amount' => '%env(int:GIFT_CARD_MAXIMUM_AMOUNT)%']];
+        yield 'both' => [['minimum_amount' => '%env(int:GIFT_CARD_MINIMUM_AMOUNT)%', 'maximum_amount' => '%env(int:GIFT_CARD_MAXIMUM_AMOUNT)%']];
     }
 
     /** @test */

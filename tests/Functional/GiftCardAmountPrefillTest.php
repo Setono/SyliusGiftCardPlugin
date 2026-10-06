@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Setono\SyliusGiftCardPlugin\Order\AddToCartCommandInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
@@ -68,6 +70,19 @@ final class GiftCardAmountPrefillTest extends GiftCardFunctionalTestCase
     public function it_starts_the_amount_field_empty_when_the_product_is_sold_for_less_than_the_purchase_minimum(): void
     {
         self::assertSame('', $this->renderAmountField($this->createGiftCardProduct(50)));
+    }
+
+    /**
+     * With purchase.maximum_amount equal to purchase.minimum_amount the shop sells gift cards of that one amount, so
+     * the field starts out at it, although the product is sold for 50.00
+     *
+     * @test
+     */
+    public function it_starts_the_amount_field_at_the_single_amount_a_shop_sells_whatever_the_price(): void
+    {
+        self::getContainer()->set(GiftCardAmountLimitsProviderInterface::class, new GiftCardAmountLimitsProvider(50000, 50000));
+
+        self::assertSame('500.00', $this->renderAmountField($this->createGiftCardProduct(5000)));
     }
 
     /**

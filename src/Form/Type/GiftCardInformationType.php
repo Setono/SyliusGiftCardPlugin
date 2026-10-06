@@ -126,6 +126,16 @@ final class GiftCardInformationType extends AbstractType
             ];
         }
 
+        // A maximum equal to the minimum sells gift cards of a single amount, which a range would quote twice
+        if ($limits->maximum === $limits->minimum) {
+            return [
+                'help' => 'setono_sylius_gift_card.form.gift_card_information.amount_help_fixed',
+                'help_translation_parameters' => [
+                    '%amount%' => $this->moneyFormatter->format($limits->minimum, $currencyCode, $localeCode),
+                ],
+            ];
+        }
+
         return [
             'help' => 'setono_sylius_gift_card.form.gift_card_information.amount_help_range',
             'help_translation_parameters' => [

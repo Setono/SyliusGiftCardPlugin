@@ -156,6 +156,34 @@ final class GiftCardInformationFactoryTest extends TestCase
     }
 
     /**
+     * A maximum equal to the minimum is a shop selling gift cards of a single amount. That amount is the only one the
+     * shop accepts, so the field starts out at it rather than empty, whatever the product is priced at: below it, above
+     * it, at nothing, or not at all in the channel
+     *
+     * @test
+     */
+    public function it_seeds_the_single_amount_when_the_maximum_equals_the_minimum_whatever_the_price(): void
+    {
+        $channel = new Channel();
+        $this->limitsProvider->getLimits($channel)->willReturn(new GiftCardAmountLimits(50000, 50000));
+
+        $below = new ProductVariant();
+        $this->calculator->calculate($below, ['channel' => $channel])->willReturn(5000);
+        $above = new ProductVariant();
+        $this->calculator->calculate($above, ['channel' => $channel])->willReturn(90000);
+        $free = new ProductVariant();
+        $this->calculator->calculate($free, ['channel' => $channel])->willReturn(0);
+        $unpriced = new ProductVariant();
+        $this->calculator
+            ->calculate($unpriced, ['channel' => $channel])
+            ->willThrow(new MissingChannelConfigurationException('Product variant has no price defined for channel'));
+
+        foreach ([$below, $above, $free, $unpriced] as $variant) {
+            self::assertSame(50000, $this->createFactory()->createNew($this->createCart($channel), $this->createItem($variant))->getAmount());
+        }
+    }
+
+    /**
      * The class is the setono_sylius_gift_card.order.model.gift_card_information.class parameter, which is how an
      * application carries information of its own through add to cart
      *

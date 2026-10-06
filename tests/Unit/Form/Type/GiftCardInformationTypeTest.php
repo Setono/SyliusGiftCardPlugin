@@ -194,6 +194,23 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     }
 
     /**
+     * A maximum equal to the minimum is a shop selling gift cards of a single amount, so the field names that amount
+     * instead of a range from it to itself
+     *
+     * @test
+     */
+    public function it_names_the_single_amount_when_the_maximum_equals_the_minimum(): void
+    {
+        $this->maximumAmount = 100;
+        $this->rebuildFormFactory();
+
+        $amount = $this->factory->create(GiftCardInformationType::class, $this->createInformation())->get('amount')->getConfig();
+
+        self::assertSame('setono_sylius_gift_card.form.gift_card_information.amount_help_fixed', $amount->getOption('help'));
+        self::assertSame(['%amount%' => '1,00 $US'], $amount->getOption('help_translation_parameters'));
+    }
+
+    /**
      * Without a base currency there is nothing to format the limits as, so the field carries no help rather than
      * money in a currency the shop does not sell in
      *
