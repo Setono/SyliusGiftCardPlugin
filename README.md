@@ -460,6 +460,14 @@ fixture. A typed code is counted once it is normalized: it is saved in capitals 
 the cart looks codes up, so only its letters and digits count. Cards that already exist keep their code whatever its
 length, so cards brought over from `0.12.x` with shorter codes stay usable and editable.
 
+Either length can be taken from an environment variable, such as `code_length: '%env(int:GIFT_CARD_CODE_LENGTH)%'`,
+from symfony/config 6.4.37 (before it, Symfony refuses an environment variable for an integer option with a minimum).
+Its value is only known at runtime, so the container compiles whatever the variable holds, and the rules are applied
+where the value is used instead: the code generator throws rather than generate a code while `code_length` is below
+12, above 255 or below `minimum_code_length`, and the *New gift card* form and the fixture throw rather than hold a
+code to `minimum_code_length` while it is outside 12 to 255, with a message naming the setting. Only issuing a gift
+card fails that way; the rest of the shop keeps working.
+
 `maximum_message_length` is what both forms allow: it sets the shop textarea's `maxlength` and remaining-characters
 counter, and it is the limit enforced by the `GiftCardMessageLength` constraint on the gift card and on the shop's
 gift card information, so raising the setting raises the limit everywhere. A line break counts as one character

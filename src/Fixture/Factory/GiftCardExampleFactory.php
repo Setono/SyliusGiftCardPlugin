@@ -110,6 +110,9 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
             // Demo data is held to the same minimum as a code typed in the admin: a short code is a guessable one,
             // and demo data has a way of ending up in production
             ->setNormalizer('code', function (Options $options, string $code): string {
+                // The configuration refuses a minimum_code_length outside these bounds, but cannot see the value of
+                // one taken from an environment variable, which is only known at runtime
+                Assert::range($this->minimumCodeLength, Configuration::MINIMUM_CODE_LENGTH, Configuration::MAXIMUM_CODE_LENGTH, 'The minimum_code_length (%s) must be between %2$s and %3$s');
                 Assert::minLength($code, $this->minimumCodeLength, 'A gift card code must have at least %2$s characters, so it cannot be guessed, got: %s');
 
                 return $code;
