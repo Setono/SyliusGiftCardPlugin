@@ -7,7 +7,9 @@
 
 /**
  * The amount a formatted money string stands for, in minor units: "$1,000.00" is 100000, "-$40.10" is -4010 and
- * "1.234,56 €" is 123456. A separator followed by exactly two digits at the end is taken as the decimal one.
+ * "1.234,56 €" is 123456. A separator followed by exactly two digits at the end is taken as the decimal one, so
+ * neither a comma nor a dot is assumed to group thousands. A hyphen or the minus sign some locales write (U+2212)
+ * makes the amount negative, wherever it stands.
  *
  * @param {string} text
  * @returns {number}
@@ -21,7 +23,7 @@ function moneyInCents(text) {
 
     const cents = Number(match[1].replace(/[.,]/g, '') || '0') * 100 + Number(match[2] ?? '0');
 
-    return text.includes('-') ? -cents : cents;
+    return /[-−]/.test(text) ? -cents : cents;
 }
 
 /**

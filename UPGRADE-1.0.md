@@ -15,7 +15,7 @@ The entire API Platform / `sylius/api-bundle` integration has been removed. If y
 ## Feature changes
 
 - **One gift card type.** The customer always chooses the amount. The `giftCardAmountConfigurable` product flag is gone; a product is simply a gift card product or not (`ProductTrait` now exposes a single `giftCard` flag).
-- **Virtual vs physical.** New: a gift card is virtual or physical based on the chosen variant's `shipping required` flag. Physical gift cards ship through the normal Sylius shipping flow.
+- **Virtual vs physical.** New: a gift card is virtual or physical based on the chosen variant's `shipping required` flag. Physical gift cards ship through the normal Sylius shipping flow. The `setono_gift_card` fixture seeds virtual cards, unless an entry says `delivery_type: physical`.
 - **Designs.** New `GiftCardDesign` resource (translatable, with front/back images). The old `GiftCardConfiguration` / `GiftCardChannelConfiguration` / `GiftCardConfigurationImage` entities and the DB-stored Twig template are **removed** — the PDF is now a normal, overridable Twig template file.
 - **Redemption is a payment, not an adjustment.** Where 0.12.x reduced the order total with a negative adjustment, a redeemed gift card is now a completed `Payment` against the order, leaving the total intact. This matches how gift cards work on other platforms and how accounting and order management systems expect to see them: selling a gift card takes money for a liability, and redeeming it settles that liability rather than discounting the order. Anything reading `order_gift_card` adjustments must read the order's gift card payments instead.
 - **Ledger.** New `GiftCardTransaction` append-only ledger records every balance change; admins can adjust balances with a reason. A row names the admin who adjusted the balance or issued the card in the admin, and the issuance of a card bought in the shop names the order that paid for it.
@@ -32,9 +32,11 @@ Two changes deserve a closer look, because a gift card code is a bearer token (w
 
 ## Routing
 
-`@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml` now puts the admin routes under your admin path (`/%sylius_admin.path_name%`, which `SYLIUS_ADMIN_ROUTING_PATH_NAME` sets), where `0.12.x` always put them under `/admin`. On the default admin path nothing moves.
+`@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml` now puts the admin routes under your admin path (`/%sylius_admin.path_name%`, which `SYLIUS_ADMIN_ROUTING_PATH_NAME` sets), where `0.12.x` always put them under `/admin`. So does `@SetonoSyliusGiftCardPlugin/Resources/config/routes_no_locale.yaml`, which a shop whose URLs carry no locale keeps importing instead, and which still puts the shop routes at the root of the shop. On the default admin path nothing moves.
 
-If your admin lives somewhere else and you import `routes.yaml`, you will find the plugin's admin pages under your admin path: for an admin at `/backoffice`, `/admin/gift-cards/...` becomes `/backoffice/gift-cards/...` and `/admin/ajax/customer/...` becomes `/backoffice/ajax/customer/...`. Update any link or bookmark to the old addresses. Those were outside the admin firewall, where a gift card's PDF with its code and the customer search answered without a login; under your admin path they sit behind it with the rest of the admin. If you imported `routes/admin.yaml` and `routes/admin_ajax.yaml` yourself to get them there, you can go back to importing `routes.yaml`.
+If your admin lives somewhere else, you will find the plugin's admin pages under your admin path, whichever of the two files you import: for an admin at `/backoffice`, `/admin/gift-cards/...` becomes `/backoffice/gift-cards/...` and `/admin/ajax/customer/...` becomes `/backoffice/ajax/customer/...`. Update any link or bookmark to the old addresses. Those were outside the admin firewall, where a gift card's PDF with its code and the customer search answered without a login; under your admin path they sit behind it with the rest of the admin.
+
+If you imported the plugin's route files yourself, to get the admin pages under your admin path or because `routes_no_locale.yaml` was missing from `1.x` development versions for a while, you can go back to importing `routes.yaml` or `routes_no_locale.yaml`.
 
 ## Entity / schema changes
 

@@ -94,19 +94,31 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
             $product->addChannel($channel);
         }
 
-        $option = $this->provideDeliveryOption();
-        $product->addOption($option);
+        // A single delivery type leaves the customer nothing to choose, so the product gets no option and its variant no
+        // option value. Sylius treats a product with one variant and no options as simple, like the one a merchant makes
+        // by hand, and the shop shows no variant choice for it. Nothing reads the delivery type off the option: it is
+        // derived from the variant's shipping requirement
+        $option = 1 === count($deliveryTypes) ? null : $this->provideDeliveryOption();
+        if (null !== $option) {
+            $product->addOption($option);
+        }
 
         foreach ($deliveryTypes as $deliveryType) {
-            $optionValue = $this->findOptionValue($option, $deliveryType);
-            Assert::notNull($optionValue, sprintf(
-                'The product option "%s" has no value "%s" (or "%s")',
-                self::DELIVERY_OPTION_CODE,
-                $this->getOptionValueCode($deliveryType),
-                $deliveryType->value,
-            ));
+            $variant = $this->createVariant($product, $code, $deliveryType, $channels, $price);
 
-            $product->addVariant($this->createVariant($product, $code, $optionValue, $deliveryType, $channels, $price));
+            if (null !== $option) {
+                $optionValue = $this->findOptionValue($option, $deliveryType);
+                Assert::notNull($optionValue, sprintf(
+                    'The product option "%s" has no value "%s" (or "%s")',
+                    self::DELIVERY_OPTION_CODE,
+                    $this->getOptionValueCode($deliveryType),
+                    $deliveryType->value,
+                ));
+
+                $variant->addOptionValue($optionValue);
+            }
+
+            $product->addVariant($variant);
         }
 
         return $product;
@@ -131,7 +143,6 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
     private function createVariant(
         ProductInterface $product,
         string $productCode,
-        ProductOptionValueInterface $optionValue,
         GiftCardDeliveryType $deliveryType,
         array $channels,
         int $price,
@@ -140,14 +151,13 @@ final class GiftCardProductFactory implements GiftCardProductFactoryInterface
         $variant = $this->productVariantFactory->createNew();
         $variant->setCode($this->getVariantCode($productCode, $deliveryType));
         $variant->setProduct($product);
-        $variant->addOptionValue($optionValue);
         $variant->setShippingRequired(GiftCardDeliveryType::Physical === $deliveryType);
 
         foreach ($this->getLocales() as $localeCode) {
             $variant->setCurrentLocale($localeCode);
             $variant->setFallbackLocale($localeCode);
-            // The variant name is what the customer chooses between on the product page, so it says what the delivery
-            // type means for them
+            // The variant name is what the customer chooses between on the product page, and what the cart shows of a
+            // product without options, so it says what the delivery type means for them
             $variant->setName($this->translate(sprintf('setono_sylius_gift_card.ui.%s', $deliveryType->value), $localeCode));
         }
 

@@ -76,7 +76,7 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
         Assert::notNull($currency);
 
         /** @var GiftCardDeliveryType $deliveryType */
-        $deliveryType = $options['deliveryType'];
+        $deliveryType = $options['delivery_type'];
 
         $code = $options['code'];
         Assert::string($code);
@@ -110,6 +110,9 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
             // Demo data is held to the same minimum as a code typed in the admin: a short code is a guessable one,
             // and demo data has a way of ending up in production
             ->setNormalizer('code', function (Options $options, string $code): string {
+                // The configuration refuses a minimum_code_length outside these bounds, but cannot see the value of
+                // one taken from an environment variable, which is only known at runtime
+                Assert::range($this->minimumCodeLength, Configuration::MINIMUM_CODE_LENGTH, Configuration::MAXIMUM_CODE_LENGTH, 'The minimum_code_length (%s) must be between %2$s and %3$s');
                 Assert::minLength($code, $this->minimumCodeLength, 'A gift card code must have at least %2$s characters, so it cannot be guessed, got: %s');
 
                 return $code;
@@ -202,9 +205,11 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
             ->setDefault('enabled', true)
             ->setAllowedTypes('enabled', 'bool')
 
-            ->setDefault('deliveryType', GiftCardDeliveryType::Virtual)
-            ->setAllowedTypes('deliveryType', ['string', GiftCardDeliveryType::class])
-            ->setNormalizer('deliveryType', static function (Options $options, $deliveryType): GiftCardDeliveryType {
+            // Named like the fixture's node, because the fixture hands each entry to this factory as it is. A fixture
+            // file gives the value, an application building on the factory may give the case
+            ->setDefault('delivery_type', GiftCardDeliveryType::Virtual)
+            ->setAllowedTypes('delivery_type', ['string', GiftCardDeliveryType::class])
+            ->setNormalizer('delivery_type', static function (Options $options, $deliveryType): GiftCardDeliveryType {
                 if ($deliveryType instanceof GiftCardDeliveryType) {
                     return $deliveryType;
                 }

@@ -3,6 +3,7 @@
  */
 
 const { expect } = require('@playwright/test');
+const { GRID_ROWS } = require('./admin');
 const { clickAndWaitForPage } = require('./navigation');
 
 const FORM = 'form[name="sylius_payment_method"]';
@@ -22,7 +23,7 @@ const INSTRUCTIONS = `${FORM} textarea[name$="[instructions]"]`;
  */
 async function givePaymentMethodInstructions(page, code, instructions) {
     await page.goto('/admin/payment-methods/');
-    const row = page.locator('table tbody tr').filter({ has: page.getByRole('cell', { name: code, exact: true }) });
+    const row = page.locator(GRID_ROWS).filter({ has: page.getByRole('cell', { name: code, exact: true }) });
     await expect(row, `the admin lists no payment method ${code}`).toHaveCount(1);
 
     const url = await row.locator('a[href$="/edit"]').first().getAttribute('href');

@@ -79,7 +79,7 @@ final class GiftCardShowPageTest extends AdminFunctionalTestCase
         self::assertSame(['Expired'], $this->detail($this->show($expired), 'Status'));
         self::assertSame(
             ['expired'],
-            self::textsOf($this->show($expired), '//tr[td[1]/strong[normalize-space() = "Status"]]//*[contains(@class, "ui orange label")]/@data-gift-card-status'),
+            self::textsOf($this->show($expired), '//tr[td[1]/strong[normalize-space() = "Status"]]//*[contains(@class, "ui orange label")]/@data-test-gift-card-status'),
         );
     }
 

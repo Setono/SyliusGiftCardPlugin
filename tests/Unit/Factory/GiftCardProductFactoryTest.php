@@ -31,9 +31,9 @@ use Symfony\Component\Translation\Loader\YamlFileLoader;
 use Symfony\Component\Translation\Translator;
 
 /**
- * A gift card product is an ordinary Sylius product flagged as a gift card, with a "delivery" option whose values
- * decide whether a card is shipped. The factory assembles one in every locale of the shop, so the merchant only has to
- * review it
+ * A gift card product is an ordinary Sylius product flagged as a gift card, with a variant per delivery type that is
+ * shipped or not, and a "delivery" option to choose the variant by when there is more than one. The factory assembles
+ * one in every locale of the shop, so the merchant only has to review it
  */
 final class GiftCardProductFactoryTest extends TestCase
 {
@@ -207,6 +207,94 @@ final class GiftCardProductFactoryTest extends TestCase
                 self::assertSame($name, $variant->getTranslation($localeCode)->getName());
             }
         }
+    }
+
+    /**
+     * With both delivery types the customer chooses between them, so the product gets the shared delivery option and
+     * each variant the option's value for its delivery type
+     *
+     * @test
+     */
+    public function it_gives_a_product_with_both_delivery_types_the_delivery_option_to_choose_by(): void
+    {
+        $product = $this->factory()->create(
+            'gift_card',
+            'Gift card',
+            deliveryTypes: [GiftCardDeliveryType::Virtual, GiftCardDeliveryType::Physical],
+        );
+
+        self::assertFalse($product->isSimple());
+        self::assertSame(['gift_card_delivery'], array_values(array_map(
+            static fn (ProductOptionInterface $option): ?string => $option->getCode(),
+            $product->getOptions()->toArray(),
+        )));
+
+        $variants = $this->variants($product);
+        self::assertSame(['gift_card_virtual', 'gift_card_physical'], array_keys($variants));
+        self::assertSame(['gift_card_delivery_virtual'], $this->optionValueCodes($variants['gift_card_virtual']));
+        self::assertSame(['gift_card_delivery_physical'], $this->optionValueCodes($variants['gift_card_physical']));
+    }
+
+    /**
+     * A single delivery type leaves the customer nothing to choose, so the product gets no option and its variant no
+     * option value. Sylius treats a product with one variant and no options as simple, and the shop shows no variant
+     * choice for it, as for the single variant product a merchant makes by hand. The delivery option is not even
+     * looked up, so a product with one delivery type does not depend on what the shop did to that option
+     *
+     * @test
+     *
+     * @dataProvider singleDeliveryTypes
+     *
+     * @param array<string, string> $nameByLocale
+     */
+    public function it_creates_a_simple_product_without_the_delivery_option_for_a_single_delivery_type(
+        GiftCardDeliveryType $deliveryType,
+        bool $shippingRequired,
+        array $nameByLocale,
+    ): void {
+        $this->productOptionRepository->findOneBy(['code' => 'gift_card_delivery'])->shouldNotBeCalled();
+        $this->productOptionFactory->createNew()->shouldNotBeCalled();
+        $this->manager->persist(Argument::any())->shouldNotBeCalled();
+
+        $product = $this->factory()->create('gift_card', 'Gift card', deliveryTypes: [$deliveryType]);
+
+        self::assertTrue($product->isSimple());
+        self::assertFalse($product->hasOptions());
+
+        $variants = $this->variants($product);
+        $variantCode = 'gift_card_' . $deliveryType->value;
+        self::assertSame([$variantCode], array_keys($variants));
+
+        $variant = $variants[$variantCode];
+        self::assertSame([], $this->optionValueCodes($variant));
+        // the delivery type of a bought card is derived from this, not from an option
+        self::assertSame($shippingRequired, $variant->isShippingRequired());
+        self::assertSame(5000, $variant->getChannelPricingForChannel($this->web)?->getPrice());
+        self::assertSame(5000, $variant->getChannelPricingForChannel($this->mobile)?->getPrice());
+
+        // The cart shows the variant's name for a product without options, so it still says what the delivery type
+        // means for the customer, in their own language
+        foreach ($nameByLocale as $localeCode => $name) {
+            self::assertSame($name, $variant->getTranslation($localeCode)->getName());
+        }
+    }
+
+    /**
+     * @return iterable<string, array{GiftCardDeliveryType, bool, array<string, string>}>
+     */
+    public static function singleDeliveryTypes(): iterable
+    {
+        yield 'virtual' => [
+            GiftCardDeliveryType::Virtual,
+            false,
+            ['en_US' => 'Virtual — delivered by email', 'da_DK' => 'Virtuelt — leveres på email'],
+        ];
+
+        yield 'physical' => [
+            GiftCardDeliveryType::Physical,
+            true,
+            ['en_US' => 'Physical — shipped to you', 'da_DK' => 'Fysisk — sendes til dig'],
+        ];
     }
 
     /** @test */

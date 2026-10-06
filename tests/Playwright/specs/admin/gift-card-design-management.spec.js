@@ -1,6 +1,6 @@
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
+const { GRID_ROWS, clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
 const { firstDesignId } = require('../support/fixtures');
 const { clickAndWaitForPage } = require('../support/navigation');
 const { giftCardProductPath } = require('../support/shop');
@@ -67,7 +67,7 @@ async function submitNewDesign(page, { code, name = `Design ${code}`, enabled = 
 async function designRow(page, codeOrName) {
     await page.goto('/admin/gift-card-designs/');
 
-    return page.locator('table tbody tr').filter({ has: page.locator('td', { hasText: new RegExp(`^${codeOrName}$`) }) });
+    return page.locator(GRID_ROWS).filter({ has: page.locator('td', { hasText: new RegExp(`^${codeOrName}$`) }) });
 }
 
 /**

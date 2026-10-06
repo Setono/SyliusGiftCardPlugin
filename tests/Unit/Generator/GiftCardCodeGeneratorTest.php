@@ -36,10 +36,48 @@ final class GiftCardCodeGeneratorTest extends TestCase
         self::assertCount(100, array_unique($codes), 'codes are drawn at random');
     }
 
-    /** @test */
-    public function it_honours_a_shorter_configured_length(): void
+    /**
+     * Any length the configuration allows, from the floor every code is held to up to what the code column holds,
+     * and one equal to a raised minimum
+     *
+     * @test
+     */
+    public function it_honours_the_configured_length(): void
     {
-        self::assertSame(6, strlen((new GiftCardCodeGenerator($this->repositoryWithoutCodes(), 6))->generate()));
+        self::assertSame(12, strlen((new GiftCardCodeGenerator($this->repositoryWithoutCodes(), 12))->generate()));
+        self::assertSame(255, strlen((new GiftCardCodeGenerator($this->repositoryWithoutCodes(), 255))->generate()));
+        self::assertSame(20, strlen((new GiftCardCodeGenerator($this->repositoryWithoutCodes(), 20, 20))->generate()));
+    }
+
+    /**
+     * The configuration refuses these lengths, but not a code_length or minimum_code_length taken from an environment
+     * variable, whose value is only known at runtime. The generator is built on every product page and for every
+     * order, so it only refuses once it is asked for a code
+     *
+     * @dataProvider provideCodeLengthsTheConfigurationRefuses
+     *
+     * @test
+     */
+    public function it_refuses_to_generate_a_code_of_a_length_the_configuration_refuses(int $codeLength, int $minimumCodeLength, string $expectedMessage): void
+    {
+        $generator = new GiftCardCodeGenerator($this->repositoryWithoutCodes(), $codeLength, $minimumCodeLength);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        $generator->generate();
+    }
+
+    /**
+     * @return iterable<string, array{int, int, string}>
+     */
+    public static function provideCodeLengthsTheConfigurationRefuses(): iterable
+    {
+        yield 'guessable' => [11, 12, 'The code_length (11) must be between 12 and 255'];
+        yield 'guessable, with a minimum below the floor too' => [8, 4, 'The code_length (8) must be between 12 and 255'];
+        yield 'longer than the code column' => [256, 12, 'The code_length (256) must be between 12 and 255'];
+        yield 'below the minimum' => [16, 20, 'The code_length (16) must be at least the minimum_code_length (20)'];
+        yield 'one below the minimum' => [19, 20, 'The code_length (19) must be at least the minimum_code_length (20)'];
     }
 
     /**
