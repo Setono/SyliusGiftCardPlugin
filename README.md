@@ -409,6 +409,30 @@ Mind the units when you write fixtures of your own: the `amount` of a `setono_gi
 (`amount: 25` issues a card holding 25.00), while the `price` of a `setono_gift_card_product` fixture is in minor units
 (`price: 5000` is 50.00), like the `purchase` settings of the [configuration](#configuration).
 
+Both kinds of gift card can be seeded. A `setono_gift_card_product` fixture creates a variant for each delivery type
+unless `delivery_types` names the ones it should have, and a `setono_gift_card` fixture issues a virtual card unless its
+entry says `delivery_type: physical`. Below the import, this narrows the imported suite's gift card product to its
+virtual variant and adds a physical card to its gift cards:
+
+```yaml
+# config/packages/setono_sylius_gift_card.yaml
+sylius_fixtures:
+    suites:
+        default:
+            fixtures:
+                setono_gift_card_product:
+                    options:
+                        custom:
+                            gift_card:                   # the imported suite's product, narrowed to its virtual variant
+                                delivery_types: [virtual]  # virtual and/or physical; both when left out
+                setono_gift_card:
+                    options:
+                        custom:
+                            plastic_card:                # a card of your own, next to the imported suite's 20
+                                amount: 50
+                                delivery_type: physical  # virtual or physical; virtual when left out
+```
+
 ### Install assets
 
 ```bash

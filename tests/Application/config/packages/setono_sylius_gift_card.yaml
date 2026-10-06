@@ -36,3 +36,10 @@ sylius_fixtures:
                                 code: E2ENOBALANCE01
                                 amount: 0
                                 enabled: true
+                            # Every other seeded card is virtual, so the specs have a physical card to look at
+                            # without buying one first
+                            e2e_physical:
+                                code: E2EPHYSICAL001
+                                amount: 50
+                                enabled: true
+                                delivery_type: physical
