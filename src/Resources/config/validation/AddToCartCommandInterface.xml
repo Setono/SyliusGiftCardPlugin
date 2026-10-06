@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<constraint-mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://symfony.com/schema/dic/constraint-mapping"
+                    xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/services/constraint-mapping-1.0.xsd">
+
+    <!-- Mapped on the interface, as an application's own command may implement it instead of extending the plugin's:
+         the validator merges the constraints of the interfaces a class implements into the class's own. The shop's add
+         to cart form validates the command in Sylius' group (sylius.form.type.add_to_cart.validation_groups) -->
+    <class name="Setono\SyliusGiftCardPlugin\Order\AddToCartCommandInterface">
+        <!-- What Sylius maps on its own command (CoreBundle's AddToCartCommand.xml), which is final, so the plugin's
+             command does not inherit it: the quantity added, with what the cart already holds of the variant, has to
+             be in stock -->
+        <constraint name="Sylius\Bundle\CoreBundle\Validator\Constraints\CartItemAvailability">
+            <option name="message">sylius.cart_item.not_available</option>
+            <option name="groups">sylius</option>
+        </constraint>
+    </class>
+</constraint-mapping>

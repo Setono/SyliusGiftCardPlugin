@@ -93,6 +93,8 @@ Keep `CustomerRepositoryTrait` and `Setono\SyliusGiftCardPlugin\Repository\Custo
 
 The constraint that decides whether a gift card may be applied to the cart is `GiftCardIsEligible` (it was called `GiftCardIsApplicable` earlier in the `1.x` development). It gives the customer one message for every reason a card cannot be used (disabled, expired, empty, another channel or currency), so the form cannot tell someone guessing codes which ones exist, and logs the reason instead. Its only options are `message` and `alreadyAppliedMessage`: validation XML that still sets `notEnabledMessage`, `expiredMessage`, `emptyMessage`, `channelMismatchMessage` or `currencyMismatchMessage` fails with `The options "notEnabledMessage" do not exist in constraint "Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardIsEligible"`. Set `message` instead.
 
+The add-to-cart form checks the stock, counting what the cart already holds of the variant, the way Sylius' own form does (`CartItemAvailability`, now mapped on `AddToCartCommandInterface`). `0.12.x` mapped it on `%setono_sylius_gift_card.order.model.add_to_cart_command.class%`, a container parameter the validator does not resolve, so the check never ran. If your application mapped `CartItemAvailability` on its add-to-cart command itself to make up for that, remove that mapping, or a lack of stock is reported twice.
+
 ## Template overrides
 
 If you overrode any of the removed templates (gift card configuration admin, the balance search page, the account gift cards section, or the cart/checkout total overrides), remove those overrides. The cart apply box and totals are now injected via `sylius_ui` events, so most host-app template overrides are no longer necessary.
