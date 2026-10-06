@@ -10,9 +10,12 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - `GiftCardDesign` resource: translatable, with front and back images, admin CRUD and an example-PDF preview.
   Customers pick a design when buying a gift card
 - `GiftCardTransaction`, an append-only ledger recording every balance change, with nullable-unique
-  idempotency keys so a replayed state machine transition cannot double-spend
-- Admin **Adjust balance** action, writing a manual ledger entry with a reason, which leads back to the card's page
-  where the ledger is
+  idempotency keys so a replayed state machine transition cannot double-spend. Each row names the order it belongs
+  to (the issuance of a card bought in the shop names the order that paid for it) and, for a manual adjustment or a
+  card issued in the admin, the admin who made it (`createdBy`, a copy of their user identifier). The gift card's
+  show page lists both
+- Admin **Adjust balance** action, writing a manual ledger entry with a reason and the admin who made it, which
+  leads back to the card's page where the ledger is
 - The admin's gift card form takes a design, picked from thumbnails of the designs enabled in the card's channel,
   and a delivery type, virtual unless chosen otherwise. The design can be changed later; the delivery type is
   settled when the card is issued
@@ -45,6 +48,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - The customer always chooses the amount, within a configurable minimum and maximum. The
   `giftCardAmountConfigurable` product flag is gone — a product is a gift card product or it is not
 - Requires Sylius `1.13` and up, PHP `>= 8.1` and Symfony `^6.4` (Symfony 5.4 support dropped)
+- Conflicts with `twig/twig` `>=3.29`. On Twig 3.29 and newer, `sylius/mailer-bundle` up to 2.2.0 fails every email
+  it sends, and the release that fixes it (2.2.1) requires PHP 8.2. The conflict stays until PHP 8.1 support is
+  dropped; until then, `composer require` the plugin with `-W` where Twig 3.29 or newer is locked (see the README)
 - The plugin auto-configures the state machine, grids, UI events, emails and image filters via `prepend()`;
   host applications no longer import any bundle configuration manually
 - Gift card codes are generated in a grouped, unambiguous format (the alphabet excludes `0`, `O`, `1`, `I`

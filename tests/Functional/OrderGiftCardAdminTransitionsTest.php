@@ -52,10 +52,17 @@ final class OrderGiftCardAdminTransitionsTest extends AdminFunctionalTestCase
 
         $giftCard = $this->findGiftCard('ADMINPAID0000001');
         self::assertTrue($giftCard->isEnabled(), 'paying the order should have enabled the card it bought');
+        // The issuance leads back to the order that paid for the card. The administrator only said the order was
+        // paid, so they are not named as having issued the card: the order did
         self::assertSame(
-            [[GiftCardTransactionInterface::TYPE_ISSUE, 5000]],
+            [[GiftCardTransactionInterface::TYPE_ISSUE, 5000, $orderId, null]],
             array_map(
-                static fn (GiftCardTransactionInterface $transaction): array => [$transaction->getType(), $transaction->getAmount()],
+                static fn (GiftCardTransactionInterface $transaction): array => [
+                    $transaction->getType(),
+                    $transaction->getAmount(),
+                    $transaction->getOrder()?->getId(),
+                    $transaction->getCreatedBy(),
+                ],
                 array_values($giftCard->getTransactions()->toArray()),
             ),
         );

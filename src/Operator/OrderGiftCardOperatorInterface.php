@@ -26,7 +26,8 @@ interface OrderGiftCardOperatorInterface
     public function reconcile(OrderInterface $order): void;
 
     /**
-     * Called when the order is paid. Enables all gift cards bought on the order
+     * Called when the order is paid. Enables all gift cards bought on the order and records their issuance in the
+     * ledger, against the order
      */
     public function enable(OrderInterface $order): void;
 

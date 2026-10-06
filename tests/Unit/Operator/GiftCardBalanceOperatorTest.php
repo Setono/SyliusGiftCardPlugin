@@ -87,6 +87,27 @@ final class GiftCardBalanceOperatorTest extends TestCase
         $transaction = $this->firstTransaction($giftCard);
         self::assertSame(GiftCardTransactionInterface::TYPE_MANUAL, $transaction->getType());
         self::assertSame('goodwill', $transaction->getReason());
+        self::assertNull($transaction->getCreatedBy(), 'nobody is named when the caller names nobody, e.g. a console command');
+        self::assertNull($transaction->getOrder());
+    }
+
+    /**
+     * The ledger is the audit trail for money, so a manual adjustment says who made it as well as why
+     *
+     * @test
+     */
+    public function it_records_who_made_a_manual_adjustment(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setAmount(1000);
+
+        $this->createOperator()->adjust($giftCard, -250, 'Paid in the physical store', 'jane');
+
+        $transaction = $this->firstTransaction($giftCard);
+        self::assertSame(GiftCardTransactionInterface::TYPE_MANUAL, $transaction->getType());
+        self::assertSame(-250, $transaction->getAmount());
+        self::assertSame('Paid in the physical store', $transaction->getReason());
+        self::assertSame('jane', $transaction->getCreatedBy());
     }
 
     /** @test */
@@ -121,6 +142,7 @@ final class GiftCardBalanceOperatorTest extends TestCase
         self::assertSame($payment, $transaction->getPayment());
         self::assertSame('redeem:order:1:gift_card:1', $transaction->getIdempotencyKey());
         self::assertNull($transaction->getReason());
+        self::assertNull($transaction->getCreatedBy(), 'the customer spends the card, no administrator does');
         self::assertSame($giftCard, $transaction->getGiftCard());
     }
 
@@ -139,6 +161,7 @@ final class GiftCardBalanceOperatorTest extends TestCase
         self::assertSame($order, $transaction->getOrder());
         self::assertSame($payment, $transaction->getPayment());
         self::assertSame('restore:order:1:gift_card:1', $transaction->getIdempotencyKey());
+        self::assertNull($transaction->getCreatedBy());
     }
 
     /** @test */
@@ -229,6 +252,49 @@ final class GiftCardBalanceOperatorTest extends TestCase
         self::assertNull($transaction->getOrder());
         self::assertNull($transaction->getPayment());
         self::assertNull($transaction->getReason());
+        self::assertNull($transaction->getCreatedBy());
+    }
+
+    /**
+     * A card bought in the shop is money the shop took on an order, so its issuance leads back to that order
+     *
+     * @test
+     */
+    public function it_records_the_order_that_paid_for_an_issued_card(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setCode('BOUGHT');
+        $giftCard->setAmount(5000);
+        $order = new Order();
+
+        $this->createOperator()->issue($giftCard, $order);
+
+        $transaction = $this->firstTransaction($giftCard);
+        self::assertSame(GiftCardTransactionInterface::TYPE_ISSUE, $transaction->getType());
+        self::assertSame(5000, $transaction->getAmount());
+        self::assertSame($order, $transaction->getOrder());
+        self::assertNull($transaction->getPayment(), 'the order paid for the card, but no payment of it moved the balance');
+        self::assertNull($transaction->getCreatedBy());
+        self::assertSame('issue-BOUGHT', $transaction->getIdempotencyKey());
+    }
+
+    /**
+     * A card issued in the admin hands out money as much as an adjustment does, so it says who issued it
+     *
+     * @test
+     */
+    public function it_records_who_issued_a_card(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setCode('HANDEDOUT');
+        $giftCard->setAmount(2500);
+
+        $this->createOperator()->issue($giftCard, null, 'jane');
+
+        $transaction = $this->firstTransaction($giftCard);
+        self::assertSame(GiftCardTransactionInterface::TYPE_ISSUE, $transaction->getType());
+        self::assertSame('jane', $transaction->getCreatedBy());
+        self::assertNull($transaction->getOrder());
     }
 
     /** @test */

@@ -142,6 +142,38 @@ final class OrderGiftCardOperatorTest extends TestCase
     }
 
     /**
+     * Paying the order issues the cards bought on it, on every line, and each card's ledger leads back to the order
+     * that paid for it. The order issued them, so the issuance names nobody, whoever marked the payment completed
+     *
+     * @test
+     */
+    public function it_issues_every_card_bought_on_the_order_against_the_order_when_it_is_paid(): void
+    {
+        $first = self::giftCard('FIRSTLINE');
+        $second = self::giftCard('SECONDLINE');
+        $third = self::giftCard('SECONDLINE2');
+        // pending, the way add to cart and reconcile leave them; a new card is enabled by default
+        foreach ([$first, $second, $third] as $giftCard) {
+            $giftCard->disable();
+        }
+
+        $order = new Order();
+        self::addLine($order, true, [$first]);
+        self::addLine($order, false, [null]);
+        self::addLine($order, true, [$second, $third]);
+
+        $this->balanceOperator->issue($first, $order)->shouldBeCalledOnce();
+        $this->balanceOperator->issue($second, $order)->shouldBeCalledOnce();
+        $this->balanceOperator->issue($third, $order)->shouldBeCalledOnce();
+
+        $this->operator->enable($order);
+
+        self::assertTrue($first->isEnabled());
+        self::assertTrue($second->isEnabled());
+        self::assertTrue($third->isEnabled());
+    }
+
+    /**
      * Every order that completes checkout, gets paid or is cancelled passes through the operator, and most of them
      * bought no gift card. Those are left alone entirely: nothing is created, recorded or flushed. The order below
      * does not even have a channel, which reconcile would otherwise insist on
@@ -154,7 +186,7 @@ final class OrderGiftCardOperatorTest extends TestCase
         self::addLine($order, false, [null, null]);
 
         $this->giftCardFactory->createForChannel(Argument::any())->shouldNotBeCalled();
-        $this->balanceOperator->issue(Argument::any())->shouldNotBeCalled();
+        $this->balanceOperator->issue(Argument::cetera())->shouldNotBeCalled();
         $this->managerRegistry->getManagerForClass(Argument::any())->shouldNotBeCalled();
 
         $this->operator->reconcile($order);
@@ -172,7 +204,7 @@ final class OrderGiftCardOperatorTest extends TestCase
         $order = new Order();
         self::addLine($order, true, [null]);
 
-        $this->balanceOperator->issue(Argument::any())->shouldNotBeCalled();
+        $this->balanceOperator->issue(Argument::cetera())->shouldNotBeCalled();
         $this->managerRegistry->getManagerForClass(Argument::any())->shouldNotBeCalled();
 
         $this->operator->enable($order);

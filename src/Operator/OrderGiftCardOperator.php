@@ -102,8 +102,11 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
             $giftCard->enable();
 
             // Issuance is recorded here rather than when the card is created, because a pending card's amount
-            // is re-snapshotted during reconciliation; this is the first moment the balance is final
-            $this->balanceOperator->issue($giftCard);
+            // is re-snapshotted during reconciliation; this is the first moment the balance is final. The ledger
+            // row names the order that paid for the card, so its ledger leads back to the money behind it. Nobody
+            // is recorded as having issued it, not even an administrator who marked the payment completed: the
+            // order issued the card, the administrator only said it was paid
+            $this->balanceOperator->issue($giftCard, $order);
         }
     }
 

@@ -144,11 +144,12 @@ async function giftCardDetails(page, id) {
 }
 
 /**
- * The card's ledger as its show page lists it, oldest first
+ * The card's ledger as its show page lists it, oldest first. `createdBy` is the administrator who made a movement by
+ * hand (an adjustment, or issuing the card in the admin), and '-' for everything else
  *
  * @param {import('@playwright/test').Page} page
  * @param {string} id
- * @returns {Promise<Array<{type: string, amount: number, reason: string, order: string|null, orderHref: string|null}>>}
+ * @returns {Promise<Array<{type: string, amount: number, reason: string, order: string|null, orderHref: string|null, createdBy: string}>>}
  */
 async function giftCardTransactions(page, id) {
     await page.goto(`/admin/gift-cards/${id}`);
@@ -166,6 +167,7 @@ async function giftCardTransactions(page, id) {
             reason: cells[3].trim(),
             order: hasOrder ? (await orderLink.innerText()).trim() : null,
             orderHref: hasOrder ? await orderLink.getAttribute('href') : null,
+            createdBy: cells[5].trim(),
         });
     }
 
