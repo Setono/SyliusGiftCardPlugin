@@ -11,10 +11,20 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   Customers pick a design when buying a gift card
 - `GiftCardTransaction`, an append-only ledger recording every balance change, with nullable-unique
   idempotency keys so a replayed state machine transition cannot double-spend
-- Admin **Adjust balance** action, writing a manual ledger entry with a reason
+- Admin **Adjust balance** action, writing a manual ledger entry with a reason, which leads back to the card's page
+  where the ledger is
 - The admin's gift card form takes a design, picked from thumbnails of the designs enabled in the card's channel,
   and a delivery type, virtual unless chosen otherwise. The design can be changed later; the delivery type is
   settled when the card is issued
+- A status for every gift card (`GiftCardInterface::getStatus()`: usable, expired, spent, pending or disabled), shown
+  in the admin gift card grid in place of the enabled column and on the card's page
+- Admin gift card grid filters by customer email, channel, currency, delivery type, expired, spent and creation date,
+  and sorting by customer and amount. Pending cards stay hidden until the admin asks for them through the grid's
+  *Pending gift cards* filter, which is what hides them: `GiftCardRepositoryInterface::createListQueryBuilder()`
+  lists every card. Deleting is only offered for a card that may be deleted, and the gift card and design routes
+  register no bulk delete
+- The admin gift card page links the order the card was bought with, the orders it was applied to and its design
+- The admin design grid sorts by name and lists each design's channels
 - Admin outstanding-balance dashboard, aggregating the balance of all usable gift cards per currency in SQL
 - One-click **Create gift card product** admin scaffold, building the delivery option and both variants
 - Live preview on the gift card product page — the chosen design with the amount and message overlaid,

@@ -15,6 +15,10 @@ use Sylius\Component\Resource\Repository\RepositoryInterface;
  */
 interface GiftCardRepositoryInterface extends RepositoryInterface
 {
+    /**
+     * The query behind the admin's gift card grid, with every gift card in it. The grid's pending filter
+     * (GiftCardPendingFilter) leaves the pending ones out unless the admin asks for them
+     */
     public function createListQueryBuilder(): QueryBuilder;
 
     public function findOneByCode(string $code): ?GiftCardInterface;

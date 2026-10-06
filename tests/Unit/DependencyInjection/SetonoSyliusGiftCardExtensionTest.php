@@ -6,6 +6,9 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\DependencyInjection;
 
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\SetonoSyliusGiftCardExtension;
+use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardExpiredFilter;
+use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardPendingFilter;
+use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardSpentFilter;
 use Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardSetupRuntime;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Contracts\Service\ResetInterface;
@@ -60,6 +63,135 @@ final class SetonoSyliusGiftCardExtensionTest extends TestCase
         }
 
         self::assertContains(GiftCardSetupRuntime::class, $resettable);
+    }
+
+    /**
+     * The status column takes the place of the enabled flag, and both it and the delete button render through the
+     * plugin's own templates
+     *
+     * @test
+     */
+    public function it_shows_the_status_in_the_gift_card_grid_and_only_offers_to_delete_a_deletable_card(): void
+    {
+        $config = $this->gridConfig();
+        $grid = self::valueAt($config, 'grids', 'setono_sylius_gift_card_admin_gift_card');
+
+        self::assertArrayNotHasKey('enabled', self::arrayAt($grid, 'fields'));
+        self::assertSame('.', self::valueAt($grid, 'fields', 'status', 'path'));
+        self::assertFileExists($this->resolveTemplate(self::stringAt($grid, 'fields', 'status', 'options', 'template')));
+
+        $deleteType = self::stringAt($grid, 'actions', 'item', 'delete', 'type');
+        self::assertSame('setono_sylius_gift_card_gift_card_delete', $deleteType);
+        self::assertFileExists($this->resolveTemplate(self::stringAt($config, 'templates', 'action', $deleteType)));
+    }
+
+    /**
+     * The list query left joins the customer as "customer", so a card without one stays listed when sorting by it, and
+     * the amount column shows the whole card, so it names the field to sort by
+     *
+     * @test
+     */
+    public function it_sorts_the_gift_card_grid_by_customer_and_amount(): void
+    {
+        $fields = self::valueAt($this->gridConfig(), 'grids', 'setono_sylius_gift_card_admin_gift_card', 'fields');
+
+        self::assertSame('customer.email', self::valueAt($fields, 'customer', 'sortable'));
+        self::assertSame('amount', self::valueAt($fields, 'amount', 'sortable'));
+    }
+
+    /**
+     * Sylius only applies a default to a grid opened without criteria, and a filter without one is not applied then,
+     * so the empty default is what hides the pending cards on the grid an admin opens. Every filter type of the plugin
+     * needs a template of its own, or the grid fails to render
+     *
+     * @test
+     */
+    public function it_hides_the_pending_cards_by_default_and_renders_every_filter_of_its_own(): void
+    {
+        $config = $this->gridConfig();
+        $filters = self::valueAt($config, 'grids', 'setono_sylius_gift_card_admin_gift_card', 'filters');
+
+        self::assertSame('', self::valueAt($filters, 'pending', 'default_value'));
+        self::assertSame(
+            [GiftCardPendingFilter::SHOW, GiftCardPendingFilter::ONLY],
+            array_values(self::arrayAt($filters, 'pending', 'form_options', 'choices')),
+        );
+        self::assertSame('setono_sylius_gift_card.ui.pending_hide', self::valueAt($filters, 'pending', 'form_options', 'placeholder'));
+
+        self::assertSame(['customer.email'], self::valueAt($filters, 'customer', 'options', 'fields'));
+        self::assertSame('contains', self::valueAt($filters, 'customer', 'form_options', 'type'));
+        self::assertSame(['virtual', 'physical'], array_values(self::arrayAt($filters, 'deliveryType', 'form_options', 'choices')));
+        self::assertSame('code', self::valueAt($filters, 'currencyCode', 'form_options', 'choice_value'));
+        self::assertTrue(self::valueAt($filters, 'createdAt', 'options', 'inclusive_to'));
+
+        foreach ([GiftCardExpiredFilter::NAME => 'expired', GiftCardSpentFilter::NAME => 'spent', GiftCardPendingFilter::NAME => 'pending'] as $type => $filter) {
+            self::assertSame($type, self::valueAt($filters, $filter, 'type'));
+            self::assertArrayHasKey($type, self::arrayAt($config, 'templates', 'filter'));
+        }
+    }
+
+    /**
+     * The name shown is a translation, which only the grid's own query joins to sort by
+     *
+     * @test
+     */
+    public function it_sorts_the_design_grid_by_the_translated_name_and_lists_the_channels(): void
+    {
+        $grid = self::valueAt($this->gridConfig(), 'grids', 'setono_sylius_gift_card_admin_gift_card_design');
+
+        self::assertSame('createListQueryBuilder', self::valueAt($grid, 'driver', 'options', 'repository', 'method'));
+        self::assertSame('translation.name', self::valueAt($grid, 'fields', 'name', 'sortable'));
+        self::assertSame('@SyliusAdmin/Grid/Field/_channels.html.twig', self::valueAt($grid, 'fields', 'channels', 'options', 'template'));
+    }
+
+    /**
+     * The sylius_grid configuration prepend() hands Sylius
+     *
+     * @return array<array-key, mixed>
+     */
+    private function gridConfig(): array
+    {
+        $container = new ContainerBuilder();
+
+        (new SetonoSyliusGiftCardExtension())->prepend($container);
+
+        $configs = $container->getExtensionConfig('sylius_grid');
+        self::assertCount(1, $configs);
+
+        return $configs[0];
+    }
+
+    /**
+     * The value at the given path of keys
+     */
+    private static function valueAt(mixed $config, string ...$keys): mixed
+    {
+        foreach ($keys as $key) {
+            self::assertIsArray($config);
+            self::assertArrayHasKey($key, $config);
+            $config = $config[$key];
+        }
+
+        return $config;
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    private static function arrayAt(mixed $config, string ...$keys): array
+    {
+        $value = self::valueAt($config, ...$keys);
+        self::assertIsArray($value);
+
+        return $value;
+    }
+
+    private static function stringAt(mixed $config, string ...$keys): string
+    {
+        $value = self::valueAt($config, ...$keys);
+        self::assertIsString($value);
+
+        return $value;
     }
 
     /**

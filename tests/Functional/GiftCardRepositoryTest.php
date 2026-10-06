@@ -37,13 +37,12 @@ final class GiftCardRepositoryTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * A card waiting in somebody's cart is not a liability yet and most of them are never bought, so the admin list
-     * leaves them out. Everything else stays: cards issued in the admin (enabled or not), cards that were paid for,
-     * and a paid card that was disabled afterwards, which the ledger rows tell apart from a pending one
+     * The admin can ask the grid for the cards waiting in somebody's cart, so the list holds them. The grid's pending
+     * filter leaves them out unless asked (AdminGridTest)
      *
      * @test
      */
-    public function its_list_hides_the_pending_gift_cards_in_carts(): void
+    public function its_list_holds_every_gift_card_the_pending_ones_included(): void
     {
         $this->createGiftCard('ADMINENABLED');
         $this->createGiftCard('ADMINDISABLED', enabled: false);
@@ -57,7 +56,7 @@ final class GiftCardRepositoryTest extends GiftCardFunctionalTestCase
         $this->manager->clear();
 
         self::assertEqualsCanonicalizing(
-            ['ADMINENABLED', 'ADMINDISABLED', 'PAID', 'CANCELLED'],
+            ['ADMINENABLED', 'ADMINDISABLED', 'PENDING', 'PAID', 'CANCELLED'],
             $this->codesOf($this->repository->createListQueryBuilder()->getQuery()->getResult()),
         );
     }

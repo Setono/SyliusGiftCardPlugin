@@ -6,10 +6,12 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Model;
 
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardStatus;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransaction;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
+use Sylius\Component\Core\Model\OrderInterface;
 
 final class GiftCardTest extends TestCase
 {
@@ -116,6 +118,95 @@ final class GiftCardTest extends TestCase
         $giftCard->enable();
 
         self::assertFalse($giftCard->isPending());
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider statuses
+     */
+    public function it_has_one_status_for_the_admin(GiftCardStatus $expected, bool $bought, bool $enabled, int $amount, ?string $expiresAt, bool $issued): void
+    {
+        $giftCard = $bought ? $this->boughtGiftCard() : new GiftCard();
+        $giftCard->setEnabled($enabled);
+        $giftCard->setAmount($amount);
+        $giftCard->setExpiresAt(null === $expiresAt ? null : new \DateTimeImmutable($expiresAt));
+        if ($issued) {
+            $giftCard->addTransaction(new GiftCardTransaction());
+        }
+
+        self::assertSame($expected, $giftCard->getStatus());
+        // usable is the one status a card pays with, so it must agree with the check everything else asks
+        self::assertSame(GiftCardStatus::Usable === $expected, $giftCard->isUsable());
+    }
+
+    /**
+     * @return iterable<string, array{GiftCardStatus, bool, bool, int, ?string, bool}> status, bought in the shop,
+     *         enabled, balance, expiry, has a ledger row
+     */
+    public static function statuses(): iterable
+    {
+        yield 'issued in the admin with a balance' => [GiftCardStatus::Usable, false, true, 5000, null, true];
+        yield 'bought and paid, expiring later' => [GiftCardStatus::Usable, true, true, 5000, '+1 day', true];
+        yield 'past its expiry date with a balance left' => [GiftCardStatus::Expired, false, true, 5000, '-1 day', true];
+        yield 'nothing left' => [GiftCardStatus::Spent, false, true, 0, null, true];
+        // there was nothing left to lose when it expired, which is the more useful thing to know
+        yield 'nothing left and expired since' => [GiftCardStatus::Spent, false, true, 0, '-1 day', true];
+        yield 'in a cart whose order is not paid' => [GiftCardStatus::Pending, true, false, 5000, null, false];
+        yield 'in a cart, expiring before it is paid' => [GiftCardStatus::Pending, true, false, 5000, '-1 day', false];
+        yield 'disabled in the admin' => [GiftCardStatus::Disabled, false, false, 5000, null, true];
+        // the ledger row tells a card whose order was cancelled after it was paid from one still waiting for payment
+        yield 'bought, then disabled when its order was cancelled' => [GiftCardStatus::Disabled, true, false, 5000, null, true];
+        yield 'disabled, spent and expired' => [GiftCardStatus::Disabled, false, false, 0, '-1 day', true];
+    }
+
+    /**
+     * A bought card is only issued once its order is paid, so the card of an order cancelled before then is still
+     * pending by isPending(). It waits for nothing any more, so its status says it is disabled, like the card of an
+     * order cancelled after it was paid. isPending() itself keeps calling it pending: it was never issued, so it may
+     * still be deleted and goes with its unit
+     *
+     * @test
+     *
+     * @dataProvider stillWaitingOrNot
+     */
+    public function it_is_disabled_rather_than_pending_once_its_unpaid_order_is_cancelled(string $orderState, GiftCardStatus $expected): void
+    {
+        $order = new Order();
+        $order->setState($orderState);
+        $item = new OrderItem();
+        $order->addItem($item);
+
+        $giftCard = new GiftCard();
+        $giftCard->setOrderItemUnit(new OrderItemUnit($item));
+        $giftCard->disable();
+        $giftCard->setAmount(5000);
+
+        self::assertTrue($giftCard->isPending());
+        self::assertTrue($giftCard->isDeletable());
+        self::assertSame($expected, $giftCard->getStatus());
+    }
+
+    /**
+     * @return iterable<string, array{string, GiftCardStatus}>
+     */
+    public static function stillWaitingOrNot(): iterable
+    {
+        yield 'still in the cart' => [OrderInterface::STATE_CART, GiftCardStatus::Pending];
+        yield 'placed and awaiting payment' => [OrderInterface::STATE_NEW, GiftCardStatus::Pending];
+        yield 'cancelled before it was paid' => [OrderInterface::STATE_CANCELLED, GiftCardStatus::Disabled];
+    }
+
+    /** @test */
+    public function it_judges_the_status_by_expiry_at_a_given_date(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->enable();
+        $giftCard->setAmount(5000);
+        $giftCard->setExpiresAt(new \DateTimeImmutable('2020-01-01'));
+
+        self::assertSame(GiftCardStatus::Usable, $giftCard->getStatus(new \DateTimeImmutable('2019-06-01')));
+        self::assertSame(GiftCardStatus::Expired, $giftCard->getStatus(new \DateTimeImmutable('2020-06-01')));
     }
 
     /** @test */

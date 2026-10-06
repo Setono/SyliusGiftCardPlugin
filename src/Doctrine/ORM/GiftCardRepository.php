@@ -19,8 +19,6 @@ class GiftCardRepository extends EntityRepository implements GiftCardRepositoryI
         return $this->createQueryBuilder('o')
             ->addSelect('customer')
             ->leftJoin('o.customer', 'customer')
-            // hide pending (cart) gift cards from the admin list by default
-            ->andWhere('o.orderItemUnit IS NULL OR o.enabled = true OR EXISTS (SELECT 1 FROM Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface t WHERE t.giftCard = o)')
         ;
     }
 

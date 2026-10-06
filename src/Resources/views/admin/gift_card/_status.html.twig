@@ -1,0 +1,19 @@
+{#
+    The status of a gift card (GiftCardInterface::getStatus()) as a label, shown by the gift card grid's status column
+    and the show page alike.
+
+    Variables:
+        giftCard    the gift card
+#}
+{% set status = giftCard.status.value %}
+{% set looks = {
+    usable: {color: 'green', icon: 'checkmark'},
+    expired: {color: 'orange', icon: 'hourglass end'},
+    spent: {color: 'grey', icon: 'battery empty'},
+    pending: {color: 'yellow', icon: 'clock'},
+    disabled: {color: 'red', icon: 'remove'},
+} %}
+<span class="ui {{ looks[status].color }} label" data-gift-card-status="{{ status }}">
+    <i class="{{ looks[status].icon }} icon"></i>
+    {{ ('setono_sylius_gift_card.ui.status_' ~ status)|trans }}
+</span>

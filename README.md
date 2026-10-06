@@ -8,7 +8,7 @@ Add gift card functionality to your Sylius store:
 
 - **Buy gift cards** — customers choose the amount, a design and an optional message, and pick whether the gift card is **virtual** (delivered by email as a PDF) or **physical** (shipped like a normal product).
 - **Redeem gift cards** — customers apply a gift card code in the cart, and it becomes a **real payment** against the order rather than a discount on it.
-- **Admin management** — a gift card grid, issuing gift cards with the design and delivery type of your choice, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger), and an outstanding-balance dashboard.
+- **Admin management** — a gift card grid showing each card's status with filters to find a card by, issuing gift cards with the design and delivery type of your choice, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger), and an outstanding-balance dashboard.
 
 > This is the `1.x` line, for **Sylius 1.13 and up**. It is a ground-up rewrite of the `0.12.x` plugin. There is **no API layer** in 1.x — see [`UPGRADE-1.0.md`](UPGRADE-1.0.md) if you are coming from `0.12.x`.
 
@@ -51,6 +51,20 @@ The cart is where the customer sees what the gift cards pay: below the order tot
 An order the gift cards pay only in part stays *awaiting payment* until the rest is paid, although its gift card payments are completed when it is placed (Sylius alone would call it *partially paid*). Sylius' shop only lets a customer pay for an order, or change how to pay it, while the order awaits payment: from the thank you page, from the order in their account, and after a payment that did not go through at the payment provider. Sylius' unpaid order expiry (`sylius:cancel-unpaid-orders`) also only cancels orders that await payment, and cancelling one gives the gift cards their balance back. The plugin does this by decorating Sylius' order payment state resolver (`sylius.state_resolver.order_payment`); in the admin, such an order shows as awaiting payment with the completed gift card payment listed next to the payment for the rest.
 
 The thank you page of such an order shows how to pay the rest, e.g. where to send a bank transfer. Sylius shows the instructions of the order's last payment there, and the gift card payment is added after the payment for the rest when the order is placed, so the plugin shows the instructions of the payment for the rest itself: the `setono_gift_card_payment_instructions` block on the `sylius.shop.order.thank_you.after_message` UI event, right above where Sylius' would be. An application that overrides `@SyliusShop/Order/thankYou.html.twig` keeps this as long as its template still fires that event; if the override shows the right instructions itself, disable the block through your own `sylius_ui` configuration. In your own templates, `setono_gift_card_remaining_payment(order)` gives the payment for the rest (`null` when the gift cards pay the whole order).
+
+### Managing gift cards in the admin
+
+The gift card grid and a card's page show one status per card:
+
+- **Usable**: enabled, not expired and with a balance left. The only status a card can pay with
+- **Expired**: enabled with a balance left, but past its expiry date
+- **Spent**: enabled with nothing left on it, whether or not it has expired since
+- **Pending**: created when the gift card was put in a cart, and waiting for its order to be paid
+- **Disabled**: disabled by an admin, or because the order that bought it was cancelled or refunded in full. A card is only issued once its order is paid, so the card of an order cancelled before then (as `sylius:cancel-unpaid-orders` cancels every expired one) was never issued, but it waits for nothing any more and is disabled too
+
+Where more than one would apply, the first of pending, disabled, spent and expired wins; `GiftCardInterface::getStatus()` gives it in your own code. The grid filters by code, part of the customer's email, channel, currency, delivery type, enabled, expired, spent and creation date, and sorts by code, customer, amount and creation date. Expired and spent look at the expiry date and the balance alone, so they also find a disabled card past its date or with nothing left. Pending cards are left out unless the *Pending gift cards* filter is set to show them, because most carts are never paid for and a pending card is no liability yet.
+
+A card can only be deleted while nothing has happened to it: a card issued in the admin whose balance has not moved, or a card bought on an order that was never paid (pending, or disabled because that order was cancelled before it was paid). The grid only offers to delete those, the server refuses the others, and there is no bulk delete. A card's page links the order it was bought with, the orders it was applied to and its design, and adjusting the balance leads back to it, where the ledger lists the adjustment.
 
 ## Requirements
 
