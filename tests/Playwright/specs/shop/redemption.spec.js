@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { blankIcons } = require('../support/icons');
 const { moneyInCents } = require('../support/money');
 const {
     REDEMPTION_FIELD,
@@ -152,6 +153,8 @@ test.describe('shop redemption', () => {
 
         const remove = page.locator(`[data-test-remove-gift-card-button="${GIFT_CARD_CODE}"]`);
         await expect(remove).toHaveAccessibleName(new RegExp(GIFT_CARD_CODE));
+        // the icon is all a sighted customer sees of the button
+        expect(await blankIcons(remove), 'the icons of the remove button that draw nothing').toEqual([]);
         await expect(page.getByRole('button', { name: GIFT_CARD_CODE })).toHaveCount(1);
 
         await removeGiftCard(page, GIFT_CARD_CODE);
