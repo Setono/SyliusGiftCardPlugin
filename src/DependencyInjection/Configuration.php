@@ -77,6 +77,13 @@ final class Configuration implements ConfigurationInterface
                 ->end()
                 ->arrayNode('purchase')
                     ->addDefaultsIfNotSet()
+                    // A maximum below the minimum leaves no amount a customer can buy. One equal to it is a shop
+                    // selling gift cards of a single amount. A value taken from an environment variable is only known
+                    // at runtime, so the two are only compared when both are given as integers
+                    ->validate()
+                        ->ifTrue(static fn (array $purchase): bool => is_int($purchase['minimum_amount'] ?? null) && is_int($purchase['maximum_amount'] ?? null) && $purchase['maximum_amount'] < $purchase['minimum_amount'])
+                        ->then(self::refuseMaximumAmountBelowMinimum(...))
+                    ->end()
                     ->children()
                         ->integerNode('minimum_amount')
                             ->info('The minimum purchasable gift card amount in minor units (e.g. cents)')
@@ -86,7 +93,7 @@ final class Configuration implements ConfigurationInterface
                         // An integer node refuses an explicit null, which is what this option says to write
                         ->append(
                             (new NullableIntegerNodeDefinition('maximum_amount'))
-                                ->info('The maximum purchasable gift card amount in minor units. Set to null for no maximum')
+                                ->info('The maximum purchasable gift card amount in minor units. At least minimum_amount; set to null for no maximum')
                                 ->defaultNull()
                                 ->min(1),
                         )
@@ -153,6 +160,18 @@ final class Configuration implements ConfigurationInterface
             'The code_length (%d) must be at least the minimum_code_length (%d)',
             $config['code_length'],
             $config['minimum_code_length'],
+        ));
+    }
+
+    /**
+     * @param array{minimum_amount: int, maximum_amount: int} $purchase
+     */
+    private static function refuseMaximumAmountBelowMinimum(array $purchase): never
+    {
+        throw new \InvalidArgumentException(sprintf(
+            'The maximum_amount (%d) must be at least the minimum_amount (%d)',
+            $purchase['maximum_amount'],
+            $purchase['minimum_amount'],
         ));
     }
 

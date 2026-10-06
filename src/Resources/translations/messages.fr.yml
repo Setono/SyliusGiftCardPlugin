@@ -19,6 +19,7 @@ setono_sylius_gift_card:
             image_file_help: "Utilisez une image au format paysage d'au moins 1050×740px (JPG ou PNG). Elle sert de fond perdu au chèque-cadeau, veillez donc à éloigner le contenu important des bords."
         gift_card_information:
             amount: Montant
+            amount_help_fixed: 'Le montant est de %amount%.'
             amount_help_minimum: "Choisissez un montant d'au moins %minimum%."
             amount_help_range: 'Choisissez un montant compris entre %minimum% et %maximum%.'
             custom_message: Message
