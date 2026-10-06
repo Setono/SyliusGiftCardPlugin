@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `setono/sylius-gift-card-plugin` — a Sylius plugin adding gift card functionality. Version 1.x (branch `1.x`) is a full rewrite targeting Sylius 1.13 and up, PHP >= 8.1, Symfony ^6.4.
 
+`composer.json` conflicts with `twig/twig >=3.29` on purpose, and the conflict stays while the plugin supports PHP 8.1. Twig 3.29 made `TemplateWrapper::unwrap()` require the environment, and `sylius/mailer-bundle` up to 2.2.0 calls it without one, so every email fails. The fixed mailer bundle (2.2.1) needs PHP 8.2, and Composer cannot tie the Twig conflict to the mailer bundle's version. Do not lift the conflict on its own. When PHP 8.1 is dropped, raise `require.php` to `>=8.2` and replace the Twig conflict with `"sylius/mailer-bundle": "<2.2.1"` in the same change. Then update the README's "Twig below 3.29" section, the CHANGELOG and UPGRADE-1.0.md, which explain it to users.
+
 Key feature set: customers buy gift cards choosing the amount themselves (virtual = email delivery, physical = shipped + design chosen by the customer); redeeming a gift card creates a real Payment entity against the order, leaving the order total intact — a gift card settles a liability the shop already took money for, so it is a means of payment rather than a discount. No API layer.
 
 ## Commands
