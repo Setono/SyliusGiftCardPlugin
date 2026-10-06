@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const { signInAsAdministrator } = require('../support/admin');
 const { checkOutAsGuest, placeOrder, uniqueEmail } = require('../support/checkout');
-const { giftCardDetails, giftCardIds, giftCardRows, giftCardTransactions } = require('../support/gift-cards');
+const { filterGiftCards, giftCardDetails, giftCardIds, giftCardRows, giftCardStatuses, giftCardTransactions } = require('../support/gift-cards');
 const { moneyInCents } = require('../support/money');
 const { cancelOrder, completeOrderPayments, openOrderOf, orderPayments } = require('../support/orders');
 const { addGiftCardToCart, addOrdinaryProductToCart, cartFigure, giftCardVariantCount, redeemGiftCard, shopPath } = require('../support/shop');
@@ -45,20 +45,35 @@ test.describe('buying a gift card', () => {
         // Not paid yet: the card exists, but it is pending and kept out of the list
         await expect(await giftCardRows(admin.page, email)).toHaveCount(0);
 
+        // ... unless the admin asks for the pending cards
+        await filterGiftCards(admin.page, { customer: email, pending: 'only' });
+        const pending = admin.page.locator('table tbody tr').filter({ hasText: email });
+        await expect(pending).toHaveCount(1);
+        expect(await giftCardStatuses(pending)).toEqual(['Pending']);
+
         const order = await openOrderOf(admin.page, email);
         await completeOrderPayments(admin.page);
 
         const rows = await giftCardRows(admin.page, email);
         await expect(rows).toHaveCount(1);
         const [id] = await giftCardIds(rows);
+        expect(await giftCardStatuses(rows)).toEqual(['Usable']);
 
         const details = await giftCardDetails(admin.page, id);
         expect(details.Enabled).toBe('Enabled');
+        expect(details.Status).toBe('Usable');
         expect(details.Customer).toBe(email);
         expect(moneyInCents(details.Amount)).toBe(amount);
         expect(moneyInCents(details['Initial amount'])).toBe(amount);
         expect(details['Custom message']).toBe(message);
         expect(details.Design).toBe(design);
+
+        // The show page leads to the order the card was bought with, and to the design with its front image
+        const detailRow = (label) => admin.page.locator('table').first().locator('tr').filter({ has: admin.page.locator('td strong', { hasText: new RegExp(`^${label}$`) }) });
+        expect(details['Bought with order']).toBe(`#${order.number}`);
+        await expect(detailRow('Bought with order').locator('a')).toHaveAttribute('href', order.url);
+        await expect(detailRow('Design').locator('a')).toHaveAttribute('href', /\/admin\/gift-card-designs\/\d+\/edit$/);
+        await expect(detailRow('Design').locator('a img')).toBeVisible();
 
         // Issuance is recorded when the order is paid, the first moment the balance is final, and leads back to the
         // order that paid for the card. The admin who marked the payment completed is not named as having issued it:

@@ -1,38 +1,21 @@
 const { test, expect } = require('@playwright/test');
 const { clickAndConfirm } = require('../support/admin');
 const { firstGiftCardId, giftCardCode } = require('../support/fixtures');
-const { giftCardIds, giftCardRows, issueGiftCard } = require('../support/gift-cards');
+const { adjustBalance, filterGiftCards, giftCardIds, giftCardRows, giftCardStatuses, issueGiftCard } = require('../support/gift-cards');
+const { moneyInCents } = require('../support/money');
 const { clickAndWaitForPage } = require('../support/navigation');
 
 /**
- * The filters and sorting the gift card grid offers. The grid is where an admin looks a card up when a customer asks
- * about one, so finding a card by its code and telling usable cards from disabled ones have to work.
+ * The filters, sorting and status column the gift card grid offers. The grid is where an admin looks a card up when a
+ * customer asks about one, so finding a card by its code and telling usable cards from the others have to work.
  */
 
 /**
- * Applies the grid's filters through its form, the way an admin does, and waits for the filtered grid
- *
- * @param {import('@playwright/test').Page} page
- * @param {{code?: {type: string, value: string}, enabled?: string}} criteria
+ * The grid's rows and column headers. The test application runs in the dev environment, whose web debug toolbar lists
+ * the page's AJAX requests in a table of its own, so a bare `table tbody tr` also counts those
  */
-async function filterGrid(page, { code = { type: 'contains', value: '' }, enabled = '' }) {
-    await page.goto('/admin/gift-cards/');
-
-    const fields = {
-        codeType: page.locator('select[name="criteria[code][type]"]'),
-        code: page.locator('input[name="criteria[code][value]"]'),
-        enabled: page.locator('select[name="criteria[enabled]"]'),
-    };
-    for (const [name, field] of Object.entries(fields)) {
-        await expect(field, `the grid offers no ${name} filter`).toHaveCount(1);
-    }
-
-    await fields.codeType.selectOption(code.type);
-    await fields.code.fill(code.value);
-    await fields.enabled.selectOption(enabled);
-
-    await clickAndWaitForPage(page, page.getByRole('button', { name: 'Filter' }));
-}
+const ROWS = 'table.ui.table tbody tr';
+const HEADERS = 'table.ui.table thead th';
 
 /**
  * The code column of every row the grid lists, without the grouping the grid shows a code in, so it compares with the
@@ -41,16 +24,34 @@ async function filterGrid(page, { code = { type: 'contains', value: '' }, enable
  * @param {import('@playwright/test').Page} page
  */
 async function listedCodes(page) {
-    return (await page.locator('table tbody tr td:first-child').allInnerTexts()).map((code) => code.trim().replace(/-/g, ''));
+    return (await page.locator(`${ROWS} td:first-child`).allInnerTexts()).map((code) => code.trim().replace(/-/g, ''));
 }
 
 /**
- * The enabled column of every row the grid lists
+ * The balance column of every row the grid lists, in minor units
  *
  * @param {import('@playwright/test').Page} page
  */
-async function listedStates(page) {
-    return (await page.locator('table tbody tr td:nth-child(5)').allInnerTexts()).map((state) => state.trim());
+async function listedAmounts(page) {
+    const column = await page.locator(HEADERS).evaluateAll((headers) => headers.findIndex((header) => /^\s*Amount/.test(header.textContent ?? '')));
+    expect(column, 'the grid shows no amount column').toBeGreaterThanOrEqual(0);
+
+    // the cell names the initial amount below a balance that has moved, so only its first line is the balance
+    const cells = await page.locator(`${ROWS} td:nth-child(${column + 1})`).allInnerTexts();
+
+    return cells.map((cell) => moneyInCents(cell.split('\n')[0]));
+}
+
+/**
+ * Deletes the given untouched cards through their rows, which keeps them from topping the grid for other specs
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {Array<{printedCode: string}>} cards
+ */
+async function deleteCards(page, cards) {
+    for (const card of cards) {
+        await clickAndConfirm(page, (await giftCardRows(page, card.printedCode)).getByRole('button', { name: /delete/i }));
+    }
 }
 
 test.describe('admin gift card grid', () => {
@@ -58,7 +59,7 @@ test.describe('admin gift card grid', () => {
         const card = await issueGiftCard(page, { amount: 1000 });
         const fragment = card.code.slice(4, 10);
 
-        await filterGrid(page, { code: { type: 'contains', value: fragment.toLowerCase() } });
+        await filterGiftCards(page, { code: { type: 'contains', value: fragment.toLowerCase() } });
 
         const codes = await listedCodes(page);
         expect(codes).toContain(card.code);
@@ -66,7 +67,7 @@ test.describe('admin gift card grid', () => {
             expect(code, 'only cards whose code contains the fragment should be listed').toContain(fragment);
         }
 
-        await filterGrid(page, { code: { type: 'equal', value: card.code } });
+        await filterGiftCards(page, { code: { type: 'equal', value: card.code } });
         expect(await listedCodes(page)).toEqual([card.code]);
     });
 
@@ -85,42 +86,103 @@ test.describe('admin gift card grid', () => {
             // read out over the phone and typed with spaces, in lower case
             { type: 'equal', value: printed.toLowerCase().replace(/-/g, ' ') },
         ]) {
-            await filterGrid(page, { code });
-            expect(await giftCardIds(page.locator('table tbody tr')), `filtering by ${code.type} "${code.value}"`).toEqual([id]);
+            await filterGiftCards(page, { code });
+            expect(await giftCardIds(page.locator(ROWS)), `filtering by ${code.type} "${code.value}"`).toEqual([id]);
         }
     });
 
     test('the grid shows a code the way the show page prints it', async ({ page }) => {
         await page.goto('/admin/gift-cards/');
 
-        const row = page.locator('table tbody tr').first();
+        const row = page.locator(ROWS).first();
         const listed = (await row.locator('td').first().innerText()).trim();
         const [id] = await giftCardIds(row);
 
         expect(listed).toBe(await giftCardCode(page, id));
     });
 
-    test('filtering by enabled tells disabled cards from usable ones', async ({ page }) => {
+    /**
+     * The enabled flag said nothing about a card that has expired or has nothing left, so the grid shows one status
+     * per card instead, the same the show page shows
+     */
+    test('the status column tells usable, disabled, expired and spent cards apart', async ({ page }) => {
+        const usable = await issueGiftCard(page, { amount: 1000 });
+        const disabled = await issueGiftCard(page, { amount: 1000, enabled: false });
+        const expired = await issueGiftCard(page, { amount: 1000, expiresAt: '2020-01-31' });
+        const spent = await issueGiftCard(page, { amount: 1000 });
+        await adjustBalance(page, spent.id, -1000, 'Paid in the physical store');
+
+        try {
+            await page.goto('/admin/gift-cards/');
+            await expect(page.locator(HEADERS).filter({ hasText: /^\s*Enabled/ })).toHaveCount(0);
+
+            for (const [card, status] of [[usable, 'Usable'], [disabled, 'Disabled'], [expired, 'Expired'], [spent, 'Spent']]) {
+                const row = await giftCardRows(page, card.printedCode);
+                expect(await giftCardStatuses(row), `the status of ${card.printedCode}`).toEqual([status]);
+
+                await page.goto(`/admin/gift-cards/${card.id}`);
+                await expect(page.locator('table').first().locator('[data-gift-card-status]'), `the show page of ${card.printedCode}`).toHaveText(status);
+            }
+        } finally {
+            await deleteCards(page, [usable, disabled, expired]);
+        }
+    });
+
+    test('filtering by enabled tells disabled cards from enabled ones', async ({ page }) => {
         const card = await issueGiftCard(page, { amount: 1000, enabled: false });
 
         try {
-            await filterGrid(page, { enabled: 'false' });
+            await filterGiftCards(page, { enabled: 'false' });
             expect(await listedCodes(page)).toContain(card.code);
-            expect(new Set(await listedStates(page))).toEqual(new Set(['Disabled']));
+            expect(new Set(await giftCardStatuses(page.locator(ROWS)))).toEqual(new Set(['Disabled']));
 
-            await filterGrid(page, { enabled: 'true' });
+            await filterGiftCards(page, { enabled: 'true' });
             expect(await listedCodes(page)).not.toContain(card.code);
-            expect(new Set(await listedStates(page))).toEqual(new Set(['Enabled']));
+            for (const status of await giftCardStatuses(page.locator(ROWS))) {
+                expect(['Usable', 'Expired', 'Spent'], 'only enabled cards should be listed').toContain(status);
+            }
         } finally {
-            // An untouched card can be deleted, which keeps a disabled card from topping the grid for other specs
-            await clickAndConfirm(page, (await giftCardRows(page, card.printedCode)).getByRole('button', { name: /delete/i }));
+            await deleteCards(page, [card]);
+        }
+    });
+
+    /**
+     * Expired and spent look at the expiry date and the balance alone, so they also find a disabled card, which the
+     * status column shows as disabled
+     */
+    test('filtering by expired and by spent finds the cards past their date and those with nothing left', async ({ page }) => {
+        const expired = await issueGiftCard(page, { amount: 1000, expiresAt: '2020-01-31' });
+        const spent = await issueGiftCard(page, { amount: 1000 });
+        await adjustBalance(page, spent.id, -1000, 'Paid in the physical store');
+
+        try {
+            await filterGiftCards(page, { expired: 'true' });
+            expect(await listedCodes(page)).toContain(expired.code);
+            expect(await listedCodes(page)).not.toContain(spent.code);
+            for (const status of await giftCardStatuses(page.locator(ROWS))) {
+                expect(['Expired', 'Spent', 'Disabled']).toContain(status);
+            }
+
+            await filterGiftCards(page, { expired: 'false' });
+            expect(await listedCodes(page)).not.toContain(expired.code);
+
+            await filterGiftCards(page, { spent: 'true' });
+            expect(await listedCodes(page)).toContain(spent.code);
+            expect(await listedCodes(page)).not.toContain(expired.code);
+            expect(new Set(await listedAmounts(page))).toEqual(new Set([0]));
+
+            await filterGiftCards(page, { spent: 'false', expired: 'false', enabled: 'true' });
+            expect(await listedCodes(page)).not.toContain(spent.code);
+            expect(new Set(await giftCardStatuses(page.locator(ROWS))), 'enabled, not expired and not spent is usable').toEqual(new Set(['Usable']));
+        } finally {
+            await deleteCards(page, [expired]);
         }
     });
 
     test('the grid can be sorted by code both ways', async ({ page }) => {
         await page.goto('/admin/gift-cards/');
 
-        const header = page.locator('table thead th').filter({ hasText: /^\s*Code/ }).locator('a');
+        const header = page.locator(HEADERS).filter({ hasText: /^\s*Code/ }).locator('a');
         await expect(header, 'the code column should be sortable').toHaveCount(1);
 
         // Each click on the header sorts by code, turning the direction around on the next one
@@ -139,5 +201,41 @@ test.describe('admin gift card grid', () => {
         }
 
         expect(new Set(directions), 'the second click should reverse the order').toEqual(new Set(['asc', 'desc']));
+    });
+
+    test('the grid can be sorted by balance both ways', async ({ page }) => {
+        await page.goto('/admin/gift-cards/');
+
+        const header = page.locator(HEADERS).filter({ hasText: /^\s*Amount/ }).locator('a');
+        await expect(header, 'the amount column should be sortable').toHaveCount(1);
+
+        const directions = [];
+        for (let click = 0; click < 2; click++) {
+            await clickAndWaitForPage(page, header);
+
+            const direction = new URL(page.url()).searchParams.get('sorting[amount]');
+            expect(['asc', 'desc'], 'the grid should now be sorted by amount').toContain(direction);
+            directions.push(direction);
+
+            const amounts = await listedAmounts(page);
+            expect(new Set(amounts).size, 'the grid should list different balances to sort').toBeGreaterThan(1);
+            const sorted = [...amounts].sort((a, b) => a - b);
+            expect(amounts).toEqual('asc' === direction ? sorted : sorted.reverse());
+        }
+
+        expect(new Set(directions), 'the second click should reverse the order').toEqual(new Set(['asc', 'desc']));
+    });
+
+    test('the grid can be sorted by customer', async ({ page }) => {
+        await page.goto('/admin/gift-cards/');
+        const listed = await page.locator(ROWS).count();
+
+        const header = page.locator(HEADERS).filter({ hasText: /^\s*Customer/ }).locator('a');
+        await expect(header, 'the customer column should be sortable').toHaveCount(1);
+
+        await clickAndWaitForPage(page, header);
+        expect(['asc', 'desc']).toContain(new URL(page.url()).searchParams.get('sorting[customer]'));
+        // cards without a customer stay listed, which an inner join to the customer would drop
+        await expect(page.locator(ROWS)).toHaveCount(listed);
     });
 });

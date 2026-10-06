@@ -12,6 +12,7 @@ use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\RouterInterface;
 
 /**
  * Issuing and deleting gift cards through Sylius' resource routes, with what the plugin hooks into them: the
@@ -389,17 +390,21 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
 
     /**
      * Once some of the balance has been spent the card is part of the shop's history, and deleting it would take its
-     * ledger with it
+     * ledger with it. The grid no longer offers the button then, so this presses it on an index opened before the card
+     * was spent from
      *
      * @test
      */
     public function it_refuses_to_delete_a_gift_card_whose_balance_has_moved(): void
     {
         $giftCard = $this->persistGiftCard('PARTLYSPENT', 5000);
+        $token = $this->deleteToken($giftCard);
+
+        $giftCard = $this->reloadGiftCard($giftCard);
         $giftCard->setAmount(3000);
         $this->manager->flush();
 
-        $response = $this->delete($giftCard);
+        $response = $this->delete($giftCard, $token);
 
         self::assertTrue($response->isRedirect());
         self::assertStringContainsString('The gift card cannot be removed.', (string) $this->followRedirect($response)->getContent());
@@ -464,19 +469,42 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
     }
 
     /**
-     * Presses the delete button of the card's row in the gift cards index
+     * Gift cards cannot be deleted in bulk: Sylius' bulk delete stops at the first card it may not delete, after
+     * deleting the ones before it, so no route is registered for it
+     *
+     * @test
      */
-    private function delete(GiftCardInterface $giftCard): Response
+    public function it_registers_no_bulk_delete_route_for_gift_cards_or_designs(): void
     {
-        $uri = sprintf('/admin/gift-cards/%d', (int) $giftCard->getId());
+        /** @var RouterInterface $router */
+        $router = self::getContainer()->get('router');
 
-        $index = $this->request('GET', '/admin/gift-cards/');
-        $form = sprintf('//form[@action="%s"][input[@name="_method"][@value="DELETE"]]', $uri);
+        self::assertNull($router->getRouteCollection()->get('setono_sylius_gift_card_admin_gift_card_bulk_delete'));
+        self::assertNull($router->getRouteCollection()->get('setono_sylius_gift_card_admin_gift_card_design_bulk_delete'));
+        self::assertNotNull($router->getRouteCollection()->get('setono_sylius_gift_card_admin_gift_card_delete'));
+    }
 
-        return $this->request('POST', $uri, [
+    /**
+     * Presses the delete button of the card's row in the gift cards index, or submits the token of a button pressed on
+     * an index opened before
+     */
+    private function delete(GiftCardInterface $giftCard, ?string $token = null): Response
+    {
+        return $this->request('POST', sprintf('/admin/gift-cards/%d', (int) $giftCard->getId()), [
             '_method' => 'DELETE',
-            '_csrf_token' => self::valueOf($index, $form . '//input[@name="_csrf_token"]'),
+            '_csrf_token' => $token ?? $this->deleteToken($giftCard),
         ]);
+    }
+
+    /**
+     * The CSRF token of the delete button in the card's row of the gift cards index
+     */
+    private function deleteToken(GiftCardInterface $giftCard): string
+    {
+        $index = $this->request('GET', '/admin/gift-cards/');
+        $form = sprintf('//form[@action="/admin/gift-cards/%d"][input[@name="_method"][@value="DELETE"]]', (int) $giftCard->getId());
+
+        return self::valueOf($index, $form . '//input[@name="_csrf_token"]');
     }
 
     private function findTheOnlyGiftCard(): GiftCardInterface

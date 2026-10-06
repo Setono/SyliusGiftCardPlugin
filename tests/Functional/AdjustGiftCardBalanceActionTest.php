@@ -45,7 +45,8 @@ final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
         // The admin types major units, and a negative amount decreases the balance
         $response = $this->submit($giftCard, '-12.50', 'Customer returned part of the goods');
 
-        self::assertTrue($response->isRedirect(sprintf('/admin/gift-cards/%d/edit', (int) $giftCard->getId())));
+        // to the show page, whose ledger lists the adjustment
+        self::assertTrue($response->isRedirect(sprintf('/admin/gift-cards/%d', (int) $giftCard->getId())));
 
         $reloaded = $this->reloadGiftCard($giftCard);
         self::assertSame(3750, $reloaded->getAmount());
@@ -63,7 +64,25 @@ final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
         self::assertSame('administrator', $transaction->getCreatedBy());
         self::assertNull($transaction->getOrder());
 
-        self::assertStringContainsString('The gift card balance was adjusted', (string) $this->followRedirect($response)->getContent());
+        $show = $this->followRedirect($response);
+        self::assertStringContainsString('The gift card balance was adjusted', (string) $show->getContent());
+        self::assertContains('Customer returned part of the goods', self::textsOf($show, '//table//td'));
+    }
+
+    /**
+     * The way back from the form leads where the ledger is, like saving does
+     *
+     * @test
+     */
+    public function it_leads_back_to_the_show_page(): void
+    {
+        $giftCard = $this->persistGiftCard('ADJUSTMEBACK', 5000);
+        $show = sprintf('/admin/gift-cards/%d', (int) $giftCard->getId());
+
+        $response = $this->request('GET', $this->uri($giftCard));
+
+        self::assertSame([$show], self::textsOf($response, '//*[contains(@class, "breadcrumb")]//a[normalize-space() = "ADJU-STME-BACK"]/@href'));
+        self::assertSame([$show], self::textsOf($response, '//form//a[normalize-space() = "Cancel"]/@href'));
     }
 
     /** @test */

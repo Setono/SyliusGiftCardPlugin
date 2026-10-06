@@ -31,6 +31,7 @@ setono_sylius_gift_card:
             reason: Årsag
     ui:
         adjust_balance: Juster saldo
+        applied_to_orders: Anvendt på ordrer
         apply_gift_card: Anvend
         average: Gennemsnit
         back: Tilbage
@@ -73,9 +74,11 @@ setono_sylius_gift_card:
             create_design: Opret et gavekortdesign
             create_design_suffix: og aktivér det for kanalen, eller
             run_command: 'installér det medfølgende design "%design%" i alle kanaler ved at køre'
+        bought_with_order: Købt med ordre
         design_images: Designbilleder
         design_images_help: 'Upload et forsidebillede (vises i vælgeren, forhåndsvisningen og på gavekortet) og eventuelt et bagsidebillede. Liggende format, mindst 1050×740px, JPG eller PNG.'
         enter_gift_card_code: Indtast gavekortskoden
+        expired: Udløbet
         front: Forside
         gift_card: Gavekort
         gift_card_code: Gavekortskode
@@ -83,6 +86,7 @@ setono_sylius_gift_card:
         gift_card_designs: Gavekortdesign
         has_no_gift_card: Har ikke noget gavekort
         image: Billede
+        in_cart: 'I en kurv, endnu ikke bestilt'
         manage_gift_cards: Administrer gavekort
         manage_gift_card_designs: Administrer gavekortdesign
         new_gift_card: Nyt gavekort
@@ -90,10 +94,20 @@ setono_sylius_gift_card:
         no_image: Intet billede
         no_transactions: Dette gavekort har endnu ingen transaktioner.
         open_customer: 'Åbn kunden %customer% i en ny fane'
+        pending_gift_cards: Afventende gavekort
+        pending_hide: Skjul
+        pending_only: Vis kun disse
+        pending_show: Vis
         physical: 'Fysisk — sendes til dig'
         position: Placering
         remaining_to_pay: Resterende at betale
         remove_gift_card: 'Fjern gavekort %code%'
+        spent: Brugt op
+        status_disabled: Deaktiveret
+        status_expired: Udløbet
+        status_pending: Afventer
+        status_spent: Brugt op
+        status_usable: Kan bruges
         transactions: Transaktioner
         transaction_type_issue: Udstedt
         transaction_type_manual: Manuel justering
