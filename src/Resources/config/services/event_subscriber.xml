@@ -4,6 +4,16 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
+        <!--
+            Every event subscriber of the plugin (kernel.event_subscriber), whatever the event it reacts to: kernel,
+            resource controller or menu events. Each one names its events and priorities in getSubscribedEvents().
+
+            Two kinds of service live elsewhere on purpose:
+            - the Symfony Workflow subscribers in EventSubscriber/Workflow, the twins of the winzou callbacks, are in
+              workflow.xml (its header says why)
+            - what cannot be a subscriber (kernel.event_listener) and Doctrine event listeners are in event_listener.xml
+        -->
+
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\CheckoutGiftCardCoverageSubscriber"
                  class="Setono\SyliusGiftCardPlugin\EventSubscriber\CheckoutGiftCardCoverageSubscriber">
             <argument type="service" id="sylius.context.cart"/>
@@ -19,10 +29,34 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardDeletionSubscriber"
+                 class="Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardDeletionSubscriber">
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardRaceConditionSubscriber"
                  class="Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardRaceConditionSubscriber">
             <argument type="service" id="router"/>
 
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\RecordGiftCardIssuanceSubscriber"
+                 class="Setono\SyliusGiftCardPlugin\EventSubscriber\RecordGiftCardIssuanceSubscriber">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface"/>
+
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\SendGiftCardEmailSubscriber"
+                 class="Setono\SyliusGiftCardPlugin\EventSubscriber\SendGiftCardEmailSubscriber">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface"/>
+
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Menu\AdminMenuSubscriber"
+                 class="Setono\SyliusGiftCardPlugin\Menu\AdminMenuSubscriber">
             <tag name="kernel.event_subscriber"/>
         </service>
     </services>

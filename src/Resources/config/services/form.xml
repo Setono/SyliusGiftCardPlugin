@@ -72,6 +72,9 @@
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
             <argument>%setono_sylius_gift_card.minimum_code_length%</argument>
+            <argument>%setono_sylius_gift_card.model.gift_card_design.class%</argument>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface"/>
+            <argument type="service" id="sylius.repository.channel"/>
             <argument>%Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType.validation_groups%</argument>
             <tag name="form.type"/>
         </service>

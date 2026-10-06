@@ -5,12 +5,12 @@
 From now on, Gift cards can have a custom amount given by the customer, and a custom message that can later be used to
 send emails for example
 
-1. Added an override of `Sylius\Bundle\OrderBundle\Controller\AddToCardCommand` so if your application was referencing 
+1. Added an override of `Sylius\Bundle\OrderBundle\Controller\AddToCartCommand` so if your application was referencing 
    this class instead of the interface, you should change it. Please also note that a new parameter 
    `setono_sylius_gift_card.order.model.add_to_cart_command.class` has been introduced to allow an easier override
 
 1. Added an override of `Sylius\Component\Core\Model\OrderItem` with a new Trait: 
-   `Setono\SyliusGiftCardPlugin\Model\OrderItemTrait`. See [Installation](/README.md#Extend entities) for procedure
+   `Setono\SyliusGiftCardPlugin\Model\OrderItemTrait`. See [Installation](https://github.com/Setono/SyliusGiftCardPlugin/blob/0.12.x/README.md#extend-entities) for procedure
 
 1. Added property `giftCardAmountConfigurable` to `Product`. Override the template `@SyliusAdmin/Product/Tab/_details.html.twig`
    to add
