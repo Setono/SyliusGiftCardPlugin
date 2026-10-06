@@ -164,6 +164,38 @@ final class SetonoSyliusGiftCardExtensionTest extends TestCase
     }
 
     /**
+     * What the applied gift cards cover and what remains to pay are shown below the summary of the cart and of every
+     * checkout step up to placing the order, all from one template. Sylius' own blocks on these events have fixed
+     * priorities, so the priority is what puts the figures right below the summary. The functional
+     * CheckoutGiftCardFiguresTest checks the resulting order against Sylius' blocks as the test application has them
+     *
+     * @test
+     *
+     * @dataProvider summaryEvents
+     */
+    public function it_shows_the_gift_card_figures_right_below_each_summary(string $event, int $priority): void
+    {
+        $blocks = $this->blocksForEvent($event);
+
+        self::assertArrayHasKey('setono_gift_card_totals', $blocks);
+
+        $template = $blocks['setono_gift_card_totals']['template'];
+        self::assertSame('@SetonoSyliusGiftCardPlugin/shop/cart/_gift_card_totals.html.twig', $template);
+        self::assertFileExists($this->resolveTemplate($template));
+        self::assertSame($priority, $blocks['setono_gift_card_totals']['priority'] ?? null);
+    }
+
+    /**
+     * @return iterable<string, array{string, int}>
+     */
+    public static function summaryEvents(): iterable
+    {
+        yield 'cart, below the totals (20) and above the legacy after totals event (15)' => ['sylius.shop.cart.summary', 18];
+        yield 'address, shipping and payment steps, below the summary (20) and above the shipping step\'s legacy before support event (15)' => ['sylius.shop.checkout.sidebar', 18];
+        yield 'complete step, below the order summary (10) and above the legacy after summary event (5)' => ['sylius.shop.checkout.complete.summary', 8];
+    }
+
+    /**
      * The sylius_grid configuration prepend() hands Sylius
      *
      * @return array<array-key, mixed>
