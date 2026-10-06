@@ -34,9 +34,11 @@ A gift card issued in the admin is virtual unless you choose *Physical* on the c
 
 ### Buying a gift card
 
-The customer chooses the amount, a design and an optional message on the product page (with a live preview). The amount field starts out at the price the page shows, i.e. the preselected variant's price in the channel, so the gift card product's price is the amount you suggest; a price the shop would refuse as an amount (zero, or outside `purchase.minimum_amount` / `maximum_amount`) leaves the field empty. A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)). Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
+The customer chooses the amount, a design and an optional message on the product page (with a live preview). The amount field starts out at the price the page shows, i.e. the preselected variant's price in the channel, so the gift card product's price is the amount you suggest; a price the shop would refuse as an amount (zero, or outside `purchase.minimum_amount` / `maximum_amount`) leaves the field empty, and a shop whose maximum equals its minimum starts it at that one amount whatever the price. A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)). Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
 
 Promotions never discount a gift card: a card is worth the amount the customer chose, so that is both what the customer pays for it and what the card holds. Unit discounts skip gift card lines, an order discount is taken from the other items only (a percentage of those items, spread over those items), and buying a gift card does not count towards a promotion's "item total" rule. Otherwise a coupon for the whole shop would sell full value gift cards at a discount. This also changes how promotions you already run behave: with "free shipping over 100.00" (an "item total" rule with a shipping discount), an order of a physical gift card for 100.00 used to ship for free and now pays for shipping, because buying a gift card is paying in advance rather than spending. To keep a promotion from applying at all to an order that buys a gift card, add the "Has no gift card" rule to it.
+
+Sylius keeps an order's totals in integer columns, which hold 21,474,836.47 of a two decimal currency (2147483647 minor units, Sylius' `sylius_core.max_int_value`), and a cart past that ends in a server error when the database refuses it. The customer chooses what a gift card costs, so two large cards, or one at a quantity of two, would get there: the product page refuses a gift card that would take the cart's items total or order total past the limit, and the cart page refuses a gift card line's quantity raised past it. Both are validation errors that leave the cart as it was. The check runs before Sylius recalculates the cart, so it does not count what the recalculation adds besides the cards, such as a tax on the gift card product or shipping for a physical card: a cart that close to the limit can still overflow it. Ordinary products are left to Sylius, which lets them overflow a cart the same way at a high enough price and quantity, with the plugin or without it. An application that widens Sylius' order columns raises `sylius_core.max_int_value` with them, and the limit follows. Setting `purchase.maximum_amount` keeps ordinary carts far from it.
 
 ### Redeeming a gift card
 
@@ -46,7 +48,7 @@ A gift card is treated as a means of payment rather than a discount, because tha
 
 Gift cards cannot be used to buy other gift cards, balances are committed when the order is placed and restored, once per payment, when the gift card payment is refunded (cancelling the order refunds it), and every balance change is recorded in an append-only ledger.
 
-The cart is where the customer sees what the gift cards pay: below the order total it shows what they cover and what remains to pay. The checkout steps after the cart do not repeat these figures. Their summary shows the order total, which the gift cards leave as it is, and the last step shows the payment for the rest at the amount that is left (or no payment at all when the gift cards cover the whole order). The gift card payments are created when the order is placed, and from then on they are listed with the order's other payments, in the customer's account and in the admin. To show the figures during checkout as well, add a block of your own to one of Sylius' checkout events, e.g. `sylius.shop.checkout.complete.summary`, with the plugin's `setono_gift_card_covered_amount(order)` and `setono_gift_card_remaining_total(order)` Twig functions.
+Below the order total, which the gift cards leave as it is, the customer sees what the gift cards cover and what remains to pay. The cart shows these figures, and so does every checkout step up to placing the order: below the summary in the sidebar of the address, shipping and payment steps, and below the order summary of the complete step. The complete step also lists the payment for the rest at the amount that is left (or no payment at all when the gift cards cover the whole order). The gift card payments are created when the order is placed, and from then on they are listed with the order's other payments, in the customer's account and in the admin. All of these figures come from one template, `@SetonoSyliusGiftCardPlugin/shop/cart/_gift_card_totals.html.twig`, rendered by the `setono_gift_card_totals` blocks (see [Moving or disabling the plugin's blocks](#moving-or-disabling-the-plugins-blocks)); in your own templates, the plugin's `setono_gift_card_covered_amount(order)` and `setono_gift_card_remaining_total(order)` Twig functions give the two figures.
 
 An order the gift cards pay only in part stays *awaiting payment* until the rest is paid, although its gift card payments are completed when it is placed (Sylius alone would call it *partially paid*). Sylius' shop only lets a customer pay for an order, or change how to pay it, while the order awaits payment: from the thank you page, from the order in their account, and after a payment that did not go through at the payment provider. Sylius' unpaid order expiry (`sylius:cancel-unpaid-orders`) also only cancels orders that await payment, and cancelling one gives the gift cards their balance back. The plugin does this by decorating Sylius' order payment state resolver (`sylius.state_resolver.order_payment`); in the admin, such an order shows as awaiting payment with the completed gift card payment listed next to the payment for the rest.
 
@@ -468,7 +470,7 @@ setono_sylius_gift_card:
     default_validity_period: '3 years'   # how long a card stays valid (any strtotime-compatible interval), or null to never expire; see below
     purchase:
         minimum_amount: 100              # minor units (e.g. cents), at least 1
-        maximum_amount: ~                # minor units, at least 1, or ~ for no maximum
+        maximum_amount: ~                # minor units, at least minimum_amount, or ~ for no maximum
         maximum_message_length: 200      # characters a customer may write on the card, 1 to 65535
     delivery:
         email_physical_cards: false      # true also emails the code and the PDF of a *physical* card when the order is paid, as a backup
@@ -514,6 +516,12 @@ fixture. A typed code is counted once it is normalized: it is saved in capitals 
 the cart looks codes up, so only its letters and digits count. Cards that already exist keep their code whatever its
 length, so cards brought over from `0.12.x` with shorter codes stay usable and editable.
 
+`purchase.maximum_amount` cannot be set below `purchase.minimum_amount`, since no amount would then be left for a
+customer to buy: the container refuses it with `The maximum_amount (500) must be at least the minimum_amount (1000)`.
+Setting both to the same amount sells gift cards of that one amount: the amount field starts out at it, whatever the
+gift card product is priced at, and its help text names it. An amount taken from an environment variable is only known
+at runtime, so the two are not compared when either is set that way.
+
 `maximum_message_length` is what both forms allow: it sets the shop textarea's `maxlength` and remaining-characters
 counter, and it is the limit enforced by the `GiftCardMessageLength` constraint on the gift card and on the shop's
 gift card information, so raising the setting raises the limit everywhere. A line break counts as one character
@@ -521,6 +529,13 @@ everywhere too: browsers submit it as CR LF, and Symfony's textarea field turns 
 is validated and stored (from symfony/form 6.4.31, which is why the plugin requires it). The card shows the message
 with its line breaks intact and clamps it to four lines, so a message much longer than the default will be cut off on
 the gift card and in its PDF.
+
+A gift card holds at most 21,474,836.47 of its currency, a limit that matters in a currency of large nominal amounts
+like the Indonesian rupiah. Balances are kept in minor units in columns mapped as Doctrine's `integer` type, a signed
+32-bit integer, so the shop's amount field, the admin's *New gift card* and *Adjust balance* forms and the
+`setono_gift_card` fixture refuse an amount or a balance beyond it rather than leave the database to refuse it. With no
+`maximum_amount` this is the shop's maximum, and neither `minimum_amount` nor `maximum_amount` can be set above
+2147483647 (`Configuration::MAXIMUM_AMOUNT`). Sylius keeps its prices and order totals in `integer` columns too.
 
 ### Protecting codes from guessing
 
@@ -566,6 +581,8 @@ configuration:
 | `sylius.shop.product.show.add_to_cart_form` | `setono_gift_card_information` | 10 | The amount, design and message fields with the live preview, on a gift card product's page |
 | `sylius.shop.cart.summary` | `setono_gift_card_totals` | 18 | What the applied gift cards cover and what remains to pay, right below Sylius' totals (20) |
 | `sylius.shop.cart.summary` | `setono_gift_cards` | 12 | The form to apply a code and the applied gift cards, above Sylius' checkout button (10) |
+| `sylius.shop.checkout.sidebar` | `setono_gift_card_totals` | 18 | The same figures on the address, shipping and payment steps, right below Sylius' summary (20) and above its support box (10) |
+| `sylius.shop.checkout.complete.summary` | `setono_gift_card_totals` | 8 | The same figures on the complete step, right below Sylius' order summary (10) |
 | `sylius.shop.order.thank_you.after_message` | `setono_gift_card_payment_instructions` | -10 | The instructions for paying the rest, see [Redeeming a gift card](#redeeming-a-gift-card) |
 | `sylius.admin.product.tab_details` | `setono_gift_card` | 10 | The **Gift card** checkbox on the product form |
 | `sylius.admin.layout.topbar_middle` | `setono_gift_card_setup_warning` | 10 | The setup warning in the top bar of every admin page |

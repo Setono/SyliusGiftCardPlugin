@@ -2,6 +2,8 @@ setono_sylius_gift_card:
     add_gift_card_to_order_command:
         gift_card:
             not_blank: Indtast venligst en gavekortkode
+    add_to_cart_command:
+        gift_card_does_not_fit_cart: 'En kurv kan i alt højst koste {{ maximum }}, så der er ikke plads til dette gavekort i din.'
     adjust_gift_card_balance_command:
         amount:
             not_blank: Indtast venligst et beløb
@@ -21,6 +23,7 @@ setono_sylius_gift_card:
             not_blank: Indtast venligst beløb
             integer: Beløbet skal være et heltal
             greater_than_or_equal: Beløbet skal være større end eller lig med 1
+            too_large: Beløbet er større, end et gavekort kan rumme.
         currency_code:
             not_blank: Vælg venligst en valuta
             invalid: Dette er ikke en gyldig valuta
@@ -32,10 +35,12 @@ setono_sylius_gift_card:
         could_not_be_applied: Gavekortet kunne ikke tilføjes til din ordre.
         already_applied: Dette gavekort er allerede tilføjet til din ordre.
         adjustment_makes_balance_negative: 'Du kan ikke trække mere fra, end gavekortet indeholder. Saldoen er {{ balance }}.'
+        adjustment_makes_balance_too_large: 'Et gavekort kan ikke rumme mere end {{ maximum }}. Saldoen er {{ balance }}.'
     gift_card_information:
         amount:
             too_low: 'Gavekortets beløb skal være mindst {{ minimum }}.'
             too_high: 'Gavekortets beløb må ikke være mere end {{ maximum }}.'
+            too_large: Gavekortets beløb er større, end et gavekort kan rumme.
         design:
             required: 'Vælg venligst et design.'
     gift_card_design:
@@ -44,7 +49,10 @@ setono_sylius_gift_card:
             unique: Et andet design bruger allerede denne kode
         position:
             not_null: Angiv en position
+            out_of_range: 'Positionen skal være mellem {{ min }} og {{ max }}.'
         name:
             not_blank: Indtast venligst et navn
         images:
             unique_type: 'Du kan kun tilføje ét "{{ type }}"-billede til et design.'
+    order:
+        gift_card_quantity_does_not_fit_cart: 'En kurv kan i alt højst koste {{ maximum }}, så der er ikke plads til så mange gavekort i din.'

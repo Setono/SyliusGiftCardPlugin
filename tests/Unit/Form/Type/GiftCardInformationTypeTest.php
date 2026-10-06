@@ -36,6 +36,7 @@ use Symfony\Component\Validator\Validation;
 
 final class GiftCardInformationTypeTest extends TypeTestCase
 {
+    use FormErrorsTrait;
     use ProphecyTrait;
 
     private GiftCardDesignInterface $design;
@@ -95,6 +96,65 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     }
 
     /**
+     * Without a configured maximum nothing used to stop an amount above what a gift card's balance column holds, a
+     * signed 32-bit integer, and the cart ended in a 500 when the database refused it
+     *
+     * @test
+     */
+    public function it_takes_the_most_a_card_can_hold_and_refuses_more_when_no_maximum_is_configured(): void
+    {
+        $information = $this->createInformation();
+        $form = $this->factory->create(GiftCardInformationType::class, $information);
+        $form->submit(['amount' => '21474836.47', 'design' => 'classic']);
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame(2147483647, $information->getAmount());
+
+        $form = $this->factory->create(GiftCardInformationType::class, $this->createInformation());
+        $form->submit(['amount' => '21474836.48', 'design' => 'classic']);
+
+        self::assertFalse($form->isValid());
+        self::assertSame(['setono_sylius_gift_card.gift_card_information.amount.too_large'], self::errorMessageTemplates($form->get('amount')));
+    }
+
+    /**
+     * An amount above both the configured maximum and what a card can hold is told the maximum, once
+     *
+     * @test
+     */
+    public function it_quotes_only_the_configured_maximum_for_an_amount_above_both_limits(): void
+    {
+        $this->maximumAmount = 250000;
+        $this->rebuildFormFactory();
+
+        $form = $this->factory->create(GiftCardInformationType::class, $this->createInformation());
+        $form->submit(['amount' => '30000000', 'design' => 'classic']);
+
+        self::assertFalse($form->isValid());
+        self::assertSame(['setono_sylius_gift_card.gift_card_information.amount.too_high'], self::errorMessageTemplates($form->get('amount')));
+        self::assertSame(['{{ maximum }}' => '2 500,00 $US'], self::errors($form->get('amount'))[0]->getMessageParameters());
+    }
+
+    /**
+     * The minor units of this amount are beyond PHP's integer range, where Sylius' money field wraps them around to
+     * 446464, an amount of 4,464.64 the shop sells. The field cannot read it instead
+     *
+     * @test
+     */
+    public function it_refuses_an_amount_whose_minor_units_php_cannot_hold(): void
+    {
+        $information = $this->createInformation();
+
+        $form = $this->factory->create(GiftCardInformationType::class, $information);
+        $form->submit(['amount' => '184467440737095560', 'design' => 'classic']);
+
+        self::assertFalse($form->get('amount')->isSynchronized());
+        self::assertFalse($form->isValid());
+        self::assertSame(2500, $information->getAmount(), 'the amount the form started with is left as it was');
+        self::assertSame(['Please enter a valid money amount.'], self::errorMessageTemplates($form->get('amount')));
+    }
+
+    /**
      * The customer should learn the purchasable range from the field, not from the error after submitting, and the
      * money in it is formatted in the locale being browsed
      *
@@ -131,6 +191,23 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             ['%minimum%' => '1,00 $US', '%maximum%' => '2 500,00 $US'],
             $amount->getOption('help_translation_parameters'),
         );
+    }
+
+    /**
+     * A maximum equal to the minimum is a shop selling gift cards of a single amount, so the field names that amount
+     * instead of a range from it to itself
+     *
+     * @test
+     */
+    public function it_names_the_single_amount_when_the_maximum_equals_the_minimum(): void
+    {
+        $this->maximumAmount = 100;
+        $this->rebuildFormFactory();
+
+        $amount = $this->factory->create(GiftCardInformationType::class, $this->createInformation())->get('amount')->getConfig();
+
+        self::assertSame('setono_sylius_gift_card.form.gift_card_information.amount_help_fixed', $amount->getOption('help'));
+        self::assertSame(['%amount%' => '1,00 $US'], $amount->getOption('help_translation_parameters'));
     }
 
     /**
@@ -355,7 +432,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
         $amountValidator = new ValidGiftCardAmountValidator(
             $channelContext->reveal(),
             $amountLimitsProvider->reveal(),
-            $this->prophesize(MoneyFormatterInterface::class)->reveal(),
+            $moneyFormatter->reveal(),
             $localeContext->reveal(),
         );
 

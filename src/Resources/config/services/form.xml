@@ -90,6 +90,11 @@
             <tag name="form.type"/>
         </service>
 
+        <service id="Setono\SyliusGiftCardPlugin\Form\Type\MinorUnitsMoneyType"
+                 class="Setono\SyliusGiftCardPlugin\Form\Type\MinorUnitsMoneyType">
+            <tag name="form.type"/>
+        </service>
+
         <service id="Setono\SyliusGiftCardPlugin\Form\Type\Rule\HasNoGiftCardConfigurationType">
             <tag name="form.type"/>
         </service>
