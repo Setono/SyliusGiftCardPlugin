@@ -32,9 +32,10 @@ final class MinorUnitsToLocalizedStringTransformer extends MoneyToLocalizedStrin
 
         $minorUnits = round($value);
 
-        // (float) PHP_INT_MAX is 2^63, one more than the largest integer, so a float equal to it is out of range as well
-        if ($minorUnits >= \PHP_INT_MAX || $minorUnits < \PHP_INT_MIN) {
-            throw new TransformationFailedException(sprintf('The amount %s is beyond the range of an integer in minor units.', (string) $value));
+        // The bounds the number transformer holds a parsed number to. (float) PHP_INT_MAX is 2^63, one more than the
+        // largest integer, so a float equal to it is out of range as well
+        if ($minorUnits >= \PHP_INT_MAX || $minorUnits <= -\PHP_INT_MAX) {
+            throw new TransformationFailedException(sprintf('The amount %s is beyond the range of an integer in minor units.', $value));
         }
 
         return (int) $minorUnits;

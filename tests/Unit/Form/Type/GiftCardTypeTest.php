@@ -119,6 +119,8 @@ final class GiftCardTypeTest extends TypeTestCase
         yield '0.29' => ['0.29', 29];
         yield '1.15' => ['1.15', 115];
         yield '19.99' => ['19.99', 1999];
+        // 1.1 * 100 is 110.00000000000001, which rounding up would make 111
+        yield '1.10' => ['1.10', 110];
     }
 
     /**
@@ -146,22 +148,36 @@ final class GiftCardTypeTest extends TypeTestCase
     }
 
     /**
-     * The minor units of this amount are beyond PHP's integer range, where a cast wraps around: it used to issue a card
-     * holding 40.96. The field cannot read it instead, like any other number it cannot read
+     * The minor units of these amounts are beyond PHP's integer range, where a cast wraps around: the first used to
+     * issue a card holding 40.96. The field cannot read them instead, like any other number it cannot read
      *
      * @test
+     *
+     * @dataProvider amountsBeyondTheIntegerRange
      */
-    public function it_refuses_an_amount_whose_minor_units_php_cannot_hold(): void
+    public function it_refuses_an_amount_whose_minor_units_php_cannot_hold(string $typed): void
     {
         $giftCard = new GiftCard();
 
         $form = $this->factory->create(GiftCardType::class, $giftCard);
-        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'amount' => '184467440737095560']));
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'amount' => $typed]));
 
         self::assertFalse($form->get('amount')->isSynchronized());
         self::assertFalse($form->isValid());
         self::assertSame(0, $giftCard->getAmount(), 'nothing reached the card');
         self::assertSame(['Please enter a number.'], self::errorMessageTemplates($form->get('amount')));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function amountsBeyondTheIntegerRange(): iterable
+    {
+        yield 'wrapping around to 40.96' => ['184467440737095560'];
+        // Exactly 2^63 and -2^63 minor units: one more than the largest integer, and the smallest, which the number
+        // field's own bounds leave out as well
+        yield 'the first float beyond the largest integer' => ['92233720368547760'];
+        yield 'its negative' => ['-92233720368547760'];
     }
 
     /**

@@ -204,10 +204,10 @@ final class GiftCardType extends AbstractResourceType
             $minorUnits = round($amount * 100);
 
             // PHP wraps a float beyond its integer range around to an arbitrary integer, which the constraints could
-            // take for a valid amount. The number field refuses a number beyond the range, but only before it is
+            // take for a valid amount. The number field holds a number to these same bounds, but only before it is
             // multiplied here. (float) PHP_INT_MAX is 2^63, one more than the largest integer
-            if ($minorUnits >= \PHP_INT_MAX || $minorUnits < \PHP_INT_MIN) {
-                throw new TransformationFailedException(sprintf('The amount %s is beyond the range of an integer in minor units.', (string) $amount));
+            if ($minorUnits >= \PHP_INT_MAX || $minorUnits <= -\PHP_INT_MAX) {
+                throw new TransformationFailedException(sprintf('The amount %s is beyond the range of an integer in minor units.', $amount));
             }
 
             return (int) $minorUnits;
