@@ -398,19 +398,31 @@ final class ConfigurationTest extends TestCase
     }
 
     /**
-     * Any interval strtotime() can add to a date, and null for gift cards that never expire
+     * An interval strtotime() can add to a date, in any of its units, and null for gift cards that never expire
+     *
+     * @dataProvider provideValidityPeriodsAcceptedWhileCompiling
      *
      * @test
      */
-    public function it_takes_any_strtotime_interval_or_null_as_the_validity_period(): void
+    public function it_takes_an_interval_or_null_as_the_validity_period(?string $period): void
     {
-        $this->assertProcessedConfigurationEquals([['default_validity_period' => '18 months']], [
-            'default_validity_period' => '18 months',
-        ], 'default_validity_period');
+        $container = self::processThroughTheCompilerPasses(['default_validity_period' => $period]);
 
-        $this->assertProcessedConfigurationEquals([['default_validity_period' => null]], [
-            'default_validity_period' => null,
-        ], 'default_validity_period');
+        self::assertSame($period, $container->getParameter('setono_sylius_gift_card.default_validity_period'));
+    }
+
+    /**
+     * @return iterable<string, array{string|null}>
+     */
+    public static function provideValidityPeriodsAcceptedWhileCompiling(): iterable
+    {
+        yield 'years' => ['3 years'];
+        yield 'months' => ['18 months'];
+        yield 'weeks' => ['2 weeks'];
+        yield 'days' => ['90 days'];
+        yield 'one of a unit' => ['1 year'];
+        yield 'more than one unit' => ['1 year 6 months'];
+        yield 'null, for gift cards that never expire' => [null];
     }
 
     /**
@@ -474,6 +486,30 @@ final class ConfigurationTest extends TestCase
             3,
             'Invalid configuration for path "setono_sylius_gift_card.default_validity_period": The default_validity_period must be a valid strtotime interval, e.g. "3 years": 3',
         ];
+
+        // strtotime() reads every one of these, but not as an interval and nothing else, and most of them give a card
+        // that expires the day it is issued, or before
+        foreach ([
+            'a unit strtotime() does not know, read as a timezone' => '3 yrs',
+            'a misspelled unit' => '3 yeers',
+            'another misspelled unit' => '18 mnths',
+            'a unit in another language' => '2 jahre',
+            'a number without a unit, read as a timezone' => '3',
+            'a day name, read as the third Monday from now' => '3 mon',
+            'a day of the month' => '1 month last day of',
+            'a date' => '2030-01-01',
+            'a time of day' => '3 years noon',
+            'a timezone' => '3 years UTC',
+            'an interval of nothing' => '0 days',
+            'a negative interval' => '-1 year',
+            'an interval into the past' => '3 years ago',
+            'a unit that goes back, after one that goes forward' => '1 year -18 months',
+        ] as $name => $period) {
+            yield $name => [
+                $period,
+                sprintf('Invalid configuration for path "setono_sylius_gift_card.default_validity_period": The default_validity_period must be a valid strtotime interval, e.g. "3 years": "%s"', $period),
+            ];
+        }
 
         yield 'an environment variable read as an integer' => [
             '%env(int:GIFT_CARD_VALIDITY)%',
