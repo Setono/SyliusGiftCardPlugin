@@ -34,7 +34,7 @@ A gift card issued in the admin is virtual unless you choose *Physical* on the c
 
 ### Buying a gift card
 
-The customer chooses the amount, a design and an optional message on the product page (with a live preview). The amount field starts out at the price the page shows, i.e. the preselected variant's price in the channel, so the gift card product's price is the amount you suggest; a price the shop would refuse as an amount (zero, or outside `purchase.minimum_amount` / `maximum_amount`) leaves the field empty. A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)). Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
+The customer chooses the amount, a design and an optional message on the product page (with a live preview). The amount field starts out at the price the page shows, i.e. the preselected variant's price in the channel, so the gift card product's price is the amount you suggest; a price the shop would refuse as an amount (zero, or outside `purchase.minimum_amount` / `maximum_amount`) leaves the field empty, and a shop whose maximum equals its minimum starts it at that one amount whatever the price. A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)). Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
 
 Promotions never discount a gift card: a card is worth the amount the customer chose, so that is both what the customer pays for it and what the card holds. Unit discounts skip gift card lines, an order discount is taken from the other items only (a percentage of those items, spread over those items), and buying a gift card does not count towards a promotion's "item total" rule. Otherwise a coupon for the whole shop would sell full value gift cards at a discount. This also changes how promotions you already run behave: with "free shipping over 100.00" (an "item total" rule with a shipping discount), an order of a physical gift card for 100.00 used to ship for free and now pays for shipping, because buying a gift card is paying in advance rather than spending. To keep a promotion from applying at all to an order that buys a gift card, add the "Has no gift card" rule to it.
 
@@ -470,7 +470,7 @@ setono_sylius_gift_card:
     default_validity_period: '3 years'   # how long a card stays valid (any strtotime-compatible interval), or null to never expire; see below
     purchase:
         minimum_amount: 100              # minor units (e.g. cents), at least 1
-        maximum_amount: ~                # minor units, at least 1, or ~ for no maximum
+        maximum_amount: ~                # minor units, at least minimum_amount, or ~ for no maximum
         maximum_message_length: 200      # characters a customer may write on the card, 1 to 65535
     delivery:
         email_physical_cards: false      # true also emails the code and the PDF of a *physical* card when the order is paid, as a backup
@@ -506,6 +506,12 @@ types a code of their own on the *New gift card* form is held to it, and so is a
 fixture. A typed code is counted once it is normalized: it is saved in capitals with dashes and spaces dropped, the way
 the cart looks codes up, so only its letters and digits count. Cards that already exist keep their code whatever its
 length, so cards brought over from `0.12.x` with shorter codes stay usable and editable.
+
+`purchase.maximum_amount` cannot be set below `purchase.minimum_amount`, since no amount would then be left for a
+customer to buy: the container refuses it with `The maximum_amount (500) must be at least the minimum_amount (1000)`.
+Setting both to the same amount sells gift cards of that one amount: the amount field starts out at it, whatever the
+gift card product is priced at, and its help text names it. An amount taken from an environment variable is only known
+at runtime, so the two are not compared when either is set that way.
 
 `maximum_message_length` is what both forms allow: it sets the shop textarea's `maxlength` and remaining-characters
 counter, and it is the limit enforced by the `GiftCardMessageLength` constraint on the gift card and on the shop's
