@@ -268,7 +268,8 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
 
     /**
      * Paying the order is the moment the cards become money the shop owes, which is also when their issuance is
-     * recorded: before that the amounts could still change
+     * recorded: before that the amounts could still change. The issuance names the order, so a card's ledger leads
+     * back to the money the shop took for it
      *
      * @test
      */
@@ -293,6 +294,12 @@ final class OrderGiftCardOperatorTest extends GiftCardFunctionalTestCase
             $giftCard = $this->findGiftCard($code);
             self::assertTrue($giftCard->isEnabled());
             self::assertSame([[GiftCardTransactionInterface::TYPE_ISSUE, $amount]], $this->ledgerOf($giftCard));
+
+            $issuance = $giftCard->getTransactions()->first();
+            self::assertInstanceOf(GiftCardTransactionInterface::class, $issuance);
+            self::assertSame($order->getId(), $issuance->getOrder()?->getId(), sprintf('the issuance of %s should name the order that paid for it', $code));
+            self::assertNull($issuance->getPayment());
+            self::assertNull($issuance->getCreatedBy());
         }
 
         self::assertFalse($this->findGiftCard('ANOTHERORDERS001')->isEnabled(), 'only the cards bought on the order are enabled');
