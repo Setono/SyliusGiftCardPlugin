@@ -239,10 +239,13 @@ jobs:
 
         runs-on: "ubuntu-latest"
 
-        # The test application is served for real here, so it needs an environment with a normal session
-        # storage rather than the mock one the test environment uses for functional tests
+        # The test application is served in its test environment, the one Sylius renders the data-test-* hooks in
+        # that the specs address, and which has no web debug toolbar to add tables of its own to every page. When
+        # served, that environment keeps sessions in PHP's native, locking storage rather than in the mock storage
+        # the functional tests use (tests/Application/config/services_test.yaml), so a page and the AJAX request it
+        # sends cannot undo each other's session writes. The database is the job's own, as for the functional tests
         env:
-            APP_ENV: "dev"
+            APP_ENV: "test"
             APP_DEBUG: "1"
             PLAYWRIGHT_BASE_URL: "http://127.0.0.1:8080"
 
@@ -298,7 +301,7 @@ jobs:
                     bin/console cache:warmup
 
             -   name: "Keep the sessions where a failed run can upload them"
-                # The test application leaves session handling to PHP, whose php.ini decides where the files go.
+                # Served, the test application leaves session handling to PHP, whose php.ini decides where the files go.
                 # The admin session has been found dead partway through the suite on this job more than once,
                 # so the files are kept inside the workspace and uploaded with the report when the run fails.
                 # A leading path separator keeps PHP's own scan directory in place
@@ -322,7 +325,7 @@ jobs:
                     symfony server:status
             -   name: "Wait for the test application"
                 # The first requests to a freshly built application are slow and, when several arrive at once,
-                # can race each other while the dev container and templates are compiled; the login the
+                # can race each other while the container and templates are compiled; the login the
                 # Playwright setup performs has failed that way. Hit the app once and wait until it answers
                 run: "curl --silent --show-error --fail --retry 30 --retry-delay 2 --retry-all-errors --output /dev/null http://127.0.0.1:8080/admin/login"
 

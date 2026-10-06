@@ -152,6 +152,17 @@ This file puts the shop routes under `/{_locale}` and the admin routes under you
 with Sylius' own: `/admin`, or whatever `SYLIUS_ADMIN_ROUTING_PATH_NAME` names. The plugin's admin pages sit behind the
 admin firewall with the rest of the admin, wherever it lives.
 
+If the URLs of your shop carry no locale, because you
+[disabled Sylius' localised URLs](https://old-docs.sylius.com/en/1.14/cookbook/shop/disabling-localised-urls.html),
+import `routes_no_locale.yaml` instead. It puts the shop routes at the root of the shop, as your `sylius_shop` import
+does with Sylius' own, and the admin routes under your admin path like `routes.yaml` does:
+
+```yaml
+# config/routes/setono_sylius_gift_card.yaml
+setono_sylius_gift_card:
+    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes_no_locale.yaml"
+```
+
 ### Apply the traits/interfaces to your entities
 
 Apply the plugin traits to your `Product`, `Order`, `OrderItem` and `OrderItemUnit` entities. Sylius-Standard already
@@ -412,8 +423,9 @@ Mind the units when you write fixtures of your own: the `amount` of a `setono_gi
 Both kinds of gift card can be seeded. A `setono_gift_card_product` fixture creates a variant for each delivery type
 unless `delivery_types` names the ones it should have, and a `setono_gift_card` fixture issues a virtual card unless its
 entry says `delivery_type: physical`. A product with a single delivery type gets no delivery option, so the shop shows
-no variant choice for it, as for the single variant product described under [Virtual vs physical](#virtual-vs-physical). Below the import, this narrows the imported suite's gift card product to its
-virtual variant and adds a physical card to its gift cards:
+no variant choice for it, as for the single variant product described under [Virtual vs physical](#virtual-vs-physical).
+Below the import, this narrows the imported suite's gift card product to its virtual variant and adds a physical card to
+its gift cards:
 
 ```yaml
 # config/packages/setono_sylius_gift_card.yaml

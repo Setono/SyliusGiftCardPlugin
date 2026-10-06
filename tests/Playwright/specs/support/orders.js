@@ -4,7 +4,7 @@
  */
 
 const { expect } = require('@playwright/test');
-const { clickAndConfirm } = require('./admin');
+const { GRID_ROWS, clickAndConfirm } = require('./admin');
 const { clickAndWaitForPage } = require('./navigation');
 const { moneyInCents } = require('./money');
 
@@ -25,7 +25,7 @@ async function openOrderOf(page, email) {
     await filter.fill(email);
     await Promise.all([page.waitForURL(/criteria/), filter.press('Enter')]);
 
-    const rows = page.locator('table tbody tr').filter({ hasText: email });
+    const rows = page.locator(GRID_ROWS).filter({ hasText: email });
     await expect(rows, `exactly one order should have been placed by ${email}`).toHaveCount(1);
 
     const url = await rows.locator('a[href^="/admin/orders/"]').first().getAttribute('href');

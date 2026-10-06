@@ -1,5 +1,35 @@
 const { test, expect } = require('@playwright/test');
+const { GRID_ROWS, clickAndConfirm } = require('../support/admin');
 const { productIdsByKind } = require('../support/fixtures');
+const { clickAndWaitForPage } = require('../support/navigation');
+
+const FORM = 'form[name="sylius_product"]';
+
+/**
+ * The product's edit form, checked to be the form of a product rather than merely a page that answered
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function expectProductForm(page) {
+    await expect(page.locator(FORM)).toBeVisible();
+    await expect(page.locator(`${FORM} [name="sylius_product[code]"]`)).not.toHaveValue('');
+}
+
+/**
+ * Deletes the product through the products grid, the way an admin does, and checks it is gone
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} id
+ */
+async function deleteProduct(page, id) {
+    await page.goto(`/admin/products/${id}/edit`);
+    const code = await page.locator(`${FORM} [name="sylius_product[code]"]`).inputValue();
+
+    await page.goto(`/admin/products/?criteria[search][value]=${encodeURIComponent(code)}`);
+    await clickAndConfirm(page, page.locator(`form[action="/admin/products/${id}"] button[type="submit"]`));
+
+    expect((await page.goto(`/admin/products/${id}/edit`))?.status(), `the product ${code} should have been deleted`).toBe(404);
+}
 
 /**
  * Regression cover for the product edit page.
@@ -26,7 +56,7 @@ test.describe('admin product edit', () => {
         const response = await page.goto(`/admin/products/${products.configurable}/edit`);
 
         expect(response?.status()).toBe(200);
-        await expect(page).toHaveTitle(/Edit product/);
+        await expectProductForm(page);
         // The field whose missing options caused the 500
         await expect(page.locator('.sylius-autocomplete').first()).toBeVisible();
     });
@@ -37,7 +67,9 @@ test.describe('admin product edit', () => {
         const response = await page.goto(`/admin/products/${products.simple}/edit`);
 
         expect(response?.status()).toBe(200);
-        await expect(page).toHaveTitle(/Edit product/);
+        await expectProductForm(page);
+        // the simple branch of the details tab carries the variant's own fields
+        await expect(page.locator(`${FORM} input[name*="[variant]"][name*="[shippingRequired]"]`)).toHaveCount(1);
     });
 
     test('renders for a gift card product and exposes the gift card toggle', async ({ page }) => {
@@ -46,7 +78,9 @@ test.describe('admin product edit', () => {
         const response = await page.goto(`/admin/products/${products.giftCard}/edit`);
 
         expect(response?.status()).toBe(200);
-        await expect(page.locator('input[name*="[giftCard]"]')).toHaveCount(1);
+        await expectProductForm(page);
+        // every product's form has the toggle, so what matters is that it shows this product as a gift card
+        await expect(page.locator('input[name="sylius_product[giftCard]"]')).toBeChecked();
     });
 
     test('the options autocomplete is given the url it needs', async ({ page }) => {
@@ -62,34 +96,40 @@ test.describe('admin product edit', () => {
 
     /**
      * The action scaffolds a product through the same factory the fixtures use, so a merchant lands on a
-     * ready-to-edit gift card product instead of assembling the option and both variants by hand
+     * ready-to-edit gift card product instead of assembling the option and both variants by hand.
+     *
+     * The product is deleted again, whatever happens in between, so repeated runs do not pile scaffolded products up
+     * in the grid the other specs walk
      */
     test('a gift card product can be scaffolded from the gift cards index', async ({ page }) => {
         await page.goto('/admin/gift-cards/');
 
         // A POST form carrying a CSRF token rather than a link: a link could be hit by a browser prefetch or
         // an <img src> on any page the admin visits, and every hit creates another product
-        const button = page.getByRole('button', { name: /gift card product/i });
-        const form = page.locator('form', { has: button });
+        const form = page.locator('form[action$="/admin/gift-cards/create-product"]');
+        await expect(form).toHaveCount(1);
         await expect(form).toHaveAttribute('method', /post/i);
         await expect(form.locator('input[name="_csrf_token"]')).not.toHaveValue('');
 
         // The button asks for confirmation before anything is created
-        await button.click();
-        await expect(page.locator('#confirmation-modal')).toBeVisible();
-        await page.locator('#confirmation-button').click();
+        await clickAndConfirm(page, form.locator('button[type="submit"]'));
 
-        await expect(page).toHaveURL(/\/admin\/products\/\d+\/edit/);
-        await expect(page).toHaveTitle(/Edit product/);
+        await expect(page).toHaveURL(/\/admin\/products\/\d+\/edit$/);
+        const productId = /** @type {string} */ (/\/admin\/products\/(\d+)\/edit$/.exec(page.url())?.[1]);
 
-        // Created disabled so the merchant reviews it before it goes live, and flagged as a gift card
-        await expect(page.locator('input[name*="[giftCard]"]')).toBeChecked();
-        await expect(page.locator('input[name="sylius_product[enabled]"]')).not.toBeChecked();
+        try {
+            await expectProductForm(page);
 
-        // One variant per delivery type, so the customer can pick virtual or physical straight away
-        const productId = /\/admin\/products\/(\d+)\/edit/.exec(page.url())[1];
-        await page.goto(`/admin/products/${productId}/variants/`);
-        await expect(page.locator('table tbody tr')).toHaveCount(2);
+            // Created disabled so the merchant reviews it before it goes live, and flagged as a gift card
+            await expect(page.locator('input[name="sylius_product[giftCard]"]')).toBeChecked();
+            await expect(page.locator('input[name="sylius_product[enabled]"]')).not.toBeChecked();
+
+            // One variant per delivery type, so the customer can pick virtual or physical straight away
+            await page.goto(`/admin/products/${productId}/variants/`);
+            await expect(page.locator(GRID_ROWS)).toHaveCount(2);
+        } finally {
+            await deleteProduct(page, productId);
+        }
     });
 
     /**
@@ -142,8 +182,8 @@ test.describe('admin product gift card flag', () => {
 
     /** @param {import('@playwright/test').Page} page */
     async function save(page) {
-        await page.locator('#sylius_save_changes_button').click();
-        await expect(page.getByText(/has been successfully updated/i)).toBeVisible();
+        await clickAndWaitForPage(page, page.locator('#sylius_save_changes_button'));
+        await expect(page.locator('.sylius-flash-message.positive'), 'the product should have been saved').toBeVisible();
     }
 
     test('the checkbox is rendered when creating either kind of product', async ({ page }) => {
@@ -179,15 +219,18 @@ test.describe('admin product gift card flag', () => {
         }
         expect(id, 'every seeded product is already flagged as a gift card').not.toBeNull();
 
-        await setChecked(page, true);
-        await save(page);
+        try {
+            await setChecked(page, true);
+            await save(page);
 
-        await page.reload();
-        await expect(checkbox(page)).toBeChecked();
-
-        // Leave the product as it was found, so the shop specs still meet an ordinary product
-        await setChecked(page, false);
-        await save(page);
+            await page.reload();
+            await expect(checkbox(page)).toBeChecked();
+        } finally {
+            // Leave the product as it was found, whatever failed, so the shop specs still meet an ordinary product
+            await page.goto(`/admin/products/${id}/edit`);
+            await setChecked(page, false);
+            await save(page);
+        }
 
         await page.reload();
         await expect(checkbox(page)).not.toBeChecked();
