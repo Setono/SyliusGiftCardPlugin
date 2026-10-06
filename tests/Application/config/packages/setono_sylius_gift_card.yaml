@@ -17,6 +17,24 @@ sylius_fixtures:
     suites:
         default:
             fixtures:
+                # Sylius gives each of its three shipping methods a zone picked at random, the US or the rest of
+                # the world. When all three drew the US, nothing shipped to the countries the address step lists
+                # first, and the end to end specs walking the checkout (specs/support/checkout.js) submitted an
+                # address in every country, alphabetically, until they reached the United States: a dozen
+                # addresses, which took a shard past the test timeout (#468). Sylius also leaves a method disabled
+                # at random (one in ten) unless the suite enables it, and a disabled method is not offered at the
+                # shipping step. One enabled method per zone ships to every country the shop offers, so the
+                # checkout goes on with the first country the specs try
+                shipping_method:
+                    options:
+                        custom:
+                            ups:
+                                zone: US
+                                enabled: true
+                            dhl_express:
+                                zone: WORLD
+                                enabled: true
+
                 setono_gift_card_product:
                     options:
                         custom:

@@ -30,14 +30,18 @@ const CHECKOUT_FIGURES = {
 };
 
 /**
- * Fills in the address step and submits it
+ * Fills in the address step and submits it. The walk is on the step when it has just arrived and when the shop refused
+ * the last address and rendered the step again, so the step is only loaded when the walk is elsewhere: on a shipping
+ * step that had no method for the last address
  *
  * @param {import('@playwright/test').Page} page
  * @param {string|null} email the guest's email; null for a signed in customer, whose account gives the order its email
  * @param {string} country
  */
 async function submitAddress(page, email, country) {
-    await page.goto(await shopPath(page, 'checkout/address'));
+    if (!new URL(page.url()).pathname.endsWith('/checkout/address')) {
+        await page.goto(await shopPath(page, 'checkout/address'));
+    }
 
     // Once an address has been submitted the order has a customer, and the step stops asking for the email. It never
     // asks a signed in customer
@@ -112,7 +116,9 @@ async function checkOut(page, email, onStep) {
     const steps = { shipping: false, payment: false, paymentMethod: null };
 
     // Sylius' fixtures give every shipping method a random zone, so no country is sure to be shipped to. Try the
-    // offered countries in turn until the shipping step lists a method, or the cart turns out to need no shipping
+    // offered countries in turn until the shipping step lists a method, or the cart turns out to need no shipping.
+    // Each country tried costs page loads and the province field's reload, a couple of seconds on a busy runner, so
+    // the test application seeds a method in each zone and the first country is the one the walk goes on with (#468)
     let addressed = false;
     for (const country of countries) {
         await submitAddress(page, email, country);
