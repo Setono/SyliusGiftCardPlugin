@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
+const { clickAndConfirm, flashMessages, setChecked, signedInAdministrator } = require('../support/admin');
 const { addSomethingToCart, applyGiftCard } = require('../support/cart');
 const { adjustBalance, giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
 const { moneyInCents } = require('../support/money');
@@ -268,7 +268,12 @@ test.describe('admin issuing gift cards', () => {
         expect((await giftCardTransactions(page, card.id)).map(({ type }) => type)).toEqual(['Issued']);
     });
 
-    test('adjusting the balance is recorded in the ledger with its reason', async ({ page }) => {
+    /**
+     * The ledger is the audit trail for the card's money, so a movement an admin makes by hand says why and who made
+     * it: each adjustment, and issuing the card in the first place. None of them belongs to an order
+     */
+    test('adjusting the balance is recorded in the ledger with its reason and the admin who made it', async ({ page }) => {
+        const administrator = await signedInAdministrator(page);
         const card = await issueGiftCard(page, { amount: 10_000 });
 
         await adjustBalance(page, card.id, 2500, 'Goodwill after a late delivery');
@@ -278,11 +283,11 @@ test.describe('admin issuing gift cards', () => {
         expect(moneyInCents(details.Amount)).toBe(8500);
         expect(moneyInCents(details['Initial amount'])).toBe(10_000);
 
-        const ledger = (await giftCardTransactions(page, card.id)).map(({ type, amount, reason }) => [type, amount, reason]);
+        const ledger = (await giftCardTransactions(page, card.id)).map(({ type, amount, reason, order, createdBy }) => [type, amount, reason, order, createdBy]);
         expect(ledger).toEqual([
-            ['Issued', 10_000, '-'],
-            ['Manual adjustment', 2500, 'Goodwill after a late delivery'],
-            ['Manual adjustment', -4000, 'Paid in the physical store'],
+            ['Issued', 10_000, '-', null, administrator],
+            ['Manual adjustment', 2500, 'Goodwill after a late delivery', null, administrator],
+            ['Manual adjustment', -4000, 'Paid in the physical store', null, administrator],
         ]);
 
         // The grid tells a card that has been spent from apart from a fresh one
