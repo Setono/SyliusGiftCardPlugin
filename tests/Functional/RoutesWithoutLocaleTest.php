@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
-use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\Routing\Route;
@@ -77,13 +76,7 @@ final class RoutesWithoutLocaleTest extends KernelTestCase
      */
     public function it_puts_the_admin_routes_under_the_admin_path(): void
     {
-        $loader = self::getContainer()->get('routing.loader');
-        self::assertInstanceOf(LoaderInterface::class, $loader);
-
-        // Loaded without the router, which would replace the admin path parameter with the test application's value
-        $routes = $loader->load(self::WITHOUT_LOCALE);
-        self::assertInstanceOf(RouteCollection::class, $routes);
-        $adminRoutes = self::adminRoutes($routes);
+        $adminRoutes = self::adminRoutes($this->routes(self::WITHOUT_LOCALE));
         self::assertNotEmpty($adminRoutes, 'The plugin registers no admin route');
 
         foreach ($adminRoutes as $name => $route) {
@@ -92,12 +85,18 @@ final class RoutesWithoutLocaleTest extends KernelTestCase
     }
 
     /**
-     * @return RouteCollection the routes the file registers, with the container parameters in them resolved, as the
-     * application's router has them
+     * @return RouteCollection the routes the file registers as it writes them. The router would replace the admin path
+     * parameter in them with the test application's value, /admin, which a prefix hard-coded to /admin matches too
      */
     private function routes(string $resource): RouteCollection
     {
-        return (new Router(self::getContainer(), $resource))->getRouteCollection();
+        $loader = self::getContainer()->get('routing.loader');
+        self::assertInstanceOf(LoaderInterface::class, $loader);
+
+        $routes = $loader->load($resource);
+        self::assertInstanceOf(RouteCollection::class, $routes);
+
+        return $routes;
     }
 
     /**
