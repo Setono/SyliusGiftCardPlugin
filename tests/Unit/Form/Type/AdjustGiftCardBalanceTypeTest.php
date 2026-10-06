@@ -13,7 +13,6 @@ use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormExtensionInterface;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Validator\ConstraintValidatorFactory;
 use Symfony\Component\Validator\Validation;
@@ -24,6 +23,7 @@ use Symfony\Component\Validator\Validation;
  */
 final class AdjustGiftCardBalanceTypeTest extends TypeTestCase
 {
+    use FormErrorsTrait;
     use ProphecyTrait;
 
     /** @test */
@@ -89,7 +89,7 @@ final class AdjustGiftCardBalanceTypeTest extends TypeTestCase
 
         self::assertTrue($form->isSynchronized());
         self::assertFalse($form->isValid());
-        self::assertSame([$message], self::messageTemplates($form->get($field)));
+        self::assertSame([$message], self::errorMessageTemplates($form->get($field)));
     }
 
     /**
@@ -151,22 +151,6 @@ final class AdjustGiftCardBalanceTypeTest extends TypeTestCase
         $giftCard->setAmount(5000);
 
         return $giftCard;
-    }
-
-    /**
-     * @param FormInterface<mixed> $form
-     *
-     * @return list<string>
-     */
-    private static function messageTemplates(FormInterface $form): array
-    {
-        $templates = [];
-        foreach ($form->getErrors() as $error) {
-            self::assertInstanceOf(FormError::class, $error);
-            $templates[] = $error->getMessageTemplate();
-        }
-
-        return $templates;
     }
 
     /**

@@ -23,7 +23,6 @@ use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
-use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormExtensionInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\PreloadedExtension;
@@ -37,6 +36,7 @@ use Symfony\Component\Validator\Validation;
  */
 final class AddGiftCardToOrderTypeTest extends TypeTestCase
 {
+    use FormErrorsTrait;
     use ProphecyTrait;
 
     /** The code the gift card is stored under, which is the only one the repository answers to */
@@ -80,7 +80,7 @@ final class AddGiftCardToOrderTypeTest extends TypeTestCase
 
         self::assertFalse($form->get('giftCard')->isSynchronized());
         self::assertFalse($form->isValid());
-        self::assertSame(['setono_sylius_gift_card.gift_card.could_not_be_applied'], self::messages($form->get('giftCard')));
+        self::assertSame(['setono_sylius_gift_card.gift_card.could_not_be_applied'], self::errorMessages($form->get('giftCard')));
         self::assertCount(1, $form->getErrors(true));
         self::assertNull($command->getGiftCard());
     }
@@ -103,12 +103,12 @@ final class AddGiftCardToOrderTypeTest extends TypeTestCase
 
         // the card was found, so it is the eligibility constraint speaking
         self::assertTrue($unusable->isSynchronized());
-        self::assertSame([(new GiftCardIsEligible())->message], self::messages($unusable->get('giftCard')));
+        self::assertSame([(new GiftCardIsEligible())->message], self::errorMessages($unusable->get('giftCard')));
 
         $unknown = $this->createForm(new AddGiftCardToOrderCommand());
         $unknown->submit(['giftCard' => 'NOSUCHCARD000000']);
 
-        self::assertSame(self::messages($unusable->get('giftCard')), self::messages($unknown->get('giftCard')));
+        self::assertSame(self::errorMessages($unusable->get('giftCard')), self::errorMessages($unknown->get('giftCard')));
     }
 
     /**
@@ -125,7 +125,7 @@ final class AddGiftCardToOrderTypeTest extends TypeTestCase
         self::assertTrue($form->isSynchronized());
         self::assertSame(
             ['setono_sylius_gift_card.add_gift_card_to_order_command.gift_card.not_blank'],
-            self::messages($form->get('giftCard')),
+            self::errorMessages($form->get('giftCard')),
         );
     }
 
@@ -138,22 +138,6 @@ final class AddGiftCardToOrderTypeTest extends TypeTestCase
         $form = $this->factory->create(AddGiftCardToOrderType::class, $command);
 
         return $form;
-    }
-
-    /**
-     * @param FormInterface<mixed> $form
-     *
-     * @return list<string>
-     */
-    private static function messages(FormInterface $form): array
-    {
-        $messages = [];
-        foreach ($form->getErrors() as $error) {
-            self::assertInstanceOf(FormError::class, $error);
-            $messages[] = $error->getMessage();
-        }
-
-        return $messages;
     }
 
     /**

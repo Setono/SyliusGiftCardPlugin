@@ -24,9 +24,7 @@ use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Registry\ServiceRegistryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
-use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormExtensionInterface;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\PreloadedExtension;
 use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -38,6 +36,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class GiftCardTypeTest extends TypeTestCase
 {
+    use FormErrorsTrait;
     use ProphecyTrait;
 
     private ChannelInterface $channel;
@@ -192,7 +191,7 @@ final class GiftCardTypeTest extends TypeTestCase
         self::assertFalse($form->isValid());
         self::assertSame(
             ['setono_sylius_gift_card.gift_card.currency_code.not_base_currency'],
-            self::messageTemplates($form->get('currencyCode')),
+            self::errorMessageTemplates($form->get('currencyCode')),
         );
 
         $form = $this->factory->create(GiftCardType::class, new GiftCard());
@@ -504,22 +503,6 @@ final class GiftCardTypeTest extends TypeTestCase
             'currencyCode' => 'DKK',
             'amount' => '50',
         ];
-    }
-
-    /**
-     * @param FormInterface<mixed> $form
-     *
-     * @return list<string>
-     */
-    private static function messageTemplates(FormInterface $form): array
-    {
-        $templates = [];
-        foreach ($form->getErrors() as $error) {
-            self::assertInstanceOf(FormError::class, $error);
-            $templates[] = $error->getMessageTemplate();
-        }
-
-        return $templates;
     }
 
     private function existingGiftCard(): GiftCard
