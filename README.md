@@ -455,6 +455,12 @@ fixture. A typed code is counted once it is normalized: it is saved in capitals 
 the cart looks codes up, so only its letters and digits count. Cards that already exist keep their code whatever its
 length, so cards brought over from `0.12.x` with shorter codes stay usable and editable.
 
+`purchase.maximum_amount` cannot be set below `purchase.minimum_amount`, since no amount would then be left for a
+customer to buy: the container refuses it with `The maximum_amount (500) must be at least the minimum_amount (1000)`.
+Setting both to the same amount sells gift cards of that one amount, and the amount field's help text names it. An
+amount taken from an environment variable is only known at runtime, so the two are not compared when either is set
+that way.
+
 `maximum_message_length` is what both forms allow: it sets the shop textarea's `maxlength` and remaining-characters
 counter, and it is the limit enforced by the `GiftCardMessageLength` constraint on the gift card and on the shop's
 gift card information, so raising the setting raises the limit everywhere. A line break counts as one character
