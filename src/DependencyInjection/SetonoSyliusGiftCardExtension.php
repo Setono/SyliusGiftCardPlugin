@@ -7,10 +7,15 @@ namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\CreateGiftCardProductAction;
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\SendGiftCardEmailAction;
 use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardCodeFilter;
+use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardExpiredFilter;
+use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardPendingFilter;
+use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardSpentFilter;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
+use Sylius\Component\Grid\Filter\StringFilter;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
@@ -320,10 +325,15 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                         // A form that POSTs with a CSRF token, for actions that change state and so must not
                         // be reachable through a plain link
                         'setono_sylius_gift_card_post_link' => '@SetonoSyliusGiftCardPlugin/admin/grid/action/post_link.html.twig',
+                        // Sylius' delete button, left out for a card that cannot be deleted
+                        'setono_sylius_gift_card_gift_card_delete' => '@SetonoSyliusGiftCardPlugin/admin/gift_card/grid/action/delete.html.twig',
                     ],
                     'filter' => [
-                        // The code filter takes its form from Sylius' string filter, so it renders like one
+                        // Each takes its form from one of Sylius' filters (see services/grid.xml), so it renders like one
                         GiftCardCodeFilter::NAME => '@SyliusUi/Grid/Filter/string.html.twig',
+                        GiftCardExpiredFilter::NAME => '@SyliusUi/Grid/Filter/boolean.html.twig',
+                        GiftCardSpentFilter::NAME => '@SyliusUi/Grid/Filter/boolean.html.twig',
+                        GiftCardPendingFilter::NAME => '@SyliusUi/Grid/Filter/select.html.twig',
                     ],
                 ],
                 'grids' => [
@@ -354,6 +364,8 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                             'customer' => [
                                 'type' => 'twig',
                                 'label' => 'sylius.ui.customer',
+                                // The list query left joins the customer as "customer", so cards without one stay listed
+                                'sortable' => 'customer.email',
                                 'options' => [
                                     'template' => '@SetonoSyliusGiftCardPlugin/admin/gift_card/grid/field/customer.html.twig',
                                 ],
@@ -362,6 +374,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                 'type' => 'twig',
                                 'label' => 'sylius.ui.amount',
                                 'path' => '.',
+                                'sortable' => 'amount',
                                 'options' => [
                                     'template' => '@SetonoSyliusGiftCardPlugin/admin/gift_card/grid/field/amount.html.twig',
                                 ],
@@ -375,13 +388,14 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                     'template' => '@SetonoSyliusGiftCardPlugin/admin/gift_card/grid/field/delivery_type.html.twig',
                                 ],
                             ],
-                            'enabled' => [
+                            // GiftCardInterface::getStatus(), shown the way the show page shows it
+                            'status' => [
                                 'type' => 'twig',
-                                'label' => 'sylius.ui.enabled',
+                                'label' => 'sylius.ui.status',
+                                'path' => '.',
                                 'options' => [
-                                    'template' => '@SyliusUi/Grid/Field/enabled.html.twig',
+                                    'template' => '@SetonoSyliusGiftCardPlugin/admin/gift_card/grid/field/status.html.twig',
                                 ],
-                                'sortable' => null,
                             ],
                             'createdAt' => [
                                 'type' => 'datetime',
@@ -398,9 +412,79 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                 'type' => GiftCardCodeFilter::NAME,
                                 'label' => 'sylius.ui.code',
                             ],
+                            'customer' => [
+                                'type' => 'string',
+                                'label' => 'sylius.ui.customer',
+                                'options' => [
+                                    'fields' => ['customer.email'],
+                                    'type' => StringFilter::TYPE_CONTAINS,
+                                ],
+                                // A part of the email is what an admin types, so the form does not ask how to compare
+                                'form_options' => [
+                                    'type' => StringFilter::TYPE_CONTAINS,
+                                ],
+                            ],
+                            'channel' => [
+                                'type' => 'entity',
+                                'label' => 'sylius.ui.channel',
+                                'form_options' => [
+                                    'class' => '%sylius.model.channel.class%',
+                                ],
+                            ],
+                            // A card holds its currency as a code, so that is what the choices submit
+                            'currencyCode' => [
+                                'type' => 'entity',
+                                'label' => 'sylius.ui.currency',
+                                'form_options' => [
+                                    'class' => '%sylius.model.currency.class%',
+                                    'choice_value' => 'code',
+                                    'choice_label' => 'code',
+                                ],
+                            ],
+                            'deliveryType' => [
+                                'type' => 'select',
+                                'label' => 'setono_sylius_gift_card.ui.delivery_type',
+                                'form_options' => [
+                                    'choices' => [
+                                        'setono_sylius_gift_card.ui.delivery_type_virtual' => GiftCardDeliveryType::Virtual->value,
+                                        'setono_sylius_gift_card.ui.delivery_type_physical' => GiftCardDeliveryType::Physical->value,
+                                    ],
+                                ],
+                            ],
                             'enabled' => [
                                 'type' => 'boolean',
                                 'label' => 'sylius.ui.enabled',
+                            ],
+                            // The expiry date and the balance on their own, whichever status the column shows
+                            'expired' => [
+                                'type' => GiftCardExpiredFilter::NAME,
+                                'label' => 'setono_sylius_gift_card.ui.expired',
+                            ],
+                            'spent' => [
+                                'type' => GiftCardSpentFilter::NAME,
+                                'label' => 'setono_sylius_gift_card.ui.spent',
+                            ],
+                            // Hidden unless the admin asks for them. The default applies to a grid opened without
+                            // criteria, and hiding is the form's empty choice, so the form shows what is applied
+                            'pending' => [
+                                'type' => GiftCardPendingFilter::NAME,
+                                'label' => 'setono_sylius_gift_card.ui.pending_gift_cards',
+                                'default_value' => '',
+                                'form_options' => [
+                                    'placeholder' => 'setono_sylius_gift_card.ui.pending_hide',
+                                    'choices' => [
+                                        'setono_sylius_gift_card.ui.pending_show' => GiftCardPendingFilter::SHOW,
+                                        'setono_sylius_gift_card.ui.pending_only' => GiftCardPendingFilter::ONLY,
+                                    ],
+                                ],
+                            ],
+                            'createdAt' => [
+                                'type' => 'date',
+                                'label' => 'sylius.ui.created_at',
+                                // The last day picked is included, as in Sylius' own date filters
+                                'options' => [
+                                    'inclusive_to' => true,
+                                ],
                             ],
                         ],
                         'actions' => [
@@ -506,8 +590,10 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                     ],
                                     'icon' => 'balance scale',
                                 ],
+                                // Only offered for a card that may be deleted. GiftCardDeletionSubscriber still refuses
+                                // the others, pressed on a page opened before the card was spent from
                                 'delete' => [
-                                    'type' => 'delete',
+                                    'type' => 'setono_sylius_gift_card_gift_card_delete',
                                 ],
                             ],
                         ],
@@ -517,6 +603,11 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                             'name' => 'doctrine/orm',
                             'options' => [
                                 'class' => '%setono_sylius_gift_card.model.gift_card_design.class%',
+                                // The name shown is the translation in the admin's locale, so that is the one sorted by
+                                'repository' => [
+                                    'method' => 'createListQueryBuilder',
+                                    'arguments' => ["expr:service('sylius.context.locale').getLocaleCode()"],
+                                ],
                             ],
                         ],
                         'sorting' => [
@@ -540,6 +631,15 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                 'type' => 'string',
                                 'label' => 'sylius.ui.name',
                                 'path' => 'translation.name',
+                                // The translation createListQueryBuilder() joins
+                                'sortable' => 'translation.name',
+                            ],
+                            'channels' => [
+                                'type' => 'twig',
+                                'label' => 'sylius.ui.channels',
+                                'options' => [
+                                    'template' => '@SyliusAdmin/Grid/Field/_channels.html.twig',
+                                ],
                             ],
                             'position' => [
                                 'type' => 'string',

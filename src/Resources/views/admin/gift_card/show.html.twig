@@ -32,6 +32,10 @@
                             <td>{{ giftCard.code|setono_gift_card_format_code }}</td>
                         </tr>
                         <tr>
+                            <td><strong>{{ 'sylius.ui.status'|trans }}</strong></td>
+                            <td>{% include '@SetonoSyliusGiftCardPlugin/admin/gift_card/_status.html.twig' with {'giftCard': giftCard} only %}</td>
+                        </tr>
+                        <tr>
                             <td><strong>{{ 'sylius.ui.enabled'|trans }}</strong></td>
                             <td>{% include '@SyliusUi/Grid/Field/enabled.html.twig' with {'data': giftCard.enabled} %}</td>
                         </tr>
@@ -53,17 +57,50 @@
                         </tr>
                         <tr>
                             <td><strong>{{ 'sylius.ui.customer'|trans }}</strong></td>
+                            {# The grid's customer column, so both mail the customer from the email and open them from the icon #}
+                            <td>{% include '@SetonoSyliusGiftCardPlugin/admin/gift_card/grid/field/customer.html.twig' with {'data': giftCard.customer} only %}</td>
+                        </tr>
+                        {# The admin has no page for a cart, so an order is only linked once it is placed #}
+                        {% set cartState = constant('Sylius\\Component\\Order\\Model\\OrderInterface::STATE_CART') %}
+                        <tr>
+                            <td><strong>{{ 'setono_sylius_gift_card.ui.bought_with_order'|trans }}</strong></td>
                             <td>
-                                {% if giftCard.customer %}
-                                    <a href="{{ path('sylius_admin_customer_show', {'id': giftCard.customer.id}) }}">{{ giftCard.customer.email }}</a>
+                                {% set boughtWith = giftCard.order %}
+                                {% if boughtWith is null %}
+                                    -
+                                {% elseif boughtWith.state == cartState %}
+                                    {{ 'setono_sylius_gift_card.ui.in_cart'|trans }}
                                 {% else %}
-                                    {{ 'setono_sylius_gift_card.ui.no_customer'|trans }}
+                                    <a href="{{ path('sylius_admin_order_show', {'id': boughtWith.id}) }}">#{{ boughtWith.number }}</a>
                                 {% endif %}
                             </td>
                         </tr>
                         <tr>
+                            <td><strong>{{ 'setono_sylius_gift_card.ui.applied_to_orders'|trans }}</strong></td>
+                            <td>
+                                {% for appliedOrder in giftCard.appliedOrders|filter(order => order.state != cartState)|sort((a, b) => a.id <=> b.id) %}
+                                    <a href="{{ path('sylius_admin_order_show', {'id': appliedOrder.id}) }}">#{{ appliedOrder.number }}</a>{% if not loop.last %}, {% endif %}
+                                {% else %}
+                                    -
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        <tr>
                             <td><strong>{{ 'setono_sylius_gift_card.ui.design'|trans }}</strong></td>
-                            <td>{{ giftCard.design ? giftCard.design.name : '-' }}</td>
+                            <td>
+                                {% set design = giftCard.design %}
+                                {% if design is null %}
+                                    -
+                                {% else %}
+                                    {# A design has no page of its own but its edit page, which shows its images #}
+                                    <a href="{{ path('setono_sylius_gift_card_admin_gift_card_design_update', {'id': design.id}) }}">
+                                        {% if design.frontImage is not null and design.frontImage.path is not null %}
+                                            <img class="ui small rounded image" src="{{ design.frontImage.path|imagine_filter('setono_sylius_gift_card_design_thumbnail') }}" alt="">
+                                        {% endif %}
+                                        {{ design.name }}
+                                    </a>
+                                {% endif %}
+                            </td>
                         </tr>
                         <tr>
                             <td><strong>{{ 'setono_sylius_gift_card.form.gift_card.custom_message'|trans }}</strong></td>

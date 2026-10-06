@@ -360,6 +360,51 @@ test.describe('admin gift card designs', () => {
         await expect(page.locator(`${GRID_ROWS} a[href$="/edit"]`).first()).toBeVisible();
     });
 
+    /**
+     * A design is only offered in the channels it is enabled for, so the grid says which those are
+     */
+    test('the design grid lists the channels of every design', async ({ page }) => {
+        await page.goto('/admin/gift-card-designs/');
+
+        const headers = (await page.locator('[data-test-grid-table] thead th').allInnerTexts()).map((header) => header.trim());
+        const column = headers.indexOf('Channels');
+        expect(column, 'the design grid shows no channels column').toBeGreaterThanOrEqual(0);
+
+        const row = page.locator(GRID_ROWS).first();
+        const listed = (await row.locator(`td:nth-child(${column + 1})`).innerText()).trim();
+        const editUrl = /** @type {string} */ (await row.locator('a[href$="/edit"]').first().getAttribute('href'));
+
+        // the channels the design's form has ticked, named by their labels
+        await page.goto(editUrl);
+        const ticked = await page
+            .locator('input[name$="[channels][]"]:checked')
+            .evaluateAll((inputs) => inputs.map((input) => (/** @type {HTMLInputElement} */ (input)).labels?.[0]?.textContent?.trim() ?? ''));
+        expect(ticked.length, 'the seeded design should be enabled in a channel for this to test anything').toBeGreaterThan(0);
+
+        for (const channel of ticked) {
+            expect(listed, 'the grid should name every channel of the design').toContain(channel);
+        }
+    });
+
+    test('the design grid can be sorted by name', async ({ page }) => {
+        await page.goto('/admin/gift-card-designs/');
+
+        const header = page.locator('[data-test-grid-table] thead th').filter({ hasText: /^\s*Name/ }).locator('a');
+        await expect(header, 'the name column should be sortable').toHaveCount(1);
+
+        for (let click = 0; click < 2; click++) {
+            await clickAndWaitForPage(page, header);
+
+            const direction = new URL(page.url()).searchParams.get('sorting[name]');
+            expect(['asc', 'desc'], 'the grid should now be sorted by name').toContain(direction);
+
+            const column = (await page.locator('[data-test-grid-table] thead th').allInnerTexts()).findIndex((text) => /^\s*Name/.test(text));
+            const names = (await page.locator(`${GRID_ROWS} > td:nth-child(${column + 1})`).allInnerTexts()).map((name) => name.trim());
+            const sorted = [...names].sort((a, b) => a.localeCompare(b));
+            expect(names).toEqual('asc' === direction ? sorted : sorted.reverse());
+        }
+    });
+
     test('a design can be edited', async ({ page }) => {
         const id = await firstDesignId(page);
 

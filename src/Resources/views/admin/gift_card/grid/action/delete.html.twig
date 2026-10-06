@@ -1,0 +1,8 @@
+{#
+    Sylius' delete button, left out for a gift card that cannot be deleted (GiftCardInterface::isDeletable()): one that
+    was bought, or whose balance has moved. GiftCardDeletionSubscriber refuses to delete those as well, for the button
+    on a page opened before the card changed. Registered as the action type `setono_sylius_gift_card_gift_card_delete`.
+#}
+{% if data.deletable %}
+    {% include '@SyliusUi/Grid/Action/delete.html.twig' %}
+{% endif %}

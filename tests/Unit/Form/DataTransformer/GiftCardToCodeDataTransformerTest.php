@@ -83,6 +83,44 @@ final class GiftCardToCodeDataTransformerTest extends TestCase
     }
 
     /**
+     * An empty field is no gift card rather than an unknown code: the NotBlank constraint asks for a code, and no
+     * failed lookup is logged for it
+     *
+     * @test
+     *
+     * @dataProvider emptySubmissions
+     */
+    public function it_takes_an_empty_submission_for_no_gift_card(?string $submitted): void
+    {
+        $logger = $this->prophesize(LoggerInterface::class);
+        $transformer = $this->transformer([], $logger->reveal());
+
+        self::assertNull($transformer->reverseTransform($submitted));
+        $logger->info(Argument::any())->shouldNotHaveBeenCalled();
+    }
+
+    /**
+     * @return iterable<string, array{?string}>
+     */
+    public static function emptySubmissions(): iterable
+    {
+        yield 'nothing submitted' => [null];
+        yield 'an empty field' => [''];
+    }
+
+    /** @test */
+    public function it_shows_a_gift_card_by_its_code(): void
+    {
+        $giftCard = $this->prophesize(GiftCardInterface::class);
+        $giftCard->getCode()->willReturn(self::CODE);
+
+        $transformer = $this->transformer([]);
+
+        self::assertSame(self::CODE, $transformer->transform($giftCard->reveal()));
+        self::assertNull($transformer->transform(null));
+    }
+
+    /**
      * The repository only answers to the canonical codes listed here, so a lookup with anything else, the raw
      * input for instance, is an unexpected call and fails the test. The real normalizer is used on purpose:
      * what is under test is that the input reaches the repository in canonical form

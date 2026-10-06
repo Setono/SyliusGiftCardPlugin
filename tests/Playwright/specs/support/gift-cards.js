@@ -7,7 +7,7 @@
  */
 
 const { expect } = require('@playwright/test');
-const { GRID_ROWS, setChecked } = require('./admin');
+const { GRID_ROWS, flashMessages, setChecked } = require('./admin');
 const { channelBaseCurrencyCode } = require('./fixtures');
 const { moneyInCents, typedAmount } = require('./money');
 const { clickAndWaitForPage } = require('./navigation');
@@ -107,6 +107,23 @@ async function issueGiftCard(page, { amount, code = null, enabled = true, custom
 }
 
 /**
+ * Adjusts the balance through the adjust balance form and waits for the page it leads to, the card's show page
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} id
+ * @param {number} amount in minor units, negative to deduct
+ * @param {string} reason
+ */
+async function adjustBalance(page, id, amount, reason) {
+    await page.goto(`/admin/gift-cards/${id}/adjust-balance`);
+    await page.locator('input[name$="[amount]"]').fill(`${amount < 0 ? '-' : ''}${typedAmount(Math.abs(amount))}`);
+    await page.locator('textarea[name$="[reason]"]').fill(reason);
+
+    await clickAndWaitForPage(page, page.locator('form[name="setono_sylius_gift_card_adjust_balance"] button[type="submit"]'));
+    expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/balance was adjusted/i));
+}
+
+/**
  * The details table of a card's show page, keyed by the label of each row, e.g. `details.Amount`
  *
  * @param {import('@playwright/test').Page} page
@@ -170,6 +187,54 @@ async function giftCardRows(page, text) {
 }
 
 /**
+ * Applies the gift card grid's filters through its form, the way an admin does, and waits for the filtered grid. The
+ * filters not given keep what the grid opens with, which hides the pending cards.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {{code?: {type: string, value: string}, customer?: string, enabled?: string, expired?: string, spent?: string, pending?: string}} criteria
+ *        customer is a part of the email; enabled, expired and spent take 'true', 'false' or '' for all; pending takes
+ *        '' to hide the pending cards, 'show' to list them with the others or 'only'
+ */
+async function filterGiftCards(page, criteria) {
+    await page.goto('/admin/gift-cards/');
+
+    for (const [name, value] of Object.entries(criteria)) {
+        if ('code' === name) {
+            const type = page.locator('select[name="criteria[code][type]"]');
+            await expect(type, 'the grid offers no code filter').toHaveCount(1);
+            await type.selectOption(value.type);
+            await page.locator('input[name="criteria[code][value]"]').fill(value.value);
+
+            continue;
+        }
+
+        if ('customer' === name) {
+            const field = page.locator('input[name="criteria[customer][value]"]');
+            await expect(field, 'the grid offers no customer filter').toHaveCount(1);
+            await field.fill(value);
+
+            continue;
+        }
+
+        const field = page.locator(`select[name="criteria[${name}]"]`);
+        await expect(field, `the grid offers no ${name} filter`).toHaveCount(1);
+        await field.selectOption(value);
+    }
+
+    await clickAndWaitForPage(page, page.getByRole('button', { name: 'Filter' }));
+}
+
+/**
+ * The status label the grid shows in each of the given rows, e.g. "Usable" or "Pending", found by its hook
+ *
+ * @param {import('@playwright/test').Locator} rows
+ * @returns {Promise<string[]>}
+ */
+async function giftCardStatuses(rows) {
+    return (await rows.locator('[data-test-gift-card-status]').allInnerTexts()).map((status) => status.trim());
+}
+
+/**
  * The ids of the cards in the given grid rows, taken from their show links
  *
  * @param {import('@playwright/test').Locator} rows
@@ -181,4 +246,4 @@ async function giftCardIds(rows) {
     return [...new Set(hrefs.map((href) => /^\/admin\/gift-cards\/(\d+)$/.exec(href)?.[1]).filter((id) => undefined !== id))];
 }
 
-module.exports = { giftCardDetails, giftCardIds, giftCardRows, giftCardTransactions, issueGiftCard, pickCustomer };
+module.exports = { adjustBalance, filterGiftCards, giftCardDetails, giftCardIds, giftCardRows, giftCardStatuses, giftCardTransactions, issueGiftCard, pickCustomer };
