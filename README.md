@@ -36,6 +36,8 @@ A gift card issued in the admin is virtual unless you choose *Physical* on the c
 
 The customer chooses the amount, a design and an optional message on the product page (with a live preview). The amount field starts out at the price the page shows, i.e. the preselected variant's price in the channel, so the gift card product's price is the amount you suggest; a price the shop would refuse as an amount (zero, or outside `purchase.minimum_amount` / `maximum_amount`) leaves the field empty, and a shop whose maximum equals its minimum starts it at that one amount whatever the price. A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)). Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
 
+The **Create gift card product** button builds a gift card product whose inventory is not tracked, so it sells any number of cards. If you track it, for printed cards of which you have a limited stock, say, the stock is checked against all the cards of a variant in the cart together: every card added gets a cart line of its own, where another product's lines of the same variant merge into one, and Sylius' own stock checks look at one line at a time. The product page refuses cards that the cart's other lines of the variant leave no stock for, and the cart page and the checkout refuse a cart whose lines of the variant together hold more than is in stock.
+
 Promotions never discount a gift card: a card is worth the amount the customer chose, so that is both what the customer pays for it and what the card holds. Unit discounts skip gift card lines, an order discount is taken from the other items only (a percentage of those items, spread over those items), and buying a gift card does not count towards a promotion's "item total" rule. Otherwise a coupon for the whole shop would sell full value gift cards at a discount. This also changes how promotions you already run behave: with "free shipping over 100.00" (an "item total" rule with a shipping discount), an order of a physical gift card for 100.00 used to ship for free and now pays for shipping, because buying a gift card is paying in advance rather than spending. To keep a promotion from applying at all to an order that buys a gift card, add the "Has no gift card" rule to it.
 
 Sylius keeps an order's totals in integer columns, which hold 21,474,836.47 of a two decimal currency (2147483647 minor units, Sylius' `sylius_core.max_int_value`), and a cart past that ends in a server error when the database refuses it. The customer chooses what a gift card costs, so two large cards, or one at a quantity of two, would get there: the product page refuses a gift card that would take the cart's items total or order total past the limit, and the cart page refuses a gift card line's quantity raised past it. Both are validation errors that leave the cart as it was. The check runs before Sylius recalculates the cart, so it does not count what the recalculation adds besides the cards, such as a tax on the gift card product or shipping for a physical card: a cart that close to the limit can still overflow it. Ordinary products are left to Sylius, which lets them overflow a cart the same way at a high enough price and quantity, with the plugin or without it. An application that widens Sylius' order columns raises `sylius_core.max_int_value` with them, and the limit follows. Setting `purchase.maximum_amount` keeps ordinary carts far from it.
@@ -467,7 +469,7 @@ All settings are optional and shown here with their defaults:
 setono_sylius_gift_card:
     code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…); at least minimum_code_length, at most 255
     minimum_code_length: 12              # fewest significant characters of any code a card is issued with, generated or typed; 12 to 255, never below 12 because a code is a bearer token and must not be guessable; see below
-    default_validity_period: '3 years'   # how long a card stays valid (any strtotime-compatible interval), or null to never expire; see below
+    default_validity_period: '3 years'   # how long a card stays valid (an interval such as '18 months' or '1 year 6 months'), or null to never expire; see below
     purchase:
         minimum_amount: 100              # minor units (e.g. cents), at least 1
         maximum_amount: ~                # minor units, at least minimum_amount, or ~ for no maximum
@@ -500,6 +502,26 @@ expires at the end of the day the period after checkout completion, however long
 card bought on one order expires on the same day. It does not count from payment, even when that comes days later, as
 with a bank transfer. A change to the setting applies to the cards bought or issued after it; existing cards keep their
 expiry.
+
+`default_validity_period` takes an interval that moves a date forward, in units `strtotime()` knows, such as
+`'3 years'`, `'18 months'`, `'2 weeks'`, `'90 days'` or `'1 year 6 months'`, and nothing else. Whether `strtotime()`
+can read a value is not the test, since it reads far more than intervals: it reads a unit it does not know (`'3 yrs'`,
+`'18 mnths'`) or a bare number (`'3'`) as a timezone, which would make every card expire the day it is issued. Such a
+value stops the container from compiling, and so do a day name (`'3 mon'` is the third Monday from now, not 3 months),
+a date, a time of day, a timezone, and an interval of nothing or one that goes back (`'0 days'`, `'-1 year'`,
+`'3 years ago'`).
+
+`default_validity_period` can also be taken from an environment variable, such as
+`default_validity_period: '%env(GIFT_CARD_VALIDITY)%'`. Its value is only known at runtime, so the container compiles
+whatever the variable holds, and the interval is checked by the same rules where it is used instead. While the variable
+holds anything but such an interval, whatever gives a gift card its expiry throws with a message naming the setting,
+such as `The default_validity_period must be a valid strtotime interval, e.g. "3 years": "3 yrs"`: adding a gift card
+to the cart, completing an order that buys one, the *New gift card* form, the fixture, and the admin's design preview,
+which draws a sample card. The rest of the shop keeps working. The variable has to give a string, so `%env(int:...)%`
+is refused while the container compiles. To let the variable mean *never expire*, read it as
+`%env(default::GIFT_CARD_VALIDITY)%`: an empty or unset variable is then null. The container accepts `default::` here
+from symfony/dependency-injection 6.4.19; before it, Symfony takes `default::` to give any type, an array included,
+and refuses it for this option, as it did before the option could be taken from a variable at all.
 
 `minimum_code_length` applies to every card issued from now on: `code_length` cannot be set below it, an admin who
 types a code of their own on the *New gift card* form is held to it, and so is a code given to the `setono_gift_card`
@@ -659,6 +681,8 @@ parameters:
 ```
 
 The plugin verifies this at container compile time and fails with an actionable message if the configured class does not implement the interface. Its factory decorator is idempotent and applied outermost, so it also composes cleanly with a decorator of your own on `sylius.factory.add_to_cart_command`.
+
+Sylius validates its own command with a stock check (`CartItemAvailability`: what is added, together with what the cart already holds of the variant, has to be in stock), mapped on its command class. The plugin maps the same check on `AddToCartCommandInterface`, so the add-to-cart form keeps it whichever command it is bound to, your own included.
 
 ### Overriding models, repositories and factories
 

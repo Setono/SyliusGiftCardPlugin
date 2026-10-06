@@ -556,13 +556,146 @@ final class ConfigurationTest extends TestCase
         );
     }
 
-    /** @test */
-    public function it_rejects_an_invalid_validity_period(): void
+    /**
+     * An interval strtotime() can add to a date, in any of its units, and null for gift cards that never expire
+     *
+     * @dataProvider provideValidityPeriodsAcceptedWhileCompiling
+     *
+     * @test
+     */
+    public function it_takes_an_interval_or_null_as_the_validity_period(?string $period): void
     {
-        $this->assertConfigurationIsInvalid(
-            [['default_validity_period' => 'not a period']],
-            'strtotime',
-        );
+        $container = self::processThroughTheCompilerPasses(['default_validity_period' => $period]);
+
+        self::assertSame($period, $container->getParameter('setono_sylius_gift_card.default_validity_period'));
+    }
+
+    /**
+     * @return iterable<string, array{string|null}>
+     */
+    public static function provideValidityPeriodsAcceptedWhileCompiling(): iterable
+    {
+        yield 'years' => ['3 years'];
+        yield 'months' => ['18 months'];
+        yield 'weeks' => ['2 weeks'];
+        yield 'days' => ['90 days'];
+        yield 'one of a unit' => ['1 year'];
+        yield 'more than one unit' => ['1 year 6 months'];
+        yield 'null, for gift cards that never expire' => [null];
+    }
+
+    /**
+     * While it compiles the container, Symfony checks a value taken from an environment variable against a dummy
+     * value, '' for a string, which is no interval, and the extension is handed the placeholder the container knows the
+     * variable by. The interval is then left to the value the variable has at runtime, which GiftCardExpiryResolver
+     * checks when it uses it
+     *
+     * @dataProvider provideValidityPeriodsTakenFromEnvironmentVariables
+     *
+     * @test
+     */
+    public function it_takes_the_validity_period_from_an_environment_variable(string $period): void
+    {
+        $container = self::processThroughTheCompilerPasses(['default_validity_period' => $period]);
+
+        self::assertSame($period, $container->resolveEnvPlaceholders($container->getParameter('setono_sylius_gift_card.default_validity_period')));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideValidityPeriodsTakenFromEnvironmentVariables(): iterable
+    {
+        yield 'a variable' => ['%env(GIFT_CARD_VALIDITY)%'];
+        yield 'a variable read as a string' => ['%env(string:GIFT_CARD_VALIDITY)%'];
+        yield 'a variable inside a longer value' => ['%env(GIFT_CARD_VALIDITY_YEARS)% years'];
+    }
+
+    /**
+     * The README's way to let the variable mean "never expire": the default processor gives null for an empty or unset
+     * variable. Symfony only gives default:: the types of its fallback and its variable while it compiles from
+     * symfony/dependency-injection 6.4.19 (6094d2c, "Fix env default processor with scalar node"); before that it takes
+     * default:: to give any type, an array included, which a scalar node refuses
+     *
+     * @test
+     */
+    public function it_takes_the_validity_period_from_an_environment_variable_that_may_be_empty(): void
+    {
+        if (version_compare((string) InstalledVersions::getVersion('symfony/dependency-injection'), '6.4.19', '<')) {
+            self::markTestSkipped('Before symfony/dependency-injection 6.4.19 the default:: processor was taken to give an array as well, which a scalar node refuses');
+        }
+
+        $container = self::processThroughTheCompilerPasses(['default_validity_period' => '%env(default::GIFT_CARD_VALIDITY)%']);
+
+        self::assertSame('%env(default::GIFT_CARD_VALIDITY)%', $container->resolveEnvPlaceholders($container->getParameter('setono_sylius_gift_card.default_validity_period')));
+    }
+
+    /**
+     * Only the interval of an environment variable waits for runtime. A value written in the configuration is still
+     * held to the rule while the container compiles, with the message it always had, and so is the type an environment
+     * variable gives, which is known by then
+     *
+     * @dataProvider provideValidityPeriodsRefusedWhileCompiling
+     *
+     * @test
+     */
+    public function it_refuses_an_invalid_validity_period_while_compiling(mixed $period, string $expectedMessage): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        self::processThroughTheCompilerPasses(['default_validity_period' => $period]);
+    }
+
+    /**
+     * @return iterable<string, array{mixed, string}>
+     */
+    public static function provideValidityPeriodsRefusedWhileCompiling(): iterable
+    {
+        yield 'not an interval' => [
+            'not a period',
+            'Invalid configuration for path "setono_sylius_gift_card.default_validity_period": The default_validity_period must be a valid strtotime interval, e.g. "3 years": "not a period"',
+        ];
+
+        yield 'empty' => [
+            '',
+            'Invalid configuration for path "setono_sylius_gift_card.default_validity_period": The default_validity_period must be a valid strtotime interval, e.g. "3 years": ""',
+        ];
+
+        yield 'a number' => [
+            3,
+            'Invalid configuration for path "setono_sylius_gift_card.default_validity_period": The default_validity_period must be a valid strtotime interval, e.g. "3 years": 3',
+        ];
+
+        // strtotime() reads every one of these, but not as an interval and nothing else, and most of them give a card
+        // that expires the day it is issued, or before
+        foreach ([
+            'a unit strtotime() does not know, read as a timezone' => '3 yrs',
+            'a misspelled unit' => '3 yeers',
+            'another misspelled unit' => '18 mnths',
+            'a unit in another language' => '2 jahre',
+            'a number without a unit, read as a timezone' => '3',
+            'a day name, read as the third Monday from now' => '3 mon',
+            'a day of the month' => '1 month last day of',
+            'a date' => '2030-01-01',
+            'a time of day' => '3 years noon',
+            'a timezone' => '3 years UTC',
+            'an interval of nothing' => '0 days',
+            'a negative interval' => '-1 year',
+            'an interval into the past' => '3 years ago',
+            'a unit that goes back, after one that goes forward' => '1 year -18 months',
+        ] as $name => $period) {
+            yield $name => [
+                $period,
+                sprintf('Invalid configuration for path "setono_sylius_gift_card.default_validity_period": The default_validity_period must be a valid strtotime interval, e.g. "3 years": "%s"', $period),
+            ];
+        }
+
+        // The rule only sees Symfony's dummy value for the variable, 0 for an int, as on 1.x
+        yield 'an environment variable read as an integer' => [
+            '%env(int:GIFT_CARD_VALIDITY)%',
+            'Invalid configuration for path "setono_sylius_gift_card.default_validity_period": The default_validity_period must be a valid strtotime interval, e.g. "3 years": 0',
+        ];
     }
 
     protected function getConfiguration(): ConfigurationInterface

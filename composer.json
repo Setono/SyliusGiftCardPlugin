@@ -29,6 +29,7 @@
         "sylius/customer": "^1.0",
         "sylius/fixtures-bundle": "^1.7",
         "sylius/grid-bundle": "^1.11",
+        "sylius/inventory": "^1.0",
         "sylius/locale": "^1.0",
         "sylius/mailer-bundle": "^1.8 || ^2.0",
         "sylius/money-bundle": "^1.0",

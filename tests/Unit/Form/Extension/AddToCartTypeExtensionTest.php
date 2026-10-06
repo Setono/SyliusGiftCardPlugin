@@ -23,12 +23,14 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCartItemAvailabilityValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCartValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator;
 use Sylius\Bundle\CoreBundle\Form\Extension\CartItemTypeExtension;
 use Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType;
+use Sylius\Bundle\CoreBundle\Validator\Constraints\CartItemAvailabilityValidator;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Sylius\Bundle\OrderBundle\Controller\AddToCartCommand as BaseAddToCartCommand;
 use Sylius\Bundle\OrderBundle\Form\DataMapper\OrderItemQuantityDataMapper;
@@ -39,6 +41,7 @@ use Sylius\Component\Core\Model\Product as PlainProduct;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Model\ProductVariant;
 use Sylius\Component\Currency\Model\Currency;
+use Sylius\Component\Inventory\Checker\AvailabilityChecker;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Sylius\Component\Order\Factory\OrderItemUnitFactory;
 use Sylius\Component\Order\Modifier\OrderItemQuantityModifier;
@@ -314,6 +317,9 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
             ->addXmlMapping(__DIR__ . '/../../../../src/Resources/config/validation/GiftCardInformation.xml')
             ->addXmlMapping(__DIR__ . '/../../../../src/Resources/config/validation/AddToCartCommandInterface.xml')
             ->setConstraintValidatorFactory(new ConstraintValidatorFactory([
+                // Sylius' stock check, which the mapping carries too, under the alias its constraint names. The
+                // variants here are not tracked, so it passes them whatever the quantity
+                'sylius_cart_item_availability' => new CartItemAvailabilityValidator(new AvailabilityChecker()),
                 GiftCardFitsCartValidator::class => new GiftCardFitsCartValidator(
                     2147483647,
                     $moneyFormatter->reveal(),
@@ -326,6 +332,7 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
                     $localeContext->reveal(),
                 ),
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
+                GiftCardCartItemAvailabilityValidator::class => new GiftCardCartItemAvailabilityValidator(new AvailabilityChecker()),
                 GiftCardDesignRequiredValidator::class => new GiftCardDesignRequiredValidator(
                     $channelContext->reveal(),
                     $designProvider->reveal(),
