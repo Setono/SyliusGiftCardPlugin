@@ -1,16 +1,22 @@
 {% import "@SyliusShop/Common/Macro/money.html.twig" as money %}
 
-{% set order = cart %}
-
 {#
-    Sylius fires no template event inside its totals table, so these figures cannot become rows of it without the
-    host application overriding `@SyliusShop/Cart/Summary/_totals.html.twig`. They are instead rendered as a segment
-    of their own, built like the one they follow, and registered on `sylius.shop.cart.summary` with a priority that
-    places it right below the totals (see SetonoSyliusGiftCardExtension::prepend()).
+    What the applied gift cards cover and what remains to pay, wherever the shop sums up the cart: below the totals of
+    the cart summary, below the summary on the address, shipping and payment steps, and below the order summary on the
+    complete step (see SetonoSyliusGiftCardExtension::prepend()). The order is still a cart on all of them. Sylius
+    passes it to the cart summary as `cart` and to the checkout's summaries as `order`, so either is taken.
+
+    Sylius fires no template event inside its totals tables, so these figures cannot become rows of them without the
+    host application overriding Sylius' templates. They are instead rendered as a segment of their own, built like the
+    summaries of the cart and the checkout sidebar, on the events Sylius renders each summary through, with a priority
+    that places the segment right below the summary. The gift cards pay for the order rather than discount it, so the
+    order total the summaries show stays what the order costs, and this is where the customer sees what is left to pay.
 
     Amounts go through the `money` macro, like every other figure in the summary, so they follow the display currency
     the shopper picked rather than the currency the order is stored in.
 #}
+{% set order = cart ?? order %}
+
 {% if order.giftCards is not empty %}
     {% set covered = setono_gift_card_covered_amount(order) %}
     {% if covered > 0 %}
