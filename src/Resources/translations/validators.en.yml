@@ -2,6 +2,8 @@ setono_sylius_gift_card:
     add_gift_card_to_order_command:
         gift_card:
             not_blank: Please enter a gift card code
+    add_to_cart_command:
+        gift_card_does_not_fit_cart: 'A cart cannot total more than {{ maximum }}, so this gift card does not fit in yours.'
     adjust_gift_card_balance_command:
         amount:
             not_blank: Please enter an amount
@@ -48,3 +50,5 @@ setono_sylius_gift_card:
             not_blank: Please enter a name
         images:
             unique_type: You can only add one "{{ type }}" image to a design.
+    order:
+        gift_card_quantity_does_not_fit_cart: 'A cart cannot total more than {{ maximum }}, so this many gift cards do not fit in yours.'

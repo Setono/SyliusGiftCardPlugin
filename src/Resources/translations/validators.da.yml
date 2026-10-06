@@ -2,6 +2,8 @@ setono_sylius_gift_card:
     add_gift_card_to_order_command:
         gift_card:
             not_blank: Indtast venligst en gavekortkode
+    add_to_cart_command:
+        gift_card_does_not_fit_cart: 'En kurv kan i alt højst koste {{ maximum }}, så der er ikke plads til dette gavekort i din.'
     adjust_gift_card_balance_command:
         amount:
             not_blank: Indtast venligst et beløb
@@ -48,3 +50,5 @@ setono_sylius_gift_card:
             not_blank: Indtast venligst et navn
         images:
             unique_type: 'Du kan kun tilføje ét "{{ type }}"-billede til et design.'
+    order:
+        gift_card_quantity_does_not_fit_cart: 'En kurv kan i alt højst koste {{ maximum }}, så der er ikke plads til så mange gavekort i din.'
