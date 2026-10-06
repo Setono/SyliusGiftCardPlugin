@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
 use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\AdjustGiftCardBalanceCommand;
-use Sylius\Bundle\MoneyBundle\Form\Type\MoneyType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -25,7 +24,7 @@ final class AdjustGiftCardBalanceType extends AbstractType
         // The constraints live on AdjustGiftCardBalanceCommand rather than here, so the rules travel with the
         // data instead of with the one form that happens to produce it
         $builder
-            ->add('amount', MoneyType::class, [
+            ->add('amount', MinorUnitsMoneyType::class, [
                 'label' => 'setono_sylius_gift_card.form.adjust_balance.amount',
                 'currency' => $currency,
                 'help' => 'setono_sylius_gift_card.form.adjust_balance.amount_help',

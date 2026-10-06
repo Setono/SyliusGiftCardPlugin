@@ -14,6 +14,26 @@
             <tag name="validator.constraint_validator"/>
         </service>
 
+        <!-- Sylius' order totals are integer columns, and sylius_core.max_int_value is Sylius' setting for the most its
+             integer columns hold -->
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCartValidator"
+                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCartValidator">
+            <argument>%sylius_core.max_int_value%</argument>
+            <argument type="service" id="sylius.money_formatter"/>
+            <argument type="service" id="sylius.context.locale"/>
+
+            <tag name="validator.constraint_validator"/>
+        </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardQuantityFitsCartValidator"
+                 class="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardQuantityFitsCartValidator">
+            <argument>%sylius_core.max_int_value%</argument>
+            <argument type="service" id="sylius.money_formatter"/>
+            <argument type="service" id="sylius.context.locale"/>
+
+            <tag name="validator.constraint_validator"/>
+        </service>
+
         <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\BalanceAdjustmentIsEligibleValidator"
                  class="Setono\SyliusGiftCardPlugin\Validator\Constraints\BalanceAdjustmentIsEligibleValidator">
             <argument type="service" id="sylius.money_formatter"/>

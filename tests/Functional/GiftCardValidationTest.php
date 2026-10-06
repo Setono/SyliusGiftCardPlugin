@@ -107,6 +107,21 @@ final class GiftCardValidationTest extends GiftCardFunctionalTestCase
     }
 
     /**
+     * The test application configures no maximum, which leaves the ceiling of the gift card's balance column, a signed
+     * 32-bit integer
+     *
+     * @test
+     */
+    public function it_rejects_an_amount_more_than_a_gift_card_can_hold(): void
+    {
+        self::assertSame([], $this->violations(new GiftCardInformation(2147483647)));
+        self::assertSame(
+            ['amount: setono_sylius_gift_card.gift_card_information.amount.too_large'],
+            $this->violations(new GiftCardInformation(2147483648), templates: true),
+        );
+    }
+
+    /**
      * The limit is setono_sylius_gift_card.purchase.maximum_message_length, 200 by default
      *
      * @test
@@ -266,6 +281,24 @@ final class GiftCardValidationTest extends GiftCardFunctionalTestCase
     }
 
     /**
+     * The balance is kept in an integer column, a signed 32-bit integer, which the database holds the card to
+     *
+     * @test
+     */
+    public function it_rejects_a_gift_card_holding_more_than_its_balance_column_can(): void
+    {
+        $giftCard = $this->createGiftCard('LARGEBALANCE001');
+        $giftCard->setAmount(2147483647);
+        self::assertSame([], $this->violations($giftCard));
+
+        $giftCard->setAmount(2147483648);
+        self::assertSame(
+            ['amount: setono_sylius_gift_card.gift_card.amount.too_large'],
+            $this->violations($giftCard, templates: true),
+        );
+    }
+
+    /**
      * The name is validated on the translation, which Sylius cascades into for every translatable resource
      *
      * @test
@@ -367,6 +400,26 @@ final class GiftCardValidationTest extends GiftCardFunctionalTestCase
         self::assertCount(1, $violations);
         self::assertSame('code', $violations[0]->getPropertyPath());
         self::assertSame(Length::TOO_LONG_ERROR, $violations[0]->getCode());
+    }
+
+    /** @test */
+    public function it_rejects_a_design_position_outside_the_column(): void
+    {
+        $design = $this->newDesign('positioned');
+
+        foreach ([-2147483648, 2147483647] as $position) {
+            $design->setPosition($position);
+            self::assertSame([], $this->violations($design), (string) $position);
+        }
+
+        foreach ([-2147483649, 2147483648] as $position) {
+            $design->setPosition($position);
+            self::assertSame(
+                ['position: setono_sylius_gift_card.gift_card_design.position.out_of_range'],
+                $this->violations($design, templates: true),
+                (string) $position,
+            );
+        }
     }
 
     /**

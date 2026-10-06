@@ -39,6 +39,13 @@ final class Configuration implements ConfigurationInterface
      */
     public const MAXIMUM_CODE_LENGTH = 255;
 
+    /**
+     * The most a gift card can hold, in minor units. Not a business rule but the ceiling of the columns its balance is
+     * kept in, which are mapped as Doctrine's integer type, a signed 32-bit integer in its portable type system. The
+     * validation mapping holds every amount to it as well, and repeats the number, since XML cannot name a constant
+     */
+    public const MAXIMUM_AMOUNT = 2147483647;
+
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('setono_sylius_gift_card');
@@ -78,18 +85,29 @@ final class Configuration implements ConfigurationInterface
                 )
                 ->arrayNode('purchase')
                     ->addDefaultsIfNotSet()
+                    // A maximum below the minimum leaves no amount a customer can buy. One equal to it is a shop
+                    // selling gift cards of a single amount. A value taken from an environment variable is only known
+                    // at runtime, so the two are only compared when both are given as integers
+                    ->validate()
+                        ->ifTrue(static fn (array $purchase): bool => is_int($purchase['minimum_amount'] ?? null) && is_int($purchase['maximum_amount'] ?? null) && $purchase['maximum_amount'] < $purchase['minimum_amount'])
+                        ->then(self::refuseMaximumAmountBelowMinimum(...))
+                    ->end()
                     ->children()
                         ->integerNode('minimum_amount')
                             ->info('The minimum purchasable gift card amount in minor units (e.g. cents)')
                             ->defaultValue(100)
                             ->min(1)
+                            // Above what a card can hold, no amount would be left that the shop accepts
+                            ->max(self::MAXIMUM_AMOUNT)
                         ->end()
                         // An integer node refuses an explicit null, which is what this option says to write
                         ->append(
                             (new NullableIntegerNodeDefinition('maximum_amount'))
-                                ->info('The maximum purchasable gift card amount in minor units. Set to null for no maximum')
+                                ->info('The maximum purchasable gift card amount in minor units. At least minimum_amount; set to null for no maximum')
                                 ->defaultNull()
-                                ->min(1),
+                                ->min(1)
+                                // Above what a card can hold, the help text would quote a maximum the shop refuses
+                                ->max(self::MAXIMUM_AMOUNT),
                         )
                         ->integerNode('maximum_message_length')
                             ->info('The maximum number of characters a customer may write on a gift card. The column is a TEXT, so the only hard ceiling is what fits in one')
@@ -154,6 +172,18 @@ final class Configuration implements ConfigurationInterface
             'The code_length (%d) must be at least the minimum_code_length (%d)',
             $config['code_length'],
             $config['minimum_code_length'],
+        ));
+    }
+
+    /**
+     * @param array{minimum_amount: int, maximum_amount: int} $purchase
+     */
+    private static function refuseMaximumAmountBelowMinimum(array $purchase): never
+    {
+        throw new \InvalidArgumentException(sprintf(
+            'The maximum_amount (%d) must be at least the minimum_amount (%d)',
+            $purchase['maximum_amount'],
+            $purchase['minimum_amount'],
         ));
     }
 

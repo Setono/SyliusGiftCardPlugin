@@ -24,6 +24,7 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCartValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator;
 use Sylius\Bundle\CoreBundle\Form\Extension\CartItemTypeExtension;
@@ -160,6 +161,33 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
     }
 
     /**
+     * The cart's totals are integer columns. A gift card that would take them past what they hold is refused on the
+     * form itself, before the handler turns it into cards
+     *
+     * @test
+     */
+    public function it_does_not_hand_a_gift_card_the_cart_has_no_room_for_to_the_cart_handler(): void
+    {
+        $this->cartGiftCardHandler->handle(Argument::any())->shouldNotBeCalled();
+
+        $cart = new Order();
+        $existing = new OrderItem();
+        $existing->setUnitPrice(2147483647);
+        new OrderItemUnit($existing);
+        $cart->addItem($existing);
+
+        $form = $this->createForm($this->command($this->product(giftCard: true), $cart));
+        $form->submit([
+            'cartItem' => ['quantity' => '1'],
+            'giftCardInformation' => ['amount' => '1.00'],
+        ]);
+
+        self::assertFalse($form->isValid());
+        self::assertCount(1, $form->getErrors(), 'the cart is what has no room, so the error is the form\'s own');
+        self::assertCount(0, $form->get('giftCardInformation')->get('amount')->getErrors());
+    }
+
+    /**
      * Sylius binds the form to its own command class. The decorated command factory hands the form the plugin's
      * command instead, which the form would reject as the wrong type unless it is told to expect it
      *
@@ -208,7 +236,7 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
      * What the decorated command factory hands the form on the product page: a new line holding one unit of the
      * product's only variant, and gift card information seeded with the line's unit price
      */
-    private function command(ProductInterface $product): AddToCartCommand
+    private function command(ProductInterface $product, ?Order $cart = null): AddToCartCommand
     {
         $variant = new ProductVariant();
         $product->addVariant($variant);
@@ -217,7 +245,7 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
         $item->setVariant($variant);
         new OrderItemUnit($item);
 
-        return new AddToCartCommand(new Order(), $item, new GiftCardInformation($item->getUnitPrice()));
+        return new AddToCartCommand($cart ?? new Order(), $item, new GiftCardInformation($item->getUnitPrice()));
     }
 
     private function product(bool $giftCard): Product
@@ -284,7 +312,13 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
 
         $validator = Validation::createValidatorBuilder()
             ->addXmlMapping(__DIR__ . '/../../../../src/Resources/config/validation/GiftCardInformation.xml')
+            ->addXmlMapping(__DIR__ . '/../../../../src/Resources/config/validation/AddToCartCommandInterface.xml')
             ->setConstraintValidatorFactory(new ConstraintValidatorFactory([
+                GiftCardFitsCartValidator::class => new GiftCardFitsCartValidator(
+                    2147483647,
+                    $moneyFormatter->reveal(),
+                    $localeContext->reveal(),
+                ),
                 ValidGiftCardAmountValidator::class => new ValidGiftCardAmountValidator(
                     $channelContext->reveal(),
                     $amountLimitsProvider->reveal(),

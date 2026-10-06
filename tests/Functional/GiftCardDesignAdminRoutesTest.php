@@ -74,9 +74,33 @@ final class GiftCardDesignAdminRoutesTest extends AdminFunctionalTestCase
     }
 
     /**
+     * The position is kept in an integer column, a signed 32-bit integer. The browser's number field takes a larger
+     * one, which used to end in a 500 when the database refused the design
+     *
+     * @test
+     */
+    public function it_refuses_a_position_its_column_cannot_hold(): void
+    {
+        $response = $this->submit('POST', '/admin/gift-card-designs/new', 'christmas', '99999999999');
+
+        self::assertSame(422, $response->getStatusCode());
+        self::assertSame(
+            ['The position must be between -2147483648 and 2147483647.'],
+            self::textsOf($response, sprintf(
+                '//div[contains(concat(" ", normalize-space(@class), " "), " field ")][.//input[@name="%s[position]"]]//*[contains(@class, "sylius-validation-error")]',
+                self::FORM,
+            )),
+        );
+
+        $response = $this->submit('POST', '/admin/gift-card-designs/new', 'christmas', '2147483647');
+
+        self::assertSame(['christmas'], $this->codesListedAfter($response));
+    }
+
+    /**
      * Fills in the design form found at the URI and submits it with the given method
      */
-    private function submit(string $method, string $uri, string $code): Response
+    private function submit(string $method, string $uri, string $code, string $position = '1'): Response
     {
         $form = $this->request('GET', $uri);
         self::assertSame(200, $form->getStatusCode());
@@ -86,7 +110,7 @@ final class GiftCardDesignAdminRoutesTest extends AdminFunctionalTestCase
             self::FORM => [
                 'code' => $code,
                 'translations' => ['en_US' => ['name' => ucfirst($code)]],
-                'position' => '1',
+                'position' => $position,
                 'channels' => ['TEST_CHANNEL'],
                 'enabled' => '1',
                 '_token' => self::valueOf($form, sprintf('//input[@name="%s[_token]"]', self::FORM)),
