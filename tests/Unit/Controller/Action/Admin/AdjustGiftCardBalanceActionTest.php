@@ -88,7 +88,7 @@ final class AdjustGiftCardBalanceActionTest extends TestCase
         $response = $this->action($giftCard)($request, self::ID);
 
         self::assertInstanceOf(RedirectResponse::class, $response);
-        self::assertSame('/admin/gift-cards/42/edit', $response->getTargetUrl());
+        self::assertSame('/admin/gift-cards/42', $response->getTargetUrl());
 
         $session = $request->getSession();
         self::assertInstanceOf(Session::class, $session);
@@ -117,8 +117,8 @@ final class AdjustGiftCardBalanceActionTest extends TestCase
 
         $urlGenerator = $this->prophesize(UrlGeneratorInterface::class);
         $urlGenerator
-            ->generate('setono_sylius_gift_card_admin_gift_card_update', ['id' => self::ID])
-            ->willReturn('/admin/gift-cards/42/edit')
+            ->generate('setono_sylius_gift_card_admin_gift_card_show', ['id' => self::ID])
+            ->willReturn('/admin/gift-cards/42')
         ;
 
         // Only an invalid reason is needed to prove an invalid submission is not applied, and building the validator

@@ -58,7 +58,8 @@ final class AdjustGiftCardBalanceAction
                 $session->getFlashBag()->add('success', 'setono_sylius_gift_card.gift_card.balance_adjusted');
             }
 
-            return new RedirectResponse($this->urlGenerator->generate('setono_sylius_gift_card_admin_gift_card_update', ['id' => $id]));
+            // To the show page, whose ledger lists the adjustment just made
+            return new RedirectResponse($this->urlGenerator->generate('setono_sylius_gift_card_admin_gift_card_show', ['id' => $id]));
         }
 
         return new Response($this->twig->render('@SetonoSyliusGiftCardPlugin/admin/gift_card/adjust_balance.html.twig', [

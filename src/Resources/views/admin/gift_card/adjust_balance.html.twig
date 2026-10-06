@@ -10,12 +10,13 @@
 {% block content %}
     <div class="ui stackable one column grid">
         <div class="column">
-            {{ headers.default('setono_sylius_gift_card.ui.adjust_balance'|trans, 'balance scale', giftCard.code) }}
+            {{ headers.default('setono_sylius_gift_card.ui.adjust_balance'|trans, 'balance scale', giftCard.code|setono_gift_card_format_code) }}
 
+            {# The card's show page lists the ledger the adjustment is written to, so that is where the way back leads #}
             {% set breadcrumbs = [
                 { label: 'sylius.ui.administration'|trans, url: path('sylius_admin_dashboard') },
                 { label: 'setono_sylius_gift_card.ui.gift_cards'|trans, url: path('setono_sylius_gift_card_admin_gift_card_index') },
-                { label: giftCard.code, url: path('setono_sylius_gift_card_admin_gift_card_update', {'id': giftCard.id}) },
+                { label: giftCard.code|setono_gift_card_format_code, url: path('setono_sylius_gift_card_admin_gift_card_show', {'id': giftCard.id}) },
                 { label: 'setono_sylius_gift_card.ui.adjust_balance'|trans }
             ] %}
             {{ breadcrumb.crumble(breadcrumbs) }}
@@ -41,7 +42,7 @@
                 <i class="save icon"></i>
                 {{ 'sylius.ui.save_changes'|trans }}
             </button>
-            <a href="{{ path('setono_sylius_gift_card_admin_gift_card_update', {'id': giftCard.id}) }}" class="ui button">
+            <a href="{{ path('setono_sylius_gift_card_admin_gift_card_show', {'id': giftCard.id}) }}" class="ui button">
                 {{ 'sylius.ui.cancel'|trans }}
             </a>
         </div>
