@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\DependencyInjection;
 
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\SetonoSyliusGiftCardExtension;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGenerator;
 use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardExpiredFilter;
 use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardPendingFilter;
 use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardSpentFilter;
@@ -63,6 +64,24 @@ final class SetonoSyliusGiftCardExtensionTest extends TestCase
         }
 
         self::assertContains(GiftCardSetupRuntime::class, $resettable);
+    }
+
+    /**
+     * A code length taken from an environment variable is only known at runtime, and the code generator is what
+     * compares code_length with minimum_code_length then, so it has to be handed both rather than fall back on the
+     * default minimum
+     *
+     * @test
+     */
+    public function it_hands_the_code_generator_both_code_lengths(): void
+    {
+        $container = new ContainerBuilder();
+
+        (new SetonoSyliusGiftCardExtension())->load([], $container);
+
+        $generator = $container->getDefinition(GiftCardCodeGenerator::class);
+        self::assertSame('%setono_sylius_gift_card.code_length%', $generator->getArgument(1));
+        self::assertSame('%setono_sylius_gift_card.minimum_code_length%', $generator->getArgument(2));
     }
 
     /**
