@@ -489,6 +489,15 @@ card bought on one order expires on the same day. It does not count from payment
 with a bank transfer. A change to the setting applies to the cards bought or issued after it; existing cards keep their
 expiry.
 
+`default_validity_period` can also be taken from an environment variable, such as
+`default_validity_period: '%env(GIFT_CARD_VALIDITY)%'`. Its value is only known at runtime, so the container compiles
+whatever the variable holds, and the interval is checked where it is used instead. While the variable holds nothing
+`strtotime()` can read, whatever gives a gift card its expiry throws with a message naming the setting, such as
+`The default_validity_period must be a valid strtotime interval, e.g. "3 years": "P3Y"`: adding a gift card to the
+cart, completing an order that buys one, the *New gift card* form, the fixture, and the admin's design preview, which
+draws a sample card. The rest of the shop keeps working. The variable has to give a string, so `%env(int:...)%` is
+refused while the container compiles.
+
 `minimum_code_length` applies to every card issued from now on: `code_length` cannot be set below it, an admin who
 types a code of their own on the *New gift card* form is held to it, and so is a code given to the `setono_gift_card`
 fixture. A typed code is counted once it is normalized: it is saved in capitals with dashes and spaces dropped, the way
