@@ -8,6 +8,12 @@ use Symfony\Component\ErrorHandler\Debug;
 
 set_time_limit(0);
 
+// Deprecations are left out of PHP's own error reporting before Composer's autoloader runs, for the reason
+// public/index.php gives: on PHP 8.4 the autoloader makes PHP print api-platform 2.7's deprecations into the
+// output before Debug::enable() below takes over. Symfony's error handler logs every deprecation it receives
+// whatever the level
+error_reporting(error_reporting() & ~\E_DEPRECATED & ~\E_USER_DEPRECATED);
+
 require __DIR__.'/../../../vendor/autoload.php';
 
 if (!class_exists(Application::class)) {

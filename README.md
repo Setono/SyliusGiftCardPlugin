@@ -422,8 +422,10 @@ Mind the units when you write fixtures of your own: the `amount` of a `setono_gi
 
 Both kinds of gift card can be seeded. A `setono_gift_card_product` fixture creates a variant for each delivery type
 unless `delivery_types` names the ones it should have, and a `setono_gift_card` fixture issues a virtual card unless its
-entry says `delivery_type: physical`. Below the import, this narrows the imported suite's gift card product to its
-virtual variant and adds a physical card to its gift cards:
+entry says `delivery_type: physical`. A product with a single delivery type gets no delivery option, so the shop shows
+no variant choice for it, as for the single variant product described under [Virtual vs physical](#virtual-vs-physical).
+Below the import, this narrows the imported suite's gift card product to its virtual variant and adds a physical card to
+its gift cards:
 
 ```yaml
 # config/packages/setono_sylius_gift_card.yaml
@@ -481,6 +483,14 @@ setono_sylius_gift_card:
 A value outside its bounds stops the container from compiling, with a message naming the setting. The tree also has a
 `resources` key, for replacing the plugin's models and repositories, see
 [Overriding models, repositories and factories](#overriding-models-repositories-and-factories).
+
+`code_length` and `minimum_code_length` can also be taken from an environment variable, such as
+`code_length: '%env(int:GIFT_CARD_CODE_LENGTH)%'`, from symfony/config 6.4.37 (before it, Symfony refuses an
+environment variable for an integer option with a minimum). Its value is only known at runtime, so the container
+compiles whatever the variable holds, and the rules are applied where the value is used instead: the code generator
+throws rather than generate a code while `code_length` is below 12, above 255 or below `minimum_code_length`, and the
+*New gift card* form and the fixture throw rather than hold a code to `minimum_code_length` while it is outside 12 to
+255, with a message naming the setting. Only issuing a gift card fails that way; the rest of the shop keeps working.
 
 `default_validity_period` counts from when the order is placed for a gift card bought in the shop, and from its
 creation for a gift card issued in the admin (where the expiry date can also be changed on the form). A bought card

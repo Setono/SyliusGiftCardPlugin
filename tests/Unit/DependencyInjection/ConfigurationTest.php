@@ -146,6 +146,84 @@ final class ConfigurationTest extends TestCase
         $this->assertConfigurationIsValid([['minimum_code_length' => 20, 'code_length' => 20]]);
     }
 
+    /**
+     * While it compiles the container, Symfony holds a placeholder for a value taken from an environment variable,
+     * and the value itself is only known at runtime. The two lengths are then not compared, rather than the
+     * placeholder being compared as though it were a length; the code generator compares them at runtime instead
+     *
+     * @param array<string, int|string> $config
+     *
+     * @dataProvider provideCodeLengthsTakenFromEnvironmentVariables
+     *
+     * @test
+     */
+    public function it_does_not_compare_a_code_length_taken_from_an_environment_variable(array $config): void
+    {
+        if (version_compare((string) InstalledVersions::getVersion('symfony/config'), '6.4.37', '<')) {
+            self::markTestSkipped('Before symfony/config 6.4.37 an integer node held the dummy value of an environment variable to its minimum, so no integer option with a minimum took an environment variable');
+        }
+
+        $container = self::processThroughTheCompilerPasses($config);
+
+        foreach ($config as $option => $value) {
+            self::assertSame($value, $container->resolveEnvPlaceholders($container->getParameter('setono_sylius_gift_card.' . $option)));
+        }
+    }
+
+    /**
+     * @return iterable<string, array{array<string, int|string>}>
+     */
+    public static function provideCodeLengthsTakenFromEnvironmentVariables(): iterable
+    {
+        yield 'the minimum' => [['code_length' => 24, 'minimum_code_length' => '%env(int:GIFT_CARD_MINIMUM_CODE_LENGTH)%']];
+        yield 'the minimum, next to the default code length' => [['minimum_code_length' => '%env(int:GIFT_CARD_MINIMUM_CODE_LENGTH)%']];
+        yield 'the code length' => [['code_length' => '%env(int:GIFT_CARD_CODE_LENGTH)%', 'minimum_code_length' => 20]];
+        yield 'both' => [['code_length' => '%env(int:GIFT_CARD_CODE_LENGTH)%', 'minimum_code_length' => '%env(int:GIFT_CARD_MINIMUM_CODE_LENGTH)%']];
+
+        // A placeholder carries the name of its variable, so compared as text, whether a pair compiled came down to
+        // the alphabetical order of the two names: above, the code length's variable sorts first, here it sorts last
+        yield 'both, the code length on a variable sorting after the minimum\'s' => [['code_length' => '%env(int:SHOP_CODE_LENGTH)%', 'minimum_code_length' => '%env(int:GIFT_CARD_MINIMUM_CODE_LENGTH)%']];
+    }
+
+    /**
+     * Only a value taken from an environment variable waits for runtime. An integer is still held to the rules while
+     * the container compiles, with the same messages, even next to one that is taken from a variable
+     *
+     * @param array<string, int|string> $config
+     *
+     * @dataProvider provideCodeLengthsRefusedWhileCompiling
+     *
+     * @test
+     */
+    public function it_refuses_an_integer_code_length_that_breaks_the_rules_while_compiling(array $config, string $expectedMessage): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        self::processThroughTheCompilerPasses($config);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, int|string>, string}>
+     */
+    public static function provideCodeLengthsRefusedWhileCompiling(): iterable
+    {
+        yield 'a code length below the minimum' => [
+            ['code_length' => 16, 'minimum_code_length' => 20],
+            'Invalid configuration for path "setono_sylius_gift_card": The code_length (16) must be at least the minimum_code_length (20)',
+        ];
+
+        yield 'a guessable code length, next to a minimum taken from an environment variable' => [
+            ['code_length' => 11, 'minimum_code_length' => '%env(int:GIFT_CARD_MINIMUM_CODE_LENGTH)%'],
+            'The value 11 is too small for path "setono_sylius_gift_card.code_length". Should be greater than or equal to 12',
+        ];
+
+        yield 'a guessable minimum, next to a code length taken from an environment variable' => [
+            ['code_length' => '%env(int:GIFT_CARD_CODE_LENGTH)%', 'minimum_code_length' => 11],
+            'The value 11 is too small for path "setono_sylius_gift_card.minimum_code_length". Should be greater than or equal to 12',
+        ];
+    }
+
     /** @test */
     public function it_has_sensible_purchase_defaults(): void
     {

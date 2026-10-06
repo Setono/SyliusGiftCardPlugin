@@ -34,6 +34,11 @@ final class Configuration implements ConfigurationInterface
      */
     public const MINIMUM_CODE_LENGTH = 12;
 
+    /**
+     * No gift card code is longer than this: the code column stops here, and so do code_length and minimum_code_length
+     */
+    public const MAXIMUM_CODE_LENGTH = 255;
+
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('setono_sylius_gift_card');
@@ -43,9 +48,11 @@ final class Configuration implements ConfigurationInterface
         $rootNode
             ->addDefaultsIfNotSet()
             // A generated code has to meet the minimum like any other, or the shop would issue cards with codes it
-            // refuses an admin to type
+            // refuses an admin to type. A value taken from an environment variable is only known at runtime, so the
+            // two are only compared here when both are given as integers, and the code generator compares them when it
+            // generates a code
             ->validate()
-                ->ifTrue(static fn (array $config): bool => isset($config['code_length'], $config['minimum_code_length']) && $config['code_length'] < $config['minimum_code_length'])
+                ->ifTrue(static fn (array $config): bool => is_int($config['code_length'] ?? null) && is_int($config['minimum_code_length'] ?? null) && $config['code_length'] < $config['minimum_code_length'])
                 ->then(self::refuseCodeLengthBelowMinimum(...))
             ->end()
             ->children()
@@ -53,13 +60,13 @@ final class Configuration implements ConfigurationInterface
                     ->info('The number of significant characters in a generated gift card code (excluding group separators). At least minimum_code_length')
                     ->defaultValue(16)
                     ->min(self::MINIMUM_CODE_LENGTH)
-                    ->max(255)
+                    ->max(self::MAXIMUM_CODE_LENGTH)
                 ->end()
                 ->integerNode('minimum_code_length')
                     ->info(sprintf('The fewest significant characters a gift card code may have when the card is issued: a code typed in the admin, a code given to the fixtures, and code_length. At least %d; cards that already exist keep their code, whatever its length', self::MINIMUM_CODE_LENGTH))
                     ->defaultValue(self::MINIMUM_CODE_LENGTH)
                     ->min(self::MINIMUM_CODE_LENGTH)
-                    ->max(255)
+                    ->max(self::MAXIMUM_CODE_LENGTH)
                 ->end()
                 // A validate() rule would be run on the dummy value Symfony checks an environment variable with, and
                 // refuse every interval taken from one. This node leaves such an interval to GiftCardExpiryResolver,

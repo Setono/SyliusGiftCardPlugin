@@ -2,6 +2,7 @@ const { test, expect } = require('@playwright/test');
 const { GRID_ROWS, clickAndConfirm } = require('../support/admin');
 const { firstGiftCardId, giftCardCode } = require('../support/fixtures');
 const { adjustBalance, filterGiftCards, giftCardIds, giftCardRows, giftCardStatuses, issueGiftCard } = require('../support/gift-cards');
+const { blankIcons } = require('../support/icons');
 const { moneyInCents } = require('../support/money');
 const { clickAndWaitForPage } = require('../support/navigation');
 
@@ -150,6 +151,8 @@ test.describe('admin gift card grid', () => {
                 const row = page.locator(ROWS).filter({ hasText: card.printedCode });
                 await expect(row, `the grid should list ${card.printedCode}`).toHaveCount(1);
                 expect(await giftCardStatuses(row), `the status of ${card.printedCode}`).toEqual([status]);
+                // each status has an icon of its own, which only a card in that status shows
+                expect(await blankIcons(row.locator('[data-test-gift-card-status]')), `the icon of the ${status} status`).toEqual([]);
             }
 
             for (const [card, status] of cards) {
