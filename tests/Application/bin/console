@@ -8,6 +8,15 @@ use Symfony\Component\ErrorHandler\Debug;
 
 set_time_limit(0);
 
+// Composer's autoloader runs before Debug::enable() below, and with it the autoload files of packages such as
+// api-platform 2.7 (deprecation.php), which load code PHP 8.4 reports as deprecated while compiling it (implicitly
+// nullable parameters). Symfony's error handler is not registered yet, so with a development php.ini PHP printed those
+// notices at the top of every command's output, and machine-readable output (--format=json) could not be parsed.
+// Deprecations are therefore left out of PHP's own error reporting from the start, as in public/index.php and as
+// Debug::enable() leaves them out since symfony/error-handler 6.4.23. Symfony's error handler logs every deprecation it
+// receives whatever the level
+error_reporting(error_reporting() & ~\E_DEPRECATED & ~\E_USER_DEPRECATED);
+
 require __DIR__.'/../../../vendor/autoload.php';
 
 if (!class_exists(Application::class)) {
