@@ -426,7 +426,7 @@ setono_sylius_gift_card:
     default_validity_period: '3 years'   # how long a card stays valid (any strtotime-compatible interval), or null to never expire; see below
     purchase:
         minimum_amount: 100              # minor units (e.g. cents), at least 1
-        # maximum_amount: 50000          # minor units, at least 1; no maximum unless you set one
+        maximum_amount: ~                # minor units, at least 1, or ~ for no maximum
         maximum_message_length: 200      # characters a customer may write on the card, 1 to 65535
     delivery:
         email_physical_cards: false      # true also emails the code and the PDF of a *physical* card when the order is paid, as a backup

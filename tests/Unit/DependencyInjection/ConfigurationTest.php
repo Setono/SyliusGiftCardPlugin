@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\DependencyInjection;
 
+use Composer\InstalledVersions;
 use Matthias\SymfonyConfigTest\PhpUnit\ConfigurationTestCaseTrait;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\Configuration;
+use Setono\SyliusGiftCardPlugin\DependencyInjection\SetonoSyliusGiftCardExtension;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\DependencyInjection\Compiler\MergeExtensionConfigurationPass;
+use Symfony\Component\DependencyInjection\Compiler\RegisterEnvVarProcessorsPass;
+use Symfony\Component\DependencyInjection\Compiler\ValidateEnvPlaceholdersPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\EnvVarProcessor;
 
 final class ConfigurationTest extends TestCase
 {
@@ -144,6 +151,94 @@ final class ConfigurationTest extends TestCase
         $this->assertProcessedConfigurationEquals([[]], [
             'purchase' => ['minimum_amount' => 100, 'maximum_amount' => null, 'maximum_message_length' => 200],
         ], 'purchase');
+    }
+
+    /**
+     * Null is what the option says to write for no maximum, so it must mean the same as leaving the key out, and
+     * like any other value it overrides what an earlier configuration file set
+     *
+     * @test
+     */
+    public function it_takes_null_for_no_maximum_amount(): void
+    {
+        $this->assertProcessedConfigurationEquals([[]], [
+            'purchase' => ['maximum_amount' => null],
+        ], 'purchase.maximum_amount');
+
+        $this->assertProcessedConfigurationEquals([['purchase' => ['maximum_amount' => null]]], [
+            'purchase' => ['maximum_amount' => null],
+        ], 'purchase.maximum_amount');
+
+        $this->assertProcessedConfigurationEquals([
+            ['purchase' => ['maximum_amount' => 50000]],
+            ['purchase' => ['maximum_amount' => null]],
+        ], [
+            'purchase' => ['maximum_amount' => null],
+        ], 'purchase.maximum_amount');
+    }
+
+    /** @test */
+    public function it_allows_a_maximum_amount(): void
+    {
+        $this->assertProcessedConfigurationEquals([['purchase' => ['maximum_amount' => 50000]]], [
+            'purchase' => ['maximum_amount' => 50000],
+        ], 'purchase.maximum_amount');
+
+        $this->assertProcessedConfigurationEquals([['purchase' => ['maximum_amount' => 1]]], [
+            'purchase' => ['maximum_amount' => 1],
+        ], 'purchase.maximum_amount');
+    }
+
+    /**
+     * @dataProvider provideInvalidMaximumAmounts
+     *
+     * @test
+     */
+    public function it_rejects_a_maximum_amount_that_is_not_a_whole_number_of_at_least_one(mixed $maximumAmount, string $expectedMessage): void
+    {
+        $this->assertConfigurationIsInvalid([['purchase' => ['maximum_amount' => $maximumAmount]]], $expectedMessage);
+    }
+
+    /**
+     * @return iterable<string, array{mixed, string}>
+     */
+    public static function provideInvalidMaximumAmounts(): iterable
+    {
+        yield 'zero' => [0, 'The value 0 is too small for path "setono_sylius_gift_card.purchase.maximum_amount". Should be greater than or equal to 1'];
+        yield 'negative' => [-500, 'The value -500 is too small for path "setono_sylius_gift_card.purchase.maximum_amount". Should be greater than or equal to 1'];
+        yield 'numeric string' => ['500', 'Invalid type for path "setono_sylius_gift_card.purchase.maximum_amount". Expected "int", but got "string".'];
+        yield 'float' => [12.5, 'Invalid type for path "setono_sylius_gift_card.purchase.maximum_amount". Expected "int", but got "float".'];
+        yield 'boolean' => [true, 'Invalid type for path "setono_sylius_gift_card.purchase.maximum_amount". Expected "int", but got "bool".'];
+    }
+
+    /**
+     * While it compiles the container, Symfony checks a value taken from an environment variable against a dummy
+     * value, 0 for an int. A validate() rule holding the maximum to at least 1 would refuse that, so the minimum is
+     * left to the value the variable has at runtime, the way an integer node leaves it
+     *
+     * @test
+     */
+    public function it_takes_the_maximum_amount_from_an_environment_variable(): void
+    {
+        if (version_compare((string) InstalledVersions::getVersion('symfony/config'), '6.4.37', '<')) {
+            self::markTestSkipped('Before symfony/config 6.4.37 an integer node held the dummy value to its minimum as well, so no integer option with a minimum took an environment variable');
+        }
+
+        $container = new ContainerBuilder();
+        $container->register('env_var_processor', EnvVarProcessor::class)->addTag('container.env_var_processor');
+        $container->registerExtension(new SetonoSyliusGiftCardExtension());
+        $container->loadFromExtension('setono_sylius_gift_card', [
+            'purchase' => ['maximum_amount' => '%env(int:GIFT_CARD_MAXIMUM_AMOUNT)%'],
+        ]);
+
+        (new RegisterEnvVarProcessorsPass())->process($container);
+        (new MergeExtensionConfigurationPass())->process($container);
+        (new ValidateEnvPlaceholdersPass())->process($container);
+
+        self::assertSame(
+            '%env(int:GIFT_CARD_MAXIMUM_AMOUNT)%',
+            $container->resolveEnvPlaceholders($container->getParameter('setono_sylius_gift_card.purchase.maximum_amount')),
+        );
     }
 
     /**
