@@ -386,4 +386,31 @@ test.describe('shop gift card product', () => {
             };
         });
     }
+
+    /**
+     * The seeded shop configures no maximum, so an amount used to be held to the minimum only. One above what a gift
+     * card's balance column holds, a signed 32-bit integer (at most 21,474,836.47), made the database refuse the cart
+     * with a 500, and the button kept spinning. It is refused like a blank amount, on the amount field
+     */
+    test('an amount more than a gift card can hold is reported instead of failing the request', async ({ page }) => {
+        await page.goto(await giftCardProductPath(page));
+
+        const amount = page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first();
+        await amount.fill(typedAmount(3000000000));
+
+        const form = page.locator('form[name="sylius_add_to_cart"]');
+        const action = await form.getAttribute('action');
+        const [response] = await Promise.all([
+            page.waitForResponse((r) => 'POST' === r.request().method() && r.url().endsWith(action ?? '')),
+            form.locator('button[type="submit"]').first().click(),
+        ]);
+
+        expect(response.status(), 'adding to the cart must be refused as invalid, not fail with a server error').toBe(400);
+        const { errors } = await response.json();
+        const amountErrors = errors?.form?.errors?.children?.giftCardInformation?.children?.amount?.errors ?? [];
+        expect(amountErrors, 'the refusal should be about the amount').toHaveLength(1);
+
+        // Sylius' add to cart script renders the 400 payload into this element
+        await expect(page.locator('#sylius-cart-validation-error')).toContainText(amountErrors[0]);
+    });
 });

@@ -306,6 +306,29 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                             ],
                         ],
                     ],
+                    // The same figures on every checkout step up to placing the order, so the customer is not shown
+                    // the full order total as though no card had been applied. The address, shipping and payment
+                    // steps render this event together with a sidebar event of their own, and Sylius' blocks on the
+                    // two are the summary (priority 20), the support box (10) and, on the shipping step, the legacy
+                    // before support event (15). The figures go right below the summary, ahead of the other two
+                    'sylius.shop.checkout.sidebar' => [
+                        'blocks' => [
+                            'setono_gift_card_totals' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/cart/_gift_card_totals.html.twig',
+                                'priority' => 18,
+                            ],
+                        ],
+                    ],
+                    // On the complete step Sylius' blocks are the order summary with its totals (priority 10) between
+                    // the legacy before (15) and after (5) summary events. The figures go right below the summary
+                    'sylius.shop.checkout.complete.summary' => [
+                        'blocks' => [
+                            'setono_gift_card_totals' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/cart/_gift_card_totals.html.twig',
+                                'priority' => 8,
+                            ],
+                        ],
+                    ],
                     // Sylius shows the instructions of the order's last payment right below this event, and on an
                     // order the gift cards pay in part that is a gift card payment. The instructions for the rest go
                     // last on the event, after Sylius' legacy block (priority 0), so they sit where Sylius' would

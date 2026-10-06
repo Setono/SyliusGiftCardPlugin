@@ -12,7 +12,8 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
  * Deducting more than a gift card holds used to reach the balance operator, which asserts and blows up with a
- * 500. It is ordinary user error, so it belongs in the form as a field error
+ * 500, and adding more than its balance column holds made the database refuse it, with a 500 as well. Both are
+ * ordinary user error, so they belong in the form as a field error
  */
 final class BalanceAdjustmentIsEligibleValidator extends ConstraintValidator
 {
@@ -38,13 +39,24 @@ final class BalanceAdjustmentIsEligibleValidator extends ConstraintValidator
 
         $giftCard = $value->getGiftCard();
         $balance = $giftCard->getAmount();
-        if ($balance + $amount >= 0) {
+        $currencyCode = (string) $giftCard->getCurrencyCode();
+
+        if ($balance + $amount < 0) {
+            $this->context->buildViolation($constraint->negativeBalanceMessage)
+                ->setParameter('{{ balance }}', $this->moneyFormatter->format($balance, $currencyCode))
+                ->atPath('amount')
+                ->addViolation();
+
             return;
         }
 
-        $this->context->buildViolation($constraint->negativeBalanceMessage)
-            ->setParameter('{{ balance }}', $this->moneyFormatter->format($balance, (string) $giftCard->getCurrencyCode()))
-            ->atPath('amount')
-            ->addViolation();
+        $maximum = $constraint->maximumBalance;
+        if (null !== $maximum && $balance + $amount > $maximum) {
+            $this->context->buildViolation($constraint->tooLargeBalanceMessage)
+                ->setParameter('{{ balance }}', $this->moneyFormatter->format($balance, $currencyCode))
+                ->setParameter('{{ maximum }}', $this->moneyFormatter->format($maximum, $currencyCode))
+                ->atPath('amount')
+                ->addViolation();
+        }
     }
 }

@@ -19,6 +19,7 @@ setono_sylius_gift_card:
             image_file_help: 'Use a landscape image at least 1050×740px (JPG or PNG). It is used as the full-bleed background of the gift card, so keep important content away from the edges.'
         gift_card_information:
             amount: Amount
+            amount_help_fixed: 'The amount is %amount%.'
             amount_help_minimum: 'Choose any amount from %minimum%.'
             amount_help_range: 'Choose any amount between %minimum% and %maximum%.'
             custom_message: Message
