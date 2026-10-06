@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use Symfony\Component\Dotenv\Dotenv;
 
-require dirname(__DIR__) . '../../../vendor/autoload.php';
+// The path has to be spelled cleanly. Under Infection's include interceptor, require_once tells files apart by the
+// path as written, so a second spelling of vendor/autoload.php declares Composer's autoloader twice and every mutant
+// dies with a fatal error, which Infection's score counts as detected
+require dirname(__DIR__, 3) . '/vendor/autoload.php';
 
 // Load cached env vars if the .env.local.php file exists
 // Run "composer dump-env prod" to create it (requires symfony/flex >=1.2)

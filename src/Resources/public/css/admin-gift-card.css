@@ -1,0 +1,64 @@
+/* The design picker of the admin's gift card form is a radio group named by its legend, so the fieldset is stripped
+   back to the field it stands in for */
+.setono-gift-card-design-picker {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+.setono-gift-card-design-picker > legend {
+    display: block;
+    margin: 0 0 0.28571429rem;
+    padding: 0;
+    font-size: 0.92857143em;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.87);
+}
+
+.setono-gift-card-design-picker__choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.setono-gift-card-design-picker__choice {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+/* The script hides the designs the chosen channel does not offer, which the display above would override */
+.setono-gift-card-design-picker__choice[hidden] {
+    display: none;
+}
+
+/* Which design is picked has to be visible on the choice itself; the native radio dot alone is easy to miss */
+.setono-gift-card-design-picker__choice:has(input:checked) {
+    border-color: #2185d0;
+    background: rgba(33, 133, 208, 0.08);
+}
+
+.setono-gift-card-design-picker__choice:focus-within {
+    outline: 2px solid #2185d0;
+    outline-offset: 2px;
+}
+
+.setono-gift-card-design-picker__choice img,
+.setono-gift-card-design-picker__no-image {
+    display: block;
+    width: 120px;
+    height: 84px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.setono-gift-card-design-picker__no-image {
+    box-sizing: border-box;
+    border: 1px dashed rgba(34, 36, 38, 0.35);
+}

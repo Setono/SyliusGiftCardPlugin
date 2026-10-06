@@ -8,7 +8,7 @@ Add gift card functionality to your Sylius store:
 
 - **Buy gift cards** — customers choose the amount, a design and an optional message, and pick whether the gift card is **virtual** (delivered by email as a PDF) or **physical** (shipped like a normal product).
 - **Redeem gift cards** — customers apply a gift card code in the cart, and it becomes a **real payment** against the order rather than a discount on it.
-- **Admin management** — a gift card grid, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger), and an outstanding-balance dashboard.
+- **Admin management** — a gift card grid, issuing gift cards with the design and delivery type of your choice, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger), and an outstanding-balance dashboard.
 
 > This is the `1.x` line, for **Sylius 1.13 and up**. It is a ground-up rewrite of the `0.12.x` plugin. There is **no API layer** in 1.x — see [`UPGRADE-1.0.md`](UPGRADE-1.0.md) if you are coming from `0.12.x`.
 
@@ -30,6 +30,8 @@ Whether a gift card is virtual or physical is derived from the chosen product va
 
 The delivery type also decides what the buyer is emailed when the order is paid. A virtual card *is* delivered by the email: the code is in the body and the card is attached as a PDF. A physical card is shipped with the code printed on it, so its email only says that the card will be shipped — emailing the code would make the card spendable before it arrives, and duplicate what is in the envelope. Set `delivery.email_physical_cards: true` if you want the code and the PDF emailed for physical cards anyway, as a digital backup. **Send email** on a gift card in the admin always includes the code and the PDF, whatever the delivery type: that is how you replace a physical card the customer lost or never received. It is only offered for a card the customer can use (enabled, not expired and with a balance left), so a card that is still waiting for its order to be paid, or that was disabled when its order was cancelled or refunded, is never sent.
 
+A gift card issued in the admin is virtual unless you choose *Physical* on the create form, for a printed card you hand over or post yourself. No order or shipment comes with such a card, so its delivery type only records how it reaches the customer (the grid and the card's page show it), and the notification email sent when you issue it includes the code and the PDF whatever the type, like **Send email** does. The delivery type is settled when a card is issued and cannot be changed afterwards: a bought card takes it from its variant, which also decides whether its order ships it. The create form also takes the design printed on the card's PDF, picked from thumbnails of the designs enabled in the card's channel, or none for the default layout. The design can be changed on the edit form at any time; a card keeps its design when the design is disabled later.
+
 ### Buying a gift card
 
 The customer chooses the amount, a design and an optional message on the product page (with a live preview). The amount field starts out at the price the page shows, i.e. the preselected variant's price in the channel, so the gift card product's price is the amount you suggest; a price the shop would refuse as an amount (zero, or outside `purchase.minimum_amount` / `maximum_amount`) leaves the field empty. A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)). Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
@@ -44,6 +46,8 @@ A gift card is treated as a means of payment rather than a discount, because tha
 
 Gift cards cannot be used to buy other gift cards, balances are committed when the order is placed and restored, once per payment, when the gift card payment is refunded (cancelling the order refunds it), and every balance change is recorded in an append-only ledger.
 
+The cart is where the customer sees what the gift cards pay: below the order total it shows what they cover and what remains to pay. The checkout steps after the cart do not repeat these figures. Their summary shows the order total, which the gift cards leave as it is, and the last step shows the payment for the rest at the amount that is left (or no payment at all when the gift cards cover the whole order). The gift card payments are created when the order is placed, and from then on they are listed with the order's other payments, in the customer's account and in the admin. To show the figures during checkout as well, add a block of your own to one of Sylius' checkout events, e.g. `sylius.shop.checkout.complete.summary`, with the plugin's `setono_gift_card_covered_amount(order)` and `setono_gift_card_remaining_total(order)` Twig functions.
+
 An order the gift cards pay only in part stays *awaiting payment* until the rest is paid, although its gift card payments are completed when it is placed (Sylius alone would call it *partially paid*). Sylius' shop only lets a customer pay for an order, or change how to pay it, while the order awaits payment: from the thank you page, from the order in their account, and after a payment that did not go through at the payment provider. Sylius' unpaid order expiry (`sylius:cancel-unpaid-orders`) also only cancels orders that await payment, and cancelling one gives the gift cards their balance back. The plugin does this by decorating Sylius' order payment state resolver (`sylius.state_resolver.order_payment`); in the admin, such an order shows as awaiting payment with the completed gift card payment listed next to the payment for the rest.
 
 The thank you page of such an order shows how to pay the rest, e.g. where to send a bank transfer. Sylius shows the instructions of the order's last payment there, and the gift card payment is added after the payment for the rest when the order is placed, so the plugin shows the instructions of the payment for the rest itself: the `setono_gift_card_payment_instructions` block on the `sylius.shop.order.thank_you.after_message` UI event, right above where Sylius' would be. An application that overrides `@SyliusShop/Order/thankYou.html.twig` keeps this as long as its template still fires that event; if the override shows the right instructions itself, disable the block through your own `sylius_ui` configuration. In your own templates, `setono_gift_card_remaining_payment(order)` gives the payment for the rest (`null` when the gift cards pay the whole order).
@@ -57,13 +61,26 @@ The thank you page of such an order shows how to pay the rest, e.g. where to sen
 | Symfony     | ^6.4 (symfony/form 6.4.31 and up)           |
 | ORM         | doctrine/orm (the only supported driver)   |
 
+The plugin also builds on bundles every Sylius application already registers: LiipImagineBundle renders the design
+thumbnails on the product page and in the admin, through the `setono_sylius_gift_card_design_thumbnail` and
+`setono_sylius_gift_card_design_preview` filter sets the plugin adds, Sylius' image uploader stores the design images,
+and SyliusFixturesBundle runs the plugin's fixtures.
+
 ## Installation
+
+The steps below take a [Sylius-Standard](https://github.com/Sylius/Sylius-Standard) application to a working setup, so
+the paths and class names are Sylius-Standard's (`src/Entity`, `config/packages/_sylius.yaml`); adjust them if your
+application is laid out differently.
 
 ### Require the plugin with composer
 
 ```bash
 composer require setono/sylius-gift-card-plugin
 ```
+
+If Composer answers that the plugin conflicts with the `twig/twig` your application has locked, run the command again
+with `--with-all-dependencies` (`-W`), so Composer can move Twig to a version the plugin allows. The plugin keeps Twig
+below 3.29, the version on which emails sent through older releases of `sylius/mailer-bundle` fail.
 
 ### Register the plugin
 
@@ -78,9 +95,9 @@ $bundles = [
 ];
 ```
 
-The plugin auto-configures the state machine, grids, UI events, email templates and image filters for you — you do **not** need to import any bundle configuration manually.
+The plugin auto-configures the state machine, grids, UI events, email templates and image filters for you — you do **not** need to import any bundle configuration manually. Its fixtures are the exception, see [Load the fixtures](#load-the-fixtures-optional).
 
-The "Gift card" checkbox on the admin product form is rendered by the `setono_gift_card` block on the `sylius.admin.product.tab_details` UI event, so you can move or disable it through your own `sylius_ui` configuration.
+What the plugin adds to Sylius' pages, the "Gift card" checkbox on the admin product form included, is rendered by blocks on Sylius' UI events, so you can move or disable each of them through your own `sylius_ui` configuration, see [Moving or disabling the plugin's blocks](#moving-or-disabling-the-plugins-blocks).
 
 Both state machine adapters Sylius supports are covered: the plugin registers winzou callbacks *and* the
 equivalent Symfony Workflow subscribers, so it behaves the same whichever adapter
@@ -95,15 +112,46 @@ setono_sylius_gift_card:
     resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml"
 ```
 
+This file puts the shop routes under `/{_locale}` and the admin routes under `/admin`, as Sylius-Standard does with
+Sylius' own. If your admin lives somewhere else (`SYLIUS_ADMIN_ROUTING_PATH_NAME`), import the three route files
+yourself instead, so the plugin's admin pages sit behind the admin firewall with the rest of the admin:
+
+```yaml
+# config/routes/setono_sylius_gift_card.yaml
+setono_sylius_gift_card_shop:
+    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/shop.yaml"
+    prefix: /{_locale}
+    requirements:
+        _locale: ^[A-Za-z]{2,4}(_([A-Za-z]{4}|[0-9]{3}))?(_([A-Za-z]{2}|[0-9]{3}))?$
+
+setono_sylius_gift_card_admin:
+    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/admin.yaml"
+    prefix: /%sylius_admin.path_name%
+
+setono_sylius_gift_card_admin_ajax:
+    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/admin_ajax.yaml"
+    prefix: /%sylius_admin.path_name%/ajax
+```
+
 ### Apply the traits/interfaces to your entities
 
-Apply the plugin traits to your `Product`, `Order`, `OrderItem` and `OrderItemUnit` entities. The traits carry their
-Doctrine mapping as PHP 8 attributes *and* as annotations, so they work whether your application maps its entities
-with `type: attribute` (the Sylius-Standard default in `config/packages/doctrine.yaml`) or `type: annotation`. The
-samples below are attribute-mapped:
+Apply the plugin traits to your `Product`, `Order`, `OrderItem` and `OrderItemUnit` entities. Sylius-Standard already
+has these classes in `src/Entity` and registers them in `config/packages/_sylius.yaml`, often with other plugins'
+interfaces and traits on them (Sylius-Standard 1.14 puts the Mollie plugin's on `Order` and `Product`): add the gift
+card interface and trait next to those rather than replacing the class. The traits carry their Doctrine mapping as
+PHP 8 attributes *and* as annotations, so they work whether your application maps its entities with `type: attribute`
+(the Sylius-Standard default in `config/packages/doctrine.yaml`) or `type: annotation`. The samples below are
+attribute-mapped:
 
 ```php
+<?php
+
 // src/Entity/Product/Product.php
+
+declare(strict_types=1);
+
+namespace App\Entity\Product;
+
 use Doctrine\ORM\Mapping as ORM;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface as SetonoSyliusGiftCardProductInterface;
 use Setono\SyliusGiftCardPlugin\Model\ProductTrait as SetonoSyliusGiftCardProductTrait;
@@ -118,7 +166,14 @@ class Product extends BaseProduct implements SetonoSyliusGiftCardProductInterfac
 ```
 
 ```php
+<?php
+
 // src/Entity/Order/Order.php
+
+declare(strict_types=1);
+
+namespace App\Entity\Order;
+
 use Doctrine\ORM\Mapping as ORM;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface as SetonoSyliusGiftCardOrderInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderTrait as SetonoSyliusGiftCardOrderTrait;
@@ -143,7 +198,14 @@ class Order extends BaseOrder implements SetonoSyliusGiftCardOrderInterface
 `OrderTrait` also overrides `getPromotionSubjectTotal()` and `getNonDiscountedItemsTotal()`, so promotions leave the gift cards being bought out of what they discount. If your `Order` overrides either method as well, build on the trait's version (import it under an alias, like the constructor above). Otherwise an order discount is worked out on the gift cards too and put on the other items.
 
 ```php
+<?php
+
 // src/Entity/Order/OrderItem.php
+
+declare(strict_types=1);
+
+namespace App\Entity\Order;
+
 use Doctrine\ORM\Mapping as ORM;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemTrait as SetonoSyliusGiftCardOrderItemTrait;
 use Sylius\Component\Core\Model\OrderItem as BaseOrderItem;
@@ -157,7 +219,14 @@ class OrderItem extends BaseOrderItem
 ```
 
 ```php
+<?php
+
 // src/Entity/Order/OrderItemUnit.php
+
+declare(strict_types=1);
+
+namespace App\Entity\Order;
+
 use Doctrine\ORM\Mapping as ORM;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface as SetonoSyliusGiftCardOrderItemUnitInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitTrait as SetonoSyliusGiftCardOrderItemUnitTrait;
@@ -171,7 +240,74 @@ class OrderItemUnit extends BaseOrderItemUnit implements SetonoSyliusGiftCardOrd
 }
 ```
 
-Register the entity overrides in `config/packages/_sylius.yaml` (see `tests/Application` for a complete, attribute-mapped working example).
+### Apply the trait/interface to your customer repository
+
+The customer field on the admin's gift card form finds customers by part of their email address, with a query the
+plugin adds to Sylius' customer repository through `CustomerRepositoryTrait`. Without it, typing in the field fails
+with `Entity 'App\Entity\Customer\Customer' has no field 'emailPartForGiftCard'` and no customer can be picked.
+Sylius-Standard keeps Sylius' customer repository, so create one of your own:
+
+```php
+<?php
+
+// src/Repository/CustomerRepository.php
+
+declare(strict_types=1);
+
+namespace App\Repository;
+
+use Setono\SyliusGiftCardPlugin\Doctrine\ORM\CustomerRepositoryTrait as SetonoSyliusGiftCardCustomerRepositoryTrait;
+use Setono\SyliusGiftCardPlugin\Repository\CustomerRepositoryInterface as SetonoSyliusGiftCardCustomerRepositoryInterface;
+use Sylius\Bundle\CoreBundle\Doctrine\ORM\CustomerRepository as BaseCustomerRepository;
+
+class CustomerRepository extends BaseCustomerRepository implements SetonoSyliusGiftCardCustomerRepositoryInterface
+{
+    use SetonoSyliusGiftCardCustomerRepositoryTrait;
+}
+```
+
+If your application already has a customer repository, add the interface and the trait to it instead.
+
+### Register the entities and the repository
+
+Point Sylius at your classes in `config/packages/_sylius.yaml`. Sylius-Standard already has every line below except the
+customer `repository`, so merge them into the keys that are there rather than adding a second `sylius_customer` (or
+`sylius_order`, `sylius_product`) key:
+
+```yaml
+# config/packages/_sylius.yaml
+parameters:
+    # the public directory, where the gift card PDF finds the design images (in media/image)
+    sylius_core.public_dir: '%kernel.project_dir%/public'
+
+sylius_customer:
+    resources:
+        customer:
+            classes:
+                model: App\Entity\Customer\Customer
+                repository: App\Repository\CustomerRepository
+
+sylius_order:
+    resources:
+        order:
+            classes:
+                model: App\Entity\Order\Order
+        order_item:
+            classes:
+                model: App\Entity\Order\OrderItem
+        order_item_unit:
+            classes:
+                model: App\Entity\Order\OrderItemUnit
+
+sylius_product:
+    resources:
+        product:
+            classes:
+                model: App\Entity\Product\Product
+```
+
+Mind `sylius_core.public_dir` if your application is not based on Sylius-Standard: Sylius' own default is
+`%kernel.project_dir%/web`, and with it the PDF cannot find the design images and renders the card without them.
 
 ### Update the database
 
@@ -179,6 +315,10 @@ Register the entity overrides in `config/packages/_sylius.yaml` (see `tests/Appl
 bin/console doctrine:migrations:diff
 bin/console doctrine:migrations:migrate
 ```
+
+The plugin ships no migrations of its own. The diff creates its tables, all prefixed `setono_sylius_gift_card__` (the
+table joining orders to the gift cards applied to them included), and adds the `gift_card` column to `sylius_product`.
+Review it before you run it: it also picks up any other difference between your mapping and your database.
 
 ### Create the default gift card design
 
@@ -189,6 +329,16 @@ again after you add a channel.
 
 ```bash
 bin/console setono:gift-card:create-default-design
+```
+
+The command gives the design the plugin's bundled artwork. To create it with your own, point the
+`setono_sylius_gift_card.default_design_image_path` parameter at another image before you run it; it only matters when
+the design is created, so change the image of an existing design in the admin instead:
+
+```yaml
+# config/services.yaml
+parameters:
+    setono_sylius_gift_card.default_design_image_path: '%kernel.project_dir%/assets/gift-card.png'
 ```
 
 A channel without an enabled design still works: the product page shows no design picker and the card renders its framed default. The admin does point it out, though: while a channel sells gift cards without an enabled design, every admin page carries a warning in the top bar and the gift card and design indexes explain how to fix it.
@@ -210,15 +360,45 @@ exists, whoever created it, it is left as it is.
 bin/console setono:gift-card:create-payment-method
 ```
 
-You can also seed it with the `setono_gift_card_payment_method` fixture, which the plugin's fixture suite includes, or
-create it yourself in the admin as an offline payment method with that code. Checkout never offers the method to
-customers, whichever channels it is in.
+You can also seed it with the `setono_gift_card_payment_method` fixture, which the plugin's fixture suite includes (see
+[Load the fixtures](#load-the-fixtures-optional)), or create it yourself in the admin as an offline payment method with
+that code. The plugin finds the method by its code alone, so it pays for gift cards in every channel whichever channels
+it is assigned to, and checkout never offers it to customers.
+
+### Create a gift card product
+
+Customers buy gift cards through a product flagged as a gift card product: the **Gift card** checkbox on the admin's
+product form. The **Create gift card product** button on the admin's gift card index creates the recommended one, a
+product in every channel with a *Virtual* and a *Physical* variant (see [Virtual vs physical](#virtual-vs-physical)).
+It is created disabled, so you can review it first; once you enable it, its product page shows the gift card form.
+
+### Load the fixtures (optional)
+
+The plugin's fixtures are not loaded with the rest of its configuration. To add them to Sylius' `default` fixture
+suite, import them:
+
+```yaml
+# config/packages/setono_sylius_gift_card.yaml
+imports:
+    - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
+```
+
+`bin/console sylius:fixtures:load` then also seeds the "Classic" design, a gift card product, 20 gift cards with a
+random balance and the gift card payment method, so a seeded shop needs none of the three steps above.
+
+Mind the units when you write fixtures of your own: the `amount` of a `setono_gift_card` fixture is in major units
+(`amount: 25` issues a card holding 25.00), while the `price` of a `setono_gift_card_product` fixture is in minor units
+(`price: 5000` is 50.00), like the `purchase` settings of the [configuration](#configuration).
 
 ### Install assets
 
 ```bash
 bin/console assets:install
 ```
+
+The product page loads the plugin's script and stylesheet straight from `public/bundles/setonosyliusgiftcardplugin`,
+which this command fills; nothing goes through your Webpack Encore build. See
+[Assets and Content Security Policy](#assets-and-content-security-policy) if your shop sends a Content Security Policy.
 
 ## Configuration
 
@@ -227,13 +407,13 @@ All settings are optional and shown here with their defaults:
 ```yaml
 # config/packages/setono_sylius_gift_card.yaml
 setono_sylius_gift_card:
-    code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…); at least minimum_code_length
-    minimum_code_length: 12              # fewest significant characters of any code a card is issued with, generated or typed; 12 at the least, because a code is a bearer token and must not be guessable; see below
+    code_length: 16                      # significant characters in a generated code (shown grouped, e.g. ABCD-EFGH-…); at least minimum_code_length, at most 255
+    minimum_code_length: 12              # fewest significant characters of any code a card is issued with, generated or typed; 12 to 255, never below 12 because a code is a bearer token and must not be guessable; see below
     default_validity_period: '3 years'   # how long a card stays valid (any strtotime-compatible interval), or null to never expire; see below
     purchase:
-        minimum_amount: 100              # minor units (e.g. cents)
-        maximum_amount: ~                # null = no maximum
-        maximum_message_length: 200      # characters a customer may write on the card
+        minimum_amount: 100              # minor units (e.g. cents), at least 1
+        # maximum_amount: 50000          # minor units, at least 1; no maximum unless you set one
+        maximum_message_length: 200      # characters a customer may write on the card, 1 to 65535
     delivery:
         email_physical_cards: false      # true also emails the code and the PDF of a *physical* card when the order is paid, as a backup
     redemption:
@@ -243,6 +423,10 @@ setono_sylius_gift_card:
     pdf:
         page_size: A6                    # any page size supported by dompdf; the card scales to fill it
 ```
+
+A value outside its bounds stops the container from compiling, with a message naming the setting. The tree also has a
+`resources` key, for replacing the plugin's models and repositories, see
+[Overriding models, repositories and factories](#overriding-models-repositories-and-factories).
 
 `default_validity_period` counts from when the order is placed for a gift card bought in the shop, and from its
 creation for a gift card issued in the admin (where the expiry date can also be changed on the form). A bought card
@@ -298,9 +482,61 @@ registered under its interface, e.g. `Setono\SyliusGiftCardPlugin\Calculator\Eli
 you register there is what the whole plugin uses, the state machine callbacks included. The resources are the
 exception: they follow Sylius' conventions, see [Overriding models, repositories and factories](#overriding-models-repositories-and-factories).
 
+### Moving or disabling the plugin's blocks
+
+Everything the plugin adds to Sylius' pages is a block on one of Sylius' UI events, so it stays in place when you
+override a Sylius template that still fires the event, and you can move or disable each block in your own `sylius_ui`
+configuration:
+
+| Event | Block | Priority | What it renders |
+|-------|-------|----------|-----------------|
+| `sylius.shop.product.show.add_to_cart_form` | `setono_gift_card_information` | 10 | The amount, design and message fields with the live preview, on a gift card product's page |
+| `sylius.shop.cart.summary` | `setono_gift_card_totals` | 18 | What the applied gift cards cover and what remains to pay, right below Sylius' totals (20) |
+| `sylius.shop.cart.summary` | `setono_gift_cards` | 12 | The form to apply a code and the applied gift cards, above Sylius' checkout button (10) |
+| `sylius.shop.order.thank_you.after_message` | `setono_gift_card_payment_instructions` | -10 | The instructions for paying the rest, see [Redeeming a gift card](#redeeming-a-gift-card) |
+| `sylius.admin.product.tab_details` | `setono_gift_card` | 10 | The **Gift card** checkbox on the product form |
+| `sylius.admin.layout.topbar_middle` | `setono_gift_card_setup_warning` | 10 | The setup warning in the top bar of every admin page |
+| `setono_sylius_gift_card.admin.gift_card.index` and `setono_sylius_gift_card.admin.gift_card_design.index` | `setono_gift_card_setup_warning` | 30 | The full setup warning above the gift card and design indexes |
+| `sylius.admin.payment_method.index` | `setono_gift_card_payment_method_warning` | 30 | The warning about the missing gift card payment method, with its button, above the payment method index |
+
+```yaml
+# config/packages/sylius_ui.yaml
+sylius_ui:
+    events:
+        sylius.shop.cart.summary:
+            blocks:
+                # the form to apply a code above the totals instead of below them
+                setono_gift_cards:
+                    priority: 25
+        sylius.shop.order.thank_you.after_message:
+            blocks:
+                setono_gift_card_payment_instructions:
+                    enabled: false
+```
+
+Disabling a block only stops it from rendering, so render what it rendered yourself where it is still needed. That
+matters most for the two form blocks, because Sylius ends both forms with `render_rest: false`: without
+`setono_gift_card_information` a gift card product cannot be added to the cart, as the amount the customer has to
+choose is never submitted, and without `setono_gift_card` the product form submits the checkbox as unchecked, so every
+save of a gift card product turns it back into a normal one.
+
+### Assets and Content Security Policy
+
+The `setono_gift_card_information` block brings its own assets rather than going through your Webpack Encore build. It
+includes `bundles/setonosyliusgiftcardplugin/js/product-gift-card.js` (plain JavaScript, no jQuery) and
+`bundles/setonosyliusgiftcardplugin/css/product-gift-card.css` with a `<script defer src>` and a `<link>` tag inside the
+add-to-cart form, and the card's own styles as an inline `<style>` element
+(`@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig`, which the PDF shares). A Content Security Policy on
+the product page therefore has to allow scripts and styles from your own origin (`'self'`) and inline styles
+(`style-src 'unsafe-inline'`). To add a nonce, or to serve the files through your own build, override
+`@SetonoSyliusGiftCardPlugin/shop/product/show/_gift_card_information.html.twig`.
+
 ### Customizing the PDF
 
 Gift cards render to PDF with [dompdf](https://github.com/dompdf/dompdf). Override `@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig` to change the layout, or replace/decorate `Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface` to use a different engine.
+
+The PDF takes the design's images from the files Sylius' image uploader stored, in `media/image` below
+`%sylius_core.public_dir%`, see [Register the entities and the repository](#register-the-entities-and-the-repository).
 
 The card is laid out on a fixed 560×396 pixel grid — A6 landscape — and is scaled onto whatever `pdf.page_size` is configured, so the layout is defined in one place and works on any paper.
 
@@ -345,7 +581,7 @@ The plugin verifies this at container compile time and fails with an actionable 
 
 ### Overriding models, repositories and factories
 
-The `gift_card`, `gift_card_design` and `gift_card_transaction` resources follow the standard Sylius resource configuration, so you can swap any model, repository, controller or factory for your own class:
+The plugin's resources (`gift_card`, `gift_card_design` with its translation, `gift_card_design_image` and `gift_card_transaction`) follow the standard Sylius resource configuration, so you can swap any model, repository, controller or factory for your own class:
 
 ```yaml
 setono_sylius_gift_card:
@@ -353,6 +589,47 @@ setono_sylius_gift_card:
         gift_card:
             classes:
                 model: App\Entity\GiftCard\GiftCard
+```
+
+Make a class of your own extend the plugin's, or implement the same interface, since that is what the plugin's services
+expect (e.g. `Setono\SyliusGiftCardPlugin\Model\GiftCardInterface` for the gift card model, or
+`Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface` for its repository). These are all the classes the
+tree takes, with their defaults:
+
+```yaml
+setono_sylius_gift_card:
+    resources:
+        gift_card:
+            classes:
+                model: Setono\SyliusGiftCardPlugin\Model\GiftCard
+                controller: Sylius\Bundle\ResourceBundle\Controller\ResourceController
+                repository: Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepository
+                form: Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType
+                factory: Sylius\Component\Resource\Factory\Factory
+        gift_card_design:
+            classes:
+                model: Setono\SyliusGiftCardPlugin\Model\GiftCardDesign
+                controller: Sylius\Bundle\ResourceBundle\Controller\ResourceController
+                repository: Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardDesignRepository
+                form: Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignType
+                factory: Sylius\Component\Resource\Factory\TranslatableFactory
+            translation:
+                classes:
+                    model: Setono\SyliusGiftCardPlugin\Model\GiftCardDesignTranslation
+                    repository: Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository
+                    factory: Sylius\Component\Resource\Factory\Factory
+        gift_card_design_image:
+            classes:
+                model: Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImage
+                controller: Sylius\Bundle\ResourceBundle\Controller\ResourceController
+                repository: Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository
+                factory: Sylius\Component\Resource\Factory\Factory
+        gift_card_transaction:
+            classes:
+                model: Setono\SyliusGiftCardPlugin\Model\GiftCardTransaction
+                controller: Sylius\Bundle\ResourceBundle\Controller\ResourceController
+                repository: Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository
+                factory: Sylius\Component\Resource\Factory\Factory
 ```
 
 ## Development

@@ -1,0 +1,14 @@
+# The code coverage job in .github/workflows/build.yaml uploads the coverage of the unit and functional suites
+coverage:
+    status:
+        project:
+            default:
+                # 1.x was at 97.1% when this was set. The target only ever goes up: raise it as coverage grows,
+                # never lower it to get a change through. The threshold lets coverage dip half a point below the
+                # target, which absorbs small differences between runs
+                target: 97%
+                threshold: 0.5%
+        patch:
+            default:
+                # The lines a change adds or modifies
+                target: 80%

@@ -22,7 +22,10 @@ vendor/bin/phpunit --testsuite functional  # functional tests (require MySQL wit
 (cd tests/Application && bin/console doctrine:database:create --env=test && bin/console doctrine:schema:create --env=test)  # once, before the first functional run
 vendor/bin/phpunit tests/Unit/Path/To/SomeTest.php   # single test file
 vendor/bin/phpunit --filter testMethodName           # single test method
+vendor/bin/infection --threads=max --test-framework-options="--testsuite=unit"   # mutation testing, as CI runs it (needs pcov or Xdebug)
 ```
+
+On PHP 8.4, add `--initial-tests-php-options="-d error_reporting=E_ALL&~E_DEPRECATED"` to the Infection command: PHP 8.4 reports api-platform 2.7's implicitly nullable parameters as deprecated, and Infection gives up when its initial test run writes anything to stderr.
 
 CI runs `composer rector`, `composer lint:yaml`, `composer lint:twig` and `composer lint:container` as they are, so a change to what they check goes in `composer.json`.
 
@@ -38,6 +41,7 @@ CI runs `composer rector`, `composer lint:yaml`, `composer lint:twig` and `compo
 
 - Unit tests live in `tests/Unit`, functional tests (KernelTestCase/WebTestCase booting the test app) in `tests/Functional`.
 - Functional tests need the test database's schema, which they never build or change themselves: CI creates it with `doctrine:schema:create`, and locally it is created once (see Commands; after a mapping change, drop and create it again, or run `doctrine:schema:update --force --env=test`). Every test runs in a transaction that `dama/doctrine-test-bundle` (registered as a PHPUnit extension in `phpunit.xml.dist`) rolls back afterwards, so each starts from an empty database. A test that needs its writes really committed, because a second connection has to see them or wait on their locks, opts out the way `GiftCardRedemptionRaceTest` does: a plain connection (`StaticDriver::setKeepStaticConnections(false)` before the kernel boots), and the tables emptied in `tearDown()`.
+- CI fails when the tests lose ground. The mutation job holds Infection to `minMsi` and `minCoveredMsi` in `infection.json.dist`, and Codecov holds the coverage report to the targets in `codecov.yml`: the project's coverage, and 80% of the lines a change adds or modifies. The minimums sit a little below what the suites reach and only ever go up: when your tests raise a score, raise its minimum in the same change, and never lower one to get a change through.
 - Use a BDD-style naming convention for test methods (`it_does_something`) with the `@test` annotation or `test` prefix.
 - Use Prophecy for mocking (phpspec/prophecy-phpunit), not PHPUnit mock objects.
 - Form type tests extend `Symfony\Component\Form\Test\TypeTestCase`.
@@ -60,7 +64,7 @@ npx playwright test --headed -g 'cart'    # watch a single test
 
 `PLAYWRIGHT_BASE_URL` overrides the default `https://127.0.0.1:8080`. CI splits the suite into three parallel jobs (`npx playwright test --shard=N/3`), each against an application and a freshly seeded database of its own, so a spec cannot count on another spec having run before it. The admin specs share a signed-in session created by `specs/auth.setup.js`; the shop specs run anonymously. Specs must **discover their subjects** (grid links, locale switcher) rather than hardcode ids, codes or locales, so they keep working against a freshly seeded database.
 
-Any new UI needs a spec here. Coverage today: admin gift cards index/show/edit, designs index/edit, balance report, gift card and design preview PDFs, product edit for simple/configurable/gift card products, and the shop gift card product page, locales, add-to-cart and redemption.
+Any new UI needs a spec here. Coverage today: admin gift cards index/show/edit, the gift card create form's design picker (thumbnails, narrowed to the chosen channel) and delivery type, designs index/edit, balance report, gift card and design preview PDFs, product edit for simple/configurable/gift card products, and the shop gift card product page, locales, add-to-cart and redemption.
 
 Redemption does not change what the order costs — the gift card becomes a payment against it — so specs assert the "Remaining to pay" figure rather than expecting the order total to drop.
 
