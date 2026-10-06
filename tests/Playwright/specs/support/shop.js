@@ -246,7 +246,11 @@ async function addOrdinaryProductToCart(page) {
  * @param {string} code
  */
 async function applyGiftCard(page, code) {
-    await page.goto(await shopPath(page, 'cart/'));
+    // Adding something to the cart and applying a code both end on the cart, so it is only loaded from elsewhere
+    const cart = await shopPath(page, 'cart/');
+    if (new URL(page.url()).pathname !== cart) {
+        await page.goto(cart);
+    }
     await page.locator(REDEMPTION_FIELD).fill(code);
 
     // the plugin's own button, as the cart also carries Sylius' "Apply coupon"

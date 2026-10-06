@@ -50,6 +50,11 @@ async function expectFiguresBelowTheOrderTotal(page, step) {
 
 test.describe('the gift card figures at checkout', () => {
     test('every step shows that a card covering the whole order leaves nothing to pay', async ({ page }) => {
+        // a cart filled and a card redeemed, then the whole guest checkout with the figures read on every step, the
+        // address step waiting out the province field's reload: a busy runner has taken that past the default
+        // timeout (#468), and CI does not retry
+        test.slow();
+
         await addOrdinaryProductToCart(page);
         await redeemGiftCard(page, GIFT_CARD_CODE);
         expect(await cartFigure(page, 'Remaining to pay'), 'precondition: the card covers the whole cart').toBe(0);
@@ -76,6 +81,9 @@ test.describe('the gift card figures at checkout', () => {
      * the redeemed card holds: the seeded card covers part of the order without anything being spent
      */
     test('every step shows what remains to pay when the card covers part of the order', async ({ page }) => {
+        // the walk of the test above, with a gift card line added first and the payment step to go through as well
+        test.slow();
+
         const giftCardLine = 3000;
         await addGiftCardToCart(page, { amount: giftCardLine });
         await addOrdinaryProductToCart(page);
