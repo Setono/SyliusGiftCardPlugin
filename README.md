@@ -73,6 +73,7 @@ A card can only be deleted while nothing has happened to it: a card issued in th
 | PHP         | >= 8.1                                      |
 | Sylius      | 1.13 and up (the `1.x` line)                |
 | Symfony     | ^6.4 (symfony/form 6.4.31 and up)           |
+| Twig        | below 3.29 ([why](#twig-below-329))         |
 | ORM         | doctrine/orm (the only supported driver)   |
 
 The plugin also builds on bundles every Sylius application already registers: LiipImagineBundle renders the design
@@ -93,8 +94,29 @@ composer require setono/sylius-gift-card-plugin
 ```
 
 If Composer answers that the plugin conflicts with the `twig/twig` your application has locked, run the command again
-with `--with-all-dependencies` (`-W`), so Composer can move Twig to a version the plugin allows. The plugin keeps Twig
-below 3.29, the version on which emails sent through older releases of `sylius/mailer-bundle` fail.
+with `--with-all-dependencies` (`-W`):
+
+```bash
+composer require setono/sylius-gift-card-plugin --with-all-dependencies
+```
+
+A fresh Sylius-Standard 1.14 locks Twig 3.29 or newer, so expect this there. `-W` allows Composer to move Twig back to
+a 3.28 release, along with any package that depends on it.
+
+#### Twig below 3.29
+
+The plugin's `composer.json` conflicts with `twig/twig` `>=3.29`, on purpose:
+
+- Twig 3.29 made the `Environment` a required argument of `TemplateWrapper::unwrap()`.
+- `sylius/mailer-bundle` up to 2.2.0 calls `unwrap()` without one when it renders an email. On Twig 3.29 or newer, those
+  releases fail every email they send with an `ArgumentCountError`. That includes the gift card emails, and Sylius'
+  own order emails too.
+- `sylius/mailer-bundle` 2.2.1 fixes the call, but it requires PHP 8.2. The plugin still supports PHP 8.1, where
+  Composer can only install the older, broken releases.
+
+Composer cannot limit the conflict to "Twig 3.29 or newer together with an older mailer bundle". So the plugin keeps
+every installation on Twig below 3.29, which works with every mailer bundle release. The conflict will be lifted
+when the plugin drops PHP 8.1. It will then require `sylius/mailer-bundle` 2.2.1 or newer instead.
 
 ### Register the plugin
 
