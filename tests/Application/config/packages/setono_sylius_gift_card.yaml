@@ -23,8 +23,9 @@ sylius_fixtures:
                             # A gift card product sold as virtual cards only, which is a simple product without a
                             # variant choice. The home page lists it next to the gift_card product the shop specs
                             # buy, so they pick the gift card product offering a choice of delivery types rather
-                            # than the first one they meet (discoverProducts() in specs/support/shop.js). Its slug
-                            # has "gift-card" in it, which keeps cart.js' addSomethingToCart() away from it
+                            # than the first one they meet (discoverProducts() in specs/support/shop.js). Its code
+                            # sorts after gift_card, which productIdsByKind() in specs/support/fixtures.js keeps
+                            # taking as the gift card product from the products grid
                             e2e_virtual_only:
                                 code: virtual_gift_card
                                 name: Virtual gift card
