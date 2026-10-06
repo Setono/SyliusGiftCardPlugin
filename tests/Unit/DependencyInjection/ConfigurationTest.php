@@ -242,6 +242,46 @@ final class ConfigurationTest extends TestCase
     }
 
     /**
+     * A gift card's balance is a signed 32-bit integer column, so it holds at most 2147483647 minor units, and the
+     * purchase limits may go as far as that
+     *
+     * @test
+     *
+     * @dataProvider provideAmountOptions
+     */
+    public function it_allows_an_amount_limit_of_the_most_a_gift_card_can_hold(string $option): void
+    {
+        $this->assertProcessedConfigurationEquals([['purchase' => [$option => 2147483647]]], [
+            'purchase' => [$option => Configuration::MAXIMUM_AMOUNT],
+        ], 'purchase.' . $option);
+    }
+
+    /**
+     * Beyond what a card can hold, a minimum would leave no amount the shop accepts, and a maximum would be quoted on the
+     * product page while the shop refused the amounts above the ceiling
+     *
+     * @test
+     *
+     * @dataProvider provideAmountOptions
+     */
+    public function it_rejects_an_amount_limit_beyond_the_most_a_gift_card_can_hold(string $option): void
+    {
+        $this->assertConfigurationIsInvalid(
+            [['purchase' => [$option => 2147483648]]],
+            sprintf('The value 2147483648 is too big for path "setono_sylius_gift_card.purchase.%s". Should be less than or equal to 2147483647', $option),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideAmountOptions(): iterable
+    {
+        yield 'minimum_amount' => ['minimum_amount'];
+        yield 'maximum_amount' => ['maximum_amount'];
+    }
+
+    /**
      * A physical gift card is shipped with its code printed on it, so the code is not emailed unless the
      * merchant asks for it
      *

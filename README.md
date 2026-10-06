@@ -505,11 +505,12 @@ is validated and stored (from symfony/form 6.4.31, which is why the plugin requi
 with its line breaks intact and clamps it to four lines, so a message much longer than the default will be cut off on
 the gift card and in its PDF.
 
-Whatever `maximum_amount` says, a gift card holds at most 21,474,836.47 of its currency, a limit that matters in a
-currency of large nominal amounts like the Indonesian rupiah. Balances are kept in minor units in columns mapped as
-Doctrine's `integer` type, a signed 32-bit integer, so the shop's amount field, the admin's *New gift card* and *Adjust
-balance* forms and the `setono_gift_card` fixture refuse an amount or a balance beyond it rather than leave the database
-to refuse it. Sylius keeps its prices and order totals in `integer` columns too.
+A gift card holds at most 21,474,836.47 of its currency, a limit that matters in a currency of large nominal amounts
+like the Indonesian rupiah. Balances are kept in minor units in columns mapped as Doctrine's `integer` type, a signed
+32-bit integer, so the shop's amount field, the admin's *New gift card* and *Adjust balance* forms and the
+`setono_gift_card` fixture refuse an amount or a balance beyond it rather than leave the database to refuse it. With no
+`maximum_amount` this is the shop's maximum, and neither `minimum_amount` nor `maximum_amount` can be set above
+2147483647 (`Configuration::MAXIMUM_AMOUNT`). Sylius keeps its prices and order totals in `integer` columns too.
 
 ### Protecting codes from guessing
 
