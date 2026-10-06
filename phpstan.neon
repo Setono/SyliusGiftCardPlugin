@@ -47,16 +47,12 @@ parameters:
                 - src/Model/ProductTrait.php
                 - src/Doctrine/ORM/CustomerRepositoryTrait.php
 
-        # Symfony's node definitions leave their properties untyped, so PHPStan reads them as mixed. These pass them
-        # on to their nodes exactly as Symfony's own IntegerNodeDefinition and ScalarNodeDefinition do.
+        # Symfony's node definitions leave their properties untyped, so PHPStan reads them as mixed. This one passes
+        # them on to its node exactly as Symfony's own IntegerNodeDefinition does.
         -
             identifier: argument.type
             path: src/DependencyInjection/Definition/Builder/NullableIntegerNodeDefinition.php
             count: 5
-        -
-            identifier: argument.type
-            path: src/DependencyInjection/Definition/Builder/StrtotimeIntervalNodeDefinition.php
-            count: 3
 
         # Plugin resources map associations to Sylius interfaces which the host application resolves to
         # concrete classes via Doctrine's ResolveTargetEntityListener. phpstan-doctrine sees the resolved

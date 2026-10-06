@@ -516,7 +516,10 @@ holds anything but such an interval, whatever gives a gift card its expiry throw
 such as `The default_validity_period must be a valid strtotime interval, e.g. "3 years": "3 yrs"`: adding a gift card
 to the cart, completing an order that buys one, the *New gift card* form, the fixture, and the admin's design preview,
 which draws a sample card. The rest of the shop keeps working. The variable has to give a string, so `%env(int:...)%`
-is refused while the container compiles.
+is refused while the container compiles. To let the variable mean *never expire*, read it as
+`%env(default::GIFT_CARD_VALIDITY)%`: an empty or unset variable is then null. The container accepts `default::` here
+from symfony/dependency-injection 6.4.19; before it, Symfony takes `default::` to give any type, an array included,
+and refuses it for this option, as it did before the option could be taken from a variable at all.
 
 `minimum_code_length` applies to every card issued from now on: `code_length` cannot be set below it, an admin who
 types a code of their own on the *New gift card* form is held to it, and so is a code given to the `setono_gift_card`

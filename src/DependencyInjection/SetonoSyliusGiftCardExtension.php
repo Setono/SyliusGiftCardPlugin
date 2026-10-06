@@ -12,10 +12,12 @@ use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardPendingFilter;
 use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardSpentFilter;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
+use Setono\SyliusGiftCardPlugin\Resolver\ValidityPeriod;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
 use Sylius\Component\Grid\Filter\StringFilter;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
@@ -50,6 +52,8 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
          * } $config
          */
         $config = $this->processConfiguration($this->getConfiguration([], $container), $configs);
+        self::refuseADefaultValidityPeriodThatIsNoInterval($config['default_validity_period'], $container);
+
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
 
         $container->setParameter('setono_sylius_gift_card.code_length', $config['code_length']);
@@ -83,6 +87,36 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                 $container->setAlias(sprintf('setono_sylius_gift_card.redemption.%s', $option), $config['redemption'][$option]);
             }
         }
+    }
+
+    /**
+     * The configuration only holds default_validity_period to its type. Symfony runs a node's validate() rules on a
+     * dummy value in place of an environment variable ('' for a string), so a rule there cannot tell
+     * %env(GIFT_CARD_VALIDITY)% from a literal ''. Here a variable is still the placeholder the container knows it by.
+     * Its value is only known at runtime, where GiftCardExpiryResolver checks it, so only a period written in the
+     * configuration is checked here, with the message a validate() rule would give
+     */
+    private static function refuseADefaultValidityPeriodThatIsNoInterval(?string $period, ContainerBuilder $container): void
+    {
+        if (null === $period) {
+            return;
+        }
+
+        $usedEnvs = [];
+        $container->resolveEnvPlaceholders($period, null, $usedEnvs);
+        if ([] !== $usedEnvs || ValidityPeriod::isInterval($period)) {
+            return;
+        }
+
+        $path = 'setono_sylius_gift_card.default_validity_period';
+        $exception = new InvalidConfigurationException(sprintf(
+            'Invalid configuration for path "%s": The default_validity_period must be a valid strtotime interval, e.g. "3 years": %s',
+            $path,
+            json_encode($period),
+        ));
+        $exception->setPath($path);
+
+        throw $exception;
     }
 
     /**
