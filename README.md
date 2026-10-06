@@ -8,7 +8,7 @@ Add gift card functionality to your Sylius store:
 
 - **Buy gift cards** — customers choose the amount, a design and an optional message, and pick whether the gift card is **virtual** (delivered by email as a PDF) or **physical** (shipped like a normal product).
 - **Redeem gift cards** — customers apply a gift card code in the cart, and it becomes a **real payment** against the order rather than a discount on it.
-- **Admin management** — a gift card grid showing each card's status with filters to find a card by, issuing gift cards with the design and delivery type of your choice, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger), and an outstanding-balance dashboard.
+- **Admin management** — a gift card grid showing each card's status with filters to find a card by, issuing gift cards with the design and delivery type of your choice, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger naming the admin who made each one), and an outstanding-balance dashboard.
 
 > This is the `1.x` line, for **Sylius 1.13 and up**. It is a ground-up rewrite of the `0.12.x` plugin. There is **no API layer** in 1.x — see [`UPGRADE-1.0.md`](UPGRADE-1.0.md) if you are coming from `0.12.x`.
 
@@ -73,6 +73,7 @@ A card can only be deleted while nothing has happened to it: a card issued in th
 | PHP         | >= 8.1                                      |
 | Sylius      | 1.13 and up (the `1.x` line)                |
 | Symfony     | ^6.4 (symfony/form 6.4.31 and up)           |
+| Twig        | below 3.29 ([why](#twig-below-329))         |
 | ORM         | doctrine/orm (the only supported driver)   |
 
 The plugin also builds on bundles every Sylius application already registers: LiipImagineBundle renders the design
@@ -93,8 +94,29 @@ composer require setono/sylius-gift-card-plugin
 ```
 
 If Composer answers that the plugin conflicts with the `twig/twig` your application has locked, run the command again
-with `--with-all-dependencies` (`-W`), so Composer can move Twig to a version the plugin allows. The plugin keeps Twig
-below 3.29, the version on which emails sent through older releases of `sylius/mailer-bundle` fail.
+with `--with-all-dependencies` (`-W`):
+
+```bash
+composer require setono/sylius-gift-card-plugin --with-all-dependencies
+```
+
+A fresh Sylius-Standard 1.14 locks Twig 3.29 or newer, so expect this there. `-W` allows Composer to move Twig back to
+a 3.28 release, along with any package that depends on it.
+
+#### Twig below 3.29
+
+The plugin's `composer.json` conflicts with `twig/twig` `>=3.29`, on purpose:
+
+- Twig 3.29 made the `Environment` a required argument of `TemplateWrapper::unwrap()`.
+- `sylius/mailer-bundle` up to 2.2.0 calls `unwrap()` without one when it renders an email. On Twig 3.29 or newer, those
+  releases fail every email they send with an `ArgumentCountError`. That includes the gift card emails, and Sylius'
+  own order emails too.
+- `sylius/mailer-bundle` 2.2.1 fixes the call, but it requires PHP 8.2. The plugin still supports PHP 8.1, where
+  Composer can only install the older, broken releases.
+
+Composer cannot limit the conflict to "Twig 3.29 or newer together with an older mailer bundle". So the plugin keeps
+every installation on Twig below 3.29, which works with every mailer bundle release. The conflict will be lifted
+when the plugin drops PHP 8.1. It will then require `sylius/mailer-bundle` 2.2.1 or newer instead.
 
 ### Register the plugin
 
@@ -126,26 +148,9 @@ setono_sylius_gift_card:
     resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml"
 ```
 
-This file puts the shop routes under `/{_locale}` and the admin routes under `/admin`, as Sylius-Standard does with
-Sylius' own. If your admin lives somewhere else (`SYLIUS_ADMIN_ROUTING_PATH_NAME`), import the three route files
-yourself instead, so the plugin's admin pages sit behind the admin firewall with the rest of the admin:
-
-```yaml
-# config/routes/setono_sylius_gift_card.yaml
-setono_sylius_gift_card_shop:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/shop.yaml"
-    prefix: /{_locale}
-    requirements:
-        _locale: ^[A-Za-z]{2,4}(_([A-Za-z]{4}|[0-9]{3}))?(_([A-Za-z]{2}|[0-9]{3}))?$
-
-setono_sylius_gift_card_admin:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/admin.yaml"
-    prefix: /%sylius_admin.path_name%
-
-setono_sylius_gift_card_admin_ajax:
-    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes/admin_ajax.yaml"
-    prefix: /%sylius_admin.path_name%/ajax
-```
+This file puts the shop routes under `/{_locale}` and the admin routes under your admin path, as Sylius-Standard does
+with Sylius' own: `/admin`, or whatever `SYLIUS_ADMIN_ROUTING_PATH_NAME` names. The plugin's admin pages sit behind the
+admin firewall with the rest of the admin, wherever it lives.
 
 ### Apply the traits/interfaces to your entities
 
@@ -426,7 +431,7 @@ setono_sylius_gift_card:
     default_validity_period: '3 years'   # how long a card stays valid (any strtotime-compatible interval), or null to never expire; see below
     purchase:
         minimum_amount: 100              # minor units (e.g. cents), at least 1
-        # maximum_amount: 50000          # minor units, at least 1; no maximum unless you set one
+        maximum_amount: ~                # minor units, at least 1, or ~ for no maximum
         maximum_message_length: 200      # characters a customer may write on the card, 1 to 65535
     delivery:
         email_physical_cards: false      # true also emails the code and the PDF of a *physical* card when the order is paid, as a backup

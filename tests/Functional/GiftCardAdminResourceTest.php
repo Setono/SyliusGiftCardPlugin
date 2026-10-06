@@ -16,7 +16,8 @@ use Symfony\Component\Routing\RouterInterface;
 
 /**
  * Issuing and deleting gift cards through Sylius' resource routes, with what the plugin hooks into them: the
- * opening balance is recorded when a card is issued, and a card whose balance has moved cannot be deleted
+ * opening balance is recorded when a card is issued, along with the administrator who issued it, and a card whose
+ * balance has moved cannot be deleted
  */
 final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
 {
@@ -57,6 +58,10 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
         self::assertInstanceOf(GiftCardTransactionInterface::class, $transaction);
         self::assertSame(GiftCardTransactionInterface::TYPE_ISSUE, $transaction->getType());
         self::assertSame(2550, $transaction->getAmount());
+        // Issuing a card hands out money as much as adjusting a balance does, so the administrator who did it is named.
+        // No order paid for it
+        self::assertSame('administrator', $transaction->getCreatedBy());
+        self::assertNull($transaction->getOrder());
     }
 
     /**
@@ -351,6 +356,40 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
         self::assertSame('Happy birthday', $giftCard->getCustomMessage());
     }
 
+    /**
+     * The channel is a non nullable column, so a card without one has to be refused on the form rather than by the
+     * database. A browser always sends the select's value, but a crafted request does not, and neither does a form
+     * whose template leaves the field out. The constraints that compare the card with its channel have nothing to
+     * compare it with then, so the channel field is the only one to show an error
+     *
+     * @test
+     */
+    public function it_refuses_a_gift_card_without_a_channel(): void
+    {
+        $this->persistDesign('birthday', 'Birthday', $this->getChannel());
+
+        foreach (['missing' => null, 'blank' => ''] as $case => $channel) {
+            $fields = [
+                'currencyCode' => 'USD',
+                'amount' => '10',
+                'design' => 'birthday',
+            ];
+            if (null !== $channel) {
+                $fields['channel'] = $channel;
+            }
+
+            $response = $this->issue($fields);
+
+            self::assertSame(422, $response->getStatusCode(), sprintf('channel %s', $case));
+            self::assertSame(['Please choose a channel'], self::channelErrors($response), sprintf('channel %s', $case));
+            self::assertSame(['Please choose a channel'], self::textsOf($response, '//*[contains(@class, "sylius-validation-error")]'), sprintf('the only error, channel %s', $case));
+        }
+
+        /** @var GiftCardRepositoryInterface $repository */
+        $repository = self::getContainer()->get('setono_sylius_gift_card.repository.gift_card');
+        self::assertSame([], $repository->findAll());
+    }
+
     /** @test */
     public function it_issues_nothing_when_the_form_is_invalid(): void
     {
@@ -494,6 +533,17 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
     {
         return self::textsOf($response, sprintf(
             '//div[contains(concat(" ", normalize-space(@class), " "), " field ")][.//input[@name="%s[code]"]]//*[contains(@class, "sylius-validation-error")]',
+            self::FORM,
+        ));
+    }
+
+    /**
+     * @return list<string> the validation errors the page shows on the channel field
+     */
+    private static function channelErrors(Response $response): array
+    {
+        return self::textsOf($response, sprintf(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " field ")][.//select[@name="%s[channel]"]]//*[contains(@class, "sylius-validation-error")]',
             self::FORM,
         ));
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
@@ -39,6 +40,13 @@ final class SymfonyWorkflowGiftCardTest extends GiftCardFunctionalTestCase
             'EnableGiftCardsSubscriber should have run off the workflow.sylius_order_payment.completed.pay event',
         );
         self::assertSame(OrderPaymentStates::STATE_PAID, $order->getPaymentState());
+
+        // The issuance is recorded against the order that paid for the card, as it is under winzou
+        $transactions = array_values($giftCard->getTransactions()->toArray());
+        self::assertCount(1, $transactions);
+        self::assertSame(GiftCardTransactionInterface::TYPE_ISSUE, $transactions[0]->getType());
+        self::assertSame($order, $transactions[0]->getOrder());
+        self::assertNull($transactions[0]->getCreatedBy());
     }
 
     private function orderPaymentWorkflow(): WorkflowInterface

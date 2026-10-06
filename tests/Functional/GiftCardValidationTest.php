@@ -219,6 +219,35 @@ final class GiftCardValidationTest extends GiftCardFunctionalTestCase
     }
 
     /**
+     * The channel is a non nullable column, so a card without one has to be refused here rather than by the database.
+     * The rules comparing the currency and the design with the channel have nothing to compare them with then, so the
+     * card is refused once, for the channel, although neither EUR nor a design no channel offers would pass with one
+     *
+     * @test
+     */
+    public function it_rejects_a_gift_card_without_a_channel(): void
+    {
+        $design = $this->newDesign('offered_nowhere');
+        $design->removeChannel($this->getChannel());
+        $this->manager->persist($design);
+        $this->manager->flush();
+
+        /** @var GiftCardFactoryInterface $factory */
+        $factory = self::getContainer()->get('setono_sylius_gift_card.factory.gift_card');
+
+        $giftCard = $factory->createNew();
+        $giftCard->setCurrencyCode('EUR');
+        $giftCard->setInitialAmount(5000);
+        $giftCard->setAmount(5000);
+        $giftCard->setDesign($design);
+
+        self::assertSame(
+            ['channel: setono_sylius_gift_card.gift_card.channel.not_null'],
+            $this->violations($giftCard, templates: true),
+        );
+    }
+
+    /**
      * EUR is a real currency, just not the one the channel keeps its orders in
      *
      * @test

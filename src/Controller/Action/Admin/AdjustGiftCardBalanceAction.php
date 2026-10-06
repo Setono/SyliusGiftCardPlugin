@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment;
 
 final class AdjustGiftCardBalanceAction
@@ -30,6 +31,7 @@ final class AdjustGiftCardBalanceAction
         private readonly Environment $twig,
         private readonly UrlGeneratorInterface $urlGenerator,
         ManagerRegistry $managerRegistry,
+        private readonly TokenStorageInterface $tokenStorage,
     ) {
         $this->managerRegistry = $managerRegistry;
     }
@@ -50,7 +52,13 @@ final class AdjustGiftCardBalanceAction
             /** @var AdjustGiftCardBalanceCommand $command */
             $command = $form->getData();
 
-            $this->balanceOperator->adjust($command->getGiftCard(), (int) $command->getAmount(), (string) $command->getReason());
+            // The ledger names the administrator who made the adjustment, by their user identifier
+            $this->balanceOperator->adjust(
+                $command->getGiftCard(),
+                (int) $command->getAmount(),
+                (string) $command->getReason(),
+                $this->tokenStorage->getToken()?->getUser()?->getUserIdentifier(),
+            );
             $this->getManager($giftCard)->flush();
 
             $session = $request->getSession();

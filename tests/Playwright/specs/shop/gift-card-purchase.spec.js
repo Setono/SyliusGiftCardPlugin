@@ -75,9 +75,13 @@ test.describe('buying a gift card', () => {
         await expect(detailRow('Design').locator('a')).toHaveAttribute('href', /\/admin\/gift-card-designs\/\d+\/edit$/);
         await expect(detailRow('Design').locator('a img')).toBeVisible();
 
-        // Issuance is recorded when the order is paid, the first moment the balance is final
+        // Issuance is recorded when the order is paid, the first moment the balance is final, and leads back to the
+        // order that paid for the card. The admin who marked the payment completed is not named as having issued it:
+        // the order did
         const transactions = await giftCardTransactions(admin.page, id);
-        expect(transactions.map(({ type, amount: moved }) => [type, moved])).toEqual([['Issued', amount]]);
+        expect(transactions.map(({ type, amount: moved, order: number, orderHref, createdBy }) => [type, moved, number, orderHref, createdBy])).toEqual([
+            ['Issued', amount, `#${order.number}`, order.url, '-'],
+        ]);
 
         // The card now pays for something else, in a cart of a customer of its own
         const code = details.Code.replace(/-/g, '');

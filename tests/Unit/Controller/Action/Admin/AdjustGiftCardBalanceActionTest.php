@@ -26,6 +26,11 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\NullToken;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\User\InMemoryUser;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Mapping\Loader\LoaderInterface;
@@ -36,7 +41,7 @@ use Twig\Loader\ArrayLoader;
 /**
  * The action hands the adjustment to the balance operator, the only thing allowed to move a balance, and owns the
  * flush that makes it stick. It runs on a real form built from AdjustGiftCardBalanceType so the submitted major units
- * reach the operator the way they do in the admin
+ * reach the operator the way they do in the admin, and tells the operator who the signed in administrator is
  */
 final class AdjustGiftCardBalanceActionTest extends TestCase
 {
@@ -50,10 +55,16 @@ final class AdjustGiftCardBalanceActionTest extends TestCase
     /** @var ObjectProphecy<EntityManagerInterface> */
     private ObjectProphecy $manager;
 
+    private TokenStorage $tokenStorage;
+
     protected function setUp(): void
     {
         $this->balanceOperator = $this->prophesize(GiftCardBalanceOperatorInterface::class);
         $this->manager = $this->prophesize(EntityManagerInterface::class);
+
+        // Signed in to the admin the way the admin firewall leaves it
+        $this->tokenStorage = new TokenStorage();
+        $this->tokenStorage->setToken(new UsernamePasswordToken(new InMemoryUser('jane', null), 'admin', ['ROLE_ADMINISTRATION_ACCESS']));
     }
 
     /** @test */
@@ -81,7 +92,8 @@ final class AdjustGiftCardBalanceActionTest extends TestCase
     {
         $giftCard = $this->giftCard();
 
-        $this->balanceOperator->adjust($giftCard, -1250, 'Returned goods')->shouldBeCalledOnce();
+        // The adjustment names the administrator who made it, by their user identifier
+        $this->balanceOperator->adjust($giftCard, -1250, 'Returned goods', 'jane')->shouldBeCalledOnce();
         $this->manager->flush()->shouldBeCalledOnce();
 
         $request = $this->submission('-12.50', 'Returned goods');
@@ -93,6 +105,36 @@ final class AdjustGiftCardBalanceActionTest extends TestCase
         $session = $request->getSession();
         self::assertInstanceOf(Session::class, $session);
         self::assertSame(['setono_sylius_gift_card.gift_card.balance_adjusted'], $session->getFlashBag()->get('success'));
+    }
+
+    /**
+     * The admin firewall guards the route, so there is always somebody signed in there. Should the action be reached
+     * without, the adjustment is still recorded, naming nobody rather than failing
+     *
+     * @test
+     *
+     * @dataProvider provideTokensOfNobody
+     */
+    public function it_names_nobody_when_nobody_is_signed_in(?TokenInterface $token): void
+    {
+        $giftCard = $this->giftCard();
+        $this->tokenStorage->setToken($token);
+
+        $this->balanceOperator->adjust($giftCard, 1000, 'Goodwill', null)->shouldBeCalledOnce();
+        $this->manager->flush()->shouldBeCalledOnce();
+
+        $response = $this->action($giftCard)($this->submission('10', 'Goodwill'), self::ID);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+    }
+
+    /**
+     * @return iterable<string, array{TokenInterface|null}>
+     */
+    public static function provideTokensOfNobody(): iterable
+    {
+        yield 'no token' => [null];
+        yield 'a token without a user' => [new NullToken()];
     }
 
     /**
@@ -162,6 +204,7 @@ final class AdjustGiftCardBalanceActionTest extends TestCase
             $twig,
             $urlGenerator->reveal(),
             $managerRegistry->reveal(),
+            $this->tokenStorage,
         );
     }
 

@@ -40,6 +40,7 @@ setono_sylius_gift_card:
         count: Nombre
         current_balance: Solde actuel
         create_gift_card_product: Créer un produit chèque-cadeau
+        created_by: Créé par
         customer_help_text: Lorsqu'un client est associé et que la notification est activée, il reçoit le chèque-cadeau par email
         default_design_name: Classique
         edit_gift_card: Modifier le chèque-cadeau
