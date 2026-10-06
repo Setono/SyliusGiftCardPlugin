@@ -13,7 +13,9 @@ interface GiftCardProductFactoryInterface
     public const DEFAULT_PRICE = 5000;
 
     /**
-     * Creates a gift card product with the shared delivery option and one variant per delivery type.
+     * Creates a gift card product with one variant per delivery type. A product with several delivery types gets the
+     * shared delivery option, which the customer chooses the variant by. A product with a single delivery type gets no
+     * option, so Sylius treats it as a simple product and the shop shows no variant choice for it.
      *
      * The product is returned unmanaged: it is the caller's job to persist and flush it. The delivery option, the
      * first time one is created, is persisted, and written by that same flush. The variants, and the delivery option

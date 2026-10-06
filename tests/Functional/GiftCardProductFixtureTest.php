@@ -63,7 +63,11 @@ final class GiftCardProductFixtureTest extends GiftCardFunctionalTestCase
 
     /**
      * A shop may sell only one kind of gift card, so a product can be seeded with the variants for the delivery types
-     * named and no others. Without delivery types it gets both, as the test above shows
+     * named and no others. Without delivery types it gets both, as the test above shows.
+     *
+     * A product with one delivery type leaves the customer nothing to choose, so it gets no delivery option and is a
+     * simple product, which the shop shows without a variant choice. With both, the option is what the customer
+     * chooses by
      *
      * @test
      */
@@ -78,17 +82,23 @@ final class GiftCardProductFixtureTest extends GiftCardFunctionalTestCase
         $virtual = $this->findProduct('virtual_card');
         self::assertTrue($virtual->isGiftCard());
         self::assertSame(['virtual_card_virtual' => false], $this->shippingRequiredByVariantCode($virtual));
+        self::assertTrue($virtual->isSimple());
+        self::assertSame([], $this->optionCodesOf($virtual));
 
-        self::assertSame(['physical_card_physical' => true], $this->shippingRequiredByVariantCode($this->findProduct('physical_card')));
+        $physical = $this->findProduct('physical_card');
+        self::assertSame(['physical_card_physical' => true], $this->shippingRequiredByVariantCode($physical));
+        self::assertTrue($physical->isSimple());
+        self::assertSame([], $this->optionCodesOf($physical));
 
-        self::assertSame(
-            ['both_card_physical' => true, 'both_card_virtual' => false],
-            $this->shippingRequiredByVariantCode($this->findProduct('both_card')),
-        );
+        $both = $this->findProduct('both_card');
+        self::assertSame(['both_card_physical' => true, 'both_card_virtual' => false], $this->shippingRequiredByVariantCode($both));
+        self::assertFalse($both->isSimple());
+        self::assertSame(['gift_card_delivery'], $this->optionCodesOf($both));
     }
 
     /**
-     * A variant code is unique, so a delivery type named twice gets one variant rather than failing the flush
+     * A variant code is unique, so a delivery type named twice gets one variant rather than failing the flush. It is
+     * still one delivery type, so the product is as simple as one that names it once
      *
      * @test
      */
@@ -98,7 +108,10 @@ final class GiftCardProductFixtureTest extends GiftCardFunctionalTestCase
             ['code' => 'twice_card', 'name' => 'Twice card', 'delivery_types' => ['virtual', 'virtual']],
         ]]);
 
-        self::assertSame(['twice_card_virtual' => false], $this->shippingRequiredByVariantCode($this->findProduct('twice_card')));
+        $product = $this->findProduct('twice_card');
+        self::assertSame(['twice_card_virtual' => false], $this->shippingRequiredByVariantCode($product));
+        self::assertTrue($product->isSimple());
+        self::assertSame([], $this->optionCodesOf($product));
     }
 
     /**
@@ -270,6 +283,17 @@ final class GiftCardProductFixtureTest extends GiftCardFunctionalTestCase
         return array_values(array_map(
             static fn (ChannelInterface $channel): string => (string) $channel->getCode(),
             $product->getChannels()->toArray(),
+        ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function optionCodesOf(ProductInterface $product): array
+    {
+        return array_values(array_map(
+            static fn (ProductOptionInterface $option): string => (string) $option->getCode(),
+            $product->getOptions()->toArray(),
         ));
     }
 

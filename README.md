@@ -422,8 +422,10 @@ Mind the units when you write fixtures of your own: the `amount` of a `setono_gi
 
 Both kinds of gift card can be seeded. A `setono_gift_card_product` fixture creates a variant for each delivery type
 unless `delivery_types` names the ones it should have, and a `setono_gift_card` fixture issues a virtual card unless its
-entry says `delivery_type: physical`. Below the import, this narrows the imported suite's gift card product to its
-virtual variant and adds a physical card to its gift cards:
+entry says `delivery_type: physical`. A product with a single delivery type gets no delivery option, so the shop shows
+no variant choice for it, as for the single variant product described under [Virtual vs physical](#virtual-vs-physical).
+Below the import, this narrows the imported suite's gift card product to its virtual variant and adds a physical card to
+its gift cards:
 
 ```yaml
 # config/packages/setono_sylius_gift_card.yaml
