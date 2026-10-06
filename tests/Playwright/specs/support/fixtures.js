@@ -149,6 +149,11 @@ async function productIdsByKind(page) {
  * The path of the product's page in the shop, taken from the "Show product in shop page" button of its edit page,
  * or null while the shop does not show the product (it is disabled, or in no enabled channel)
  *
+ * Sylius renders that button in two shapes (`@SyliusAdmin/Product/_showInShopButton.html.twig`), the hook on the outer
+ * element of either: a link for a product in one enabled channel (a disabled one, to `#`, for a product the shop does
+ * not show), and a dropdown of links, one per channel, for a product in several. Of those, the first that leads
+ * somewhere is taken
+ *
  * @param {import('@playwright/test').Page} page an authenticated admin page
  * @param {string} id
  * @returns {Promise<string|null>}
@@ -156,10 +161,16 @@ async function productIdsByKind(page) {
 async function productShopPath(page, id) {
     await page.goto(`/admin/products/${id}/edit`);
 
-    const button = page.locator('a[data-test-show-product-in-shop-page]').first();
-    await expect(button, `the edit page of product ${id} has no button showing it in the shop`).toHaveCount(1);
+    const button = page.locator('[data-test-show-product-in-shop-page]');
+    await expect(button, `the edit page of product ${id} has no "Show product in shop page" button`).toHaveCount(1);
 
-    const href = (await button.getAttribute('href')) ?? '#';
+    const isLink = 'A' === (await button.evaluate((element) => element.tagName));
+    const link = isLink ? button : button.locator('.menu a.item:not(.disabled)').first();
+    if (0 === (await link.count()) || (await link.evaluate((element) => element.classList.contains('disabled')))) {
+        return null;
+    }
+
+    const href = (await link.getAttribute('href')) ?? '#';
 
     // a link to the channel's hostname, of which only the path is the same on the application under test
     return '#' === href ? null : new URL(href, page.url()).pathname;
