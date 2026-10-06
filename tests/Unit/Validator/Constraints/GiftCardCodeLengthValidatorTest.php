@@ -35,6 +35,51 @@ final class GiftCardCodeLengthValidatorTest extends ConstraintValidatorTestCase
             ->assertRaised();
     }
 
+    /** @test */
+    public function it_holds_a_new_card_to_a_raised_minimum(): void
+    {
+        $this->validator = new GiftCardCodeLengthValidator(20);
+        $this->validator->initialize($this->context);
+
+        $this->validator->validate($this->newGiftCard('ABCDEFGHJKMNPQRSTUVWXYZ'), new GiftCardCodeLength());
+        $this->validator->validate($this->newGiftCard('ABCDEFGHJKMNPQRSTUVW'), new GiftCardCodeLength());
+        $this->assertNoViolation();
+
+        $this->validator->validate($this->newGiftCard('ABCDEFGHJKMNPQRSTUV'), new GiftCardCodeLength());
+        $this->buildViolation('setono_sylius_gift_card.gift_card.code.too_short')
+            ->setParameter('{{ limit }}', '20')
+            ->atPath('property.path.code')
+            ->assertRaised();
+    }
+
+    /**
+     * The configuration refuses these minimums, but not a minimum_code_length taken from an environment variable,
+     * whose value is only known at runtime. A card being issued is then refused rather than held to it
+     *
+     * @dataProvider provideMinimumLengthsTheConfigurationRefuses
+     *
+     * @test
+     */
+    public function it_refuses_to_hold_a_new_card_to_a_minimum_the_configuration_refuses(int $minimumLength, string $expectedMessage): void
+    {
+        $this->validator = new GiftCardCodeLengthValidator($minimumLength);
+        $this->validator->initialize($this->context);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        $this->validator->validate($this->newGiftCard('ABCDEFGHJKMNPQRS'), new GiftCardCodeLength());
+    }
+
+    /**
+     * @return iterable<string, array{int, string}>
+     */
+    public static function provideMinimumLengthsTheConfigurationRefuses(): iterable
+    {
+        yield 'guessable' => [11, 'The minimum_code_length (11) must be between 12 and 255'];
+        yield 'longer than the code column' => [256, 'The minimum_code_length (256) must be between 12 and 255'];
+    }
+
     /**
      * Cards brought over from 0.12 may have shorter codes, and they are validated whenever they are edited
      *
