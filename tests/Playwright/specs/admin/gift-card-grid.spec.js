@@ -49,8 +49,15 @@ async function listedAmounts(page) {
  * @param {Array<{printedCode: string}>} cards
  */
 async function deleteCards(page, cards) {
+    await page.goto('/admin/gift-cards/');
+
     for (const card of cards) {
-        await clickAndConfirm(page, (await giftCardRows(page, card.printedCode)).getByRole('button', { name: /delete/i }));
+        // deleting leads back to the grid, which lists the next card too, unless the grid was filtered it away
+        let row = page.locator(ROWS).filter({ hasText: card.printedCode });
+        if (0 === (await row.count())) {
+            row = await giftCardRows(page, card.printedCode);
+        }
+        await clickAndConfirm(page, row.getByRole('button', { name: /delete/i }));
     }
 }
 
@@ -106,20 +113,29 @@ test.describe('admin gift card grid', () => {
      * per card instead, the same the show page shows
      */
     test('the status column tells usable, disabled, expired and spent cards apart', async ({ page }) => {
+        // four cards issued through the admin form, one of them spent, each shown, and three deleted again: a couple of
+        // dozen page loads, which on a busy runner come close to the default timeout. CI does not retry
+        test.slow();
+
         const usable = await issueGiftCard(page, { amount: 1000 });
         const disabled = await issueGiftCard(page, { amount: 1000, enabled: false });
         const expired = await issueGiftCard(page, { amount: 1000, expiresAt: '2020-01-31' });
         const spent = await issueGiftCard(page, { amount: 1000 });
         await adjustBalance(page, spent.id, -1000, 'Paid in the physical store');
 
+        const cards = [[usable, 'Usable'], [disabled, 'Disabled'], [expired, 'Expired'], [spent, 'Spent']];
+
         try {
+            // the grid lists the newest cards first, so one page shows all four
             await page.goto('/admin/gift-cards/');
             await expect(page.locator(HEADERS).filter({ hasText: /^\s*Enabled/ })).toHaveCount(0);
-
-            for (const [card, status] of [[usable, 'Usable'], [disabled, 'Disabled'], [expired, 'Expired'], [spent, 'Spent']]) {
-                const row = await giftCardRows(page, card.printedCode);
+            for (const [card, status] of cards) {
+                const row = page.locator(ROWS).filter({ hasText: card.printedCode });
+                await expect(row, `the grid should list ${card.printedCode}`).toHaveCount(1);
                 expect(await giftCardStatuses(row), `the status of ${card.printedCode}`).toEqual([status]);
+            }
 
+            for (const [card, status] of cards) {
                 await page.goto(`/admin/gift-cards/${card.id}`);
                 await expect(page.locator('table.ui.table').first().locator('[data-test-gift-card-status]'), `the show page of ${card.printedCode}`).toHaveText(status);
             }
