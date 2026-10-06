@@ -15,6 +15,8 @@ setono_sylius_gift_card:
             not_blank: Indtast venligst din kode
             unique: Koden skal være unik
             too_short: 'Koden skal have mindst {{ limit }} bogstaver og tal, så den ikke kan gættes.'
+        channel:
+            not_null: Vælg venligst en kanal
         amount:
             not_blank: Indtast venligst beløb
             integer: Beløbet skal være et heltal

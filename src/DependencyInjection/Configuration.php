@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\DependencyInjection;
 
+use Setono\SyliusGiftCardPlugin\DependencyInjection\Definition\Builder\NullableIntegerNodeDefinition;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardDesignRepository;
 use Setono\SyliusGiftCardPlugin\Doctrine\ORM\GiftCardRepository;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignType;
@@ -73,7 +74,7 @@ final class Configuration implements ConfigurationInterface
                     // selling gift cards of a single amount. A value taken from an environment variable is only known
                     // at runtime, so the two are only compared when both are given as integers
                     ->validate()
-                        ->ifTrue(static fn (array $purchase): bool => is_int($purchase['minimum_amount']) && is_int($purchase['maximum_amount']) && $purchase['maximum_amount'] < $purchase['minimum_amount'])
+                        ->ifTrue(static fn (array $purchase): bool => is_int($purchase['minimum_amount'] ?? null) && is_int($purchase['maximum_amount'] ?? null) && $purchase['maximum_amount'] < $purchase['minimum_amount'])
                         ->then(self::refuseMaximumAmountBelowMinimum(...))
                     ->end()
                     ->children()
@@ -82,11 +83,13 @@ final class Configuration implements ConfigurationInterface
                             ->defaultValue(100)
                             ->min(1)
                         ->end()
-                        ->integerNode('maximum_amount')
-                            ->info('The maximum purchasable gift card amount in minor units. Set to null for no maximum')
-                            ->defaultNull()
-                            ->min(1)
-                        ->end()
+                        // An integer node refuses an explicit null, which is what this option says to write
+                        ->append(
+                            (new NullableIntegerNodeDefinition('maximum_amount'))
+                                ->info('The maximum purchasable gift card amount in minor units. At least minimum_amount; set to null for no maximum')
+                                ->defaultNull()
+                                ->min(1),
+                        )
                         ->integerNode('maximum_message_length')
                             ->info('The maximum number of characters a customer may write on a gift card. The column is a TEXT, so the only hard ceiling is what fits in one')
                             ->defaultValue(200)

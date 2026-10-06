@@ -29,6 +29,12 @@
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>
+        <property name="channel">
+            <constraint name="NotNull">
+                <option name="message">setono_sylius_gift_card.gift_card.channel.not_null</option>
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
         <property name="amount">
             <constraint name="NotBlank">
                 <option name="message">setono_sylius_gift_card.gift_card.amount.not_blank</option>
