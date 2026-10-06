@@ -6,6 +6,7 @@ Version `1.0` is a ground-up rewrite. It is a **clean break**: there is no autom
 
 - Sylius `1.13` and up (was `^1.11`) — `1.13` is the floor because the plugin uses `Sylius\Abstraction\StateMachine`, which Sylius introduced in `1.13`
 - PHP `>= 8.1`, Symfony `^6.4` only (Symfony 5.4 support dropped)
+- Twig below `3.29`. The plugin conflicts with `twig/twig` `>=3.29`, because `sylius/mailer-bundle` up to 2.2.0 cannot send emails on newer Twig releases, and the fixed 2.2.1 needs PHP 8.2. If your application has Twig 3.29 or newer locked, update with `composer require setono/sylius-gift-card-plugin:^1.0 --with-all-dependencies` so Composer can move Twig back to 3.28. The README's [Twig below 3.29](README.md#twig-below-329) section explains it in full
 
 ## Removed: the API layer
 

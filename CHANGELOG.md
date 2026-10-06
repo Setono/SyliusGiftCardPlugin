@@ -43,6 +43,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - The customer always chooses the amount, within a configurable minimum and maximum. The
   `giftCardAmountConfigurable` product flag is gone — a product is a gift card product or it is not
 - Requires Sylius `1.13` and up, PHP `>= 8.1` and Symfony `^6.4` (Symfony 5.4 support dropped)
+- Conflicts with `twig/twig` `>=3.29`. On Twig 3.29 and newer, `sylius/mailer-bundle` up to 2.2.0 fails every email
+  it sends, and the release that fixes it (2.2.1) requires PHP 8.2. The conflict stays until PHP 8.1 support is
+  dropped; until then, `composer require` the plugin with `-W` where Twig 3.29 or newer is locked (see the README)
 - The plugin auto-configures the state machine, grids, UI events, emails and image filters via `prepend()`;
   host applications no longer import any bundle configuration manually
 - Gift card codes are generated in a grouped, unambiguous format (the alphabet excludes `0`, `O`, `1`, `I`
