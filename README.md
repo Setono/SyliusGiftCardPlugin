@@ -152,6 +152,17 @@ This file puts the shop routes under `/{_locale}` and the admin routes under you
 with Sylius' own: `/admin`, or whatever `SYLIUS_ADMIN_ROUTING_PATH_NAME` names. The plugin's admin pages sit behind the
 admin firewall with the rest of the admin, wherever it lives.
 
+If the URLs of your shop carry no locale, because you
+[disabled Sylius' localised URLs](https://old-docs.sylius.com/en/1.14/cookbook/shop/disabling-localised-urls.html),
+import `routes_no_locale.yaml` instead. It puts the shop routes at the root of the shop, as your `sylius_shop` import
+does with Sylius' own, and the admin routes under your admin path like `routes.yaml` does:
+
+```yaml
+# config/routes/setono_sylius_gift_card.yaml
+setono_sylius_gift_card:
+    resource: "@SetonoSyliusGiftCardPlugin/Resources/config/routes_no_locale.yaml"
+```
+
 ### Apply the traits/interfaces to your entities
 
 Apply the plugin traits to your `Product`, `Order`, `OrderItem` and `OrderItemUnit` entities. Sylius-Standard already
