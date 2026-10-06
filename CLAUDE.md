@@ -66,6 +66,8 @@ npx playwright test --headed -g 'cart'    # watch a single test
 
 Any new UI needs a spec here. Coverage today: admin gift cards index/show/edit (the grid's status column, filters, sorting and delete visibility; the show page's status and its order and design links; the redirect to the show page after a balance adjustment), the gift card create form's design picker (thumbnails, narrowed to the chosen channel) and delivery type, designs index/edit (channels column, sorting by name), balance report, gift card and design preview PDFs, product edit for simple/configurable/gift card products, and the shop gift card product page, locales, add-to-cart and redemption.
 
+Sylius ships Semantic UI 2.5, and an icon name its stylesheet lacks (`palette`, say) renders as a blank without any error. So the specs check that every icon draws, with `support/icons.js`: on each plugin admin page as a whole (`admin/icons.spec.js`), and where an icon only shows in some state (the status labels, the setup warnings, the cart's remove button). A new page goes into `admin/icons.spec.js`.
+
 Redemption does not change what the order costs — the gift card becomes a payment against it — so specs assert the "Remaining to pay" figure rather than expecting the order total to drop.
 
 When a test app template overrides a Sylius one, diff it against the original in `vendor/sylius/sylius/.../Resources/views/` before trusting it; the override silently drifts as Sylius changes, and options dropped from a `form_row` call fail only at render time.

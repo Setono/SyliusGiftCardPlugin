@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { GIFT_CARD_FIELD, addSomethingToCart, applyGiftCard } = require('../support/cart');
+const { blankIcons } = require('../support/icons');
 
 /**
  * Redemption through the shop UI.
@@ -224,6 +225,8 @@ test.describe('shop redemption', () => {
         // Naming it after the card keeps the buttons apart when several cards are applied
         const remove = page.getByRole('button', { name: `Remove gift card ${GIFT_CARD_CODE}` });
         await expect(remove).toHaveCount(1);
+        // the icon is all a sighted customer sees of the button
+        expect(await blankIcons(remove), 'the icons of the remove button that draw nothing').toEqual([]);
 
         await remove.click();
         await page.waitForLoadState('networkidle');

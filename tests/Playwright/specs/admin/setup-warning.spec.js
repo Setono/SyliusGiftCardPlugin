@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { clickAndConfirm, flashMessages } = require('../support/admin');
+const { blankIcons } = require('../support/icons');
 const { clickAndWaitForPage } = require('../support/navigation');
 
 /**
@@ -109,6 +110,7 @@ test.describe('gift card setup warning', () => {
             await page.goto('/admin/products/');
             const topbar = page.locator(PAYMENT_METHOD_TOPBAR_WARNING);
             await expect(topbar).toBeVisible();
+            expect(await blankIcons(topbar), 'the icons of the top bar label that draw nothing').toEqual([]);
             await clickAndWaitForPage(page, topbar);
             await expect(page).toHaveURL(/\/admin\/gift-cards\/?$/);
 
@@ -117,6 +119,7 @@ test.describe('gift card setup warning', () => {
             await expect(message).toBeVisible();
             await expect(message).toContainText('gift_card');
             await expect(message).toContainText('setono:gift-card:create-payment-method');
+            expect(await blankIcons(message), 'the icons of the warning that draw nothing').toEqual([]);
 
             await clickAndWaitForPage(page, page.locator(CREATE_PAYMENT_METHOD_BUTTON));
 
@@ -162,6 +165,7 @@ test.describe('gift card setup warning', () => {
             const topbar = page.locator(TOPBAR_WARNING);
             await expect(topbar).toBeVisible();
             await expect(topbar).toContainText(/setup incomplete/i);
+            expect(await blankIcons(topbar), 'the icons of the top bar label that draw nothing').toEqual([]);
 
             // it leads to the designs, which explain the two ways out
             await topbar.click();
