@@ -124,7 +124,10 @@
             "@lint:twig",
             "@lint:yaml"
         ],
-        "lint:container": "@php tests/Application/bin/console lint:container",
+        "lint:container": [
+            "@php tests/Application/bin/console lint:container",
+            "@php tests/Application/bin/console lint:container --env=prod --no-debug"
+        ],
         "lint:twig": "@php tests/Application/bin/console lint:twig src/Resources",
         "lint:yaml": "@php tests/Application/bin/console lint:yaml src/Resources",
         "phpunit": "phpunit",
