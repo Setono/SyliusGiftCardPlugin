@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\DependencyInjection;
 
+use Composer\InstalledVersions;
 use Matthias\SymfonyConfigTest\PhpUnit\ConfigurationTestCaseTrait;
 use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\Configuration;
@@ -219,6 +220,10 @@ final class ConfigurationTest extends TestCase
      */
     public function it_takes_the_maximum_amount_from_an_environment_variable(): void
     {
+        if (version_compare((string) InstalledVersions::getVersion('symfony/config'), '6.4.37', '<')) {
+            self::markTestSkipped('Before symfony/config 6.4.37 an integer node held the dummy value to its minimum as well, so no integer option with a minimum took an environment variable');
+        }
+
         $container = new ContainerBuilder();
         $container->register('env_var_processor', EnvVarProcessor::class)->addTag('container.env_var_processor');
         $container->registerExtension(new SetonoSyliusGiftCardExtension());
