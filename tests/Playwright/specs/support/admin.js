@@ -7,6 +7,12 @@ const { expect } = require('@playwright/test');
 const { clickAndWaitForPage } = require('./navigation');
 
 /**
+ * The rows of the admin grid on the page, by the hook Sylius puts on the grid's body. A bare `table tbody tr` also
+ * matches the rows of every other table on the page, such as the web debug toolbar's list of AJAX requests (#427)
+ */
+const GRID_ROWS = '[data-test-grid-table-body] > tr';
+
+/**
  * An administrator signed in through the login form, in a browser context of its own.
  *
  * A customer journey in the shop often ends in the admin (a payment is completed, an order cancelled, a card looked
@@ -32,7 +38,6 @@ async function signInAsAdministrator(browser) {
     await page.fill('input[name="_password"]', 'sylius');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/admin/');
-    await page.waitForLoadState('networkidle');
 
     // Proven rather than assumed, so a session that did not survive shows up here and not as a failure elsewhere
     await page.goto('/admin/gift-cards/');
@@ -102,4 +107,4 @@ async function signedInAdministrator(page) {
     return username.toLowerCase();
 }
 
-module.exports = { clickAndConfirm, flashMessages, setChecked, signedInAdministrator, signInAsAdministrator };
+module.exports = { GRID_ROWS, clickAndConfirm, flashMessages, setChecked, signedInAdministrator, signInAsAdministrator };

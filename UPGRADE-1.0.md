@@ -32,9 +32,11 @@ Two changes deserve a closer look, because a gift card code is a bearer token (w
 
 ## Routing
 
-`@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml` now puts the admin routes under your admin path (`/%sylius_admin.path_name%`, which `SYLIUS_ADMIN_ROUTING_PATH_NAME` sets), where `0.12.x` always put them under `/admin`. On the default admin path nothing moves.
+`@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml` now puts the admin routes under your admin path (`/%sylius_admin.path_name%`, which `SYLIUS_ADMIN_ROUTING_PATH_NAME` sets), where `0.12.x` always put them under `/admin`. So does `@SetonoSyliusGiftCardPlugin/Resources/config/routes_no_locale.yaml`, which a shop whose URLs carry no locale keeps importing instead, and which still puts the shop routes at the root of the shop. On the default admin path nothing moves.
 
-If your admin lives somewhere else and you import `routes.yaml`, you will find the plugin's admin pages under your admin path: for an admin at `/backoffice`, `/admin/gift-cards/...` becomes `/backoffice/gift-cards/...` and `/admin/ajax/customer/...` becomes `/backoffice/ajax/customer/...`. Update any link or bookmark to the old addresses. Those were outside the admin firewall, where a gift card's PDF with its code and the customer search answered without a login; under your admin path they sit behind it with the rest of the admin. If you imported `routes/admin.yaml` and `routes/admin_ajax.yaml` yourself to get them there, you can go back to importing `routes.yaml`.
+If your admin lives somewhere else, you will find the plugin's admin pages under your admin path, whichever of the two files you import: for an admin at `/backoffice`, `/admin/gift-cards/...` becomes `/backoffice/gift-cards/...` and `/admin/ajax/customer/...` becomes `/backoffice/ajax/customer/...`. Update any link or bookmark to the old addresses. Those were outside the admin firewall, where a gift card's PDF with its code and the customer search answered without a login; under your admin path they sit behind it with the rest of the admin.
+
+If you imported the plugin's route files yourself, to get the admin pages under your admin path or because `routes_no_locale.yaml` was missing from `1.x` development versions for a while, you can go back to importing `routes.yaml` or `routes_no_locale.yaml`.
 
 ## Entity / schema changes
 

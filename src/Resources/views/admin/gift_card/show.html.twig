@@ -161,7 +161,7 @@
                         </thead>
                         <tbody>
                             {% for transaction in giftCard.transactions %}
-                                <tr>
+                                <tr {{ sylius_test_html_attribute('gift-card-transaction', transaction.type) }}>
                                     <td>{{ transaction.createdAt ? transaction.createdAt|date('Y-m-d H:i') : '-' }}</td>
                                     <td>{{ ('setono_sylius_gift_card.ui.transaction_type_' ~ transaction.type)|trans }}</td>
                                     <td class="right aligned">

@@ -1,47 +1,51 @@
 const { test, expect } = require('@playwright/test');
-const { moneyInCents } = require('../support/money');
-const { giftCardProductPath, submitAddToCart } = require('../support/shop');
+const { signInAsAdministrator } = require('../support/admin');
+const { productIdsByKind, productShopPath } = require('../support/fixtures');
+const { moneyInCents, typedAmount } = require('../support/money');
+const { GIFT_CARD_INFORMATION, giftCardProductPath, shopLocale, shopLocales, submitAddToCart } = require('../support/shop');
 
 /**
  * The gift card form is added to the add to cart form by a form type extension, so it has to appear on gift
  * card products and stay away from every other product.
+ *
+ * The product page is the one the shop links to as the gift card product, and the locale the one the shop sends a
+ * visitor to, so neither a slug nor a locale is assumed.
  */
 test.describe('shop gift card product', () => {
-    const GIFT_CARD_SLUG = 'gift-card';
-
     /**
-     * Discovered from the locale switcher rather than hardcoded, because which locales a channel has
-     * depends on how the application was seeded. The switcher links to the locale to switch to, while every
-     * other link carries the locale currently being browsed
+     * The shop page of a product of the given kind, by the gift card flag the admin shows for it, so which products
+     * carry the form is not decided by looking for the form
+     *
+     * @param {import('@playwright/test').Browser} browser
+     * @param {'giftCard'|'ordinary'} kind
      */
-    const localesOnPage = (page) =>
-        page.locator('a[href^="/"]').evaluateAll((links) => {
-            const found = [];
-            links.forEach((l) => {
-                const href = l.getAttribute('href') ?? '';
-                const match = /\/switch-locale\/([a-z]{2}_[A-Z]{2})$/.exec(href) ??
-                    /^\/([a-z]{2}_[A-Z]{2})\//.exec(href);
-                if (null !== match) {
-                    found.push(match[1]);
-                }
-            });
-            return [...new Set(found)];
-        });
+    async function shopPathOfProduct(browser, kind) {
+        const admin = await signInAsAdministrator(browser);
+        try {
+            const id = (await productIdsByKind(admin.page))[kind];
+            expect(id, `no enabled ${kind} product was seeded`).not.toBeNull();
 
-    test('the product page renders the gift card form', async ({ page }) => {
-        const response = await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+            const path = await productShopPath(admin.page, /** @type {string} */ (id));
+            expect(path, `the shop does not show the ${kind} product ${id}`).not.toBeNull();
+
+            return /** @type {string} */ (path);
+        } finally {
+            await admin.close();
+        }
+    }
+
+    test('a product flagged as a gift card renders the gift card form', async ({ page, browser }) => {
+        const response = await page.goto(await shopPathOfProduct(browser, 'giftCard'));
 
         expect(response?.status()).toBe(200);
-
-        const giftCardFields = page.locator('[name*="giftCardInformation"]');
-        await expect(giftCardFields.first()).toBeVisible();
+        await expect(page.locator('form[name="sylius_add_to_cart"]')).toBeVisible();
 
         // amount, message and design are what the customer fills in
-        await expect(page.locator('[name*="giftCardInformation"][name*="[amount]"]')).toHaveCount(1);
-        await expect(page.locator('[name*="giftCardInformation"][name*="[customMessage]"]')).toHaveCount(1);
+        await expect(page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`)).toBeVisible();
+        await expect(page.locator(`${GIFT_CARD_INFORMATION}[name*="[customMessage]"]`)).toBeVisible();
         // the design picker is only rendered when the channel has designs, which the fixtures seed
         await expect(page.locator('[data-js-gift-card-design-picker]')).toBeVisible();
-        expect(await page.locator('[name*="giftCardInformation"][name*="[design]"]').count()).toBeGreaterThan(0);
+        expect(await page.locator(`${GIFT_CARD_INFORMATION}[name*="[design]"]`).count()).toBeGreaterThan(0);
     });
 
     /**
@@ -49,7 +53,7 @@ test.describe('shop gift card product', () => {
      * is named by a legend instead, and which design is picked has to be visible on the choice itself.
      */
     test('the design picker is a named group with a visible selection', async ({ page }) => {
-        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+        await page.goto(await giftCardProductPath(page));
 
         const fieldset = page.locator('fieldset').filter({ has: page.locator('[data-js-gift-card-design-picker]') });
         await expect(fieldset).toHaveCount(1);
@@ -74,7 +78,8 @@ test.describe('shop gift card product', () => {
      * already set a src, while the wasted request happens as the document is parsed.
      */
     test('the live preview does not render an empty image source', async ({ page }) => {
-        const response = await page.request.get(`/en_US/products/${GIFT_CARD_SLUG}`);
+        const response = await page.request.get(await giftCardProductPath(page));
+        expect(response.status()).toBe(200);
         const html = await response.text();
 
         // the element itself still has to be there: the picker sets its src when a design with an image is chosen
@@ -82,25 +87,20 @@ test.describe('shop gift card product', () => {
         expect(html, 'an empty img src makes the browser fetch the page again as an image').not.toMatch(/<img[^>]*src=""/);
     });
 
-    test('an ordinary product does not render the gift card form', async ({ page }) => {
-        // Take the first product off the homepage that is not the gift card
-        await page.goto('/en_US/');
-        const hrefs = await page.locator('a[href*="/products/"]').evaluateAll((links) =>
-            links.map((l) => l.getAttribute('href') ?? ''),
-        );
-        const other = hrefs.find((h) => !h.includes(GIFT_CARD_SLUG));
-        expect(other, 'no non gift card product found in the shop').toBeTruthy();
-
-        const response = await page.goto(other);
+    test('a product not flagged as a gift card renders no gift card form', async ({ page, browser }) => {
+        const response = await page.goto(await shopPathOfProduct(browser, 'ordinary'));
 
         expect(response?.status()).toBe(200);
-        await expect(page.locator('[name*="giftCardInformation"]')).toHaveCount(0);
+        // a product the customer can buy, so the form the extension would add to is there
+        await expect(page.locator('form[name="sylius_add_to_cart"]')).toBeVisible();
+        await expect(page.locator(GIFT_CARD_INFORMATION)).toHaveCount(0);
+        await expect(page.locator('#setono-gift-card-information')).toHaveCount(0);
     });
 
     test('the amount field tells the customer the limits and asks for a numeric keypad', async ({ page }) => {
-        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+        await page.goto(await giftCardProductPath(page));
 
-        const amount = page.locator('[name*="giftCardInformation"][name*="[amount]"]').first();
+        const amount = page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first();
         await expect(amount).toHaveAttribute('inputmode', 'decimal');
 
         // The help the form theme renders next to the field carries the formatted limits, so the customer
@@ -123,7 +123,7 @@ test.describe('shop gift card product', () => {
         const price = moneyInCents(await page.locator('#product-price').innerText());
         expect(price, 'the gift card product has no price to start from').toBeGreaterThan(0);
 
-        const amount = page.locator('[name*="giftCardInformation"][name*="[amount]"]').first();
+        const amount = page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first();
         expect(moneyInCents(await amount.inputValue())).toBe(price);
 
         const previews = page.locator('#setono-gift-card-information [data-js-gc-amount]');
@@ -148,75 +148,78 @@ test.describe('shop gift card product', () => {
     });
 
     /**
-     * The preview parses the typed amount in the locale the template writes onto its container. A shop only
-     * renders the locales its channel offers, and the seeded channel deliberately offers one: Sylius' order
-     * fixture picks each demo order's locale from the channel and loads the products with only that locale's
-     * translation, so a second channel locale makes loading the fixtures fail at random. The comma decimal
-     * locale is therefore written into the real product page on its way to the browser; the markup, the field
-     * and the script are the shop's own.
+     * The preview parses the typed amount in the locale the template writes onto its container: the one being
+     * browsed. A shop only renders the locales its channel offers, and the seeded channel deliberately offers one:
+     * Sylius' order fixture picks each demo order's locale from the channel and loads the products with only that
+     * locale's translation, so a second channel locale makes loading the fixtures fail at random. A locale writing
+     * decimals the other way is therefore written into the real product page on its way to the browser; the markup,
+     * the field and the script are the shop's own. One of the two writes them with a comma, the separator a naive
+     * parseFloat truncates to whole units.
      */
     test('the preview reads the amount with the decimal separator of the locale', async ({ page }) => {
-        const productPage = `/en_US/products/${GIFT_CARD_SLUG}`;
+        const productPage = await giftCardProductPath(page);
+        const browsed = (await shopLocale(page)).replace('_', '-');
         const container = page.locator('#setono-gift-card-information');
-        const amount = page.locator('[name*="giftCardInformation"][name*="[amount]"]').first();
+        const amount = page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first();
 
-        // The script is told the locale being browsed, and reads a dot as the decimal separator there
+        // The script is told the locale being browsed, and reads that locale's decimal separator
         await page.goto(productPage);
-        await expect(container).toHaveAttribute('data-locale', 'en-US');
-        await amount.fill('50.50');
-        await expectPreviewAmount(page, /50\.50/);
+        await expect(container).toHaveAttribute('data-locale', browsed);
+        const separator = await decimalSeparator(page, browsed);
+        await amount.fill(`50${separator}50`);
+        await expectPreviewAmount(page, `50${separator}50`);
 
-        // A locale writing decimals with a comma is the one a naive parseFloat truncates to whole units
-        const commaLocale = 'fr-FR';
+        const other = ',' === separator ? 'en-US' : 'fr-FR';
+        const otherSeparator = await decimalSeparator(page, other);
+        expect(otherSeparator, `${other} should write decimals unlike ${browsed}`).not.toBe(separator);
+
         await page.route((url) => url.pathname === productPage, async (route) => {
             const response = await route.fetch();
             const html = await response.text();
             await route.fulfill({
                 response,
-                body: html.replace(/(id="setono-gift-card-information"[^>]*?\sdata-locale=")[^"]*"/, `$1${commaLocale}"`),
+                body: html.replace(/(id="setono-gift-card-information"[^>]*?\sdata-locale=")[^"]*"/, `$1${other}"`),
             });
         });
         await page.goto(productPage);
-        await expect(container).toHaveAttribute('data-locale', commaLocale);
+        await expect(container).toHaveAttribute('data-locale', other);
 
-        await amount.fill('50,50');
-        await expectPreviewAmount(page, /50,50/);
+        await amount.fill(`50${otherSeparator}50`);
+        await expectPreviewAmount(page, `50${otherSeparator}50`);
     });
 
     test('the page renders in every locale the channel offers', async ({ page }) => {
-        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
-
-        const locales = await localesOnPage(page);
-
+        // Discovered from the locale switcher rather than hardcoded, because which locales a channel has depends on
+        // how the application was seeded
+        const locales = await shopLocales(page);
         expect(locales.length, 'no locales found in the shop').toBeGreaterThan(0);
 
-        // A missing translation key silently falls back rather than failing, so this asserts the page still
-        // renders in each locale — not the wording
+        // A missing translation key silently falls back rather than failing, so this asserts the page still renders
+        // in each locale, with the gift card form told the locale it is in, not the wording. The gift card product is
+        // found in each locale's own shop, as its slug may be translated
         for (const locale of locales) {
-            const response = await page.goto(`/${locale}/products/${GIFT_CARD_SLUG}`);
+            const response = await page.goto(await giftCardProductPath(page, locale));
             expect(response?.status(), `${locale} product page`).toBe(200);
+            await expect(page.locator('#setono-gift-card-information'), `${locale} product page`).toHaveAttribute(
+                'data-locale',
+                locale.replace('_', '-'),
+            );
         }
     });
 
     test('a gift card can be added to the cart', async ({ page }) => {
-        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+        const productPage = await giftCardProductPath(page);
+        await page.goto(productPage);
 
-        const amount = page.locator('[name*="giftCardInformation"][name*="[amount]"]').first();
-        await amount.fill('50');
+        await page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first().fill(typedAmount(5000));
+        await page.locator(`${GIFT_CARD_INFORMATION}[name*="[customMessage]"]`).first().fill('Happy birthday');
 
-        const message = page.locator('[name*="giftCardInformation"][name*="[customMessage]"]').first();
-        if (await message.count() > 0) {
-            await message.fill('Happy birthday');
-        }
+        await submitAddToCart(page);
 
-        await page.locator('form[name="sylius_add_to_cart"] button[type="submit"]').first().click();
-        await page.waitForLoadState('networkidle');
-
-        const cart = await page.goto('/en_US/cart/');
-        expect(cart?.status()).toBe(200);
-
-        // The cart holds a line for the gift card product itself, not merely some row
-        await expect(page.locator(`table a[href*="${GIFT_CARD_SLUG}"]`).first()).toBeVisible();
+        // The cart holds a line for the gift card product itself, not merely some row, at the amount chosen
+        const line = page.locator('[data-test-cart-items] tbody tr').filter({ has: page.locator(`a[href="${productPage}"]`) });
+        await expect(line).toHaveCount(1);
+        expect(moneyInCents(await line.locator('.sylius-unit-price').innerText())).toBe(5000);
     });
 
     /**
@@ -225,32 +228,34 @@ test.describe('shop gift card product', () => {
      * in a 500, and because add to cart posts over AJAX the button simply kept spinning with no message.
      */
     test('a blank amount is reported instead of failing the request', async ({ page }) => {
-        const serverErrors = [];
-        page.on('response', (response) => {
-            if (response.status() >= 500) {
-                serverErrors.push(`${response.status()} ${response.url()}`);
-            }
-        });
+        await page.goto(await giftCardProductPath(page));
 
-        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
-
-        const amount = page.locator('[name*="giftCardInformation"][name*="[amount]"]').first();
+        const amount = page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first();
         await amount.fill('');
 
-        await page.locator('form[name="sylius_add_to_cart"] button[type="submit"]').first().click();
+        const form = page.locator('form[name="sylius_add_to_cart"]');
+        const action = await form.getAttribute('action');
+        const [response] = await Promise.all([
+            page.waitForResponse((r) => 'POST' === r.request().method() && r.url().endsWith(action ?? '')),
+            form.locator('button[type="submit"]').first().click(),
+        ]);
+
+        // refused as invalid, and for the amount the customer left blank
+        expect(response.status(), 'adding to the cart must be refused as invalid, not fail with a server error').toBe(400);
+        const { errors } = await response.json();
+        const amountErrors = errors?.form?.errors?.children?.giftCardInformation?.children?.amount?.errors ?? [];
+        expect(amountErrors, 'the refusal should be about the amount').toHaveLength(1);
 
         // Sylius' add to cart script renders the 400 payload into this element
         const validationError = page.locator('#sylius-cart-validation-error');
         await expect(validationError).toBeVisible();
-        await expect(validationError).toContainText(/blank/i);
-
-        expect(serverErrors, 'adding to the cart must not fail with a server error').toEqual([]);
+        await expect(validationError).toContainText(amountErrors[0]);
     });
 
     test('the message field counts down and the preview keeps the line breaks', async ({ page }) => {
-        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+        await page.goto(await giftCardProductPath(page));
 
-        const message = page.locator('[name*="giftCardInformation"][name*="[customMessage]"]').first();
+        const message = page.locator(`${GIFT_CARD_INFORMATION}[name*="[customMessage]"]`).first();
         const counter = page.locator('[data-js-gc-message-counter]');
 
         // The limit is configurable, so it is read off the field the plugin rendered rather than hardcoded
@@ -280,7 +285,7 @@ test.describe('shop gift card product', () => {
     test('a message with line breaks up to the limit can be added to the cart', async ({ page }) => {
         await page.goto(await giftCardProductPath(page));
 
-        const message = page.locator('[name*="giftCardInformation"][name*="[customMessage]"]').first();
+        const message = page.locator(`${GIFT_CARD_INFORMATION}[name*="[customMessage]"]`).first();
         const limit = Number(await message.getAttribute('maxlength'));
         expect(limit, 'the message field has no maxlength').toBeGreaterThan(5);
 
@@ -311,9 +316,9 @@ test.describe('shop gift card product', () => {
     });
 
     test('a message of many lines is clamped instead of growing over the card', async ({ page }) => {
-        await page.goto(`/en_US/products/${GIFT_CARD_SLUG}`);
+        await page.goto(await giftCardProductPath(page));
 
-        const message = page.locator('[name*="giftCardInformation"][name*="[customMessage]"]').first();
+        const message = page.locator(`${GIFT_CARD_INFORMATION}[name*="[customMessage]"]`).first();
         const limit = Number(await message.getAttribute('maxlength'));
 
         // The nastiest message that still fits the limit: as many lines as characters allow
@@ -325,17 +330,27 @@ test.describe('shop gift card product', () => {
     });
 
     /**
+     * The separator the browser writes decimals with in the given locale, the way the preview script formats them
+     *
+     * @param {import('@playwright/test').Page} page
+     * @param {string} locale a BCP 47 tag, e.g. en-US
+     */
+    async function decimalSeparator(page, locale) {
+        return page.evaluate((tag) => new Intl.NumberFormat(tag).formatToParts(1.5).find((part) => 'decimal' === part.type)?.value ?? '.', locale);
+    }
+
+    /**
      * Both the framed and the image layout of the card carry the amount, and whichever is on screen has to show
      * what the customer typed, so every one of them is checked
      *
      * @param {import('@playwright/test').Page} page
-     * @param {RegExp} expected
+     * @param {string} expected the figures, which the preview surrounds with the currency
      */
     async function expectPreviewAmount(page, expected) {
         const previews = page.locator('#setono-gift-card-information [data-js-gc-amount]');
         expect(await previews.count(), 'the preview does not render an amount').toBeGreaterThan(0);
         for (let i = 0; i < await previews.count(); i++) {
-            await expect(previews.nth(i)).toHaveText(expected);
+            await expect(previews.nth(i)).toContainText(expected);
         }
     }
 

@@ -1,16 +1,20 @@
 const { test, expect } = require('@playwright/test');
-const { flashMessages, setChecked } = require('../support/admin');
+const { GRID_ROWS, flashMessages, setChecked } = require('../support/admin');
 const { anyCustomerEmail, firstGiftCardId, firstDesignId, giftCardCode, channelBaseCurrencyCode, currencyOtherThan } = require('../support/fixtures');
-const { giftCardRows, issueGiftCard } = require('../support/gift-cards');
+const { giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
+const { moneyInCents } = require('../support/money');
 const { clickAndWaitForPage } = require('../support/navigation');
 const { pdfPageCount, pdfText } = require('../support/pdf');
+
+// The adjust balance form's own button, the only submit button the form has
+const ADJUST_BALANCE_SUBMIT = 'form[name="setono_sylius_gift_card_adjust_balance"] button[type="submit"]';
 
 test.describe('admin gift cards', () => {
     test('the index renders and offers the plugin actions', async ({ page }) => {
         const response = await page.goto('/admin/gift-cards/');
 
         expect(response?.status()).toBe(200);
-        await expect(page.locator('table tbody tr').first()).toBeVisible();
+        await expect(page.locator(GRID_ROWS).first()).toBeVisible();
 
         // Designs and the balance report were moved out of the admin menu onto this page
         await expect(page.locator('a[href="/admin/gift-card-designs/"]')).toBeVisible();
@@ -32,9 +36,18 @@ test.describe('admin gift cards', () => {
 
         const show = await page.goto(`/admin/gift-cards/${id}`);
         expect(show?.status()).toBe(200);
+        // the page is about the card: its code heads it, and its details and the way to edit it are there
+        const printedCode = await giftCardCode(page, id);
+        await expect(page.locator('h1')).toContainText(printedCode);
+        await expect(page.locator(`a[href="/admin/gift-cards/${id}/edit"]`)).toBeVisible();
 
         const edit = await page.goto(`/admin/gift-cards/${id}/edit`);
         expect(edit?.status()).toBe(200);
+        // the form is the card's: it shows the code the card is stored with
+        const form = page.locator('form[name="setono_sylius_gift_card_gift_card"]');
+        await expect(form).toBeVisible();
+        await expect(form.locator('[name$="[code]"]')).toHaveValue(printedCode.replace(/-/g, ''));
+        await expect(form.locator('button[type="submit"]').first()).toBeEnabled();
     });
 
     test('the balance report renders and leads back to gift cards', async ({ page }) => {
@@ -42,7 +55,17 @@ test.describe('admin gift cards', () => {
 
         expect(response?.status()).toBe(200);
         // The report is only reachable from the gift cards page, so the crumbs have to lead back
-        await expect(page.locator('a[href="/admin/gift-cards/"]').first()).toBeVisible();
+        await expect(page.locator('.breadcrumb a[href="/admin/gift-cards/"]')).toBeVisible();
+
+        // The fixtures seed usable cards, so the report has a currency they are counted and summed in
+        const rows = page.locator('table.ui.table tbody tr').filter({ has: page.locator('td:nth-child(4)') });
+        expect(await rows.count(), 'the report should list the currency the seeded cards hold money in').toBeGreaterThan(0);
+        for (const row of await rows.all()) {
+            const cells = await row.locator('td').allInnerTexts();
+            expect(cells[0].trim(), 'each row is a currency').toMatch(/^[A-Z]{3}$/);
+            expect(Number(cells[1].trim()), `the cards counted in ${cells[0]}`).toBeGreaterThan(0);
+            expect(moneyInCents(cells[2]), `what the cards in ${cells[0]} hold`).toBeGreaterThanOrEqual(0);
+        }
     });
 
     /**
@@ -95,7 +118,7 @@ test.describe('admin gift cards', () => {
         const currency = page.locator('select[name*="[currencyCode]"]');
         await currency.selectOption(other);
         await page.locator('input[name*="[amount]"]').fill('100');
-        await page.getByRole('button', { name: /create/i }).first().click();
+        await clickAndWaitForPage(page, page.locator('form[name="setono_sylius_gift_card_gift_card"] button[type="submit"]').first());
 
         // The message has to be translated, not a raw key: constraint messages resolve in the validators domain
         await expect(page.locator('.sylius-validation-error').first())
@@ -111,9 +134,10 @@ test.describe('admin gift cards', () => {
 
         await page.goto(`/admin/gift-cards/${id}`);
 
-        const rows = page.locator('table tbody tr');
-        await expect(rows.first()).toBeVisible();
-        await expect(page.getByText('Issued', { exact: false }).first()).toBeVisible();
+        // the card's issuance opens its ledger, and the ledger adds up to what the card holds
+        await expect(page.locator('[data-test-gift-card-transaction="issue"]')).toHaveCount(1);
+        const movements = (await giftCardTransactions(page, id)).map(({ amount }) => amount);
+        expect(movements.reduce((sum, amount) => sum + amount, 0)).toBe(moneyInCents((await giftCardDetails(page, id)).Amount));
     });
 
     test('the adjust balance form is themed', async ({ page }) => {
@@ -137,7 +161,7 @@ test.describe('admin gift cards', () => {
         await page.goto(`/admin/gift-cards/${id}/adjust-balance`);
         await page.locator('input[name$="[amount]"]').fill('-99999');
         await page.locator('textarea[name$="[reason]"]').fill('trying to overdraw');
-        await page.getByRole('button', { name: /save|adjust/i }).first().click();
+        await clickAndWaitForPage(page, page.locator(ADJUST_BALANCE_SUBMIT));
 
         await expect(page.locator('.sylius-validation-error').first()).toBeVisible();
         // The message has to be translated, not a raw key: constraint messages resolve in the validators domain
@@ -155,7 +179,7 @@ test.describe('admin gift cards', () => {
         await page.goto(`/admin/gift-cards/${id}/adjust-balance`);
         await page.locator('input[name$="[amount]"]').fill('0');
         await page.locator('textarea[name$="[reason]"]').fill('nothing to adjust');
-        await page.getByRole('button', { name: /save|adjust/i }).first().click();
+        await clickAndWaitForPage(page, page.locator(ADJUST_BALANCE_SUBMIT));
 
         const error = page.locator('.sylius-validation-error').first();
         await expect(error).toContainText('Enter an amount other than 0');
@@ -172,7 +196,7 @@ test.describe('admin gift cards', () => {
         await page.goto(`/admin/gift-cards/${id}`);
 
         // the details table row labelled "Code"; the seeded codes are generated, so the value is discovered, not known
-        const codeRow = page.locator('table tr').filter({ has: page.locator('td strong', { hasText: /^Code$/ }) });
+        const codeRow = page.locator('table.ui.table tr').filter({ has: page.locator('td strong', { hasText: /^Code$/ }) });
         const displayed = (await codeRow.locator('td').nth(1).innerText()).trim();
 
         expect(displayed).toMatch(/^([A-Z0-9]{4}-)*[A-Z0-9]{1,4}$/);
@@ -371,7 +395,10 @@ test.describe('admin gift card designs', () => {
         const response = await page.goto('/admin/gift-card-designs/');
 
         expect(response?.status()).toBe(200);
-        await expect(page.locator('a[href="/admin/gift-cards/"]').first()).toBeVisible();
+        // a button next to the header, not the admin menu's entry, which every page has
+        await expect(page.locator('.admin-layout__content a[href="/admin/gift-cards/"]')).toBeVisible();
+        // the seeded design is listed, with a way to edit it
+        await expect(page.locator(`${GRID_ROWS} a[href$="/edit"]`).first()).toBeVisible();
     });
 
     /**
@@ -380,11 +407,11 @@ test.describe('admin gift card designs', () => {
     test('the design grid lists the channels of every design', async ({ page }) => {
         await page.goto('/admin/gift-card-designs/');
 
-        const headers = (await page.locator('table.ui.table thead th').allInnerTexts()).map((header) => header.trim());
+        const headers = (await page.locator('[data-test-grid-table] thead th').allInnerTexts()).map((header) => header.trim());
         const column = headers.indexOf('Channels');
         expect(column, 'the design grid shows no channels column').toBeGreaterThanOrEqual(0);
 
-        const row = page.locator('table.ui.table tbody tr').first();
+        const row = page.locator(GRID_ROWS).first();
         const listed = (await row.locator(`td:nth-child(${column + 1})`).innerText()).trim();
         const editUrl = /** @type {string} */ (await row.locator('a[href$="/edit"]').first().getAttribute('href'));
 
@@ -403,7 +430,7 @@ test.describe('admin gift card designs', () => {
     test('the design grid can be sorted by name', async ({ page }) => {
         await page.goto('/admin/gift-card-designs/');
 
-        const header = page.locator('table.ui.table thead th').filter({ hasText: /^\s*Name/ }).locator('a');
+        const header = page.locator('[data-test-grid-table] thead th').filter({ hasText: /^\s*Name/ }).locator('a');
         await expect(header, 'the name column should be sortable').toHaveCount(1);
 
         for (let click = 0; click < 2; click++) {
@@ -412,8 +439,8 @@ test.describe('admin gift card designs', () => {
             const direction = new URL(page.url()).searchParams.get('sorting[name]');
             expect(['asc', 'desc'], 'the grid should now be sorted by name').toContain(direction);
 
-            const column = (await page.locator('table.ui.table thead th').allInnerTexts()).findIndex((text) => /^\s*Name/.test(text));
-            const names = (await page.locator(`table.ui.table tbody tr td:nth-child(${column + 1})`).allInnerTexts()).map((name) => name.trim());
+            const column = (await page.locator('[data-test-grid-table] thead th').allInnerTexts()).findIndex((text) => /^\s*Name/.test(text));
+            const names = (await page.locator(`${GRID_ROWS} > td:nth-child(${column + 1})`).allInnerTexts()).map((name) => name.trim());
             const sorted = [...names].sort((a, b) => a.localeCompare(b));
             expect(names).toEqual('asc' === direction ? sorted : sorted.reverse());
         }
@@ -425,6 +452,11 @@ test.describe('admin gift card designs', () => {
         const response = await page.goto(`/admin/gift-card-designs/${id}/edit`);
 
         expect(response?.status()).toBe(200);
+        // the form is the design's: it carries the design's code and a name for it
+        const form = page.locator('form[name="setono_sylius_gift_card_gift_card_design"]');
+        await expect(form).toBeVisible();
+        await expect(form.locator('[name$="[code]"]')).not.toHaveValue('');
+        await expect(form.locator('[name*="[translations]"][name$="[name]"]').first()).not.toHaveValue('');
     });
 
     /**
