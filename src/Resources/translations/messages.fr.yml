@@ -6,7 +6,10 @@ setono_sylius_gift_card:
             code_help: 'Généré pour vous. Vous pouvez saisir votre propre code à la place, d''au moins %minimum% lettres et chiffres : il est enregistré en majuscules, en ne gardant que les lettres A à Z et les chiffres.'
             custom_message: Message personnalisé
             custom_message_placeholder: Ce message sera imprimé sur le chèque-cadeau...
+            delivery_type_help: "Choisissez Physique lorsque vous remettez ou envoyez vous-même un chèque-cadeau imprimé : la boutique ne l'expédie pas. L'email de notification contient le code et le PDF dans tous les cas. Ce choix ne peut plus être modifié une fois le chèque-cadeau émis."
+            design_help: "Affiché sur le PDF du chèque-cadeau. Seuls les modèles activés dans le canal du chèque-cadeau peuvent être choisis."
             expires_at: Expire le
+            no_design: Aucun (mise en page par défaut)
             send_notification_email: Envoyer un email de notification
             send_notification_email_help: "Envoyé uniquement lorsque le chèque-cadeau est utilisable : activé, non expiré et avec un solde restant. Sinon, envoyez-le depuis la page du chèque-cadeau une fois qu'il l'est."
         gift_card_design:

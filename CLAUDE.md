@@ -64,7 +64,7 @@ npx playwright test --headed -g 'cart'    # watch a single test
 
 `PLAYWRIGHT_BASE_URL` overrides the default `https://127.0.0.1:8080`. CI splits the suite into three parallel jobs (`npx playwright test --shard=N/3`), each against an application and a freshly seeded database of its own, so a spec cannot count on another spec having run before it. The admin specs share a signed-in session created by `specs/auth.setup.js`; the shop specs run anonymously. Specs must **discover their subjects** (grid links, locale switcher) rather than hardcode ids, codes or locales, so they keep working against a freshly seeded database.
 
-Any new UI needs a spec here. Coverage today: admin gift cards index/show/edit (including the show page's ledger, with the admin who adjusted a balance and the order that issued a bought card), designs index/edit, balance report, gift card and design preview PDFs, product edit for simple/configurable/gift card products, and the shop gift card product page, locales, add-to-cart and redemption.
+Any new UI needs a spec here. Coverage today: admin gift cards index/show/edit (including the show page's ledger, with the admin who adjusted a balance and the order that issued a bought card), the gift card create form's design picker (thumbnails, narrowed to the chosen channel) and delivery type, designs index/edit, balance report, gift card and design preview PDFs, product edit for simple/configurable/gift card products, and the shop gift card product page, locales, add-to-cart and redemption.
 
 Redemption does not change what the order costs — the gift card becomes a payment against it — so specs assert the "Remaining to pay" figure rather than expecting the order total to drop.
 

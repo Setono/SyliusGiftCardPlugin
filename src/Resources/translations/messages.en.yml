@@ -6,7 +6,10 @@ setono_sylius_gift_card:
             code_help: 'Generated for you. You can type a code of your own instead, of at least %minimum% letters and digits: it is saved in capitals, keeping only the letters A–Z and the digits.'
             custom_message: Custom message
             custom_message_placeholder: This message is printed on the gift card...
+            delivery_type_help: 'Choose Physical when you hand over or post a printed gift card yourself: the shop does not ship it. The notification email includes the code and the PDF either way. It cannot be changed once the gift card is issued.'
+            design_help: 'Shown on the gift card''s PDF. Only the designs enabled in the gift card''s channel can be chosen.'
             expires_at: Expires at
+            no_design: None (default layout)
             send_notification_email: Send notification email
             send_notification_email_help: 'Only sent when the gift card is usable: enabled, not expired and with a balance left. Otherwise send it from the gift card page once it is.'
         gift_card_design:

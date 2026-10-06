@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -213,6 +217,144 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
         self::assertSame(implode("\n", $lines), $this->findTheOnlyGiftCard()->getCustomMessage());
     }
 
+    /**
+     * The design decides what the card's PDF looks like, and a physical card is one the shop hands over or posts
+     * itself, so both are chosen when the card is issued
+     *
+     * @test
+     */
+    public function it_issues_a_gift_card_with_the_design_and_delivery_type_the_admin_picks(): void
+    {
+        $this->persistDesign('birthday', 'Birthday', $this->getChannel());
+
+        $form = $this->request('GET', '/admin/gift-cards/new');
+        // A card is virtual and without a design until the admin picks otherwise
+        self::assertSame('virtual', self::valueOf($form, sprintf('//select[@name="%s[deliveryType]"]/option[@selected]', self::FORM)));
+        self::assertSame('', self::valueOf($form, sprintf('//input[@type="radio"][@name="%s[design]"][@checked]', self::FORM)));
+        self::assertSame('birthday', self::valueOf($form, sprintf('//input[@type="radio"][@name="%s[design]"][@value="birthday"]', self::FORM)));
+
+        $response = $this->issue([
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'USD',
+            'amount' => '10',
+            'deliveryType' => 'physical',
+            'design' => 'birthday',
+        ], $form);
+
+        self::assertTrue($response->isRedirect(), sprintf('Expected a redirect after saving, got a %d response', $response->getStatusCode()));
+
+        $giftCard = $this->findTheOnlyGiftCard();
+        self::assertSame(GiftCardDeliveryType::Physical, $giftCard->getDeliveryType());
+        self::assertSame('birthday', $giftCard->getDesign()?->getCode());
+    }
+
+    /**
+     * The channel is chosen on the same form, so the picker offers the designs of every channel, and the one the
+     * chosen channel does not offer has to be refused like any other invalid value rather than saved or crash
+     *
+     * @test
+     */
+    public function it_refuses_a_design_the_chosen_channel_does_not_offer(): void
+    {
+        $this->persistDesign('outlet_only', 'Outlet only', $this->createChannel('OUTLET'));
+
+        $form = $this->request('GET', '/admin/gift-cards/new');
+        // offered, telling the picker which channel it belongs to
+        $choice = sprintf('//input[@type="radio"][@name="%s[design]"][@value="outlet_only"]', self::FORM);
+        self::assertSame('outlet_only', self::valueOf($form, $choice));
+        self::assertSame(['Outlet only'], self::textsOf($form, '//label[@data-channels="OUTLET"]'));
+
+        $response = $this->issue([
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'USD',
+            'amount' => '10',
+            'design' => 'outlet_only',
+        ], $form);
+
+        self::assertSame(422, $response->getStatusCode());
+        self::assertSame(
+            ["The design Outlet only is not available in the channel Test channel. Choose one of the channel's designs, or none."],
+            self::designErrors($response),
+        );
+
+        /** @var GiftCardRepositoryInterface $repository */
+        $repository = self::getContainer()->get('setono_sylius_gift_card.repository.gift_card');
+        self::assertSame([], $repository->findAll());
+    }
+
+    /**
+     * The design only decides what the card's PDF looks like, so it can be changed once the card is issued. The
+     * delivery type is settled at issuance: the edit form shows it, but takes no new one
+     *
+     * @test
+     */
+    public function it_lets_the_admin_change_the_design_of_an_issued_card_but_not_its_delivery_type(): void
+    {
+        $classic = $this->persistDesign('classic', 'Classic', $this->getChannel());
+        $this->persistDesign('birthday', 'Birthday', $this->getChannel());
+
+        $giftCard = $this->persistGiftCard('ISSUEDCARD12345', 5000);
+        $giftCard->setDesign($classic);
+        $this->manager->flush();
+
+        $uri = sprintf('/admin/gift-cards/%d/edit', (int) $giftCard->getId());
+        $form = $this->request('GET', $uri);
+        self::assertSame('classic', self::valueOf($form, sprintf('//input[@type="radio"][@name="%s[design]"][@checked]', self::FORM)));
+        self::assertCount(1, self::textsOf($form, sprintf('//select[@name="%s[deliveryType]"][@disabled]', self::FORM)));
+
+        $response = $this->request('POST', $uri, [
+            '_method' => 'PUT',
+            self::FORM => [
+                'enabled' => '1',
+                'design' => 'birthday',
+                'deliveryType' => 'physical',
+                '_token' => self::valueOf($form, sprintf('//input[@name="%s[_token]"]', self::FORM)),
+            ],
+        ]);
+
+        self::assertTrue($response->isRedirect(), sprintf('Expected a redirect after saving, got a %d response', $response->getStatusCode()));
+
+        $giftCard = $this->reloadGiftCard($giftCard);
+        self::assertSame('birthday', $giftCard->getDesign()?->getCode());
+        self::assertSame(GiftCardDeliveryType::Virtual, $giftCard->getDeliveryType());
+    }
+
+    /**
+     * A card keeps printing with the design it was issued with after the design is disabled, so editing the card must
+     * neither drop the design nor refuse to save it
+     *
+     * @test
+     */
+    public function it_keeps_the_design_of_an_issued_card_after_the_design_is_disabled(): void
+    {
+        $retired = $this->persistDesign('retired', 'Retired', $this->getChannel());
+
+        $giftCard = $this->persistGiftCard('ISSUEDCARD12345', 5000);
+        $giftCard->setDesign($retired);
+        $retired->disable();
+        $this->manager->flush();
+
+        $uri = sprintf('/admin/gift-cards/%d/edit', (int) $giftCard->getId());
+        $form = $this->request('GET', $uri);
+        self::assertSame('retired', self::valueOf($form, sprintf('//input[@type="radio"][@name="%s[design]"][@checked]', self::FORM)));
+
+        $response = $this->request('POST', $uri, [
+            '_method' => 'PUT',
+            self::FORM => [
+                'enabled' => '1',
+                'design' => 'retired',
+                'customMessage' => 'Happy birthday',
+                '_token' => self::valueOf($form, sprintf('//input[@name="%s[_token]"]', self::FORM)),
+            ],
+        ]);
+
+        self::assertTrue($response->isRedirect(), sprintf('Expected a redirect after saving, got a %d response', $response->getStatusCode()));
+
+        $giftCard = $this->reloadGiftCard($giftCard);
+        self::assertSame('retired', $giftCard->getDesign()?->getCode());
+        self::assertSame('Happy birthday', $giftCard->getCustomMessage());
+    }
+
     /** @test */
     public function it_issues_nothing_when_the_form_is_invalid(): void
     {
@@ -291,6 +433,34 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
             '//div[contains(concat(" ", normalize-space(@class), " "), " field ")][.//input[@name="%s[code]"]]//*[contains(@class, "sylius-validation-error")]',
             self::FORM,
         ));
+    }
+
+    /**
+     * @return list<string> the validation errors the page shows on the design picker
+     */
+    private static function designErrors(Response $response): array
+    {
+        return self::textsOf($response, sprintf(
+            '//fieldset[.//input[@name="%s[design]"]]//*[contains(@class, "sylius-validation-error")]',
+            self::FORM,
+        ));
+    }
+
+    private function persistDesign(string $code, string $name, ChannelInterface $channel): GiftCardDesignInterface
+    {
+        /** @var FactoryInterface<GiftCardDesignInterface> $factory */
+        $factory = self::getContainer()->get('setono_sylius_gift_card.factory.gift_card_design');
+
+        $design = $factory->createNew();
+        $design->setCode($code);
+        $design->setName($name);
+        $design->setEnabled(true);
+        $design->addChannel($channel);
+
+        $this->manager->persist($design);
+        $this->manager->flush();
+
+        return $design;
     }
 
     /**
