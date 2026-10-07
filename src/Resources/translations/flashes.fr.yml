@@ -6,7 +6,7 @@ setono_sylius_gift_card:
         balance_adjusted: Le solde du chèque-cadeau a été ajusté
         changed_during_checkout: L'un de vos chèques-cadeaux a été modifié pendant la validation de votre commande. Veuillez vérifier votre panier et réessayer.
         product_created: Un produit chèque-cadeau a été créé. Vérifiez-le et activez-le ci-dessous.
-        payment_method_created: Le moyen de paiement par chèque-cadeau a été créé dans tous les canaux. Les clients peuvent désormais payer avec des chèques-cadeaux.
+        payment_method_created: Le moyen de paiement par chèque-cadeau a été créé. Les clients peuvent désormais payer avec des chèques-cadeaux dans tous les canaux.
         payment_method_already_exists: "Le moyen de paiement par chèque-cadeau existe déjà : rien n'a été créé."
         email_sent: Le chèque-cadeau a été envoyé au client par email
         email_not_sent_no_customer: Le chèque-cadeau n'a pas d'adresse email client, il n'a donc pas pu être envoyé.

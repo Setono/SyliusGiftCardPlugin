@@ -13,6 +13,7 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
 use Sylius\Component\Addressing\Model\Country;
+use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
 use Sylius\Component\Core\Model\Address;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -27,37 +28,42 @@ use Sylius\Component\Order\Model\OrderInterface as BaseOrderInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 
 /**
- * The gift card payment method is created once, in the channels that exist at that moment, so a channel opened
- * afterwards is not one of its channels (#411). Checkout never offers the method, and the gift card payments are made
- * with the method found by its code, so its channels should make no difference to them. This settles it by taking a
- * gift card through a channel the method is not in the way a customer and an administrator do, through the kernel:
- * the card applied with the form on the shop's cart page, the order placed with the button on Sylius' own checkout
- * complete step (its validation and the shop's payment pages included), then the order shown, paid, refunded and
- * cancelled with Sylius' own buttons in the admin. Every figure is read back from the database
+ * Gift card payments are made with the gift card payment method found by its code, and checkout never offers it, so
+ * its channels make no difference to them (#411). The plugin creates it in no channel, and a method created before
+ * that is in the channels that existed back then, not in one opened since. This takes a gift card through a channel the
+ * method is not in, for each of those, the way a customer and an administrator do, through the kernel: the card applied
+ * with the form on the shop's cart page, the order placed with the button on Sylius' own checkout complete step (its
+ * validation and the shop's payment pages included), then the order shown, paid, refunded and cancelled with Sylius'
+ * own buttons in the admin. Every figure is read back from the database
  */
 final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestCase
 {
-    private const HOSTNAME = 'later.example.test';
+    /** the channel the shop has when the method is set up */
+    private const EXISTING = 'TEST_CHANNEL';
 
-    private const CHANNEL = 'LATER';
+    /** a channel opened after the method was set up */
+    private const LATER = 'LATER';
+
+    private const HOSTNAMES = [self::EXISTING => 'shop.example.test', self::LATER => 'later.example.test'];
 
     private const ORDER_TOTAL = 5000;
 
-    private ChannelInterface $channel;
-
     private PaymentMethodInterface $giftCardPaymentMethod;
+
+    /** the channel the order is placed in */
+    private ChannelInterface $channel;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->getChannel()->setHostname('shop.example.test');
+        $this->getChannel()->setHostname(self::HOSTNAMES[self::EXISTING]);
 
-        // the method is set up while the test channel is the only one, and the new channel is opened afterwards
+        // the method is set up while the test channel is the only one, and the other channel is opened afterwards
         $this->giftCardPaymentMethod = $this->createGiftCardPaymentMethod();
-        $this->channel = $this->createChannel(self::CHANNEL, self::HOSTNAME);
+        $this->createChannel(self::LATER, self::HOSTNAMES[self::LATER]);
 
-        // what the customer pays the rest with, set up in the new channel as a merchant opening a channel would
+        // what the customer pays the rest with, set up in every channel as a merchant opening a channel would
         $this->createCashPaymentMethod();
 
         // the country of the customer's address, which the shop's address forms look up
@@ -67,14 +73,32 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
 
         $this->manager->flush();
 
-        self::assertTrue($this->giftCardPaymentMethod->hasChannel($this->getChannel()), 'precondition: the method is in the channel that existed when it was created');
-        self::assertFalse($this->giftCardPaymentMethod->hasChannel($this->channel), 'precondition: the method is not in the channel opened afterwards');
+        self::assertCount(0, $this->giftCardPaymentMethod->getChannels(), 'precondition: the plugin creates the method in no channel');
     }
 
-    /** @test */
-    public function a_gift_card_pays_the_whole_order(): void
+    /**
+     * @return iterable<string, array{string, list<string>}> the channel the order is placed in, and the channels the
+     *                                                       gift card payment method is in
+     */
+    public static function channels(): iterable
     {
-        $giftCard = $this->createGiftCard('LATERFULL0000001', 8000);
+        yield 'a channel that existed when the method was created in no channel' => [self::EXISTING, []];
+        yield 'a channel opened after the method was created in no channel' => [self::LATER, []];
+        // as the plugin created the method before #411: in every channel the shop had back then
+        yield 'a channel opened after the method was created in the channels of its day' => [self::LATER, [self::EXISTING]];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider channels
+     *
+     * @param list<string> $methodChannels
+     */
+    public function a_gift_card_pays_the_whole_order(string $channel, array $methodChannels): void
+    {
+        $this->placeOrdersIn($channel, $methodChannels);
+        $giftCard = $this->createGiftCard('NOMETHODFULL0001', 8000);
 
         $orderId = $this->placeOrderInTheShop($giftCard, OrderCheckoutStates::STATE_PAYMENT_SKIPPED);
 
@@ -90,10 +114,17 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         self::assertSame(['Completed Gift card $50.00 Refund'], $this->paymentsOnTheAdminOrderPage($orderId));
     }
 
-    /** @test */
-    public function refunding_the_gift_card_payment_in_the_admin_gives_the_card_its_balance_back(): void
+    /**
+     * @test
+     *
+     * @dataProvider channels
+     *
+     * @param list<string> $methodChannels
+     */
+    public function refunding_the_gift_card_payment_in_the_admin_gives_the_card_its_balance_back(string $channel, array $methodChannels): void
     {
-        $giftCard = $this->createGiftCard('LATERREFUND00001', 8000);
+        $this->placeOrdersIn($channel, $methodChannels);
+        $giftCard = $this->createGiftCard('NOMETHODREFUND01', 8000);
         $orderId = $this->placeOrderInTheShop($giftCard, OrderCheckoutStates::STATE_PAYMENT_SKIPPED);
         $this->logInAsAdministrator();
 
@@ -110,10 +141,17 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         );
     }
 
-    /** @test */
-    public function a_gift_card_pays_part_of_the_order_and_the_customer_pays_the_rest(): void
+    /**
+     * @test
+     *
+     * @dataProvider channels
+     *
+     * @param list<string> $methodChannels
+     */
+    public function a_gift_card_pays_part_of_the_order_and_the_customer_pays_the_rest(string $channel, array $methodChannels): void
     {
-        $giftCard = $this->createGiftCard('LATERPART0000001', 3000);
+        $this->placeOrdersIn($channel, $methodChannels);
+        $giftCard = $this->createGiftCard('NOMETHODPART0001', 3000);
 
         $orderId = $this->placeOrderInTheShop($giftCard, OrderCheckoutStates::STATE_PAYMENT_SELECTED);
 
@@ -127,7 +165,7 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         self::assertSame(0, $this->persistedBalanceOf($giftCard));
 
         // the shop's page for paying the rest, which lists the order's payments
-        $orderPage = $this->request('GET', sprintf('http://%s/en_US/order/%s', self::HOSTNAME, (string) $order->getTokenValue()));
+        $orderPage = $this->request('GET', sprintf('http://%s/en_US/order/%s', $this->hostname(), (string) $order->getTokenValue()));
         self::assertSame(200, $orderPage->getStatusCode(), 'the shop page for paying the rest should render');
 
         $this->logInAsAdministrator();
@@ -139,10 +177,17 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         self::assertSame(OrderPaymentStates::STATE_PAID, $this->findOrder($orderId)->getPaymentState(), 'paying the rest should have paid the order');
     }
 
-    /** @test */
-    public function cancelling_the_order_in_the_admin_gives_the_card_its_balance_back(): void
+    /**
+     * @test
+     *
+     * @dataProvider channels
+     *
+     * @param list<string> $methodChannels
+     */
+    public function cancelling_the_order_in_the_admin_gives_the_card_its_balance_back(string $channel, array $methodChannels): void
     {
-        $giftCard = $this->createGiftCard('LATERCANCEL00001', 3000);
+        $this->placeOrdersIn($channel, $methodChannels);
+        $giftCard = $this->createGiftCard('NOMETHODCANCEL01', 3000);
         $orderId = $this->placeOrderInTheShop($giftCard, OrderCheckoutStates::STATE_PAYMENT_SELECTED);
         $this->logInAsAdministrator();
 
@@ -167,16 +212,16 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
     }
 
     /**
-     * The warning only asks whether the method exists, so a channel selling gift cards that the method is not in does
-     * not set it off
+     * The warning only asks whether the method exists, so channels selling gift cards that the method is not in do not
+     * set it off
      *
      * @test
      */
-    public function the_admin_does_not_warn_about_a_channel_the_payment_method_is_not_in(): void
+    public function the_admin_does_not_warn_about_channels_the_payment_method_is_not_in(): void
     {
         /** @var GiftCardProductFactoryInterface $productFactory */
         $productFactory = self::getContainer()->get(GiftCardProductFactoryInterface::class);
-        $this->manager->persist($productFactory->create('gift_card', 'Gift card', channels: [$this->channel]));
+        $this->manager->persist($productFactory->create('gift_card', 'Gift card', channels: [$this->channelOf(self::EXISTING), $this->channelOf(self::LATER)]));
         $this->manager->flush();
 
         $this->logInAsAdministrator();
@@ -191,29 +236,41 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
     }
 
     /**
-     * What the merchant sees of it: the method's page in the admin leaves the new channel unticked
+     * Puts the gift card payment method in the given channels and makes the order's channel the given one, which the
+     * method is not in
      *
-     * @test
+     * @param list<string> $methodChannels
      */
-    public function the_admin_shows_the_payment_method_without_the_channel(): void
+    private function placeOrdersIn(string $channel, array $methodChannels): void
     {
-        $this->logInAsAdministrator();
+        foreach ($methodChannels as $methodChannel) {
+            $this->giftCardPaymentMethod->addChannel($this->channelOf($methodChannel));
+        }
+        $this->manager->flush();
 
-        $response = $this->request('GET', sprintf('/admin/payment-methods/%d/edit', (int) $this->giftCardPaymentMethod->getId()));
+        $this->channel = $this->channelOf($channel);
 
-        self::assertSame(200, $response->getStatusCode());
-        self::assertSame(
-            ['TEST_CHANNEL', self::CHANNEL],
-            self::textsOf($response, '//input[@name="sylius_payment_method[channels][]"]/@value'),
-        );
-        self::assertSame(
-            ['TEST_CHANNEL'],
-            self::textsOf($response, '//input[@name="sylius_payment_method[channels][]"][@checked]/@value'),
-        );
+        self::assertFalse($this->giftCardPaymentMethod->hasChannel($this->channel), 'precondition: the method is not in the channel the order is placed in');
+    }
+
+    private function channelOf(string $code): ChannelInterface
+    {
+        /** @var ChannelRepositoryInterface<ChannelInterface> $channelRepository */
+        $channelRepository = self::getContainer()->get('sylius.repository.channel');
+
+        $channel = $channelRepository->findOneByCode($code);
+        self::assertInstanceOf(ChannelInterface::class, $channel);
+
+        return $channel;
+    }
+
+    private function hostname(): string
+    {
+        return self::HOSTNAMES[(string) $this->channel->getCode()];
     }
 
     /**
-     * Puts a cart in the new channel through the shop: the customer applies the gift card with the form on the cart
+     * Puts a cart in the order's channel through the shop: the customer applies the gift card with the form on the cart
      * page, and places the order with the button on the checkout's complete step, from where the shop takes them
      * through its payment pages to the thank you page. The address, shipping and payment steps are taken as done, in
      * the checkout state the payment step leaves the cart in: payment skipped where the card covers everything,
@@ -224,11 +281,12 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
     private function placeOrderInTheShop(GiftCardInterface $giftCard, string $checkoutState): int
     {
         $cartId = $this->createCart();
+        $hostname = $this->hostname();
 
-        $cartPage = $this->request('GET', sprintf('http://%s/en_US/cart/', self::HOSTNAME));
+        $cartPage = $this->request('GET', sprintf('http://%s/en_US/cart/', $hostname));
         self::assertSame(200, $cartPage->getStatusCode(), 'the cart page should render');
 
-        $applied = $this->request('POST', sprintf('http://%s/en_US/gift-cards', self::HOSTNAME), [
+        $applied = $this->request('POST', sprintf('http://%s/en_US/gift-cards', $hostname), [
             'setono_sylius_gift_card_add_gift_card_to_order' => [
                 'giftCard' => (string) $giftCard->getCode(),
                 '_token' => self::valueOf($cartPage, '//input[@name="setono_sylius_gift_card_add_gift_card_to_order[_token]"]'),
@@ -241,7 +299,7 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         $cart->setCheckoutState($checkoutState);
         $this->manager->flush();
 
-        $completeStep = sprintf('http://%s/en_US/checkout/complete', self::HOSTNAME);
+        $completeStep = sprintf('http://%s/en_US/checkout/complete', $hostname);
         $page = $this->request('GET', $completeStep);
         self::assertSame(200, $page->getStatusCode(), 'the complete step should render');
 
@@ -257,12 +315,12 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         for ($redirects = 0; $response->isRedirect() && $redirects < 10; ++$redirects) {
             // the shop redirects within the channel's host, which a relative location leaves out
             $location = (string) $response->headers->get('Location');
-            $uri = str_starts_with($location, '/') ? sprintf('http://%s%s', self::HOSTNAME, $location) : $location;
+            $uri = str_starts_with($location, '/') ? sprintf('http://%s%s', $hostname, $location) : $location;
 
             $response = $this->request('GET', $uri);
         }
 
-        self::assertSame(sprintf('http://%s/en_US/order/thank-you', self::HOSTNAME), $uri, 'placing the order should have ended on the thank you page');
+        self::assertSame(sprintf('http://%s/en_US/order/thank-you', $hostname), $uri, 'placing the order should have ended on the thank you page');
         self::assertSame(200, $response->getStatusCode(), 'the thank you page should render');
 
         return $cartId;
@@ -367,6 +425,9 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         return array_map(static fn (array $row): array => [$row['type'], $row['amount']], $rows);
     }
 
+    /**
+     * A gift card of the order's channel, which is the only channel a card pays in
+     */
     private function createGiftCard(string $code, int $amount): GiftCardInterface
     {
         /** @var GiftCardFactoryInterface $factory */
@@ -385,15 +446,15 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
     }
 
     /**
-     * A cart in the new channel holding one ordinary item that needs no shipping, addressed and processed the way the
-     * shop processes it, so it carries the payment Sylius sizes to the whole order. The visitor's session names it
+     * A cart in the order's channel holding one ordinary item that needs no shipping, addressed and processed the way
+     * the shop processes it, so it carries the payment Sylius sizes to the whole order. The visitor's session names it
      *
      * @return int the id of the cart
      */
     private function createCart(): int
     {
         $customer = new Customer();
-        $customer->setEmail('later@example.com');
+        $customer->setEmail('buyer@example.com');
         $this->manager->persist($customer);
 
         $address = new Address();
@@ -424,13 +485,13 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         self::assertSame([['cash', PaymentInterface::STATE_CART, self::ORDER_TOTAL]], self::paymentsOf($cart), 'precondition: the cart is to be paid in cash');
 
         $cartId = (int) $cart->getId();
-        $this->startSession([sprintf('_sylius.cart.%s', self::CHANNEL) => $cartId]);
+        $this->startSession([sprintf('_sylius.cart.%s', (string) $this->channel->getCode()) => $cartId]);
 
         return $cartId;
     }
 
     /**
-     * One unit of a mug sold in the new channel only, at the order total
+     * One unit of a mug sold in the order's channel only, at the order total
      */
     private function createItem(): OrderItem
     {
@@ -444,7 +505,7 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         $this->manager->persist($product);
 
         $channelPricing = new ChannelPricing();
-        $channelPricing->setChannelCode(self::CHANNEL);
+        $channelPricing->setChannelCode((string) $this->channel->getCode());
         $channelPricing->setPrice(self::ORDER_TOTAL);
 
         $variant = new ProductVariant();
@@ -476,8 +537,8 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         $paymentMethod->setCurrentLocale('en_US');
         $paymentMethod->setFallbackLocale('en_US');
         $paymentMethod->setName('Cash');
-        $paymentMethod->addChannel($this->getChannel());
-        $paymentMethod->addChannel($this->channel);
+        $paymentMethod->addChannel($this->channelOf(self::EXISTING));
+        $paymentMethod->addChannel($this->channelOf(self::LATER));
 
         $this->manager->persist($paymentMethod);
     }

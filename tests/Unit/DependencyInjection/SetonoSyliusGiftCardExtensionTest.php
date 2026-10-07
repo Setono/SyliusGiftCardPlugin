@@ -35,6 +35,36 @@ final class SetonoSyliusGiftCardExtensionTest extends TestCase
     }
 
     /**
+     * The gift card payment method's own create and edit pages explain it right above Sylius' form: after the header
+     * (priority 20) and the legacy after header event (15), ahead of the form (10). Sylius renders the create and the
+     * update page through events of their own, so the block is on both
+     *
+     * @test
+     *
+     * @dataProvider paymentMethodFormEvents
+     */
+    public function it_explains_the_gift_card_payment_method_above_its_form(string $event): void
+    {
+        $blocks = $this->blocksForEvent($event);
+
+        self::assertArrayHasKey('setono_gift_card_payment_method_message', $blocks);
+
+        $block = $blocks['setono_gift_card_payment_method_message'];
+        self::assertSame('@SetonoSyliusGiftCardPlugin/admin/payment_method/_gift_card_payment_method_message.html.twig', $block['template']);
+        self::assertFileExists($this->resolveTemplate($block['template']));
+        self::assertSame(12, $block['priority'] ?? null);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function paymentMethodFormEvents(): iterable
+    {
+        yield 'create' => ['sylius.admin.payment_method.create'];
+        yield 'update' => ['sylius.admin.payment_method.update'];
+    }
+
+    /**
      * The service files are not autoconfigured, so a service implementing ResetInterface is only reset between
      * requests under a worker runtime (FrankenPHP's worker mode, RoadRunner) when it carries the kernel.reset tag
      * itself. Without it, whatever it memoised stays for every later request the worker serves

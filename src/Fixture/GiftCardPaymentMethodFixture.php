@@ -12,8 +12,8 @@ use Sylius\Bundle\FixturesBundle\Fixture\AbstractFixture;
 
 /**
  * Sets up the payment method gift card payments are made with, the way setono:gift-card:create-payment-method does,
- * so a shop seeded with fixtures takes gift cards straight away. It runs after the channels exist and leaves an
- * existing method alone
+ * so a shop seeded with fixtures takes gift cards straight away. It runs after the channels and locales exist, since
+ * the method is named in the language of each, and leaves an existing method alone
  */
 class GiftCardPaymentMethodFixture extends AbstractFixture
 {

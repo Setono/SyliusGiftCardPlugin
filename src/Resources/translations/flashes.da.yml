@@ -6,7 +6,7 @@ setono_sylius_gift_card:
         balance_adjusted: Gavekortets saldo blev justeret
         changed_during_checkout: Et af dine gavekort blev ændret, mens du gennemførte dit køb. Gennemgå din kurv, og prøv igen.
         product_created: Der blev oprettet et gavekortprodukt. Gennemgå og aktiver det nedenfor.
-        payment_method_created: Betalingsmetoden til gavekort er oprettet i alle kanaler. Kunderne kan nu betale med gavekort.
+        payment_method_created: Betalingsmetoden til gavekort er oprettet. Kunderne kan nu betale med gavekort i alle kanaler.
         payment_method_already_exists: Betalingsmetoden til gavekort findes allerede, så der blev ikke oprettet noget.
         email_sent: Gavekortet blev sendt til kunden på email
         email_not_sent_no_customer: Gavekortet har ingen kundeemailadresse, så det kunne ikke sendes.

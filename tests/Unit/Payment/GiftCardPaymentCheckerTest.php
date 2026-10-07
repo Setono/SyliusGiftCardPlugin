@@ -74,6 +74,31 @@ final class GiftCardPaymentCheckerTest extends TestCase
         self::assertFalse($checker->isGiftCardPayment(new Payment()));
     }
 
+    /**
+     * The admin explains the gift card payment method on its own form, and only there, by asking the checker about the
+     * payment method the form shows
+     *
+     * @test
+     */
+    public function it_recognises_the_gift_card_payment_method_by_the_configured_code(): void
+    {
+        $checker = new GiftCardPaymentChecker('store_credit');
+
+        self::assertTrue($checker->isGiftCardPaymentMethod($this->paymentMethodWith('store_credit')));
+        self::assertFalse($checker->isGiftCardPaymentMethod($this->paymentMethodWith(self::GIFT_CARD_CODE)));
+        self::assertFalse($checker->isGiftCardPaymentMethod($this->paymentMethodWith('store_credit_2')));
+        // a method on the create form before the administrator has typed a code
+        self::assertFalse($checker->isGiftCardPaymentMethod(new PaymentMethod()));
+    }
+
+    private function paymentMethodWith(string $code): PaymentMethod
+    {
+        $method = new PaymentMethod();
+        $method->setCode($code);
+
+        return $method;
+    }
+
     private function paymentWith(string $methodCode): PaymentInterface
     {
         $method = new PaymentMethod();

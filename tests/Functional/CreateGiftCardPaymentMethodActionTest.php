@@ -6,7 +6,6 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Payum\Core\Model\GatewayConfigInterface;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface;
-use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Payment\Repository\PaymentMethodRepositoryInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -56,8 +55,13 @@ final class CreateGiftCardPaymentMethodActionTest extends AdminFunctionalTestCas
         }
     }
 
-    /** @test */
-    public function pressing_the_button_creates_the_payment_method_in_every_channel(): void
+    /**
+     * Gift card payments are made with the method in every channel, whichever channels it is in, so it is created in
+     * none of the shop's channels (#411)
+     *
+     * @test
+     */
+    public function pressing_the_button_creates_the_payment_method_in_no_channel(): void
     {
         $this->createChannel('OTHER_CHANNEL');
         $this->manager->flush();
@@ -75,12 +79,7 @@ final class CreateGiftCardPaymentMethodActionTest extends AdminFunctionalTestCas
         self::assertInstanceOf(GatewayConfigInterface::class, $gatewayConfig);
         self::assertSame('offline', $gatewayConfig->getFactoryName());
 
-        $channelCodes = array_map(
-            static fn (ChannelInterface $channel): string => (string) $channel->getCode(),
-            $paymentMethod->getChannels()->toArray(),
-        );
-        sort($channelCodes);
-        self::assertSame(['OTHER_CHANNEL', 'TEST_CHANNEL'], $channelCodes);
+        self::assertCount(0, $paymentMethod->getChannels());
 
         // The admin lands where the warning was, and it is gone
         $index = $this->followRedirect($response);

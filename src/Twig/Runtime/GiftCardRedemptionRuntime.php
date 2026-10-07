@@ -12,6 +12,7 @@ use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Sylius\Component\Core\Model\OrderInterface as BaseOrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Payment\Model\PaymentMethodInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormView;
 use Twig\Extension\RuntimeExtensionInterface;
@@ -66,5 +67,14 @@ final class GiftCardRedemptionRuntime implements RuntimeExtensionInterface
         }
 
         return $remainingPayment;
+    }
+
+    /**
+     * Whether the given payment method is the one gift card payments are made with, so the admin's payment method form
+     * can explain it
+     */
+    public function isGiftCardPaymentMethod(?PaymentMethodInterface $paymentMethod): bool
+    {
+        return null !== $paymentMethod && $this->paymentChecker->isGiftCardPaymentMethod($paymentMethod);
     }
 }

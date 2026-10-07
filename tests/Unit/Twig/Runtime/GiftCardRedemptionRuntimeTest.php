@@ -15,12 +15,14 @@ use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardRedemptionRuntime;
 use Sylius\Component\Core\Model\OrderInterface as BaseOrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Payment\Model\PaymentMethodInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 
 /**
  * The cart prints what the gift cards cover and what is left to pay from these functions. The figures come from
  * the configured redemption method, so an application that substitutes its own sees its figures in the cart. The
- * thank you page shows the instructions of the payment for what the gift cards do not pay
+ * thank you page shows the instructions of the payment for what the gift cards do not pay, and the admin's payment
+ * method form explains the gift card payment method
  */
 final class GiftCardRedemptionRuntimeTest extends TestCase
 {
@@ -121,6 +123,24 @@ final class GiftCardRedemptionRuntimeTest extends TestCase
     public function it_tells_no_payment_for_an_order_without_payments(): void
     {
         self::assertNull($this->runtime()->getRemainingPayment($this->orderWith()));
+    }
+
+    /**
+     * The admin's payment method form explains the gift card payment method, and the checker is what knows which one
+     * that is
+     *
+     * @test
+     */
+    public function it_tells_whether_a_payment_method_is_the_gift_card_payment_method(): void
+    {
+        $giftCardPaymentMethod = $this->prophesize(PaymentMethodInterface::class)->reveal();
+        $cash = $this->prophesize(PaymentMethodInterface::class)->reveal();
+        $this->paymentChecker->isGiftCardPaymentMethod($giftCardPaymentMethod)->willReturn(true);
+        $this->paymentChecker->isGiftCardPaymentMethod($cash)->willReturn(false);
+
+        self::assertTrue($this->runtime()->isGiftCardPaymentMethod($giftCardPaymentMethod));
+        self::assertFalse($this->runtime()->isGiftCardPaymentMethod($cash));
+        self::assertFalse($this->runtime()->isGiftCardPaymentMethod(null));
     }
 
     private function runtime(): GiftCardRedemptionRuntime
