@@ -117,7 +117,7 @@ abstract class OrderLifecycleTestCase extends GiftCardFunctionalTestCase
         unset($checked[$this->adapter]);
 
         // a test may only refuse a transition, which the adapter checks and does not apply
-        self::assertNotEmpty($this->checkedTransitions[$this->adapter] ?? [], sprintf('no transition went through %s', $this->adapter));
+        self::assertNotEmpty($this->checkedTransitions[$this->adapter] ?? [], sprintf('%s was not asked about a single transition', $this->adapter));
         self::assertSame([], $applied, sprintf('every transition should have gone through %s', $this->adapter));
         self::assertSame([], $checked, sprintf('every transition should have been checked by %s', $this->adapter));
     }
