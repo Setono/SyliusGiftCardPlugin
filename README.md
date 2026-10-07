@@ -644,7 +644,8 @@ request itself (a redirect, say) keeps its response.
 To change the page:
 
 - **Add, move or disable a part** in your `sylius_ui` configuration. Every part of the page is a block on one of the
-  plugin's template events, listed in the table below, ten priorities apart so a block of yours fits in between:
+  plugin's template events below, ten priorities apart so a block of yours fits in between (the blocks are listed
+  under [Moving or disabling the plugin's blocks](#moving-or-disabling-the-plugins-blocks)):
 
   | Event | Where |
   |-------|-------|
