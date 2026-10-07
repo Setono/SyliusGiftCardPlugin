@@ -25,28 +25,24 @@
         </parameter>
     </parameters>
     <services>
-        <service id="Setono\SyliusGiftCardPlugin\Form\DataTransformer\GiftCardToCodeDataTransformer"
-                 class="Setono\SyliusGiftCardPlugin\Form\DataTransformer\GiftCardToCodeDataTransformer">
+        <service id="Setono\SyliusGiftCardPlugin\Form\DataTransformer\GiftCardToCodeDataTransformer">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="sylius.context.channel"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
             <argument type="service" id="logger" on-invalid="null"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Form\Extension\ProductTypeExtension"
-                 class="Setono\SyliusGiftCardPlugin\Form\Extension\ProductTypeExtension">
+        <service id="Setono\SyliusGiftCardPlugin\Form\Extension\ProductTypeExtension">
             <tag name="form.type_extension" extended-type="Sylius\Bundle\ProductBundle\Form\Type\ProductType"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Form\Extension\AddToCartTypeExtension"
-                 class="Setono\SyliusGiftCardPlugin\Form\Extension\AddToCartTypeExtension">
+        <service id="Setono\SyliusGiftCardPlugin\Form\Extension\AddToCartTypeExtension">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Cart\CartGiftCardHandlerInterface"/>
             <argument>%setono_sylius_gift_card.order.model.add_to_cart_command.class%</argument>
             <tag name="form.type_extension" extended-type="Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardInformationType"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardInformationType">
+        <service id="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardInformationType">
             <argument>%setono_sylius_gift_card.order.model.gift_card_information.class%</argument>
             <argument>%setono_sylius_gift_card.model.gift_card_design.class%</argument>
             <argument type="service" id="sylius.context.channel"/>
@@ -58,15 +54,13 @@
             <tag name="form.type"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType">
+        <service id="Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Form\DataTransformer\GiftCardToCodeDataTransformer"/>
             <argument>%Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType.validation_groups%</argument>
             <tag name="form.type"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType">
+        <service id="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardType">
             <argument>%setono_sylius_gift_card.model.gift_card.class%</argument>
             <argument type="service" id="sylius.repository.currency"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface"/>
@@ -79,19 +73,16 @@
             <tag name="form.type"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Form\Type\CustomerAutocompleteChoiceType"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\CustomerAutocompleteChoiceType">
+        <service id="Setono\SyliusGiftCardPlugin\Form\Type\CustomerAutocompleteChoiceType">
             <argument type="service" id="router"/>
             <tag name="form.type"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Form\Type\AdjustGiftCardBalanceType"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\AdjustGiftCardBalanceType">
+        <service id="Setono\SyliusGiftCardPlugin\Form\Type\AdjustGiftCardBalanceType">
             <tag name="form.type"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Form\Type\MinorUnitsMoneyType"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\MinorUnitsMoneyType">
+        <service id="Setono\SyliusGiftCardPlugin\Form\Type\MinorUnitsMoneyType">
             <tag name="form.type"/>
         </service>
 
@@ -99,22 +90,19 @@
             <tag name="form.type"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignType"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignType">
+        <service id="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignType">
             <argument>%setono_sylius_gift_card.model.gift_card_design.class%</argument>
             <argument>%Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignType.validation_groups%</argument>
             <tag name="form.type"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignTranslationType"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignTranslationType">
+        <service id="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignTranslationType">
             <argument>%setono_sylius_gift_card.model.gift_card_design_translation.class%</argument>
             <argument>%Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignTranslationType.validation_groups%</argument>
             <tag name="form.type"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignImageType"
-                 class="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignImageType">
+        <service id="Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignImageType">
             <argument>%setono_sylius_gift_card.model.gift_card_design_image.class%</argument>
             <argument>%Setono\SyliusGiftCardPlugin\Form\Type\GiftCardDesignImageType.validation_groups%</argument>
             <tag name="form.type"/>

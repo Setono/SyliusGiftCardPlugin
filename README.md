@@ -139,10 +139,38 @@ The plugin auto-configures the state machine, grids, UI events, email templates 
 
 What the plugin adds to Sylius' pages, the "Gift card" checkbox on the admin product form included, is rendered by blocks on Sylius' UI events, so you can move or disable each of them through your own `sylius_ui` configuration, see [Moving or disabling the plugin's blocks](#moving-or-disabling-the-plugins-blocks).
 
-Both state machine adapters Sylius supports are covered: the plugin registers winzou callbacks *and* the
-equivalent Symfony Workflow subscribers, so it behaves the same whichever adapter
-`sylius_core.state_machine.default_adapter` is set to. Only the adapter actually applying a transition emits
-its events, so the work is never done twice.
+#### State machine adapters
+
+The plugin works under both state machine adapters Sylius supports, Winzou State Machine and Symfony Workflow: it
+registers winzou callbacks *and* the equivalent Symfony Workflow subscribers, so it behaves the same whichever adapter
+applies a transition. Only that adapter emits the transition's events, so the work is never done twice. There is
+nothing to configure on the plugin's side.
+
+Sylius applies a graph's transitions through the adapter `sylius_state_machine_abstraction.graphs_to_adapters_mapping`
+maps that graph to, or else through the one `sylius_state_machine_abstraction.default_adapter` names
+(`winzou_state_machine` unless you change it). To run the four graphs the plugin hooks into on Symfony Workflow:
+
+```yaml
+# config/packages/sylius_state_machine_abstraction.yaml
+sylius_state_machine_abstraction:
+    graphs_to_adapters_mapping:
+        sylius_order: symfony_workflow
+        sylius_order_checkout: symfony_workflow
+        sylius_order_payment: symfony_workflow
+        sylius_payment: symfony_workflow
+```
+
+To run every graph on it instead:
+
+```yaml
+# config/packages/sylius_state_machine_abstraction.yaml
+sylius_state_machine_abstraction:
+    default_adapter: symfony_workflow
+```
+
+The same keys under `sylius_core.state_machine` change nothing: Sylius accepts that node, but neither 1.13 nor 1.14
+reads it, and 1.14 marks it deprecated. Sylius' `UPGRADE-1.14.md` names `sylius_state_machine_abstraction.state_machine`
+as its replacement, but there is no such node; the keys sit directly under `sylius_state_machine_abstraction`, as above.
 
 ### Import routing
 

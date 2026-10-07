@@ -4,15 +4,13 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver"
-                 class="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver">
+        <service id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver">
             <argument type="service" id="router"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface"
                  alias="Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolver"/>
 
-        <service id="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolver"
-                 class="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolver">
+        <service id="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolver">
             <argument>%setono_sylius_gift_card.default_validity_period%</argument>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolverInterface"
