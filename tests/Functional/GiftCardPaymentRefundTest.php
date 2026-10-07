@@ -66,7 +66,7 @@ final class GiftCardPaymentRefundTest extends GiftCardFunctionalTestCase
 
     /**
      * Driving the transition through Symfony Workflow itself pits the workflow subscriber against Sylius' workflow
-     * listeners, the way an application with sylius_core.state_machine.default_adapter set to symfony_workflow would
+     * listeners, the way an application with sylius_state_machine_abstraction.default_adapter set to symfony_workflow would
      *
      * @test
      */
