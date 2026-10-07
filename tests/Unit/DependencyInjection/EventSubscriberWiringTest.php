@@ -195,7 +195,8 @@ final class EventSubscriberWiringTest extends TestCase
                 substr($file->getPathname(), strlen($src) + 1, -strlen('.php')),
             );
 
-            if (class_exists($class)) {
+            // An abstract class is never a service itself, so a base subscriber or listener needs no registration
+            if (class_exists($class) && !(new \ReflectionClass($class))->isAbstract()) {
                 $classes[] = $class;
             }
         }
