@@ -20,9 +20,11 @@
         </fieldset>
     {% else %}
         {# A product whose variant is matched by its options gets a field per option, each labelled with the option's
-           name, as on Sylius' page #}
+           name, as on Sylius' page. Sylius' script reads the combinations off the pricing map to disable the button
+           for one no variant has; the page prints no price, so nothing shows one #}
         {% for option_form in form.cartItem.variant %}
             {{ form_row(option_form, {'attr': {'data-option': option_form.vars.name}}) }}
         {% endfor %}
+        {% include '@SyliusShop/Product/Show/_variantsPricing.html.twig' with {'pricing': sylius_product_variants_map(product, {'channel': sylius.channel}), 'variants': product.enabledVariants} %}
     {% endif %}
 {% endif %}

@@ -104,6 +104,28 @@ final class GiftCardProductPageTest extends AdminFunctionalTestCase
     }
 
     /**
+     * A merchant may have the variant matched by its options instead of chosen from a list. The page then shows Sylius'
+     * field per option, labelled with the option's name, and Sylius' map of the combinations its script disables the
+     * button by
+     *
+     * @test
+     */
+    public function it_shows_a_field_per_option_for_a_product_whose_variant_is_matched_by_its_options(): void
+    {
+        $product = $this->createGiftCardProduct('gift_card', [GiftCardDeliveryType::Virtual, GiftCardDeliveryType::Physical]);
+        $product->setVariantSelectionMethod(ProductInterface::VARIANT_SELECTION_MATCH);
+        $this->manager->flush();
+
+        $page = $this->productPage($product);
+
+        self::assertCount(0, self::textsOf($page, self::DELIVERY));
+        $options = self::textsOf($page, self::ADD_TO_CART_FORM . '//select[@name="sylius_add_to_cart[cartItem][variant][gift_card_delivery]"]/option');
+        self::assertCount(2, $options);
+        self::assertCount(1, self::textsOf($page, self::ADD_TO_CART_FORM . '//label[@for="sylius_add_to_cart_cartItem_variant_gift_card_delivery"]'));
+        self::assertCount(2, self::textsOf($page, self::ADD_TO_CART_FORM . '//*[@id="sylius-variants-pricing"]/div'));
+    }
+
+    /**
      * The placeholder image, the reviews, the price, the code, the variant table with its prices, the empty details tab
      * and the latest products are what Sylius' page shows, none of which fits a gift card
      *
