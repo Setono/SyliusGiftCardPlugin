@@ -4,8 +4,7 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="Setono\SyliusGiftCardPlugin\Checker\GiftCardSetupChecker"
-                 class="Setono\SyliusGiftCardPlugin\Checker\GiftCardSetupChecker">
+        <service id="Setono\SyliusGiftCardPlugin\Checker\GiftCardSetupChecker">
             <argument type="service" id="sylius.repository.channel"/>
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_design"/>
             <argument type="service" id="doctrine"/>

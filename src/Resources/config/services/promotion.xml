@@ -10,13 +10,11 @@
             amount they spread is taken from those items alone, see OrderTrait::getPromotionSubjectTotal())
         -->
         <service id="Setono\SyliusGiftCardPlugin\Promotion\Filter\GiftCardExcludingFilter"
-                 class="Setono\SyliusGiftCardPlugin\Promotion\Filter\GiftCardExcludingFilter"
                  decorates="sylius.promotion_filter.product">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Promotion\Filter\GiftCardExcludingFilter.inner"/>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Promotion\Distributor\GiftCardExcludingMinimumPriceDistributor"
-                 class="Setono\SyliusGiftCardPlugin\Promotion\Distributor\GiftCardExcludingMinimumPriceDistributor"
                  decorates="Sylius\Component\Core\Distributor\MinimumPriceDistributorInterface">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Promotion\Distributor\GiftCardExcludingMinimumPriceDistributor.inner"/>
         </service>

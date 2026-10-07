@@ -4,25 +4,21 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardCodeExtension"
-                 class="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardCodeExtension">
+        <service id="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardCodeExtension">
             <tag name="twig.extension"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardCodeRuntime"
-                 class="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardCodeRuntime">
+        <service id="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardCodeRuntime">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
 
             <tag name="twig.runtime"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardRedemptionExtension"
-                 class="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardRedemptionExtension">
+        <service id="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardRedemptionExtension">
             <tag name="twig.extension"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardRedemptionRuntime"
-                 class="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardRedemptionRuntime">
+        <service id="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardRedemptionRuntime">
             <argument type="service" id="setono_sylius_gift_card.redemption_method"/>
             <argument type="service" id="form.factory"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface"/>
@@ -30,13 +26,11 @@
             <tag name="twig.runtime"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardSetupExtension"
-                 class="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardSetupExtension">
+        <service id="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardSetupExtension">
             <tag name="twig.extension"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardSetupRuntime"
-                 class="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardSetupRuntime">
+        <service id="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardSetupRuntime">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardSetupCheckerInterface"/>
             <argument>%setono_sylius_gift_card.redemption.payment_method_code%</argument>
 
