@@ -8,19 +8,12 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
-use Sylius\Abstraction\StateMachine\StateMachineInterface;
-use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
-use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\OrderCheckoutStates;
-use Sylius\Component\Core\OrderCheckoutTransitions;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Core\Updater\UnpaidOrdersStateUpdaterInterface;
 use Sylius\Component\Order\Model\OrderInterface as BaseOrderInterface;
-use Sylius\Component\Payment\Factory\PaymentFactoryInterface;
 use Sylius\Component\Payment\PaymentTransitions;
-use Symfony\Component\Workflow\WorkflowInterface;
 
 /**
  * An order a gift card pays only in part is placed with a completed gift card payment and a payment for the rest
@@ -30,22 +23,10 @@ use Symfony\Component\Workflow\WorkflowInterface;
  * and never paying it have to go the way they go for an order without a gift card.
  *
  * Both of Sylius' state machine adapters resolve the order's payment state through the same resolver service, so
- * each journey is driven through winzou (the application's default adapter) and through Symfony Workflow itself
+ * each journey is taken through each adapter
  */
-final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
+final class OrderPaidInPartByGiftCardTest extends OrderLifecycleTestCase
 {
-    private const WINZOU = 'winzou';
-
-    private const SYMFONY_WORKFLOW = 'symfony_workflow';
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // the gift card payments are made with it, and the shop refuses gift cards until it is set up
-        $this->createGiftCardPaymentMethod();
-    }
-
     /**
      * @test
      *
@@ -53,10 +34,12 @@ final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
      */
     public function the_order_awaits_payment_of_what_the_gift_card_does_not_cover(string $adapter): void
     {
+        $this->useStateMachineAdapter($adapter);
+
         $giftCard = $this->createEnabledGiftCard('PARTPAID00000001', 6000);
         $order = $this->createCheckoutReadyOrder(10000, $giftCard, 4000);
 
-        $this->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_COMPLETE, $adapter);
+        $this->placeOrder($order);
 
         self::assertSame(OrderCheckoutStates::STATE_COMPLETED, $order->getCheckoutState());
         self::assertSame(OrderPaymentStates::STATE_AWAITING_PAYMENT, $order->getPaymentState());
@@ -80,6 +63,8 @@ final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
      */
     public function paying_the_rest_pays_the_order_and_issues_the_gift_cards_it_bought(string $adapter): void
     {
+        $this->useStateMachineAdapter($adapter);
+
         // A gift card cannot pay for another gift card, so the redeemed card pays 3000 of the 6000 mug, and the rest,
         // the other 3000 of the mug and the 4000 gift card line, is paid by other means
         $giftCard = $this->createEnabledGiftCard('PARTPAID00000002', 3000);
@@ -93,7 +78,7 @@ final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
         $bought = $this->boughtGiftCard($giftCardLine);
         self::assertFalse($bought->isEnabled(), 'precondition: the gift card bought is pending until the order is paid');
 
-        $this->apply($this->restPayment($order), PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_COMPLETE, $adapter);
+        $this->apply($this->restPayment($order), PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_COMPLETE);
 
         self::assertSame(OrderPaymentStates::STATE_PAID, $order->getPaymentState());
         self::assertTrue($bought->isEnabled(), 'paying the order should have issued the gift card it bought');
@@ -110,11 +95,14 @@ final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
      */
     public function a_payment_for_the_rest_still_processing_leaves_the_order_awaiting_payment(string $adapter): void
     {
+        $this->useStateMachineAdapter($adapter);
+
         $giftCard = $this->createEnabledGiftCard('PARTPAID00000003', 6000);
         $order = $this->createCheckoutReadyOrder(10000, $giftCard, 4000);
         $this->placeOrder($order);
+        self::assertSame(PaymentInterface::STATE_COMPLETED, $this->giftCardPayment($order)->getState(), 'precondition: the card paid its part');
 
-        $this->apply($this->restPayment($order), PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_PROCESS, $adapter);
+        $this->apply($this->restPayment($order), PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_PROCESS);
 
         self::assertSame(PaymentInterface::STATE_PROCESSING, $this->restPayment($order)->getState());
         self::assertSame(OrderPaymentStates::STATE_AWAITING_PAYMENT, $order->getPaymentState());
@@ -125,9 +113,13 @@ final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
      * payments, which is what gives the card its balance back
      *
      * @test
+     *
+     * @dataProvider adapters
      */
-    public function an_order_whose_rest_is_never_paid_expires_and_gives_the_gift_card_its_balance_back(): void
+    public function an_order_whose_rest_is_never_paid_expires_and_gives_the_gift_card_its_balance_back(string $adapter): void
     {
+        $this->useStateMachineAdapter($adapter);
+
         $giftCard = $this->createEnabledGiftCard('PARTPAID00000004', 6000);
         $order = $this->createCheckoutReadyOrder(10000, $giftCard, 4000);
         $this->placeOrder($order);
@@ -143,16 +135,12 @@ final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
         $unpaidOrdersStateUpdater->cancel();
 
         // the updater clears the entity manager once it has flushed, so everything is read back from the database
-        $order = $this->manager->find(Order::class, $order->getId());
-        self::assertInstanceOf(Order::class, $order);
+        $order = $this->reload($order);
         self::assertSame(BaseOrderInterface::STATE_CANCELLED, $order->getState(), 'the unpaid order should have expired');
         self::assertSame(OrderPaymentStates::STATE_CANCELLED, $order->getPaymentState());
         self::assertSame(PaymentInterface::STATE_REFUNDED, $this->giftCardPayment($order)->getState());
         self::assertSame(PaymentInterface::STATE_CANCELLED, $this->restPayment($order)->getState());
-
-        $giftCard = $this->manager->find($giftCard::class, $giftCard->getId());
-        self::assertInstanceOf(GiftCardInterface::class, $giftCard);
-        self::assertSame(6000, $giftCard->getAmount(), 'cancelling the order should have given the card its balance back');
+        self::assertSame(6000, $this->persistedBalanceOf($giftCard), 'cancelling the order should have given the card its balance back');
     }
 
     /**
@@ -164,54 +152,16 @@ final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
      */
     public function an_order_the_gift_card_covers_in_full_is_paid(string $adapter): void
     {
+        $this->useStateMachineAdapter($adapter);
+
         $giftCard = $this->createEnabledGiftCard('PARTPAID00000005', 15000);
         $order = $this->createCheckoutReadyOrder(10000, $giftCard, null);
 
-        $this->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_COMPLETE, $adapter);
+        $this->placeOrder($order);
 
         self::assertSame(OrderPaymentStates::STATE_PAID, $order->getPaymentState());
         self::assertSame(10000, $this->giftCardPayment($order)->getAmount());
         self::assertSame(5000, $giftCard->getAmount());
-    }
-
-    /**
-     * @return iterable<string, array{string}>
-     */
-    public function adapters(): iterable
-    {
-        yield 'winzou' => [self::WINZOU];
-        yield 'symfony workflow' => [self::SYMFONY_WORKFLOW];
-    }
-
-    /**
-     * Applies the transition through the given adapter. Symfony Workflow is driven directly, the way Sylius drives it
-     * when an application sets sylius_state_machine_abstraction.default_adapter to symfony_workflow; the transitions Sylius
-     * and the plugin cascade from there still go through the application's default adapter
-     */
-    private function apply(object $subject, string $graph, string $transition, string $adapter): void
-    {
-        if (self::SYMFONY_WORKFLOW === $adapter) {
-            /** @var WorkflowInterface $workflow */
-            $workflow = self::getContainer()->get('state_machine.' . $graph);
-            $workflow->apply($subject, $transition);
-        } else {
-            $this->stateMachine()->apply($subject, $graph, $transition);
-        }
-
-        $this->manager->flush();
-    }
-
-    private function placeOrder(Order $order): void
-    {
-        $this->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_COMPLETE, self::WINZOU);
-    }
-
-    private function stateMachine(): StateMachineInterface
-    {
-        /** @var StateMachineInterface $stateMachine */
-        $stateMachine = self::getContainer()->get('sylius_abstraction.state_machine');
-
-        return $stateMachine;
     }
 
     /**
@@ -221,58 +171,22 @@ final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
      */
     private function createCheckoutReadyOrder(int $unitPrice, GiftCardInterface $giftCard, ?int $rest): Order
     {
-        $customer = new Customer();
-        $customer->setEmail(strtolower((string) $giftCard->getCode()) . '@example.com');
-        $this->manager->persist($customer);
-
-        $order = new Order();
-        $order->setChannel($this->getChannel());
-        $order->setCurrencyCode('USD');
-        $order->setLocaleCode('en_US');
-        $order->setCustomer($customer);
-        $order->setCheckoutState(null === $rest ? OrderCheckoutStates::STATE_PAYMENT_SKIPPED : OrderCheckoutStates::STATE_PAYMENT_SELECTED);
-
+        $order = $this->createCart();
         $this->addItem($order, 'MUG', $unitPrice);
         $order->addGiftCard($giftCard);
 
         if (null !== $rest) {
-            /** @var PaymentFactoryInterface<PaymentInterface> $factory */
-            $factory = self::getContainer()->get('sylius.factory.payment');
-
-            $payment = $factory->createWithAmountAndCurrencyCode($rest, 'USD');
-            self::assertInstanceOf(PaymentInterface::class, $payment);
-            $payment->setMethod($this->createCashPaymentMethod());
-            $order->addPayment($payment);
+            $this->selectPayment($order, $rest);
         }
 
-        $this->manager->persist($order);
         $this->manager->flush();
 
         return $order;
     }
 
-    private function createCashPaymentMethod(): PaymentMethodInterface
-    {
-        /** @var PaymentMethodFactoryInterface<PaymentMethodInterface> $factory */
-        $factory = self::getContainer()->get('sylius.factory.payment_method');
-
-        $paymentMethod = $factory->createWithGateway('offline');
-        $paymentMethod->setCode('cash');
-        $paymentMethod->setEnabled(true);
-        $paymentMethod->getGatewayConfig()?->setGatewayName('cash');
-        $paymentMethod->setCurrentLocale('en_US');
-        $paymentMethod->setFallbackLocale('en_US');
-        $paymentMethod->setName('Cash');
-        $paymentMethod->addChannel($this->getChannel());
-
-        $this->manager->persist($paymentMethod);
-
-        return $paymentMethod;
-    }
-
     private function giftCardPayment(Order $order): PaymentInterface
     {
-        $payments = $this->paymentsBy($order, true);
+        $payments = $this->giftCardPayments($order);
         self::assertCount(1, $payments, 'the order should carry exactly one gift card payment');
 
         return $payments[0];
@@ -284,30 +198,19 @@ final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
      */
     private function restPayment(Order $order): PaymentInterface
     {
-        $payments = $this->paymentsBy($order, false);
-        self::assertNotEmpty($payments, 'the order should carry a payment for the rest');
-
-        return $payments[array_key_last($payments)];
-    }
-
-    /**
-     * @return list<PaymentInterface>
-     */
-    private function paymentsBy(Order $order, bool $giftCard): array
-    {
-        /** @var string $paymentMethodCode */
-        $paymentMethodCode = self::getContainer()->getParameter('setono_sylius_gift_card.redemption.payment_method_code');
+        $giftCardPayments = $this->giftCardPayments($order);
 
         $payments = [];
         foreach ($order->getPayments() as $payment) {
             self::assertInstanceOf(PaymentInterface::class, $payment);
 
-            if ($giftCard === ($payment->getMethod()?->getCode() === $paymentMethodCode)) {
+            if (!in_array($payment, $giftCardPayments, true)) {
                 $payments[] = $payment;
             }
         }
+        self::assertNotEmpty($payments, 'the order should carry a payment for the rest');
 
-        return $payments;
+        return $payments[array_key_last($payments)];
     }
 
     private function boughtGiftCard(OrderItem $item): GiftCardInterface

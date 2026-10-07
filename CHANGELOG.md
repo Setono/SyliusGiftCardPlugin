@@ -15,7 +15,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   card issued in the admin, the admin who made it (`createdBy`, a copy of their user identifier). The gift card's
   show page lists both
 - Admin **Adjust balance** action, writing a manual ledger entry with a reason and the admin who made it, which
-  leads back to the card's page where the ledger is
+  leads back to the card's page where the ledger is. Its form type, `AdjustGiftCardBalanceType`, requires a
+  `currency` option: the card's currency, which the amount is typed in. It has no default, so an application
+  reusing the form cannot leave it out and show the amount in a currency other than the card's
 - The admin's gift card form takes a design, picked from thumbnails of the designs enabled in the card's channel,
   and a delivery type, virtual unless chosen otherwise. The design can be changed later; the delivery type is
   settled when the card is issued
