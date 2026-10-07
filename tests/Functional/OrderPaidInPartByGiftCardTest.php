@@ -185,7 +185,7 @@ final class OrderPaidInPartByGiftCardTest extends GiftCardFunctionalTestCase
 
     /**
      * Applies the transition through the given adapter. Symfony Workflow is driven directly, the way Sylius drives it
-     * when an application sets sylius_core.state_machine.default_adapter to symfony_workflow; the transitions Sylius
+     * when an application sets sylius_state_machine_abstraction.default_adapter to symfony_workflow; the transitions Sylius
      * and the plugin cascade from there still go through the application's default adapter
      */
     private function apply(object $subject, string $graph, string $transition, string $adapter): void

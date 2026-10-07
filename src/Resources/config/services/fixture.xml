@@ -4,8 +4,7 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardExampleFactory"
-                 class="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardExampleFactory">
+        <service id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardExampleFactory">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface"/>
@@ -15,16 +14,14 @@
             <argument>%setono_sylius_gift_card.minimum_code_length%</argument>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardFixture"
-                 class="Setono\SyliusGiftCardPlugin\Fixture\GiftCardFixture">
+        <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardFixture">
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardExampleFactory"/>
 
             <tag name="sylius_fixtures.fixture"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardDesignExampleFactory"
-                 class="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardDesignExampleFactory">
+        <service id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardDesignExampleFactory">
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card_design"/>
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card_design_image"/>
             <argument type="service" id="sylius.repository.channel"/>
@@ -32,30 +29,26 @@
             <argument type="service" id="file_locator"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardDesignFixture"
-                 class="Setono\SyliusGiftCardPlugin\Fixture\GiftCardDesignFixture">
+        <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardDesignFixture">
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card_design"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardDesignExampleFactory"/>
 
             <tag name="sylius_fixtures.fixture"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardProductExampleFactory"
-                 class="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardProductExampleFactory">
+        <service id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardProductExampleFactory">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface"/>
             <argument type="service" id="sylius.repository.channel"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardProductFixture"
-                 class="Setono\SyliusGiftCardPlugin\Fixture\GiftCardProductFixture">
+        <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardProductFixture">
             <argument type="service" id="sylius.manager.product"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardProductExampleFactory"/>
 
             <tag name="sylius_fixtures.fixture"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardPaymentMethodFixture"
-                 class="Setono\SyliusGiftCardPlugin\Fixture\GiftCardPaymentMethodFixture">
+        <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardPaymentMethodFixture">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Factory\GiftCardPaymentMethodFactoryInterface"/>
             <argument type="service" id="doctrine"/>

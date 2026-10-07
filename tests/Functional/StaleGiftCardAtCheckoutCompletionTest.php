@@ -105,7 +105,7 @@ final class StaleGiftCardAtCheckoutCompletionTest extends GiftCardFunctionalTest
 
     /**
      * Driving the transition through Symfony Workflow itself exercises the guard subscriber the way an application
-     * with sylius_core.state_machine.default_adapter set to symfony_workflow would, as CheckoutCompletionGiftCardTest
+     * with sylius_state_machine_abstraction.default_adapter set to symfony_workflow would, as CheckoutCompletionGiftCardTest
      * does for the reconcile subscriber
      *
      * @test

@@ -182,16 +182,13 @@ final class AddGiftCardToOrderAction
      */
     private function collectErrors(FormInterface $form): array
     {
-        // A code that matches no gift card fails in the data transformer, which leaves the command empty and
-        // therefore makes the NotBlank constraint fire on top of the transformation failure. Reporting both
-        // would set an unknown code apart from a code that exists but cannot be used, which is precisely what
-        // a code guesser is after, so only the generic message is reported
-        foreach ($form as $child) {
-            if ($child->isSubmitted() && !$child->isSynchronized()) {
-                return ['setono_sylius_gift_card.gift_card.could_not_be_applied'];
-            }
-        }
-
+        // An unknown code and a code that exists but cannot be used must get the same answer, or the form tells a
+        // code guesser which codes exist. A code that matches no enabled gift card of the channel fails in the data
+        // transformer, and the field reports its invalid_message, which AddGiftCardToOrderType sets to the message
+        // GiftCardIsEligible gives a gift card that cannot be used. The command is left without a gift card, which
+        // fails NotBlank as well, but Symfony drops the violations of a field whose transformation failed, so that
+        // message never reaches the form. Every error is reported, so anything else the form has to say, such as
+        // an invalid CSRF token, goes into both answers alike
         $errors = [];
 
         /** @var FormError $error */

@@ -6,8 +6,10 @@
     <services>
         <!--
             Symfony Workflow counterparts of the winzou callbacks prepended in SetonoSyliusGiftCardExtension.
-            Sylius applies transitions through a single configured adapter (sylius_core.state_machine.default_adapter),
-            so exactly one of the two sets runs for any given transition and the work is never done twice.
+            Sylius applies each graph's transitions through a single adapter, the one
+            sylius_state_machine_abstraction.graphs_to_adapters_mapping maps the graph to, or else the one
+            sylius_state_machine_abstraction.default_adapter names, so exactly one of the two sets runs for any given
+            transition and the work is never done twice.
 
             They are event subscribers, but they live here rather than in event_subscriber.xml on purpose: they are the
             twins of the winzou callbacks and change together with them, so they stay together as the Symfony Workflow
