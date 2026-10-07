@@ -12,12 +12,10 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardOrderItemsAvailability;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
-use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
 use Sylius\Component\Core\Model\Address;
 use Sylius\Component\Core\Model\ChannelPricing;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Model\ProductVariant;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Core\OrderPaymentStates;
@@ -53,7 +51,8 @@ final class GiftCardStockAcrossLinesTest extends AdminFunctionalTestCase
         parent::setUp();
 
         $this->getChannel()->setHostname('shop.example.test');
-        $this->createPaymentMethod();
+        // the payment method the customer pays the order with, which Sylius gives the cart when it processes it
+        $this->createCashPaymentMethod();
 
         $cart = new Order();
         $cart->setChannel($this->getChannel());
@@ -334,7 +333,7 @@ final class GiftCardStockAcrossLinesTest extends AdminFunctionalTestCase
 
         $payment = $cart->getLastPayment(PaymentInterface::STATE_CART);
         self::assertInstanceOf(PaymentInterface::class, $payment, 'processing the cart should have given it a payment');
-        self::assertSame('CASH', $payment->getMethod()?->getCode());
+        self::assertSame('cash', $payment->getMethod()?->getCode());
 
         $cart->setCheckoutState(OrderCheckoutStates::STATE_PAYMENT_SELECTED);
         $this->manager->flush();
@@ -485,26 +484,5 @@ final class GiftCardStockAcrossLinesTest extends AdminFunctionalTestCase
         $this->manager->flush();
 
         return $product;
-    }
-
-    /**
-     * The payment method the customer pays the order with, which Sylius gives the cart when it processes it
-     */
-    private function createPaymentMethod(): void
-    {
-        /** @var PaymentMethodFactoryInterface<PaymentMethodInterface> $paymentMethodFactory */
-        $paymentMethodFactory = self::getContainer()->get('sylius.factory.payment_method');
-
-        $paymentMethod = $paymentMethodFactory->createWithGateway('offline');
-        $paymentMethod->setCode('CASH');
-        $paymentMethod->setEnabled(true);
-        $paymentMethod->getGatewayConfig()?->setGatewayName('cash');
-        $paymentMethod->setCurrentLocale('en_US');
-        $paymentMethod->setFallbackLocale('en_US');
-        $paymentMethod->setName('Cash');
-        $paymentMethod->addChannel($this->getChannel());
-
-        $this->manager->persist($paymentMethod);
-        $this->manager->flush();
     }
 }

@@ -12,15 +12,18 @@ use SM\Event\SMEvents;
 use SM\Event\TransitionEvent;
 use Sylius\Abstraction\StateMachine\CompositeStateMachine;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
-use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
+use Sylius\Component\Addressing\Model\ZoneInterface;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Core\Model\ShipmentInterface;
+use Sylius\Component\Core\Model\ShippingMethodInterface;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Core\OrderCheckoutTransitions;
 use Sylius\Component\Payment\Factory\PaymentFactoryInterface;
+use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Workflow\Event\CompletedEvent;
+use Symfony\Component\Workflow\Event\GuardEvent;
 
 /**
  * Takes orders with gift cards through Sylius' state machines: placing, paying and cancelling them.
@@ -31,7 +34,7 @@ use Symfony\Component\Workflow\Event\CompletedEvent;
  * directly reaches the subscribers of that one transition only, because Sylius applies the transitions it cascades
  * from there through the application's adapter, which is winzou in the test application. useStateMachineAdapter()
  * makes the given adapter the application's only one instead, so the cascaded transitions go through it as well, and
- * the test fails if a single transition went through the other
+ * the test fails if the other adapter applied, or was asked about, a single transition
  */
 abstract class OrderLifecycleTestCase extends GiftCardFunctionalTestCase
 {
@@ -43,6 +46,12 @@ abstract class OrderLifecycleTestCase extends GiftCardFunctionalTestCase
 
     /** @var array<string, list<string>> the transitions applied during the test, by the adapter that applied them */
     private array $appliedTransitions = [];
+
+    /**
+     * @var array<string, list<string>> the transitions an adapter was asked about during the test, by that adapter. It
+     *                                  checks every transition before it applies it, and only checks one it refuses
+     */
+    private array $checkedTransitions = [];
 
     protected function setUp(): void
     {
@@ -85,6 +94,12 @@ abstract class OrderLifecycleTestCase extends GiftCardFunctionalTestCase
         $dispatcher->addListener('workflow.completed', function (CompletedEvent $event): void {
             $this->appliedTransitions[self::SYMFONY_WORKFLOW][] = sprintf('%s.%s', $event->getWorkflowName(), (string) $event->getTransition()?->getName());
         });
+        $dispatcher->addListener(SMEvents::TEST_TRANSITION, function (TransitionEvent $event): void {
+            $this->checkedTransitions[self::WINZOU][] = sprintf('%s.%s', $event->getStateMachine()->getGraph(), $event->getTransition());
+        });
+        $dispatcher->addListener('workflow.guard', function (GuardEvent $event): void {
+            $this->checkedTransitions[self::SYMFONY_WORKFLOW][] = sprintf('%s.%s', $event->getWorkflowName(), $event->getTransition()->getName());
+        });
     }
 
     protected function assertPostConditions(): void
@@ -95,11 +110,16 @@ abstract class OrderLifecycleTestCase extends GiftCardFunctionalTestCase
             return;
         }
 
-        $others = $this->appliedTransitions;
-        unset($others[$this->adapter]);
+        $applied = $this->appliedTransitions;
+        unset($applied[$this->adapter]);
 
-        self::assertNotEmpty($this->appliedTransitions[$this->adapter] ?? [], sprintf('no transition went through %s', $this->adapter));
-        self::assertSame([], $others, sprintf('every transition should have gone through %s', $this->adapter));
+        $checked = $this->checkedTransitions;
+        unset($checked[$this->adapter]);
+
+        // a test may only refuse a transition, which the adapter checks and does not apply
+        self::assertNotEmpty($this->checkedTransitions[$this->adapter] ?? [], sprintf('no transition went through %s', $this->adapter));
+        self::assertSame([], $applied, sprintf('every transition should have gone through %s', $this->adapter));
+        self::assertSame([], $checked, sprintf('every transition should have been checked by %s', $this->adapter));
     }
 
     /**
@@ -176,30 +196,55 @@ abstract class OrderLifecycleTestCase extends GiftCardFunctionalTestCase
      */
     protected function selectPayment(Order $order, int $amount): PaymentInterface
     {
-        /** @var PaymentMethodFactoryInterface<PaymentMethodInterface> $paymentMethodFactory */
-        $paymentMethodFactory = self::getContainer()->get('sylius.factory.payment_method');
-
-        $paymentMethod = $paymentMethodFactory->createWithGateway('offline');
-        $paymentMethod->setCode('cash');
-        $paymentMethod->setEnabled(true);
-        $paymentMethod->getGatewayConfig()?->setGatewayName('cash');
-        $paymentMethod->setCurrentLocale('en_US');
-        $paymentMethod->setFallbackLocale('en_US');
-        $paymentMethod->setName('Cash');
-        $paymentMethod->addChannel($this->getChannel());
-        $this->manager->persist($paymentMethod);
-
         /** @var PaymentFactoryInterface<PaymentInterface> $paymentFactory */
         $paymentFactory = self::getContainer()->get('sylius.factory.payment');
 
         $payment = $paymentFactory->createWithAmountAndCurrencyCode($amount, 'USD');
         self::assertInstanceOf(PaymentInterface::class, $payment);
-        $payment->setMethod($paymentMethod);
+        $payment->setMethod($this->createCashPaymentMethod());
         $order->addPayment($payment);
 
         $order->setCheckoutState(OrderCheckoutStates::STATE_PAYMENT_SELECTED);
 
         return $payment;
+    }
+
+    /**
+     * The shipment the checkout gives an order with something to ship, with the shipping method the customer picked.
+     * An order is only open for cancelling until it is fulfilled, and one with nothing to ship is fulfilled as soon as
+     * it is paid, so a shipment still waiting keeps a paid order open
+     */
+    protected function createShipment(): ShipmentInterface
+    {
+        $container = self::getContainer();
+
+        /** @var FactoryInterface<ZoneInterface> $zoneFactory */
+        $zoneFactory = $container->get('sylius.factory.zone');
+        $zone = $zoneFactory->createNew();
+        $zone->setCode('WORLD');
+        $zone->setName('World');
+        $zone->setType(ZoneInterface::TYPE_COUNTRY);
+        $this->manager->persist($zone);
+
+        /** @var FactoryInterface<ShippingMethodInterface> $shippingMethodFactory */
+        $shippingMethodFactory = $container->get('sylius.factory.shipping_method');
+        $shippingMethod = $shippingMethodFactory->createNew();
+        $shippingMethod->setCode('post');
+        $shippingMethod->setCurrentLocale('en_US');
+        $shippingMethod->setFallbackLocale('en_US');
+        $shippingMethod->setName('Post');
+        $shippingMethod->setZone($zone);
+        $shippingMethod->setCalculator('flat_rate');
+        $shippingMethod->setConfiguration([(string) $this->getChannel()->getCode() => ['amount' => 0]]);
+        $shippingMethod->addChannel($this->getChannel());
+        $this->manager->persist($shippingMethod);
+
+        /** @var FactoryInterface<ShipmentInterface> $shipmentFactory */
+        $shipmentFactory = $container->get('sylius.factory.shipment');
+        $shipment = $shipmentFactory->createNew();
+        $shipment->setMethod($shippingMethod);
+
+        return $shipment;
     }
 
     /**

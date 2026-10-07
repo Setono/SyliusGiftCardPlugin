@@ -9,15 +9,11 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
-use Sylius\Component\Addressing\Model\ZoneInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\ShipmentInterface;
-use Sylius\Component\Core\Model\ShippingMethodInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\OrderTransitions;
 use Sylius\Component\Payment\PaymentTransitions;
-use Sylius\Component\Resource\Factory\FactoryInterface;
 
 /**
  * Cancelling an order undoes what it did to gift cards: the cards that paid for it get their balance back, through
@@ -159,41 +155,5 @@ final class CancelledOrderGiftCardTest extends OrderLifecycleTestCase
         self::assertSame(sprintf('restore:payment:%d', (int) $payment->getId()), $restore['idempotencyKey']);
         self::assertSame($payment->getId(), $restore['payment']);
         self::assertSame($order->getId(), $restore['order']);
-    }
-
-    /**
-     * The shipment the checkout gave the order, with the shipping method the customer picked
-     */
-    private function createShipment(): ShipmentInterface
-    {
-        $container = self::getContainer();
-
-        /** @var FactoryInterface<ZoneInterface> $zoneFactory */
-        $zoneFactory = $container->get('sylius.factory.zone');
-        $zone = $zoneFactory->createNew();
-        $zone->setCode('WORLD');
-        $zone->setName('World');
-        $zone->setType(ZoneInterface::TYPE_COUNTRY);
-        $this->manager->persist($zone);
-
-        /** @var FactoryInterface<ShippingMethodInterface> $shippingMethodFactory */
-        $shippingMethodFactory = $container->get('sylius.factory.shipping_method');
-        $shippingMethod = $shippingMethodFactory->createNew();
-        $shippingMethod->setCode('post');
-        $shippingMethod->setCurrentLocale('en_US');
-        $shippingMethod->setFallbackLocale('en_US');
-        $shippingMethod->setName('Post');
-        $shippingMethod->setZone($zone);
-        $shippingMethod->setCalculator('flat_rate');
-        $shippingMethod->setConfiguration([(string) $this->getChannel()->getCode() => ['amount' => 0]]);
-        $shippingMethod->addChannel($this->getChannel());
-        $this->manager->persist($shippingMethod);
-
-        /** @var FactoryInterface<ShipmentInterface> $shipmentFactory */
-        $shipmentFactory = $container->get('sylius.factory.shipment');
-        $shipment = $shipmentFactory->createNew();
-        $shipment->setMethod($shippingMethod);
-
-        return $shipment;
     }
 }
