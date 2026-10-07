@@ -6,8 +6,7 @@
     <services>
         <!-- The form and the template are Sylius' string filter's, so the admin gets the same comparison types to pick
              from; the template is registered for the type in the extension's prepend() -->
-        <service id="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardCodeFilter"
-                 class="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardCodeFilter">
+        <service id="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardCodeFilter">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
             <argument type="service" id="sylius.grid_filter.string"/>
 
@@ -16,21 +15,18 @@
         </service>
 
         <!-- Yes, no or all, from Sylius' boolean filter form, and rendered with its template (see prepend()) -->
-        <service id="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardExpiredFilter"
-                 class="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardExpiredFilter">
+        <service id="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardExpiredFilter">
             <tag name="sylius.grid_filter" type="setono_sylius_gift_card_expired"
                  form_type="Sylius\Bundle\GridBundle\Form\Type\Filter\BooleanFilterType"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardSpentFilter"
-                 class="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardSpentFilter">
+        <service id="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardSpentFilter">
             <tag name="sylius.grid_filter" type="setono_sylius_gift_card_spent"
                  form_type="Sylius\Bundle\GridBundle\Form\Type\Filter\BooleanFilterType"/>
         </service>
 
         <!-- Sylius' select filter form; the grid gives it the choices and makes hiding the empty one -->
-        <service id="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardPendingFilter"
-                 class="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardPendingFilter">
+        <service id="Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardPendingFilter">
             <tag name="sylius.grid_filter" type="setono_sylius_gift_card_pending"
                  form_type="Sylius\Bundle\GridBundle\Form\Type\Filter\SelectFilterType"/>
         </service>

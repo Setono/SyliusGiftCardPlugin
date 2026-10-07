@@ -4,15 +4,13 @@
            xmlns="http://symfony.com/schema/dic/services"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProvider"
-                 class="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProvider">
+        <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProvider">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card_design"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface"
                  alias="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProvider"/>
 
-        <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider"
-                 class="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider">
+        <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider">
             <argument>%setono_sylius_gift_card.purchase.minimum_amount%</argument>
             <argument>%setono_sylius_gift_card.purchase.maximum_amount%</argument>
         </service>
