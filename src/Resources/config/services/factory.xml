@@ -5,7 +5,6 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
         <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardFactory"
-                 class="Setono\SyliusGiftCardPlugin\Factory\GiftCardFactory"
                  decorates="setono_sylius_gift_card.factory.gift_card">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Factory\GiftCardFactory.inner"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface"/>
@@ -14,8 +13,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface"
                  alias="setono_sylius_gift_card.factory.gift_card"/>
 
-        <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactory"
-                 class="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactory">
+        <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactory">
             <argument type="service" id="sylius.factory.product"/>
             <argument type="service" id="sylius.factory.product_variant"/>
             <argument type="service" id="sylius.factory.product_option"/>
@@ -31,8 +29,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface"
                  alias="Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactory"/>
 
-        <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardPaymentMethodFactory"
-                 class="Setono\SyliusGiftCardPlugin\Factory\GiftCardPaymentMethodFactory">
+        <service id="Setono\SyliusGiftCardPlugin\Factory\GiftCardPaymentMethodFactory">
             <argument type="service" id="sylius.factory.payment_method"/>
             <argument type="service" id="sylius.repository.channel"/>
             <argument>%setono_sylius_gift_card.redemption.payment_method_code%</argument>
