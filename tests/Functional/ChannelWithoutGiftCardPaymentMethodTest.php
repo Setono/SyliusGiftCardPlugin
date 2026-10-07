@@ -14,7 +14,6 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
 use Sylius\Component\Addressing\Model\Country;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
-use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
 use Sylius\Component\Core\Model\Address;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\ChannelPricing;
@@ -63,8 +62,8 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         $this->giftCardPaymentMethod = $this->createGiftCardPaymentMethod();
         $this->createChannel(self::LATER, self::HOSTNAMES[self::LATER]);
 
-        // what the customer pays the rest with, set up in every channel as a merchant opening a channel would
-        $this->createCashPaymentMethod();
+        // what the customer pays the rest with, set up in the new channel too, as a merchant opening a channel would
+        $this->createCashPaymentMethod()->addChannel($this->channelOf(self::LATER));
 
         // the country of the customer's address, which the shop's address forms look up
         $country = new Country();
@@ -523,23 +522,5 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
         new OrderItemUnit($item);
 
         return $item;
-    }
-
-    private function createCashPaymentMethod(): void
-    {
-        /** @var PaymentMethodFactoryInterface<PaymentMethodInterface> $factory */
-        $factory = self::getContainer()->get('sylius.factory.payment_method');
-
-        $paymentMethod = $factory->createWithGateway('offline');
-        $paymentMethod->setCode('cash');
-        $paymentMethod->setEnabled(true);
-        $paymentMethod->getGatewayConfig()?->setGatewayName('cash');
-        $paymentMethod->setCurrentLocale('en_US');
-        $paymentMethod->setFallbackLocale('en_US');
-        $paymentMethod->setName('Cash');
-        $paymentMethod->addChannel($this->channelOf(self::EXISTING));
-        $paymentMethod->addChannel($this->channelOf(self::LATER));
-
-        $this->manager->persist($paymentMethod);
     }
 }

@@ -12,9 +12,7 @@ use Sylius\Bundle\UiBundle\Registry\TemplateBlockRegistryInterface;
 use Sylius\Component\Addressing\Model\Country;
 use Sylius\Component\Addressing\Model\ZoneInterface;
 use Sylius\Component\Addressing\Model\ZoneMemberInterface;
-use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
 use Sylius\Component\Core\Model\Address;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Model\ShippingMethodInterface;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
@@ -228,23 +226,6 @@ final class CheckoutGiftCardFiguresTest extends AdminFunctionalTestCase
         $this->startSession([sprintf('_sylius.cart.%s', (string) $this->getChannel()->getCode()) => $cartId]);
 
         return $cartId;
-    }
-
-    private function createCashPaymentMethod(): void
-    {
-        /** @var PaymentMethodFactoryInterface<PaymentMethodInterface> $factory */
-        $factory = self::getContainer()->get('sylius.factory.payment_method');
-
-        $paymentMethod = $factory->createWithGateway('offline');
-        $paymentMethod->setCode('cash');
-        $paymentMethod->setEnabled(true);
-        $paymentMethod->getGatewayConfig()?->setGatewayName('cash');
-        $paymentMethod->setCurrentLocale('en_US');
-        $paymentMethod->setFallbackLocale('en_US');
-        $paymentMethod->setName('Cash');
-        $paymentMethod->addChannel($this->getChannel());
-
-        $this->manager->persist($paymentMethod);
     }
 
     /**

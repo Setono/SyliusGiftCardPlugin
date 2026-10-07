@@ -39,9 +39,12 @@ final class AdjustGiftCardBalanceType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => AdjustGiftCardBalanceCommand::class,
-            'currency' => 'USD',
             'validation_groups' => ['setono_sylius_gift_card'],
         ]);
+
+        // The currency of the card, which the amount is typed in. It has no default: whichever currency it defaulted
+        // to would show the amount of every card in another currency in the wrong one, and nothing would fail
+        $resolver->setRequired('currency');
         $resolver->setAllowedTypes('currency', 'string');
     }
 

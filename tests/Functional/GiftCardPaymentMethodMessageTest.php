@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
-use Sylius\Component\Core\Factory\PaymentMethodFactoryInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 /**
@@ -33,6 +32,7 @@ final class GiftCardPaymentMethodMessageTest extends AdminFunctionalTestCase
         $this->giftCardPaymentMethod = $this->createGiftCardPaymentMethod();
         $this->createChannel('OTHER_CHANNEL');
         $this->cash = $this->createCashPaymentMethod();
+        $this->manager->flush();
     }
 
     /** @test */
@@ -134,25 +134,5 @@ final class GiftCardPaymentMethodMessageTest extends AdminFunctionalTestCase
         sort($values);
 
         return $values;
-    }
-
-    private function createCashPaymentMethod(): PaymentMethodInterface
-    {
-        /** @var PaymentMethodFactoryInterface<PaymentMethodInterface> $factory */
-        $factory = self::getContainer()->get('sylius.factory.payment_method');
-
-        $paymentMethod = $factory->createWithGateway('offline');
-        $paymentMethod->setCode('cash');
-        $paymentMethod->setEnabled(true);
-        $paymentMethod->getGatewayConfig()?->setGatewayName('cash');
-        $paymentMethod->setCurrentLocale('en_US');
-        $paymentMethod->setFallbackLocale('en_US');
-        $paymentMethod->setName('Cash');
-        $paymentMethod->addChannel($this->getChannel());
-
-        $this->manager->persist($paymentMethod);
-        $this->manager->flush();
-
-        return $paymentMethod;
     }
 }
