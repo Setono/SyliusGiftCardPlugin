@@ -3,6 +3,9 @@ setono_sylius_gift_card:
         gift_card:
             not_blank: Veuillez saisir un code de chèque-cadeau
     add_to_cart_command:
+        cart_item:
+            variant:
+                required: 'Veuillez choisir une variante.'
         gift_card_does_not_fit_cart: 'Le total d''un panier ne peut pas dépasser {{ maximum }} : ce chèque-cadeau ne tient pas dans le vôtre.'
     adjust_gift_card_balance_command:
         amount:
