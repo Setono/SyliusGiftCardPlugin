@@ -119,6 +119,7 @@
     },
     "scripts": {
         "analyse": "phpstan analyse",
+        "check-crap": "@php tests/CodeCoverage/check_crap.php .build/logs/crap4j.xml 20",
         "check-style": "ecs check",
         "fix-style": "ecs check --fix",
         "lint": [

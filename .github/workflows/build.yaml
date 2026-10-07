@@ -438,10 +438,17 @@ jobs:
                 run: "(cd tests/Application && bin/console doctrine:schema:create)"
 
             -   name: "Collect code coverage with pcov and phpunit/phpunit"
-                run: "vendor/bin/phpunit --coverage-clover=.build/logs/clover.xml"
+                run: "vendor/bin/phpunit --coverage-clover=.build/logs/clover.xml --coverage-crap4j=.build/logs/crap4j.xml"
 
             # Codecov's status checks hold this report to the targets in codecov.yml
             -   name: "Send code coverage report to Codecov.io"
                 uses: "codecov/codecov-action@v5"
                 env:
                     CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"
+
+            # Last, so a failure still leaves Codecov its report. The job fails when a method's CRAP index in the
+            # Crap4J report reaches the threshold composer check-crap passes to the checker: 20, set when the worst
+            # method scored 16. Like Infection's minimums and Codecov's targets it only moves one way: lower it as
+            # the worst score falls, never raise it to get a change through. Split the method or test it instead
+            -   name: "Check the CRAP index of every method"
+                run: "composer check-crap"
