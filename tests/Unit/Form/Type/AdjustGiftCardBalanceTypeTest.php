@@ -14,6 +14,8 @@ use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormExtensionInterface;
 use Symfony\Component\Form\Test\TypeTestCase;
+use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
+use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 use Symfony\Component\Validator\ConstraintValidatorFactory;
 use Symfony\Component\Validator\Validation;
 
@@ -68,6 +70,35 @@ final class AdjustGiftCardBalanceTypeTest extends TypeTestCase
         $vars = $form->createView()->children['amount']->vars;
         self::assertIsArray($vars);
         self::assertSame('DKK', $vars['currency']);
+    }
+
+    /**
+     * The form used to default to US dollars, so a caller that left the currency out showed the amount of a card in
+     * any other currency in dollars, and nothing failed
+     *
+     * @test
+     */
+    public function it_cannot_be_built_without_the_currency_of_the_gift_card(): void
+    {
+        $this->expectException(MissingOptionsException::class);
+        $this->expectExceptionMessage('"currency"');
+
+        $this->factory->create(AdjustGiftCardBalanceType::class, new AdjustGiftCardBalanceCommand($this->giftCard()));
+    }
+
+    /**
+     * A card's currency code is nullable, so a caller handing it on as it is passes null for a card without one
+     *
+     * @test
+     */
+    public function it_takes_the_currency_as_a_code(): void
+    {
+        $this->expectException(InvalidOptionsException::class);
+        $this->expectExceptionMessage('"currency"');
+
+        $this->factory->create(AdjustGiftCardBalanceType::class, new AdjustGiftCardBalanceCommand($this->giftCard()), [
+            'currency' => null,
+        ]);
     }
 
     /**
