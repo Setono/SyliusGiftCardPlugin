@@ -49,6 +49,9 @@ setono_sylius_gift_card:
         delivery_type: Type de livraison
         delivery_type_virtual: Virtuel
         delivery_type_physical: Physique
+        delivery: Livraison
+        gift_card_preview: Aperçu de votre chèque-cadeau
+        quantity_help: Chaque chèque-cadeau acheté a son propre code.
         download_pdf: Télécharger le PDF
         initial_amount: Montant initial
         no_customer: Pas de client

@@ -62,6 +62,8 @@ final class GiftCardInformationType extends AbstractType
                 'help_translation_parameters' => ['%limit%' => $this->maximumMessageLength],
                 'required' => false,
                 'attr' => [
+                    // The live preview binds to this attribute rather than to the first textarea of the page
+                    'data-js-gc-message-input' => '',
                     'maxlength' => $this->maximumMessageLength,
                     'placeholder' => 'setono_sylius_gift_card.form.gift_card_information.custom_message_placeholder',
                 ],

@@ -1,0 +1,28 @@
+{# The variant to buy, which for a gift card product is how the card is delivered: a variant that is shipped makes a
+   physical card, one that is not a virtual card. Sylius only adds the field to a product with something to choose
+   between, so a gift card product with a single delivery type, a simple product, shows no choice at all #}
+{% if form.cartItem.variant is defined %}
+    {% if product.variantSelectionMethodChoice %}
+        {# A radio group is named by a legend: a `<label for>` can only point at one control, so it never names the group
+           as a whole. Each choice is the variant's name, without Sylius' price column: the customer chooses the amount #}
+        <fieldset class="ssgc-fieldset ssgc-delivery" {{ sylius_test_html_attribute('gift-card-delivery') }}>
+            <legend>{{ 'setono_sylius_gift_card.ui.delivery'|trans }}</legend>
+            <div class="ssgc-delivery__choices">
+                {# Sylius' variant table lists the enabled variants by their key in the form's choices, and so does this #}
+                {% for key, variant in product.enabledVariants %}
+                    <label class="ssgc-choice ssgc-delivery__choice" {{ sylius_test_html_attribute('gift-card-delivery-choice', variant.code) }}>
+                        {{ form_widget(form.cartItem.variant[key]) }}
+                        <i class="{{ variant.shippingRequired ? 'truck' : 'envelope outline' }} icon" aria-hidden="true"></i>
+                        <span>{{ variant.name|default(variant.descriptor) }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+    {% else %}
+        {# A product whose variant is matched by its options gets a field per option, each labelled with the option's
+           name, as on Sylius' page #}
+        {% for option_form in form.cartItem.variant %}
+            {{ form_row(option_form, {'attr': {'data-option': option_form.vars.name}}) }}
+        {% endfor %}
+    {% endif %}
+{% endif %}

@@ -17,10 +17,11 @@
         var currency = container.getAttribute('data-currency') || '';
         var locale = container.getAttribute('data-locale') || 'en-US';
 
-        // The form type marks the amount field, so the preview does not have to guess which input it is
+        // The form type marks the amount and message fields, so the preview does not have to guess which inputs they
+        // are: on the gift card product page the container holds the whole add to cart form, quantity included
         var amountInput = container.querySelector('[data-js-gc-amount-input]') ||
             container.querySelector('input[type="text"], input[type="number"]');
-        var messageInput = container.querySelector('textarea');
+        var messageInput = container.querySelector('[data-js-gc-message-input]') || container.querySelector('textarea');
         var designInputs = container.querySelectorAll('[data-js-gift-card-design-picker] input[type="radio"]');
 
         // The counter is rendered by the template so it is correct before this script runs; it counts the

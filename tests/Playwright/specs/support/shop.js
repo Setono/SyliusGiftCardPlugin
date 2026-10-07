@@ -14,8 +14,15 @@ const { clickAndWaitForPage } = require('./navigation');
 
 const GIFT_CARD_INFORMATION = '[name*="giftCardInformation"]';
 const REDEMPTION_FIELD = '[name="setono_sylius_gift_card_add_gift_card_to_order[giftCard]"]';
-/** The radio buttons of Sylius' variant table, which a product with one variant and no options does not get */
+/**
+ * The radio buttons of Sylius' variant field, which a product with one variant and no options does not get: the
+ * delivery choice on the gift card product page, the variant table on Sylius' product page
+ */
 const VARIANT_CHOICE = '[name="sylius_add_to_cart[cartItem][variant]"]';
+/** The plugin's page for a gift card product, which the shop shows instead of Sylius' product page */
+const GIFT_CARD_PRODUCT_PAGE = '[data-test-gift-card-product-page]';
+/** The delivery types the gift card product page offers, one choice per variant, each holding its radio button */
+const DELIVERY_CHOICE = '[data-test-gift-card-delivery] [data-test-gift-card-delivery-choice]';
 
 /**
  * The figures of the cart summary, each by the hook of the element holding it: Sylius' own totals table, and the
@@ -86,10 +93,9 @@ async function shopPath(page, path = '', locale = null) {
 }
 
 /**
- * Finds the product pages the home page links to in the given locale, the first of each kind asked for: one that
- * renders the gift card form and a variant choice, one that renders the gift card form without a variant choice, and
- * one that renders an add to cart form without the gift card form. Cached per locale for the run, as it costs a page
- * load per candidate.
+ * Finds the product pages the home page links to in the given locale, the first of each kind asked for: a gift card
+ * product page with a delivery choice, one without, and a page with an add to cart form that is not a gift card
+ * product's. Cached per locale for the run, as it costs a page load per candidate.
  *
  * The seeded gift card products are the newest products, so the home page lists them all, in no particular order.
  * That is why the gift card product the specs buy is the one offering a choice of delivery types, rather than
@@ -120,8 +126,8 @@ async function discoverProducts(page, locale = null, kinds = ['giftCard', 'ordin
 
             /** @type {ProductKind} */
             let kind = 'ordinary';
-            if (0 < (await page.locator(GIFT_CARD_INFORMATION).count())) {
-                kind = 0 < (await page.locator(VARIANT_CHOICE).count()) ? 'giftCard' : 'singleDeliveryTypeGiftCard';
+            if (0 < (await page.locator(GIFT_CARD_PRODUCT_PAGE).count())) {
+                kind = 0 < (await page.locator(DELIVERY_CHOICE).count()) ? 'giftCard' : 'singleDeliveryTypeGiftCard';
             }
             found[kind] ??= href;
 
@@ -188,7 +194,7 @@ async function submitAddToCart(page) {
  *
  * @param {import('@playwright/test').Page} page
  * @param {{amount: number, message?: string|null, variant?: number|null, productPath?: string|null}} card amount in
- *        minor units; variant is the position of the variant in the product's variant table, the one the page
+ *        minor units; variant is the position of the variant among the page's delivery choices, the one the page
  *        preselects when left out; productPath is the product page, the gift card product's when left out
  * @returns {Promise<{design: string}>} the name of the design the card is bought with
  */
@@ -196,7 +202,7 @@ async function addGiftCardToCart(page, { amount, message = null, variant = null,
     await page.goto(productPath ?? (await giftCardProductPath(page)));
 
     if (null !== variant) {
-        await page.locator(VARIANT_CHOICE).nth(variant).check();
+        await page.locator(DELIVERY_CHOICE).nth(variant).locator(VARIANT_CHOICE).check();
     }
 
     await page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first().fill(typedAmount(amount));
@@ -216,14 +222,32 @@ async function addGiftCardToCart(page, { amount, message = null, variant = null,
 }
 
 /**
- * The number of variants the gift card product offers on its page
+ * The number of variants the gift card product offers on its page, one per delivery type
  *
  * @param {import('@playwright/test').Page} page
  */
 async function giftCardVariantCount(page) {
     await page.goto(await giftCardProductPath(page));
 
-    return page.locator(VARIANT_CHOICE).count();
+    return page.locator(DELIVERY_CHOICE).count();
+}
+
+/**
+ * The price the shop lists a product at, in minor units: the one the home page's box of the product shows, Sylius'
+ * price of the variant it would sell. The gift card product page does not print it, as the amount field starts at it
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} productPath the product's page
+ * @returns {Promise<number>}
+ */
+async function listedPrice(page, productPath) {
+    const locale = /^\/([^/]+)\//.exec(productPath)?.[1] ?? null;
+    await page.goto(await shopPath(page, '', locale));
+
+    const box = page.locator('[data-test-product]').filter({ has: page.locator(`a[href="${productPath}"]`) }).first();
+    await expect(box, `the home page lists no box for ${productPath}`).toHaveCount(1);
+
+    return moneyInCents(await box.locator('[data-test-product-price]').innerText());
 }
 
 /**
@@ -322,7 +346,9 @@ async function shopErrors(page) {
 }
 
 module.exports = {
+    DELIVERY_CHOICE,
     GIFT_CARD_INFORMATION,
+    GIFT_CARD_PRODUCT_PAGE,
     REDEMPTION_FIELD,
     VARIANT_CHOICE,
     addGiftCardToCart,
@@ -332,6 +358,7 @@ module.exports = {
     cartFigure,
     giftCardProductPath,
     giftCardVariantCount,
+    listedPrice,
     ordinaryProductPath,
     redeemGiftCard,
     removeGiftCard,

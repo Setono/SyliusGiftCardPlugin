@@ -49,6 +49,9 @@ setono_sylius_gift_card:
         delivery_type: Leveringstype
         delivery_type_virtual: Virtuelt
         delivery_type_physical: Fysisk
+        delivery: Levering
+        gift_card_preview: Forhåndsvisning af dit gavekort
+        quantity_help: Hvert gavekort, du køber, får sin egen kode.
         download_pdf: Download PDF
         initial_amount: Oprindeligt beløb
         no_customer: Ingen kunde

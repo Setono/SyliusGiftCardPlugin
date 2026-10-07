@@ -303,6 +303,8 @@ final class GiftCardInformationTypeTest extends TypeTestCase
         $attr = $message->getOption('attr');
         self::assertIsArray($attr);
         self::assertSame(200, $attr['maxlength'] ?? null);
+        // the live preview finds the field by it
+        self::assertArrayHasKey('data-js-gc-message-input', $attr);
 
         $form->submit([
             'amount' => '50.00',

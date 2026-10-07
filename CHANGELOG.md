@@ -32,6 +32,13 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - One-click **Create gift card product** admin scaffold, building the delivery option and both variants
 - Live preview on the gift card product page — the chosen design with the amount and message overlaid,
   updating as the customer types
+- A shop page of its own for a gift card product (`@SetonoSyliusGiftCardPlugin/shop/product/show.html.twig`), in
+  place of Sylius' product page: the live preview of the card, and next to it the delivery type (when the product
+  offers both), the amount, the design, the message and the quantity in Sylius' add to cart form. Sylius' image
+  placeholder, reviews, price, code, variant table, empty details tab and latest products are left out. The page is
+  made of blocks on the plugin's own template events (`setono_sylius_gift_card.shop.product.show.*`), so an
+  application adds, moves or disables them in its `sylius_ui` configuration; Sylius' `sylius.shop.product.show.*`
+  events do not fire on it
 - Physical gift cards: a gift card is virtual or physical depending on the chosen variant's
   *shipping required* flag, and physical ones ship through the normal Sylius shipping flow. Fixtures can seed
   both: `delivery_type` on `setono_gift_card` (virtual when left out) and `delivery_types` on the new

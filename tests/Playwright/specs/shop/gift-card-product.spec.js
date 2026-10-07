@@ -1,12 +1,24 @@
 const { test, expect } = require('@playwright/test');
 const { signInAsAdministrator } = require('../support/admin');
 const { productIdsByKind, productShopPath } = require('../support/fixtures');
+const { blankIcons } = require('../support/icons');
 const { moneyInCents, typedAmount } = require('../support/money');
-const { GIFT_CARD_INFORMATION, giftCardProductPath, shopLocale, shopLocales, submitAddToCart } = require('../support/shop');
+const {
+    DELIVERY_CHOICE,
+    GIFT_CARD_INFORMATION,
+    GIFT_CARD_PRODUCT_PAGE,
+    VARIANT_CHOICE,
+    giftCardProductPath,
+    listedPrice,
+    shopLocale,
+    shopLocales,
+    submitAddToCart,
+} = require('../support/shop');
 
 /**
- * The gift card form is added to the add to cart form by a form type extension, so it has to appear on gift
- * card products and stay away from every other product.
+ * The shop shows a gift card product on a page of the plugin's own instead of Sylius' product page: the live preview of
+ * the card, and next to it what the customer chooses in Sylius' add to cart form, which a form type extension gives the
+ * gift card fields. Every other product keeps Sylius' page, without them.
  *
  * The product page is the one the shop links to as the gift card product, and the locale the one the shop sends a
  * visitor to, so neither a slug nor a locale is assumed.
@@ -34,10 +46,13 @@ test.describe('shop gift card product', () => {
         }
     }
 
-    test('a product flagged as a gift card renders the gift card form', async ({ page, browser }) => {
+    test('a product flagged as a gift card gets the gift card product page', async ({ page, browser }) => {
         const response = await page.goto(await shopPathOfProduct(browser, 'giftCard'));
 
         expect(response?.status()).toBe(200);
+        await expect(page.locator(GIFT_CARD_PRODUCT_PAGE)).toBeVisible();
+        await expect(page.locator('[data-test-product-name]')).toHaveText(/\S/);
+        await expect(page.locator('[data-test-gift-card-preview]')).toBeVisible();
         await expect(page.locator('form[name="sylius_add_to_cart"]')).toBeVisible();
 
         // amount, message and design are what the customer fills in
@@ -46,6 +61,132 @@ test.describe('shop gift card product', () => {
         // the design picker is only rendered when the channel has designs, which the fixtures seed
         await expect(page.locator('[data-js-gift-card-design-picker]')).toBeVisible();
         expect(await page.locator(`${GIFT_CARD_INFORMATION}[name*="[design]"]`).count()).toBeGreaterThan(0);
+    });
+
+    /**
+     * Sylius' product page shows a placeholder where the images go, ratings and reviews, a price above a field that
+     * starts at it, the code, a variant table pricing every variant the same, an empty details tab and the latest
+     * products, the gift card among them. None of it is on the gift card's page
+     */
+    test('the page leaves out what does not fit a gift card', async ({ page }) => {
+        await page.goto(await giftCardProductPath(page));
+        await expect(page.locator(GIFT_CARD_PRODUCT_PAGE)).toBeVisible();
+
+        for (const [part, hook] of Object.entries({
+            'placeholder image': '[data-test-main-image]',
+            'average rating': '[data-test-average-rating]',
+            reviews: '[data-test-product-reviews]',
+            price: '[data-test-product-price]',
+            'price and code': '[data-test-product-price-content]',
+            'variant table': '[data-test-product-variants]',
+            tabs: '[data-test-tab]',
+            'latest products': '[data-test-product]',
+        })) {
+            await expect(page.locator(hook), `the ${part} should not be on the page`).toHaveCount(0);
+        }
+    });
+
+    /**
+     * The card's preview comes first, then what the customer chooses, in the order they put the card together. Wide,
+     * the preview sits next to the form; narrow, above it, and the page fits the screen
+     */
+    test('the page is built around the preview, followed by what the customer chooses', async ({ page }) => {
+        await page.goto(await giftCardProductPath(page));
+
+        const parts = [
+            page.locator('[data-test-gift-card-preview]'),
+            page.locator('[data-test-gift-card-delivery]'),
+            page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`),
+            page.locator('[data-js-gift-card-design-picker]'),
+            page.locator(`${GIFT_CARD_INFORMATION}[name*="[customMessage]"]`),
+            page.locator('[data-test-quantity]'),
+            page.locator('[data-test-add-to-cart-button]'),
+        ];
+        const handles = [];
+        for (const part of parts) {
+            await expect(part).toHaveCount(1);
+            handles.push(await part.elementHandle());
+        }
+        const ordered = await page.evaluate(
+            (elements) => elements.every((element, i) => 0 === i || 0 !== (elements[i - 1].compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING)),
+            handles,
+        );
+        expect(ordered, 'the parts of the page are out of order').toBe(true);
+
+        const preview = page.locator('[data-test-gift-card-preview]');
+        const form = page.locator('form[name="sylius_add_to_cart"]');
+
+        await page.setViewportSize({ width: 1280, height: 900 });
+        let previewBox = await preview.boundingBox();
+        let formBox = await form.boundingBox();
+        expect(null !== previewBox && null !== formBox && previewBox.x + previewBox.width <= formBox.x, 'wide, the preview should sit next to the form').toBe(true);
+
+        await page.setViewportSize({ width: 375, height: 800 });
+        previewBox = await preview.boundingBox();
+        formBox = await form.boundingBox();
+        expect(null !== previewBox && null !== formBox && previewBox.y + previewBox.height <= formBox.y, 'narrow, the preview should sit above the form').toBe(true);
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        expect(overflow, 'narrow, the page should not scroll sideways').toBeLessThanOrEqual(0);
+    });
+
+    /**
+     * Virtual or physical is the choice of the product's variant, offered as a radio group named by its legend, each
+     * choice named by the variant it buys. Sylius' variant table named its radio buttons by nothing at all
+     */
+    test('the delivery types are a named group of choices with a visible selection', async ({ page }) => {
+        await page.goto(await giftCardProductPath(page));
+
+        const fieldset = page.locator('fieldset[data-test-gift-card-delivery]');
+        await expect(fieldset).toHaveCount(1);
+        const legend = (await fieldset.locator('legend').innerText()).trim();
+        expect(legend, 'the delivery group needs a legend to name it').not.toBe('');
+        await expect(page.getByRole('group', { name: legend })).toHaveCount(1);
+
+        // one choice per variant, each a radio button named by the variant it buys
+        const choices = page.locator(DELIVERY_CHOICE);
+        const count = await choices.count();
+        expect(count, 'the gift card product should offer both delivery types').toBeGreaterThanOrEqual(2);
+        await expect(fieldset.getByRole('radio')).toHaveCount(count);
+        for (let i = 0; i < count; i++) {
+            const name = (await choices.nth(i).innerText()).trim();
+            expect(name, `delivery choice #${i + 1} needs a name`).not.toBe('');
+            await expect(fieldset.getByRole('radio', { name, exact: true })).toHaveCount(1);
+        }
+
+        // The form preselects one, which looks different from the others, and picking another moves the selection
+        const selected = choices.filter({ has: page.locator('input:checked') });
+        const unselected = choices.filter({ hasNot: page.locator('input:checked') }).first();
+        await expect(selected).toHaveCount(1);
+        const unselectedBorder = await unselected.evaluate((el) => getComputedStyle(el).borderColor);
+        expect(await selected.evaluate((el) => getComputedStyle(el).borderColor), 'the selected choice needs a visible state beyond the radio dot').not.toBe(unselectedBorder);
+
+        const other = /** @type {string} */ (await unselected.getAttribute('data-test-gift-card-delivery-choice'));
+        await unselected.locator(VARIANT_CHOICE).check();
+        await expect(selected).toHaveAttribute('data-test-gift-card-delivery-choice', other);
+
+        // the icons telling the delivery types apart draw
+        expect(await blankIcons(page.locator(GIFT_CARD_PRODUCT_PAGE))).toEqual([]);
+    });
+
+    /**
+     * Several identical cards are a legitimate purchase, so the quantity stays, below the card the customer puts
+     * together, and says what buying more than one gets them
+     */
+    test('several identical cards are bought at once, and the page says each gets a code of its own', async ({ page }) => {
+        const productPage = await giftCardProductPath(page);
+        await page.goto(productPage);
+
+        const quantity = page.locator('[data-test-quantity]');
+        const help = await quantity.getAttribute('aria-describedby');
+        expect(help, 'the quantity field should be described by its help').not.toBeNull();
+        await expect(page.locator(`[id="${help}"]`)).toHaveText(/\S/);
+
+        await quantity.fill('3');
+        await submitAddToCart(page);
+
+        const line = page.locator('[data-test-cart-items] tbody tr').filter({ has: page.locator(`a[href="${productPage}"]`) });
+        await expect(line).toHaveCount(1);
+        await expect(line.locator('[data-test-cart-item-quantity-input]')).toHaveValue('3');
     });
 
     /**
@@ -87,7 +228,7 @@ test.describe('shop gift card product', () => {
         expect(html, 'an empty img src makes the browser fetch the page again as an image').not.toMatch(/<img[^>]*src=""/);
     });
 
-    test('a product not flagged as a gift card renders no gift card form', async ({ page, browser }) => {
+    test('a product not flagged as a gift card keeps Sylius\' page, without the gift card form', async ({ page, browser }) => {
         const response = await page.goto(await shopPathOfProduct(browser, 'ordinary'));
 
         expect(response?.status()).toBe(200);
@@ -95,6 +236,9 @@ test.describe('shop gift card product', () => {
         await expect(page.locator('form[name="sylius_add_to_cart"]')).toBeVisible();
         await expect(page.locator(GIFT_CARD_INFORMATION)).toHaveCount(0);
         await expect(page.locator('#setono-gift-card-information')).toHaveCount(0);
+        await expect(page.locator(GIFT_CARD_PRODUCT_PAGE)).toHaveCount(0);
+        // Sylius' page, which prints the price
+        await expect(page.locator('[data-test-product-price-content] [data-test-product-price]')).toBeVisible();
     });
 
     test('the amount field tells the customer the limits and asks for a numeric keypad', async ({ page }) => {
@@ -104,8 +248,10 @@ test.describe('shop gift card product', () => {
         await expect(amount).toHaveAttribute('inputmode', 'decimal');
 
         // The help the form theme renders next to the field carries the formatted limits, so the customer
-        // does not have to submit the form to find out what they are
+        // does not have to submit the form to find out what they are. The field points at it, so a screen reader
+        // reads it out with the field
         const amountId = await amount.getAttribute('id');
+        await expect(amount).toHaveAttribute('aria-describedby', `${amountId}_help`);
         const help = page.locator(`#${amountId}_help`);
         await expect(help).toBeVisible();
         // The limits are configurable, so this asserts a money figure is quoted rather than a particular one
@@ -114,14 +260,15 @@ test.describe('shop gift card product', () => {
 
     /**
      * Sylius only prices a line once it is in the cart, so the field used to start at 0.00 — an amount the shop
-     * refuses — right under the price the page prints. It starts at that price now, and the preview shows it before
-     * the customer has typed anything.
+     * refuses — although the product has a price. It starts at that price now, the one the shop lists the product at,
+     * and the preview shows it before the customer has typed anything. The page itself does not print the price
      */
-    test('the amount field starts at the price the page shows', async ({ page }) => {
-        await page.goto(await giftCardProductPath(page));
-
-        const price = moneyInCents(await page.locator('#product-price').innerText());
+    test('the amount field starts at the price the shop lists the product at', async ({ page }) => {
+        const productPage = await giftCardProductPath(page);
+        const price = await listedPrice(page, productPage);
         expect(price, 'the gift card product has no price to start from').toBeGreaterThan(0);
+
+        await page.goto(productPage);
 
         const amount = page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first();
         expect(moneyInCents(await amount.inputValue())).toBe(price);
@@ -138,13 +285,14 @@ test.describe('shop gift card product', () => {
     test('a gift card can be bought at the amount the field starts at', async ({ page }) => {
         await page.goto(await giftCardProductPath(page));
 
-        const price = moneyInCents(await page.locator('#product-price').innerText());
+        const amount = moneyInCents(await page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first().inputValue());
+        expect(amount, 'the amount field should start at an amount').toBeGreaterThan(0);
 
         // the customer leaves the amount alone and only picks what the form preselects
         await submitAddToCart(page);
 
-        const line = page.locator('#sylius-cart-items tbody tr').first();
-        expect(moneyInCents(await line.locator('.sylius-unit-price').innerText())).toBe(price);
+        const line = page.locator('[data-test-cart-items] tbody tr').first();
+        expect(moneyInCents(await line.locator('[data-test-cart-product-unit-price]').innerText())).toBe(amount);
     });
 
     /**
@@ -219,7 +367,7 @@ test.describe('shop gift card product', () => {
         // The cart holds a line for the gift card product itself, not merely some row, at the amount chosen
         const line = page.locator('[data-test-cart-items] tbody tr').filter({ has: page.locator(`a[href="${productPage}"]`) });
         await expect(line).toHaveCount(1);
-        expect(moneyInCents(await line.locator('.sylius-unit-price').innerText())).toBe(5000);
+        expect(moneyInCents(await line.locator('[data-test-cart-product-unit-price]').innerText())).toBe(5000);
     });
 
     /**
@@ -265,6 +413,10 @@ test.describe('shop gift card product', () => {
         // An untouched field has the whole budget left, and the counter is server rendered so it is already
         // correct before the script runs
         await expect(counter).toContainText(String(limit));
+        // the field points at the counter, so a screen reader reads out what is left with it
+        const counterId = await counter.getAttribute('id');
+        expect(counterId, 'the counter needs an id for the field to point at').not.toBeNull();
+        await expect(message).toHaveAttribute('aria-describedby', new RegExp(`(^| )${counterId}( |$)`));
 
         const typed = 'Happy birthday!\nEnjoy your gift.';
         await message.fill(typed);

@@ -316,10 +316,81 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                             ],
                         ],
                     ],
+                    // The shop shows a gift card product on the plugin's own page (the events below), so this only
+                    // renders where Sylius' add to cart form is rendered for one some other way, and keeps it buyable
                     'sylius.shop.product.show.add_to_cart_form' => [
                         'blocks' => [
                             'setono_gift_card_information' => [
                                 'template' => '@SetonoSyliusGiftCardPlugin/shop/product/show/_gift_card_information.html.twig',
+                                'priority' => 10,
+                            ],
+                        ],
+                    ],
+                    // The gift card product page, @SetonoSyliusGiftCardPlugin/shop/product/show.html.twig. Its events
+                    // are the plugin's own, so every block on them is the plugin's, ten apart to leave room for an
+                    // application's own blocks in between. Where Sylius has a template for the part, the block uses it,
+                    // so a theme overriding it styles this page too
+                    'setono_sylius_gift_card.shop.product.show.header' => [
+                        'blocks' => [
+                            'breadcrumb' => [
+                                'template' => '@SyliusShop/Product/Show/_breadcrumb.html.twig',
+                                'priority' => 10,
+                            ],
+                        ],
+                    ],
+                    'setono_sylius_gift_card.shop.product.show.preview' => [
+                        'blocks' => [
+                            'preview' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/product/show/_preview.html.twig',
+                                'priority' => 10,
+                            ],
+                        ],
+                    ],
+                    'setono_sylius_gift_card.shop.product.show.purchase' => [
+                        'blocks' => [
+                            'name' => [
+                                'template' => '@SyliusShop/Product/Show/_header.html.twig',
+                                'priority' => 30,
+                            ],
+                            'short_description' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/product/show/_short_description.html.twig',
+                                'priority' => 20,
+                            ],
+                            'add_to_cart' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/product/show/_add_to_cart.html.twig',
+                                'priority' => 10,
+                            ],
+                        ],
+                    ],
+                    // In the order the customer puts the card together, the quantity last as it multiplies that card
+                    'setono_sylius_gift_card.shop.product.show.add_to_cart_form' => [
+                        'blocks' => [
+                            'delivery' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/product/show/add_to_cart_form/_delivery.html.twig',
+                                'priority' => 50,
+                            ],
+                            'amount' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/product/show/add_to_cart_form/_amount.html.twig',
+                                'priority' => 40,
+                            ],
+                            'design' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/product/show/add_to_cart_form/_design.html.twig',
+                                'priority' => 30,
+                            ],
+                            'message' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/product/show/add_to_cart_form/_message.html.twig',
+                                'priority' => 20,
+                            ],
+                            'quantity' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/product/show/add_to_cart_form/_quantity.html.twig',
+                                'priority' => 10,
+                            ],
+                        ],
+                    ],
+                    'setono_sylius_gift_card.shop.product.show.content' => [
+                        'blocks' => [
+                            'description' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/shop/product/show/_description.html.twig',
                                 'priority' => 10,
                             ],
                         ],
