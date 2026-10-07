@@ -73,8 +73,8 @@ final class AdjustGiftCardBalanceTypeTest extends TypeTestCase
     }
 
     /**
-     * The form used to default to US dollars, so a caller that left the currency out showed the amount of a card in
-     * any other currency in dollars, and nothing failed
+     * Whatever currency the form fell back on, a caller that left the option out would show the amount of a card in any
+     * other currency in that one, and nothing would fail
      *
      * @test
      */
@@ -91,7 +91,7 @@ final class AdjustGiftCardBalanceTypeTest extends TypeTestCase
      *
      * @test
      */
-    public function it_takes_the_currency_as_a_code(): void
+    public function it_refuses_a_currency_that_is_not_a_code(): void
     {
         $this->expectException(InvalidOptionsException::class);
         $this->expectExceptionMessage('"currency"');
