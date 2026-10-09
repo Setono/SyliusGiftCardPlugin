@@ -67,15 +67,21 @@ setono_sylius_gift_card:
         payment_method_warning:
             topbar: 'Gift card setup incomplete: no gift card payment method'
             header: Customers cannot pay with gift cards yet
-            explanation: 'The shop sells gift cards but has no payment method to make gift card payments with, so it refuses every gift card a customer tries to pay with.'
+            explanation: 'The shop has no payment method to make gift card payments with, so it refuses every gift card a customer tries to pay with.'
             create_button: Create gift card payment method
             button_help: 'The button creates it as an offline payment method named in every language of the shop. It is in no channel, as gift cards pay with it in every channel and checkout never offers it to customers. Its code is'
             run_command: 'In a deploy script, run'
+        payment_method_disabled_warning:
+            topbar: 'Gift cards cannot be used: the gift card payment method is disabled'
+            header: Customers cannot pay with gift cards
+            explanation: 'The gift card payment method is disabled, so the shop refuses every gift card a customer tries to pay with, and takes the gift cards off an order about to be placed. Customers cannot spend the gift cards they hold, nor any they buy meanwhile, until the method is enabled again. Payments already made with gift cards are not affected: refunding one gives the card its balance back as before.'
+            edit_button: Edit the gift card payment method
         payment_method_message:
             header: This is the gift card payment method
             code: 'Gift card payments are made with this payment method, which the gift card plugin finds by its code, so the code has to stay'
             channels: 'Its channels make no difference to gift card payments: gift cards pay with it in every channel, whichever channels are ticked below.'
             no_channel: 'The plugin creates it in no channel, because customers never choose it at checkout, and Sylius RefundPlugin would otherwise list it as a refund destination in the channels it is in.'
+            enabled: 'Checkout never offers it to customers, so it does not need disabling to keep it out of checkout. Disabling it stops customers paying with gift cards altogether, until it is enabled again.'
         setup_warning:
             topbar: 'Gift card setup incomplete: no design in %channels%'
             header: The gift card setup is not complete

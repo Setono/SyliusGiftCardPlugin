@@ -1,8 +1,9 @@
 const { test, expect } = require('@playwright/test');
 const { setChecked, signInAsAdministrator } = require('../support/admin');
 const { checkOutAsGuest, uniqueEmail } = require('../support/checkout');
-const { giftCardDetails, issueGiftCard } = require('../support/gift-cards');
+const { giftCardDetails, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
 const { clickAndWaitForPage } = require('../support/navigation');
+const { GIFT_CARD_PAYMENT_METHOD_CODE, setPaymentMethodEnabled } = require('../support/payment-methods');
 const { addOrdinaryProductToCart, appliedGiftCardRow, redeemGiftCard, shopErrors, shopPath } = require('../support/shop');
 
 /**
@@ -89,6 +90,34 @@ test.describe('a gift card going stale during checkout', () => {
         await clickAndWaitForPage(page, page.locator('form[name="sylius_checkout_complete"] button[type="submit"]').first());
 
         await expectBackOnTheCartWithoutTheCard(page, card);
+    });
+
+    /**
+     * Disabling the gift card payment method stops every card paying (#484), the ones already on a cart included. They
+     * are all taken off with a single message, which names no card, as nothing is wrong with any of them. The finally
+     * enables the method again, whatever fails in between, so the specs after this one find a shop that takes gift cards
+     */
+    test('placing the order once the gift card payment method is disabled sends the customer back to the cart without the card', async ({ page }) => {
+        const card = await cartPaidByACardAtTheCompleteStep(page);
+
+        const restore = await setPaymentMethodEnabled(admin.page, GIFT_CARD_PAYMENT_METHOD_CODE, false);
+        try {
+            await clickAndWaitForPage(page, page.locator('form[name="sylius_checkout_complete"] button[type="submit"]').first());
+
+            await expect(page).toHaveURL((url) => url.pathname === card.cart);
+            const errors = await shopErrors(page);
+            expect(errors, 'the customer should be told why, once').toHaveLength(1);
+            expect(errors[0], 'nothing is wrong with the card, so the message should not name it').not.toContain(card.printedCode);
+
+            await expect(appliedGiftCardRow(page, card.code)).toHaveCount(0);
+            await expect(page.locator('[data-test-gift-card-totals]')).toHaveCount(0);
+        } finally {
+            await restore();
+        }
+
+        // and the card paid nothing: its ledger has no movement for an order
+        const redemptions = (await giftCardTransactions(admin.page, card.id)).filter(({ order }) => null !== order);
+        expect(redemptions, 'the card should not have paid anything').toEqual([]);
     });
 
     test('revisiting the complete step sends the customer back to the cart rather than looping', async ({ page }) => {

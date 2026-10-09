@@ -47,6 +47,15 @@ final class CreatePaymentMethodCommand extends Command
         if (null !== $paymentMethod) {
             $io->text(sprintf('The gift card payment method "%s" already exists', (string) $paymentMethod->getCode()));
 
+            // An administrator may have disabled it on purpose, to stop gift cards being redeemed for a while, so a deploy
+            // running this leaves it disabled and only says so
+            if (!$paymentMethod->isEnabled()) {
+                $io->warning(sprintf(
+                    'The gift card payment method "%s" is disabled, so the shop refuses gift cards until it is enabled again in the admin',
+                    (string) $paymentMethod->getCode(),
+                ));
+            }
+
             return Command::SUCCESS;
         }
 

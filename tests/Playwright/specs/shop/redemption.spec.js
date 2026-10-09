@@ -1,6 +1,8 @@
 const { test, expect } = require('@playwright/test');
+const { signInAsAdministrator } = require('../support/admin');
 const { blankIcons } = require('../support/icons');
 const { moneyInCents } = require('../support/money');
+const { GIFT_CARD_PAYMENT_METHOD_CODE, setPaymentMethodEnabled } = require('../support/payment-methods');
 const {
     REDEMPTION_FIELD,
     addOrdinaryProductToCart,
@@ -133,6 +135,42 @@ test.describe('shop redemption', () => {
         expect(unknown, 'the shop should say something when a code is rejected').not.toBe('');
         expect(disabled, 'a disabled code must be answered exactly like an unknown one').toBe(unknown);
         expect(spent, 'a spent code must be answered exactly like an unknown one').toBe(unknown);
+    });
+
+    /**
+     * While the gift card payment method is disabled the shop takes no gift cards (#484). The cart keeps its gift card
+     * field all the same, and refuses every code, a usable one and one no card has alike, before looking at it: with an
+     * answer of its own rather than the one an unknown code gets, as nothing is wrong with the code. Once the method is
+     * enabled again the same card is taken. The finally enables it, whatever fails in between, so the specs after this
+     * one find a shop that takes gift cards
+     */
+    test('while the gift card payment method is disabled, the cart keeps its field but refuses every code', async ({ page, browser }) => {
+        await applyGiftCard(page, UNKNOWN_GIFT_CARD_CODE);
+        const unknown = await giftCardRejection(page);
+
+        const admin = await signInAsAdministrator(browser);
+        try {
+            const restore = await setPaymentMethodEnabled(admin.page, GIFT_CARD_PAYMENT_METHOD_CODE, false);
+            try {
+                await page.goto(await shopPath(page, 'cart/'));
+                await expect(page.locator(REDEMPTION_FIELD), 'the cart should still offer the gift card field').toBeVisible();
+
+                await applyGiftCard(page, GIFT_CARD_CODE);
+                const refused = await giftCardRejection(page);
+                expect(refused, 'nothing is wrong with the code, so the answer should not be the unknown code\'s').not.toBe(unknown);
+
+                await applyGiftCard(page, UNKNOWN_GIFT_CARD_CODE);
+                expect(await giftCardRejection(page), 'every code should get the same answer, before it is looked at').toBe(refused);
+                await expect(page.locator(REDEMPTION_FIELD), 'the form should be offered again').toBeVisible();
+            } finally {
+                await restore();
+            }
+        } finally {
+            await admin.close();
+        }
+
+        await applyGiftCard(page, GIFT_CARD_CODE);
+        await expect(appliedGiftCardRow(page, GIFT_CARD_CODE)).toBeVisible();
     });
 
     /**

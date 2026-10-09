@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
+use Setono\SyliusGiftCardPlugin\Exception\GiftCardPaymentMethodDisabledException;
 use Setono\SyliusGiftCardPlugin\Exception\GiftCardPaymentMethodNotFoundException;
 use Setono\SyliusGiftCardPlugin\Exception\UnderpaidOrderException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
@@ -150,6 +151,42 @@ final class StaleGiftCardAtCheckoutCompletionTest extends OrderLifecycleTestCase
         $this->redemptionMethod()->commit($order);
     }
 
+    /**
+     * A disabled method refuses gift cards just as a missing one does (#484), so a card applied before the merchant
+     * disabled it cannot pay either
+     *
+     * @test
+     *
+     * @dataProvider adapters
+     */
+    public function it_refuses_to_complete_checkout_while_the_gift_card_payment_method_is_disabled(string $adapter): void
+    {
+        $this->useStateMachineAdapter($adapter);
+
+        $giftCard = $this->createEnabledGiftCard('DISABLEDMETHOD01', 5000);
+        $order = $this->createCheckoutReadyOrder($giftCard);
+
+        $this->giftCardPaymentMethod()->disable();
+        $this->manager->flush();
+
+        $this->assertPlacingTheOrderIsRefused($order);
+        self::assertSame(5000, $giftCard->getAmount(), 'the card should have kept its balance');
+    }
+
+    /** @test */
+    public function commit_refuses_to_make_a_gift_card_payment_with_a_disabled_gift_card_payment_method(): void
+    {
+        $giftCard = $this->createEnabledGiftCard('DISABLEDMETHOD02', 5000);
+        $order = $this->createCheckoutReadyOrder($giftCard);
+
+        $this->giftCardPaymentMethod()->disable();
+        $this->manager->flush();
+
+        $this->expectException(GiftCardPaymentMethodDisabledException::class);
+
+        $this->redemptionMethod()->commit($order);
+    }
+
     /** @test */
     public function commit_refuses_to_place_an_order_its_gift_cards_no_longer_pay_for(): void
     {
@@ -194,6 +231,12 @@ final class StaleGiftCardAtCheckoutCompletionTest extends OrderLifecycleTestCase
      */
     private function removeGiftCardPaymentMethod(): void
     {
+        $this->giftCardPaymentMethod()->setCode('renamed');
+        $this->manager->flush();
+    }
+
+    private function giftCardPaymentMethod(): PaymentMethodInterface
+    {
         /** @var PaymentMethodRepositoryInterface<PaymentMethodInterface> $repository */
         $repository = self::getContainer()->get('sylius.repository.payment_method');
 
@@ -202,8 +245,7 @@ final class StaleGiftCardAtCheckoutCompletionTest extends OrderLifecycleTestCase
         ]);
         self::assertInstanceOf(PaymentMethodInterface::class, $paymentMethod);
 
-        $paymentMethod->setCode('renamed');
-        $this->manager->flush();
+        return $paymentMethod;
     }
 
     private function redemptionMethod(): GiftCardRedemptionMethodInterface

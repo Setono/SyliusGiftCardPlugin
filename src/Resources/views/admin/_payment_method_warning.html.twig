@@ -1,5 +1,6 @@
 {# Rendered above the header of the gift card and payment method indexes (and with the rest of the setup warning on
-   the designs index) while the shop sells gift cards without the payment method gift card payments are made with.
+   the designs index) while gift cards are at stake (for sale, or held by customers) without the payment method gift
+   card payments are made with.
    The button creates it the way setono:gift-card:create-payment-method does, which stays for deploy scripts #}
 {% set payment_method_code = setono_gift_card_missing_payment_method_code() %}
 {% if payment_method_code is not null %}
@@ -20,5 +21,18 @@
             {{ 'setono_sylius_gift_card.ui.payment_method_warning.run_command'|trans }}
             <code>bin/console setono:gift-card:create-payment-method</code>
         </p>
+    </div>
+{% endif %}
+{# The same places say so while the method is disabled, which refuses gift cards just the same (#484). The merchant may
+   have disabled it on purpose, but customers hold cards they cannot spend meanwhile, so it is not left unsaid. Enabling
+   it is a tick on its edit page, which the link leads to #}
+{% set disabled_payment_method = setono_gift_card_disabled_payment_method() %}
+{% if disabled_payment_method is not null %}
+    <div class="ui error message" {{ sylius_test_html_attribute('gift-card-payment-method-disabled-warning-message') }}>
+        <div class="header">{{ 'setono_sylius_gift_card.ui.payment_method_disabled_warning.header'|trans }}</div>
+        <p>{{ 'setono_sylius_gift_card.ui.payment_method_disabled_warning.explanation'|trans }}</p>
+        <a class="ui labeled icon primary button" href="{{ path('sylius_admin_payment_method_update', {'id': disabled_payment_method.id}) }}" {{ sylius_test_html_attribute('gift-card-payment-method-disabled-warning-edit') }}>
+            <i class="pencil icon"></i>{{ 'setono_sylius_gift_card.ui.payment_method_disabled_warning.edit_button'|trans }}
+        </a>
     </div>
 {% endif %}
