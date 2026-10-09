@@ -1,5 +1,6 @@
 {# Rendered above the header of the gift card and payment method indexes (and with the rest of the setup warning on
-   the designs index) while the shop sells gift cards without the payment method gift card payments are made with.
+   the designs index) while gift cards are at stake (for sale, or held by customers) without the payment method gift
+   card payments are made with.
    The button creates it the way setono:gift-card:create-payment-method does, which stays for deploy scripts #}
 {% set payment_method_code = setono_gift_card_missing_payment_method_code() %}
 {% if payment_method_code is not null %}
@@ -23,7 +24,7 @@
     </div>
 {% endif %}
 {# The same places say so while the method is disabled, which refuses gift cards just the same (#484). The merchant may
-   have disabled it on purpose, but the shop goes on selling cards nobody can spend, so it is not left unsaid. Enabling
+   have disabled it on purpose, but customers hold cards they cannot spend meanwhile, so it is not left unsaid. Enabling
    it is a tick on its edit page, which the link leads to #}
 {% set disabled_payment_method = setono_gift_card_disabled_payment_method() %}
 {% if disabled_payment_method is not null %}

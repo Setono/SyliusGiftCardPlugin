@@ -14,8 +14,10 @@ use Sylius\Component\Core\Model\PaymentMethodInterface;
  *
  * Neither is the payment method gift card payments are made with (see GiftCardPaymentMethodProviderInterface). Without
  * it the shop refuses every gift card, which the merchant should know about even sooner, and so it does while the
- * method is disabled. A merchant may disable it on purpose, to stop gift cards being redeemed for a while, but the shop
- * goes on selling cards its customers cannot spend, which is not something to forget about
+ * method is disabled. A merchant may disable it on purpose, to stop gift cards being redeemed for a while, but their
+ * customers hold cards they cannot spend meanwhile, and may still be buying more, which is not something to forget
+ * about. Either is only worth a warning while gift cards are at stake: while some enabled channel sells them, or while
+ * customers hold usable ones with a balance, which a shop issuing its cards in the admin does without selling any
  */
 interface GiftCardSetupCheckerInterface
 {
@@ -28,15 +30,15 @@ interface GiftCardSetupCheckerInterface
     public function getChannelsWithoutDesign(): array;
 
     /**
-     * Whether some enabled channel sells gift cards while the payment method gift card payments are made with does not
-     * exist, so the shop refuses every gift card a customer tries to pay with. A shop that does not sell gift cards
-     * has nothing to warn about
+     * Whether the payment method gift card payments are made with does not exist while gift cards are at stake, so the
+     * shop refuses every gift card a customer tries to pay with. A shop that neither sells gift cards nor has customers
+     * holding usable ones has nothing to warn about
      */
     public function isPaymentMethodMissing(): bool;
 
     /**
-     * The payment method gift card payments are made with, while it is disabled and some enabled channel sells gift
-     * cards, so the shop refuses every gift card a customer tries to pay with; null when there is nothing to warn about
+     * The payment method gift card payments are made with, while it is disabled and gift cards are at stake, so the shop
+     * refuses every gift card a customer tries to pay with; null when there is nothing to warn about
      */
     public function getDisabledPaymentMethod(): ?PaymentMethodInterface;
 }

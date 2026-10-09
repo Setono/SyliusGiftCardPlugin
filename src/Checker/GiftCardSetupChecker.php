@@ -8,6 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Setono\Doctrine\ORMTrait;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardDesignRepositoryInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -26,6 +27,7 @@ final class GiftCardSetupChecker implements GiftCardSetupCheckerInterface
         ManagerRegistry $managerRegistry,
         private readonly string $productClass,
         private readonly GiftCardPaymentMethodProviderInterface $paymentMethodProvider,
+        private readonly GiftCardRepositoryInterface $giftCardRepository,
     ) {
         $this->managerRegistry = $managerRegistry;
     }
@@ -58,7 +60,7 @@ final class GiftCardSetupChecker implements GiftCardSetupCheckerInterface
 
     public function isPaymentMethodMissing(): bool
     {
-        return null === $this->paymentMethodProvider->findPaymentMethod() && $this->isSellingGiftCards();
+        return null === $this->paymentMethodProvider->findPaymentMethod() && $this->hasGiftCardsAtStake();
     }
 
     public function getDisabledPaymentMethod(): ?PaymentMethodInterface
@@ -68,7 +70,17 @@ final class GiftCardSetupChecker implements GiftCardSetupCheckerInterface
             return null;
         }
 
-        return $this->isSellingGiftCards() ? $paymentMethod : null;
+        return $this->hasGiftCardsAtStake() ? $paymentMethod : null;
+    }
+
+    /**
+     * Whether some enabled channel sells gift cards, or customers hold gift cards they could spend: a shop that issues
+     * its cards in the admin sells none, and neither does a merchant who took the gift card product offline along with
+     * the payment method, while their customers' cards stop working all the same
+     */
+    private function hasGiftCardsAtStake(): bool
+    {
+        return $this->isSellingGiftCards() || [] !== $this->giftCardRepository->findBalance();
     }
 
     /**

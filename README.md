@@ -410,10 +410,12 @@ A channel without an enabled design still works: the product page shows no desig
 Every redeemed gift card becomes a payment made with a payment method of its own, an *offline* one with the code
 `gift_card` (the `redemption.payment_method_code` setting). The plugin does not create it on the fly, so create it once.
 
-Until the method exists the shop refuses every gift card a customer tries to pay with ("Gift cards cannot be used in this
-shop at the moment"), and every admin page carries a warning in the top bar. On the gift card, design and payment method
-indexes the warning has a **Create gift card payment method** button: it creates the method, named in every language of
-the shop, and the warning is gone.
+Until the method exists the shop refuses every gift card a customer tries to pay with ("Gift cards cannot be used in
+this shop at the moment"), and every admin page carries a warning in the top bar. Both warnings about the method, this
+one and the one about a disabled method below, show while gift cards are at stake: while an enabled channel sells them,
+or while customers hold usable cards with a balance, as a shop issuing its cards in the admin does without selling any.
+On the gift card, design and payment method indexes the warning has a **Create gift card payment method** button: it
+creates the method, named in every language of the shop, and the warning is gone.
 
 To set it up from a deploy script instead, run the command below. Like the button, it is idempotent: when the method
 exists, whoever created it, it is left as it is.
@@ -436,12 +438,12 @@ payment method stays off that list. A method an administrator has put in channel
 The method's **Enabled** switch means what it means for any payment method: whether customers can pay with it. While it
 is disabled the shop refuses gift cards just as it does while the method is missing. The cart keeps its gift card field
 but refuses every code ("Gift cards cannot be used in this shop at the moment"), and gift cards already on a cart are
-taken off when the customer places the order, who is sent back to the cart to pay by other means. Gift cards are still
-for sale, so every admin page warns that customers cannot spend them, and the warning links to the method's edit page.
-Payments already made with gift cards are not affected: refunding one, or cancelling its order, gives the card its
-balance back as before. Checkout never offers the method to customers, so it does not need disabling to keep it out of
-checkout: disable it only to stop gift cards being redeemed for a while. The command leaves a disabled method disabled,
-and says so.
+taken off when the customer places the order, and the customer is sent back to the cart to pay by other means. Customers
+cannot spend the cards they hold, nor any they buy meanwhile, so every admin page warns about it, with a link to the
+method's edit page. Payments already made with gift cards are not affected: refunding one, or cancelling its order,
+gives the card its balance back as before. Checkout never offers the method to customers, so it does not need disabling
+to keep it out of checkout: disable it only to stop gift cards being redeemed for a while. The command leaves a disabled
+method disabled, and says so.
 
 The method's create and edit pages in the admin say so above Sylius' form: the plugin finds the method by its code, so
 the code has to stay `gift_card` (or whatever `redemption.payment_method_code` is), its channels make no difference to

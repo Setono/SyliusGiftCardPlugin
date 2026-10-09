@@ -67,14 +67,14 @@ setono_sylius_gift_card:
         payment_method_warning:
             topbar: 'Gavekortopsætningen er ufuldstændig: ingen betalingsmetode til gavekort'
             header: Kunderne kan endnu ikke betale med gavekort
-            explanation: 'Butikken sælger gavekort, men har ingen betalingsmetode at gennemføre gavekortbetalinger med, så den afviser alle gavekort, som en kunde forsøger at betale med.'
+            explanation: 'Butikken har ingen betalingsmetode at gennemføre gavekortbetalinger med, så den afviser alle gavekort, som en kunde forsøger at betale med.'
             create_button: Opret betalingsmetode til gavekort
             button_help: 'Knappen opretter den som en offline-betalingsmetode navngivet på alle butikkens sprog. Den er ikke i nogen kanal, da gavekort betaler med den i alle kanaler, og kassen aldrig tilbyder den kunderne. Dens kode er'
             run_command: 'I et deploy-script kører du'
         payment_method_disabled_warning:
             topbar: 'Gavekort kan ikke bruges: betalingsmetoden til gavekort er deaktiveret'
             header: Kunderne kan ikke betale med gavekort
-            explanation: 'Betalingsmetoden til gavekort er deaktiveret, så butikken afviser alle gavekort, som en kunde forsøger at betale med, og fjerner gavekortene fra en ordre, der er ved at blive afgivet. Gavekort kan stadig købes, og ingen kan bruge dem, før metoden er aktiveret igen. Betalinger, der allerede er gennemført med gavekort, berøres ikke: refunderes en af dem, får kortet sin saldo tilbage som hidtil.'
+            explanation: 'Betalingsmetoden til gavekort er deaktiveret, så butikken afviser alle gavekort, som en kunde forsøger at betale med, og fjerner gavekortene fra en ordre, der er ved at blive afgivet. Kunderne kan hverken bruge de gavekort, de har, eller dem, de køber i mellemtiden, før metoden er aktiveret igen. Betalinger, der allerede er gennemført med gavekort, berøres ikke: refunderes en af dem, får kortet sin saldo tilbage som hidtil.'
             edit_button: Rediger betalingsmetoden til gavekort
         payment_method_message:
             header: Dette er betalingsmetoden til gavekort

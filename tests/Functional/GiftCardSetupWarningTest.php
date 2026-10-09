@@ -145,7 +145,7 @@ final class GiftCardSetupWarningTest extends AdminFunctionalTestCase
 
             $message = implode(' ', self::textsOf($response, self::DISABLED_PAYMENT_METHOD_MESSAGE));
             self::assertStringContainsString('The gift card payment method is disabled', $message, $path);
-            self::assertStringContainsString('Gift cards are still for sale', $message, $path);
+            self::assertStringContainsString('Customers cannot spend the gift cards they hold', $message, $path);
             self::assertSame([$editPage], self::textsOf($response, self::DISABLED_PAYMENT_METHOD_MESSAGE . '//a/@href'), $path);
 
             self::assertSame([], self::textsOf($response, self::PAYMENT_METHOD_MESSAGE), $path);

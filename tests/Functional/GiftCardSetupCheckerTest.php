@@ -14,7 +14,7 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 /**
  * The warning about a channel selling gift cards without a design must only ever point at channels where that
  * is actually the case, so every combination of product and design state is walked through here. The same goes for the
- * warnings about the missing and the disabled gift card payment method
+ * warnings about the missing and the disabled gift card payment method, which also look at the cards customers hold
  */
 final class GiftCardSetupCheckerTest extends GiftCardFunctionalTestCase
 {
@@ -184,6 +184,66 @@ final class GiftCardSetupCheckerTest extends GiftCardFunctionalTestCase
         $this->manager->flush();
 
         self::assertNull($this->checker()->getDisabledPaymentMethod());
+    }
+
+    /**
+     * A shop that issues its cards in the admin sells none, and neither does a merchant who took the gift card product
+     * offline, but the cards their customers hold stop working all the same while the method is missing or disabled
+     *
+     * @test
+     */
+    public function it_reports_the_payment_method_while_customers_hold_usable_gift_cards_although_none_are_for_sale(): void
+    {
+        $this->createEnabledGiftCard('HELD000000000001', 5000);
+        $this->manager->flush();
+
+        self::assertTrue($this->checker()->isPaymentMethodMissing());
+
+        $paymentMethod = $this->createGiftCardPaymentMethod();
+        self::assertFalse($this->checker()->isPaymentMethodMissing());
+        self::assertNull($this->checker()->getDisabledPaymentMethod());
+
+        $paymentMethod->disable();
+        $this->manager->flush();
+
+        self::assertSame($paymentMethod, $this->checker()->getDisabledPaymentMethod());
+    }
+
+    /**
+     * A card nobody can spend anyway is nothing at stake
+     *
+     * @param 'disabled'|'spent'|'expired' $state
+     *
+     * @test
+     *
+     * @dataProvider unusableGiftCards
+     */
+    public function it_has_nothing_to_say_about_the_payment_method_while_customers_only_hold_gift_cards_they_cannot_spend(string $state): void
+    {
+        $giftCard = $this->createEnabledGiftCard('UNUSABLE00000001', 5000);
+        match ($state) {
+            'disabled' => $giftCard->disable(),
+            'spent' => $giftCard->setAmount(0),
+            'expired' => $giftCard->setExpiresAt(new \DateTimeImmutable('-1 day')),
+        };
+        $this->manager->flush();
+
+        self::assertFalse($this->checker()->isPaymentMethodMissing());
+
+        $this->createGiftCardPaymentMethod()->disable();
+        $this->manager->flush();
+
+        self::assertNull($this->checker()->getDisabledPaymentMethod());
+    }
+
+    /**
+     * @return iterable<string, array{'disabled'|'spent'|'expired'}>
+     */
+    public static function unusableGiftCards(): iterable
+    {
+        yield 'disabled' => ['disabled'];
+        yield 'spent' => ['spent'];
+        yield 'expired' => ['expired'];
     }
 
     private function checker(): GiftCardSetupCheckerInterface

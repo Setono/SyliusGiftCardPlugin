@@ -44,8 +44,8 @@ final class GiftCardSetupRuntime implements RuntimeExtensionInterface, ResetInte
     }
 
     /**
-     * The code the payment method gift card payments are made with has to have, while the shop sells gift cards
-     * without it, so the warning can tell the merchant which method to create; null when there is nothing to warn about
+     * The code the payment method gift card payments are made with has to have, while gift cards are at stake without
+     * it, so the warning can tell the merchant which method to create; null when there is nothing to warn about
      */
     public function getMissingPaymentMethodCode(): ?string
     {
@@ -55,7 +55,7 @@ final class GiftCardSetupRuntime implements RuntimeExtensionInterface, ResetInte
     }
 
     /**
-     * The payment method gift card payments are made with, while the shop sells gift cards with it disabled, so the
+     * The payment method gift card payments are made with, while gift cards are at stake with it disabled, so the
      * warning can link to the page that enables it; null when there is nothing to warn about
      */
     public function getDisabledPaymentMethod(): ?PaymentMethodInterface
