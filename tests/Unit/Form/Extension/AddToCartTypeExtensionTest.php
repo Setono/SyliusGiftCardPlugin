@@ -191,6 +191,45 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
     }
 
     /**
+     * A request that leaves out the variant choice of a product with several variants leaves the line without a
+     * variant, which Sylius' stock check, mapped on the command as well, read regardless and ended the request in a
+     * 500. The form refuses it on the variant field instead, once, and the handler never sees it
+     *
+     * @test
+     */
+    public function it_does_not_hand_a_submission_without_a_variant_to_the_cart_handler(): void
+    {
+        $this->cartGiftCardHandler->handle(Argument::any())->shouldNotBeCalled();
+
+        $product = $this->product(giftCard: true);
+        $command = $this->command($product);
+        $virtual = $command->getCartItem()->getVariant();
+        self::assertNotNull($virtual);
+        $physical = new ProductVariant();
+        $product->addVariant($physical);
+
+        // the choice tells the variants apart by their codes, and labels them by their names
+        foreach (['VIRTUAL' => $virtual, 'PHYSICAL' => $physical] as $code => $variant) {
+            $variant->setCode($code);
+            $variant->setCurrentLocale('en_US');
+            $variant->setName(ucfirst(strtolower($code)));
+        }
+
+        $form = $this->createForm($command);
+        self::assertTrue($form->get('cartItem')->has('variant'), 'the form should ask which of the two variants to add');
+
+        $form->submit([
+            'cartItem' => ['quantity' => '1'],
+            'giftCardInformation' => ['amount' => '50.00'],
+        ]);
+
+        self::assertTrue($form->isSynchronized());
+        self::assertFalse($form->isValid());
+        self::assertCount(1, $form->getErrors(true));
+        self::assertCount(1, $form->get('cartItem')->get('variant')->getErrors());
+    }
+
+    /**
      * Sylius binds the form to its own command class. The decorated command factory hands the form the plugin's
      * command instead, which the form would reject as the wrong type unless it is told to expect it
      *

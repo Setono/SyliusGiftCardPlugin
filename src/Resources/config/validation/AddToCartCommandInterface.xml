@@ -8,13 +8,22 @@
          the validator merges the constraints of the interfaces a class implements into the class's own. The shop's add
          to cart form validates the command in Sylius' group (sylius.form.type.add_to_cart.validation_groups) -->
     <class name="Setono\SyliusGiftCardPlugin\Order\AddToCartCommandInterface">
-        <!-- What Sylius maps on its own command (CoreBundle's AddToCartCommand.xml), which is final, so the plugin's
-             command does not inherit it: the quantity added, with what the cart already holds of the variant, has to
-             be in stock -->
-        <constraint name="Sylius\Bundle\CoreBundle\Validator\Constraints\CartItemAvailability">
-            <option name="message">sylius.cart_item.not_available</option>
+        <!-- In sequence, as Sylius' stock check reads the line's variant without checking it: a request that leaves out
+             the variant choice of a product with several variants leaves the line without one. The line has to have a
+             variant, reported on the variant field, before its stock is checked -->
+        <constraint name="Sequentially">
+            <option name="constraints">
+                <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\CartItemVariantRequired"/>
+                <!-- What Sylius maps on its own command (CoreBundle's AddToCartCommand.xml), which is final, so the
+                     plugin's command does not inherit it: the quantity added, with what the cart already holds of the
+                     variant, has to be in stock -->
+                <constraint name="Sylius\Bundle\CoreBundle\Validator\Constraints\CartItemAvailability">
+                    <option name="message">sylius.cart_item.not_available</option>
+                </constraint>
+            </option>
             <option name="groups">sylius</option>
         </constraint>
+        <!-- The plugin's own checks leave a line without a variant to the sequence above, which reports it once -->
         <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCart">
             <option name="groups">sylius</option>
         </constraint>
