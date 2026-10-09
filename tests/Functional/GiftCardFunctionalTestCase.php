@@ -101,10 +101,10 @@ abstract class GiftCardFunctionalTestCase extends KernelTestCase
     }
 
     /**
-     * Sets up the payment method gift card payments are made with, in the test channel and every other channel that
-     * exists by then, the way setono:gift-card:create-payment-method does. A shop that has not set it up refuses gift
-     * cards, so a test that applies or redeems one needs it. It is flushed, as the command does, because the shop only
-     * finds the method once it is in the database
+     * Sets up the payment method gift card payments are made with, the way setono:gift-card:create-payment-method does:
+     * in no channel, named in the language of the test channel and every other locale that exists by then. A shop that
+     * has not set it up refuses gift cards, so a test that applies or redeems one needs it. It is flushed, as the
+     * command does, because the shop only finds the method once it is in the database
      */
     protected function createGiftCardPaymentMethod(): PaymentMethodInterface
     {

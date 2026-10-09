@@ -37,11 +37,16 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
         $this->provider()->getPaymentMethod();
     }
 
-    /** @test */
-    public function the_command_creates_an_offline_payment_method_in_every_channel(): void
+    /**
+     * Gift card payments are made with the method in every channel, whichever channels it is in, so it is created in
+     * none of the shop's channels (#411)
+     *
+     * @test
+     */
+    public function the_command_creates_an_offline_payment_method_in_no_channel(): void
     {
-        $channel = $this->getChannel();
-        $second = $this->createChannel('SECOND_CHANNEL');
+        $this->getChannel();
+        $this->createChannel('SECOND_CHANNEL');
 
         $tester = $this->runCommand();
 
@@ -55,10 +60,7 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
         $paymentMethod = $this->provider()->getPaymentMethod();
         self::assertSame('gift_card', $paymentMethod->getCode());
         self::assertTrue($paymentMethod->isEnabled());
-        self::assertEqualsCanonicalizing(
-            [$channel->getCode(), $second->getCode()],
-            array_map(static fn ($channel): ?string => $channel->getCode(), $paymentMethod->getChannels()->toArray()),
-        );
+        self::assertCount(0, $paymentMethod->getChannels());
 
         $gatewayConfig = $paymentMethod->getGatewayConfig();
         self::assertInstanceOf(GatewayConfigInterface::class, $gatewayConfig);
@@ -123,8 +125,8 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * A shop seeded with fixtures takes gift cards straight away: the bundled suite sets the method up, and a second
-     * load leaves it alone
+     * A shop seeded with fixtures takes gift cards straight away: the bundled suite sets the method up, in no channel
+     * like the command does, and a second load leaves it alone
      *
      * @test
      */
@@ -137,7 +139,35 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
         $this->manager->clear();
 
         self::assertCount(1, $this->paymentMethodRepository()->findBy(['code' => 'gift_card']));
-        self::assertInstanceOf(PaymentMethodInterface::class, $this->provider()->findPaymentMethod());
+        $paymentMethod = $this->provider()->findPaymentMethod();
+        self::assertInstanceOf(PaymentMethodInterface::class, $paymentMethod);
+        self::assertCount(0, $paymentMethod->getChannels());
+    }
+
+    /**
+     * A method created before #411 is in the channels that existed back then, and one an administrator set up by hand
+     * is in whichever channels they chose. Nothing takes them away: the command leaves an existing method as it is,
+     * channels included
+     *
+     * @test
+     */
+    public function the_command_leaves_the_channels_of_an_existing_payment_method_alone(): void
+    {
+        $this->runCommand();
+        $this->manager->clear();
+        $this->provider()->getPaymentMethod()->addChannel($this->getChannel());
+        $this->manager->flush();
+        $this->manager->clear();
+
+        $this->runCommand();
+        $this->manager->clear();
+
+        $channelCodes = [];
+        foreach ($this->provider()->getPaymentMethod()->getChannels() as $channel) {
+            $channelCodes[] = $channel->getCode();
+        }
+
+        self::assertSame(['TEST_CHANNEL'], $channelCodes);
     }
 
     private function runCommand(): CommandTester

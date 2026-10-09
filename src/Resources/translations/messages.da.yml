@@ -69,8 +69,13 @@ setono_sylius_gift_card:
             header: Kunderne kan endnu ikke betale med gavekort
             explanation: 'Butikken sælger gavekort, men har ingen betalingsmetode at gennemføre gavekortbetalinger med, så den afviser alle gavekort, som en kunde forsøger at betale med.'
             create_button: Opret betalingsmetode til gavekort
-            button_help: 'Knappen opretter den som en offline-betalingsmetode i alle kanaler, navngivet på alle butikkens sprog, som kassen aldrig tilbyder kunderne. Dens kode er'
+            button_help: 'Knappen opretter den som en offline-betalingsmetode navngivet på alle butikkens sprog. Den er ikke i nogen kanal, da gavekort betaler med den i alle kanaler, og kassen aldrig tilbyder den kunderne. Dens kode er'
             run_command: 'I et deploy-script kører du'
+        payment_method_message:
+            header: Dette er betalingsmetoden til gavekort
+            code: 'Gavekortbetalinger gennemføres med denne betalingsmetode, som gavekort-pluginet finder på dens kode, så koden skal forblive'
+            channels: 'Dens kanaler gør ingen forskel for gavekortbetalinger: gavekort betaler med den i alle kanaler, uanset hvilke kanaler der er valgt nedenfor.'
+            no_channel: 'Pluginet opretter den uden kanaler, fordi kunderne aldrig vælger den i kassen, og fordi Sylius RefundPlugin ellers ville vise den som refusionsmetode i de kanaler, den er i.'
         setup_warning:
             topbar: 'Gavekortopsætningen er ufuldstændig: intet design i %channels%'
             header: Gavekortopsætningen er ikke færdig

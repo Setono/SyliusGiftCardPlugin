@@ -23,7 +23,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'setono:gift-card:create-payment-method',
-    description: 'Creates the payment method gift card payments are made with, in every channel',
+    description: 'Creates the payment method gift card payments are made with',
 )]
 final class CreatePaymentMethodCommand extends Command
 {

@@ -316,6 +316,25 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                             ],
                         ],
                     ],
+                    // What the gift card payment method is, on its own create and edit pages: right above the form,
+                    // after Sylius' header (priority 20) and legacy after header event (15), ahead of the form (10).
+                    // The template renders nothing for any other payment method
+                    'sylius.admin.payment_method.create' => [
+                        'blocks' => [
+                            'setono_gift_card_payment_method_message' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/admin/payment_method/_gift_card_payment_method_message.html.twig',
+                                'priority' => 12,
+                            ],
+                        ],
+                    ],
+                    'sylius.admin.payment_method.update' => [
+                        'blocks' => [
+                            'setono_gift_card_payment_method_message' => [
+                                'template' => '@SetonoSyliusGiftCardPlugin/admin/payment_method/_gift_card_payment_method_message.html.twig',
+                                'priority' => 12,
+                            ],
+                        ],
+                    ],
                     // The shop shows a gift card product on the plugin's own page (the events below), so this only
                     // renders where Sylius' add to cart form is rendered for one some other way, and keeps it buyable
                     'sylius.shop.product.show.add_to_cart_form' => [

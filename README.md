@@ -412,8 +412,8 @@ Every redeemed gift card becomes a payment made with a payment method of its own
 
 Until the method exists the shop refuses every gift card a customer tries to pay with ("Gift cards cannot be used in this
 shop at the moment"), and every admin page carries a warning in the top bar. On the gift card, design and payment method
-indexes the warning has a **Create gift card payment method** button: it creates the method in every channel, named in
-every language of the shop, and the warning is gone.
+indexes the warning has a **Create gift card payment method** button: it creates the method, named in every language of
+the shop, and the warning is gone.
 
 To set it up from a deploy script instead, run the command below. Like the button, it is idempotent: when the method
 exists, whoever created it, it is left as it is.
@@ -424,8 +424,20 @@ bin/console setono:gift-card:create-payment-method
 
 You can also seed it with the `setono_gift_card_payment_method` fixture, which the plugin's fixture suite includes (see
 [Load the fixtures](#load-the-fixtures-optional)), or create it yourself in the admin as an offline payment method with
-that code. The plugin finds the method by its code alone, so it pays for gift cards in every channel whichever channels
-it is assigned to, and checkout never offers it to customers.
+that code.
+
+The button, the command and the fixture create the method **in no channel**, and it needs none. The plugin finds the
+method by its code alone, so gift card payments are made with it in every channel, whichever channels it is in, a
+channel opened later included. What does look at a payment method's channels only offers it as a choice: Sylius'
+checkout, which never offers this method to customers anyway, and [Sylius RefundPlugin](https://github.com/Sylius/RefundPlugin),
+which lists the offline payment methods of an order's channel as refund destinations. In no channel, the gift card
+payment method stays off that list. A method an administrator has put in channels is left as it is and works the same.
+
+The method's create and edit pages in the admin say so above Sylius' form: the plugin finds the method by its code, so
+the code has to stay `gift_card` (or whatever `redemption.payment_method_code` is), its channels make no difference to
+gift card payments, which work in every channel, and it is in no channel by default because customers never choose it at
+checkout and Sylius RefundPlugin would otherwise list it as a refund destination. No other payment method's pages show
+the message.
 
 ### Create a gift card product
 
@@ -718,6 +730,7 @@ the plugin's own events:
 | `sylius.admin.layout.topbar_middle` | `setono_gift_card_setup_warning` | 10 | The setup warning in the top bar of every admin page |
 | `setono_sylius_gift_card.admin.gift_card.index` and `setono_sylius_gift_card.admin.gift_card_design.index` | `setono_gift_card_setup_warning` | 30 | The full setup warning above the gift card and design indexes |
 | `sylius.admin.payment_method.index` | `setono_gift_card_payment_method_warning` | 30 | The warning about the missing gift card payment method, with its button, above the payment method index |
+| `sylius.admin.payment_method.create` and `sylius.admin.payment_method.update` | `setono_gift_card_payment_method_message` | 12 | What the gift card payment method is, above the form on its own create and edit pages, between Sylius' header (20) and the form (10) |
 
 ```yaml
 # config/packages/sylius_ui.yaml

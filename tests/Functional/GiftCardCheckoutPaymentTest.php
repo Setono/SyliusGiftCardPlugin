@@ -36,9 +36,11 @@ final class GiftCardCheckoutPaymentTest extends GiftCardFunctionalTestCase
     {
         parent::setUp();
 
-        // The gift card method is created first, so it sorts first among the channel's payment methods and is what
-        // Sylius itself would pick as the default one
-        $this->createGiftCardPaymentMethod();
+        // The plugin creates the gift card method in no channel, where checkout could not offer it in the first place.
+        // An administrator may add it to a channel all the same, and a method created before #411 is in the channels
+        // that existed back then, so the method is put in the channel here. It is created first, so it sorts first
+        // among the channel's payment methods and is what Sylius itself would pick as the default one
+        $this->createGiftCardPaymentMethod()->addChannel($this->getChannel());
         $this->createCashPaymentMethod();
         $this->manager->flush();
 

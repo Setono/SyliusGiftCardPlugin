@@ -55,9 +55,10 @@ final class GiftCardPaymentMethodFactory implements GiftCardPaymentMethodFactory
         $paymentMethod->setCurrentLocale($localeCodes[0]);
         $paymentMethod->setFallbackLocale($localeCodes[0]);
 
-        foreach ($channels as $channel) {
-            $paymentMethod->addChannel($channel);
-        }
+        // The method goes in no channel (#411). Gift card payments are made with it, found by its code, whichever
+        // channels it is in, and what does read a payment method's channels only offers it as a choice: Sylius'
+        // checkout, which never offers this one anyway, and Sylius RefundPlugin, which would list it as a refund
+        // destination in each of them. The channels are only read above, for the locales the method is named in
 
         return $paymentMethod;
     }

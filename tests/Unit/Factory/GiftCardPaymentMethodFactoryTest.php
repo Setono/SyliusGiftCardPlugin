@@ -22,8 +22,9 @@ use Symfony\Component\Translation\Translator;
 
 /**
  * The payment method gift card payments are made with is set up once, by a command or a fixture, rather than created
- * the first time a customer redeems a card, so it is made out for the whole shop: every channel, named in the
- * language of every locale of the shop
+ * the first time a customer redeems a card, so it is made out for the whole shop: named in the language of every
+ * locale of the shop, and in no channel, since gift card payments are made with it in every channel whichever
+ * channels it is in
  */
 final class GiftCardPaymentMethodFactoryTest extends TestCase
 {
@@ -43,16 +44,20 @@ final class GiftCardPaymentMethodFactoryTest extends TestCase
         self::assertSame('gift_card', $gatewayConfig->getGatewayName());
     }
 
-    /** @test */
-    public function it_makes_the_payment_method_available_in_every_channel(): void
+    /**
+     * What consults a payment method's channels only offers it as a choice: Sylius' checkout, which never offers this
+     * one, and Sylius RefundPlugin, which would list it as a refund destination in each of them (#411)
+     *
+     * @test
+     */
+    public function it_creates_the_payment_method_in_no_channel(): void
     {
-        $web = $this->channel('WEB', 'en_US');
-        $danish = $this->channel('DANISH', 'da_DK');
-        $alsoEnglish = $this->channel('MOBILE', 'en_US');
+        $paymentMethod = $this->factory(
+            [$this->channel('WEB', 'en_US'), $this->channel('DANISH', 'da_DK'), $this->channel('MOBILE', 'en_US')],
+            ['en_US', 'da_DK'],
+        )->create();
 
-        $paymentMethod = $this->factory([$web, $danish, $alsoEnglish], ['en_US', 'da_DK'])->create();
-
-        self::assertSame([$web, $danish, $alsoEnglish], array_values($paymentMethod->getChannels()->toArray()));
+        self::assertCount(0, $paymentMethod->getChannels());
     }
 
     /**

@@ -22,21 +22,59 @@ const INSTRUCTIONS = `${FORM} textarea[name$="[instructions]"]`;
  * @returns {Promise<() => Promise<void>>}
  */
 async function givePaymentMethodInstructions(page, code, instructions) {
-    await page.goto('/admin/payment-methods/');
-    const row = page.locator(GRID_ROWS).filter({ has: page.getByRole('cell', { name: code, exact: true }) });
-    await expect(row, `the admin lists no payment method ${code}`).toHaveCount(1);
+    const url = await paymentMethodEditUrl(page, code);
 
-    const url = await row.locator('a[href$="/edit"]').first().getAttribute('href');
-    expect(url, `the payment method ${code} has no edit link`).toMatch(/\/edit$/);
-
-    await page.goto(/** @type {string} */ (url));
+    await page.goto(url);
     const previous = await page.locator(INSTRUCTIONS).evaluateAll((fields) => fields.map((field) => field.value));
     await saveInstructions(page, previous.map(() => instructions));
 
     return async () => {
-        await page.goto(/** @type {string} */ (url));
+        await page.goto(url);
         await saveInstructions(page, previous);
     };
+}
+
+/**
+ * The edit page of the payment method of the given code, found through Sylius' payment methods grid
+ *
+ * @param {import('@playwright/test').Page} page an authenticated admin page
+ * @param {string} code
+ * @returns {Promise<string>}
+ */
+async function paymentMethodEditUrl(page, code) {
+    await page.goto('/admin/payment-methods/');
+    const row = page.locator(GRID_ROWS).filter({ has: page.getByRole('cell', { name: code, exact: true }) });
+    await expect(row, `the admin lists no payment method ${code}`).toHaveCount(1);
+
+    return editUrlOf(row, `the payment method ${code}`);
+}
+
+/**
+ * The edit page of a payment method other than the one of the given code, the first one Sylius' payment methods grid
+ * lists
+ *
+ * @param {import('@playwright/test').Page} page an authenticated admin page
+ * @param {string} code
+ * @returns {Promise<string>}
+ */
+async function otherPaymentMethodEditUrl(page, code) {
+    await page.goto('/admin/payment-methods/');
+    const row = page.locator(GRID_ROWS).filter({ hasNot: page.getByRole('cell', { name: code, exact: true }) }).first();
+    await expect(row, `the admin lists no payment method but ${code}`).toHaveCount(1);
+
+    return editUrlOf(row, `the first payment method that is not ${code}`);
+}
+
+/**
+ * @param {import('@playwright/test').Locator} row a row of the payment methods grid
+ * @param {string} description
+ * @returns {Promise<string>}
+ */
+async function editUrlOf(row, description) {
+    const url = await row.locator('a[href$="/edit"]').first().getAttribute('href');
+    expect(url, `${description} has no edit link`).toMatch(/\/edit$/);
+
+    return /** @type {string} */ (url);
 }
 
 /**
@@ -61,4 +99,4 @@ async function saveInstructions(page, values) {
     expect(await page.locator(INSTRUCTIONS).evaluateAll((textareas) => textareas.map((textarea) => textarea.value))).toEqual(values);
 }
 
-module.exports = { givePaymentMethodInstructions };
+module.exports = { givePaymentMethodInstructions, otherPaymentMethodEditUrl, paymentMethodEditUrl };

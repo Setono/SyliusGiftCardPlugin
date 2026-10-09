@@ -13,6 +13,7 @@ use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class AddToCartTypeExtension extends AbstractTypeExtension
@@ -46,12 +47,12 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
             return;
         }
 
-        $product = $command->getCartItem()->getProduct();
-        if (!$product instanceof ProductInterface || !$product->isGiftCard()) {
+        $form = $event->getForm();
+        if (!self::addsGiftCard($form)) {
             return;
         }
 
-        $event->getForm()->add('giftCardInformation', GiftCardInformationType::class, [
+        $form->add('giftCardInformation', GiftCardInformationType::class, [
             'label' => false,
         ]);
     }
@@ -68,8 +69,7 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
             return;
         }
 
-        $product = $command->getCartItem()->getProduct();
-        if (!$product instanceof ProductInterface || !$product->isGiftCard()) {
+        if (!self::addsGiftCard($form)) {
             return;
         }
 
@@ -79,5 +79,22 @@ final class AddToCartTypeExtension extends AbstractTypeExtension
     public static function getExtendedTypes(): iterable
     {
         return [AddToCartType::class];
+    }
+
+    /**
+     * Whether the form adds a gift card product to the cart, told by the form's product option rather than by the line.
+     * Sylius' add to cart routes look the product up by the id they are given and pass it as that option, which
+     * AddToCartType cannot be built without. The line has no variant when none of the product's variants is enabled,
+     * as Sylius makes it with the product's first enabled one, and the variant a request chooses is only known once
+     * the form is submitted. Both listeners go by the same product, so a submission is only handed on when its gift
+     * card information was asked for and validated
+     *
+     * @param FormInterface<mixed> $form
+     */
+    private static function addsGiftCard(FormInterface $form): bool
+    {
+        $product = $form->getConfig()->getOption('product');
+
+        return $product instanceof ProductInterface && $product->isGiftCard();
     }
 }
