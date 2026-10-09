@@ -3,6 +3,9 @@ setono_sylius_gift_card:
         gift_card:
             not_blank: Please enter a gift card code
     add_to_cart_command:
+        cart_item:
+            variant:
+                required: 'Please choose a variant.'
         gift_card_does_not_fit_cart: 'A cart cannot total more than {{ maximum }}, so this gift card does not fit in yours.'
     adjust_gift_card_balance_command:
         amount:
