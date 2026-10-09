@@ -739,8 +739,9 @@ matters most for the form blocks, because Sylius ends both forms with `render_re
 is never submitted. On the gift card product page, a gift card cannot be added to the cart without the `amount` block,
 as the amount the customer has to choose is missing, and a product offering both delivery types needs the `delivery`
 block; the same goes for `setono_gift_card_information` wherever Sylius' own add to cart form is rendered for a gift
-card product. Without the `quantity` block a customer buys one card at a time, and changes the quantity in the cart. Without `setono_gift_card` the product form submits the checkbox as
-unchecked, so every save of a gift card product turns it back into a normal one.
+card product. Without the `quantity` block a customer buys one card at a time, and changes the quantity in the cart.
+Without `setono_gift_card` the product form submits the checkbox as unchecked, so every save of a gift card product
+turns it back into a normal one.
 
 ### Assets and Content Security Policy
 
