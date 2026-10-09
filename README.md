@@ -805,7 +805,7 @@ parameters:
 
 The plugin verifies this at container compile time and fails with an actionable message if the configured class does not implement the interface. Its factory decorator is idempotent and applied outermost, so it also composes cleanly with a decorator of your own on `sylius.factory.add_to_cart_command`.
 
-Sylius validates its own command with a stock check (`CartItemAvailability`: what is added, together with what the cart already holds of the variant, has to be in stock), mapped on its command class. The plugin maps the same check on `AddToCartCommandInterface`, so the add-to-cart form keeps it whichever command it is bound to, your own included.
+Sylius validates its own command with a stock check (`CartItemAvailability`: what is added, together with what the cart already holds of the variant, has to be in stock), mapped on its command class. The plugin maps the same check on `AddToCartCommandInterface`, so the add-to-cart form keeps it whichever command it is bound to, your own included. The stock check reads the line's variant without checking it, so the plugin runs it in sequence after `CartItemVariantRequired`, which refuses a line without a variant (a request that leaves out the variant choice of a product with several variants) on the variant field.
 
 ### Overriding models, repositories and factories
 

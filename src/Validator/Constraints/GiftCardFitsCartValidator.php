@@ -46,7 +46,9 @@ final class GiftCardFitsCartValidator extends ConstraintValidator
         }
 
         $cartItem = $value->getCartItem();
-        $product = $cartItem->getProduct();
+        // Through the variant, as Sylius' order item reads its product off a variant it assumes it has. A line without
+        // one is CartItemVariantRequired's to report
+        $product = $cartItem->getVariant()?->getProduct();
         if (!$product instanceof ProductInterface || !$product->isGiftCard()) {
             return;
         }

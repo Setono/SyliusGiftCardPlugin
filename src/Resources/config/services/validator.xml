@@ -86,5 +86,9 @@
 
             <tag name="validator.constraint_validator"/>
         </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\CartItemVariantRequiredValidator">
+            <tag name="validator.constraint_validator"/>
+        </service>
     </services>
 </container>
