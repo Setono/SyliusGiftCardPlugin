@@ -1,19 +1,29 @@
 const { test, expect } = require('@playwright/test');
 const { moneyInCents } = require('../support/money');
-const { GIFT_CARD_INFORMATION, VARIANT_CHOICE, addGiftCardToCart, singleDeliveryTypeGiftCardProductPath } = require('../support/shop');
+const {
+    GIFT_CARD_INFORMATION,
+    GIFT_CARD_PRODUCT_PAGE,
+    VARIANT_CHOICE,
+    addGiftCardToCart,
+    singleDeliveryTypeGiftCardProductPath,
+} = require('../support/shop');
 
 /**
  * A gift card product with a single delivery type leaves the customer nothing to choose. It has one variant and no
- * delivery option, so Sylius treats it as a simple product: its page shows no variant table, and the cart buys its one
- * variant. The test application seeds one, sold as virtual cards only, through the product fixture's delivery_types,
- * and the spec finds it among the gift card products the home page links to as the one without a variant choice.
+ * delivery option, so Sylius treats it as a simple product: its page shows no delivery choice, and the cart buys its
+ * one variant. The test application seeds one, sold as virtual cards only, through the product fixture's
+ * delivery_types, and the spec finds it among the gift card products the home page links to as the one without a
+ * delivery choice.
  */
 test.describe('shop gift card product with a single delivery type', () => {
-    test('its page has the gift card form and no variant choice', async ({ page }) => {
+    test('its page is the gift card product page, without a delivery choice', async ({ page }) => {
         const response = await page.goto(await singleDeliveryTypeGiftCardProductPath(page));
 
         expect(response?.status()).toBe(200);
+        await expect(page.locator(GIFT_CARD_PRODUCT_PAGE)).toBeVisible();
+        await expect(page.locator('[data-test-gift-card-preview]')).toBeVisible();
         await expect(page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`)).toBeVisible();
+        await expect(page.locator('[data-test-gift-card-delivery]')).toHaveCount(0);
         await expect(page.locator('[data-test-product-variants]')).toHaveCount(0);
         await expect(page.locator(VARIANT_CHOICE)).toHaveCount(0);
     });

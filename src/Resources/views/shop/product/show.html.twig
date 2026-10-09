@@ -1,0 +1,52 @@
+{#
+    The shop page of a gift card product, rendered instead of @SyliusShop/Product/show.html.twig by
+    GiftCardProductPageSubscriber, with the variables Sylius' resource controller passes to that template.
+
+    It is laid out like Sylius' product page, so the shop's theme styles it the same way: the live preview of the card
+    takes the place of the product images, and the product's name and the add to cart form sit next to it. Every part
+    is a block on one of the plugin's own template events, so an application adds, moves or disables blocks in its
+    sylius_ui configuration rather than overriding this template:
+
+    - setono_sylius_gift_card.shop.product.show.header: above the two columns
+    - setono_sylius_gift_card.shop.product.show.preview: the first column
+    - setono_sylius_gift_card.shop.product.show.purchase: the second column
+    - setono_sylius_gift_card.shop.product.show.add_to_cart_form: inside the add to cart form, above its button
+    - setono_sylius_gift_card.shop.product.show.content: below the two columns
+#}
+{% extends '@SyliusShop/layout.html.twig' %}
+
+{% block title %}{{ product.name }} | {{ parent() }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/setonosyliusgiftcardplugin/css/product-gift-card.css') }}"/>
+{% endblock %}
+
+{% block content %}
+    {{ sylius_template_event('setono_sylius_gift_card.shop.product.show.header', _context) }}
+    <div class="ui hidden divider"></div>
+
+    {% set channel = sylius.channel %}
+    {# The live preview script works within this element, which holds the preview and the form alike. An empty
+       currency makes the preview format a plain number rather than pretend the shop sells in dollars #}
+    <div id="setono-gift-card-information"
+         class="ui two column stackable grid ssgc-product"
+         data-preview-message-placeholder="{{ 'setono_sylius_gift_card.ui.your_message_here'|trans }}"
+         data-currency="{{ channel and channel.baseCurrency ? channel.baseCurrency.code : '' }}"
+         data-locale="{{ app.request.locale|replace({'_': '-'}) }}"
+         {{ sylius_test_html_attribute('gift-card-product-page') }}>
+        <div class="column ssgc-product__preview-column">
+            {{ sylius_template_event('setono_sylius_gift_card.shop.product.show.preview', _context) }}
+        </div>
+        <div class="column ssgc-product__purchase-column" {{ sylius_test_html_attribute('product-box') }}>
+            {{ sylius_template_event('setono_sylius_gift_card.shop.product.show.purchase', _context) }}
+        </div>
+    </div>
+
+    {{ sylius_template_event('setono_sylius_gift_card.shop.product.show.content', _context) }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script defer src="{{ asset('bundles/setonosyliusgiftcardplugin/js/product-gift-card.js') }}"></script>
+{% endblock %}

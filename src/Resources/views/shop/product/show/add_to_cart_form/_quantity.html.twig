@@ -1,0 +1,10 @@
+{# Several identical cards are a legitimate purchase (one for each member of a team, say), and every unit becomes a card
+   of its own, so the quantity stays. It comes last, right above the button, because it multiplies the card the
+   customer has just put together, and its help says what buying more than one gets them. Sylius' form theme does
+   not point a field at its help, so the field is pointed at it here #}
+{% set quantity_form = form.cartItem.quantity %}
+{% set test_attributes = sylius_test_form_attribute('quantity') %}
+{{ form_row(quantity_form, {
+    'attr': quantity_form.vars.attr|merge(test_attributes.attr|default({}))|merge({'aria-describedby': quantity_form.vars.id ~ '_help'}),
+    'help': 'setono_sylius_gift_card.ui.quantity_help',
+}) }}

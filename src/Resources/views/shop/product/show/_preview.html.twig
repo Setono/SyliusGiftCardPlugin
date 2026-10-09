@@ -1,0 +1,22 @@
+{# The live preview of the card, which product-gift-card.js fills in with what the customer chooses. The script works
+   within the element with the id setono-gift-card-information, which has to hold this preview and the form #}
+{% set channel = sylius.channel %}
+{% set brand_name = channel ? channel.name : ('setono_sylius_gift_card.pdf.gift_card'|trans) %}
+
+{{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig') }}
+
+<div class="ssgc-preview" {{ sylius_test_html_attribute('gift-card-preview') }}>
+    {# One image to assistive technology: what the card says is what the customer typed into the fields next to it #}
+    <div class="ssgc-preview__frame" role="img" aria-label="{{ 'setono_sylius_gift_card.ui.gift_card_preview'|trans }}">
+        {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card.html.twig', {
+            brand_name: brand_name,
+            brand_initial: brand_name|slice(0, 1)|upper,
+            formatted_amount: '',
+            formatted_code: null,
+            message: '',
+            front_image_url: null,
+            preview: true,
+            locale_code: app.request.locale,
+        }, false) }}
+    </div>
+</div>

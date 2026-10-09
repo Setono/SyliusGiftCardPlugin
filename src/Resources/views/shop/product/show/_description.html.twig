@@ -1,0 +1,7 @@
+{# Only a description the merchant wrote: Sylius' "No description." says nothing to a customer choosing a gift card #}
+{% if product.description is not empty %}
+    <section class="ssgc-product__description" aria-labelledby="ssgc-product-description-header" {{ sylius_test_html_attribute('gift-card-product-description') }}>
+        <h2 class="ui dividing header" id="ssgc-product-description-header">{{ 'sylius.ui.description'|trans }}</h2>
+        <div class="text-break">{{ product.description|nl2br }}</div>
+    </section>
+{% endif %}

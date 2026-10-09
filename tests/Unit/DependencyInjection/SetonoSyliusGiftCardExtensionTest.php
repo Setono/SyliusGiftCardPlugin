@@ -11,6 +11,7 @@ use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardExpiredFilter;
 use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardPendingFilter;
 use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardSpentFilter;
 use Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardSetupRuntime;
+use Sylius\Bundle\ShopBundle\SyliusShopBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Contracts\Service\ResetInterface;
 
@@ -226,6 +227,97 @@ final class SetonoSyliusGiftCardExtensionTest extends TestCase
     }
 
     /**
+     * The gift card product page is made of blocks on its own template events, so an application adds, moves or
+     * disables them in its sylius_ui configuration. The blocks come in the order the page shows them, from templates
+     * that exist: the plugin's own, or Sylius' where it has one for the part
+     *
+     * @test
+     *
+     * @dataProvider productPageEvents
+     *
+     * @param array<string, string> $expected the templates by block, in the order they render
+     */
+    public function it_builds_the_gift_card_product_page_from_blocks_on_its_own_events(string $event, array $expected): void
+    {
+        $blocks = $this->blocksForEvent($event);
+        uasort($blocks, static fn (array $a, array $b): int => ($b['priority'] ?? 0) <=> ($a['priority'] ?? 0));
+
+        self::assertSame($expected, array_map(static fn (array $block): string => $block['template'], $blocks));
+        foreach ($blocks as $name => $block) {
+            self::assertFileExists($this->resolveTemplate($block['template']), $name);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string, array<string, string>}>
+     */
+    public static function productPageEvents(): iterable
+    {
+        $views = '@SetonoSyliusGiftCardPlugin/shop/product/show';
+
+        yield 'above the columns' => ['setono_sylius_gift_card.shop.product.show.header', [
+            'breadcrumb' => '@SyliusShop/Product/Show/_breadcrumb.html.twig',
+        ]];
+
+        yield 'first column' => ['setono_sylius_gift_card.shop.product.show.preview', [
+            'preview' => $views . '/_preview.html.twig',
+        ]];
+
+        yield 'second column' => ['setono_sylius_gift_card.shop.product.show.purchase', [
+            'name' => '@SyliusShop/Product/Show/_header.html.twig',
+            'short_description' => $views . '/_short_description.html.twig',
+            'add_to_cart' => $views . '/_add_to_cart.html.twig',
+        ]];
+
+        yield 'add to cart form, in the order the customer puts the card together' => ['setono_sylius_gift_card.shop.product.show.add_to_cart_form', [
+            'delivery' => $views . '/add_to_cart_form/_delivery.html.twig',
+            'amount' => $views . '/add_to_cart_form/_amount.html.twig',
+            'design' => $views . '/add_to_cart_form/_design.html.twig',
+            'message' => $views . '/add_to_cart_form/_message.html.twig',
+            'quantity' => $views . '/add_to_cart_form/_quantity.html.twig',
+        ]];
+
+        yield 'below the columns' => ['setono_sylius_gift_card.shop.product.show.content', [
+            'description' => $views . '/_description.html.twig',
+        ]];
+    }
+
+    /**
+     * Every template event the gift card product page fires has the plugin's blocks on it, and nothing registers blocks
+     * on an event of the page that it does not fire
+     *
+     * @test
+     */
+    public function it_registers_blocks_on_exactly_the_events_the_gift_card_product_page_fires(): void
+    {
+        $fired = [];
+        foreach (['show.html.twig', 'show/_add_to_cart_form.html.twig'] as $template) {
+            $source = file_get_contents($this->resolveTemplate('@SetonoSyliusGiftCardPlugin/shop/product/' . $template));
+            self::assertIsString($source);
+
+            preg_match_all("/sylius_template_event\\('(setono_sylius_gift_card\\.shop\\.product\\.show\\.[a-z_]+)'/", $source, $matches);
+            $fired = [...$fired, ...$matches[1]];
+        }
+        sort($fired);
+
+        $registered = [];
+        $container = new ContainerBuilder();
+        (new SetonoSyliusGiftCardExtension())->prepend($container);
+        foreach ($container->getExtensionConfig('sylius_ui') as $config) {
+            /** @var array<string, mixed> $events */
+            $events = $config['events'] ?? [];
+            $registered = [...$registered, ...array_filter(
+                array_keys($events),
+                static fn (string $event): bool => str_starts_with($event, 'setono_sylius_gift_card.shop.product.show.'),
+            )];
+        }
+        sort($registered);
+
+        self::assertSame($fired, $registered);
+        self::assertCount(5, $fired);
+    }
+
+    /**
      * The sylius_grid configuration prepend() hands Sylius
      *
      * @return array<array-key, mixed>
@@ -298,6 +390,11 @@ final class SetonoSyliusGiftCardExtensionTest extends TestCase
 
     private function resolveTemplate(string $template): string
     {
+        if (str_starts_with($template, '@SyliusShop/')) {
+            return dirname((string) (new \ReflectionClass(SyliusShopBundle::class))->getFileName()) . '/Resources/views/' .
+                substr($template, strlen('@SyliusShop/'));
+        }
+
         return dirname(__DIR__, 3) . '/src/Resources/views/' .
             str_replace('@SetonoSyliusGiftCardPlugin/', '', $template);
     }

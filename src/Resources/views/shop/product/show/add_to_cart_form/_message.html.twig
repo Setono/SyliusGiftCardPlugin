@@ -1,0 +1,30 @@
+{% if form.giftCardInformation.customMessage is defined %}
+    {% set message_form = form.giftCardInformation.customMessage %}
+    {# The limit is configurable, so it is read back off the field the form type built #}
+    {% set message_limit = message_form.vars.attr.maxlength|default(null) %}
+
+    {# Sylius' form theme does not point a field at its help, so the field is pointed at it, and at the counter #}
+    {% set described_by = [] %}
+    {% if message_form.vars.help is not empty %}
+        {% set described_by = described_by|merge([message_form.vars.id ~ '_help']) %}
+    {% endif %}
+    {% if message_limit is not null %}
+        {% set described_by = described_by|merge([message_form.vars.id ~ '_counter']) %}
+    {% endif %}
+    {% set message_attr = message_form.vars.attr %}
+    {% if described_by is not empty %}
+        {% set message_attr = message_attr|merge({'aria-describedby': described_by|join(' ')}) %}
+    {% endif %}
+
+    {{ form_row(message_form, {'attr': message_attr}) }}
+    {% if message_limit is not null %}
+        {# The counter is rendered here rather than by the script so it is right before the script runs. It
+           also carries the sentence with %remaining% still in it, because the number sits in a different
+           place in every language and the script must not build the sentence out of fragments #}
+        <small class="ssgc-message-counter"
+               id="{{ message_form.vars.id }}_counter"
+               data-js-gc-message-counter
+               data-template="{{ 'setono_sylius_gift_card.ui.characters_left'|trans }}"
+               aria-live="polite">{{ 'setono_sylius_gift_card.ui.characters_left'|trans({'%remaining%': message_limit}) }}</small>
+    {% endif %}
+{% endif %}

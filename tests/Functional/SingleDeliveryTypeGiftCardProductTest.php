@@ -17,11 +17,11 @@ use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * A gift card product with a single delivery type leaves the customer nothing to choose. The factory gives it no
- * option, so Sylius treats it as a simple product: its page in the shop shows no variant choice, and adding it to the
+ * option, so Sylius treats it as a simple product: its page in the shop shows no delivery choice, and adding it to the
  * cart buys its one variant, whose shipping requirement makes the card virtual or physical.
  *
- * The pages are requested through the kernel, so this is Sylius' own product page with the plugin's gift card form in
- * it, and Sylius' own controller adding the line to the cart
+ * The pages are requested through the kernel, so this is the plugin's gift card product page with Sylius' add to cart
+ * form in it, and Sylius' own controller adding the line to the cart
  */
 final class SingleDeliveryTypeGiftCardProductTest extends AdminFunctionalTestCase
 {
@@ -29,7 +29,10 @@ final class SingleDeliveryTypeGiftCardProductTest extends AdminFunctionalTestCas
 
     private const ADD_TO_CART_FORM = '//form[@id="sylius-product-adding-to-cart"]';
 
-    /** The radio buttons of Sylius' variant table, one per variant to choose between */
+    /** The choice of delivery type the page shows in place of Sylius' variant table */
+    private const DELIVERY = '//fieldset[@data-test-gift-card-delivery]';
+
+    /** The radio buttons of the delivery choice, one per variant to choose between */
     private const VARIANT_CHOICES = '//input[@name="sylius_add_to_cart[cartItem][variant]"]';
 
     protected function setUp(): void
@@ -49,10 +52,10 @@ final class SingleDeliveryTypeGiftCardProductTest extends AdminFunctionalTestCas
     {
         $page = $this->productPage($this->createGiftCardProduct('single_card', [$deliveryType]));
 
-        self::assertCount(0, self::textsOf($page, '//*[@id="sylius-product-variants"]'), 'the page should show no variant table');
+        self::assertCount(0, self::textsOf($page, self::DELIVERY), 'the page should show no delivery choice');
         self::assertCount(0, self::textsOf($page, self::VARIANT_CHOICES));
         // it is still sold as a gift card, the amount chosen by the customer
-        self::assertCount(1, self::textsOf($page, self::ADD_TO_CART_FORM . '//*[@id="setono-gift-card-information"]'));
+        self::assertCount(1, self::textsOf($page, self::ADD_TO_CART_FORM . '//input[@name="sylius_add_to_cart[giftCardInformation][amount]"]'));
     }
 
     /**
@@ -64,8 +67,8 @@ final class SingleDeliveryTypeGiftCardProductTest extends AdminFunctionalTestCas
     {
         $page = $this->productPage($this->createGiftCardProduct('gift_card', [GiftCardDeliveryType::Virtual, GiftCardDeliveryType::Physical]));
 
-        self::assertCount(1, self::textsOf($page, '//*[@id="sylius-product-variants"]'));
-        self::assertCount(2, self::textsOf($page, self::VARIANT_CHOICES));
+        self::assertCount(1, self::textsOf($page, self::ADD_TO_CART_FORM . self::DELIVERY));
+        self::assertCount(2, self::textsOf($page, self::DELIVERY . self::VARIANT_CHOICES));
     }
 
     /**

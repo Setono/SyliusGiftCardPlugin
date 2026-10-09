@@ -1,0 +1,11 @@
+{# The amount the customer chooses, which is both what the card costs and what it holds. It starts at the price of the
+   variant the form preselects, and its help quotes the amounts the shop sells. Sylius' form theme does not point a
+   field at its help, so the field is pointed at it here #}
+{% if form.giftCardInformation.amount is defined %}
+    {% set amount_form = form.giftCardInformation.amount %}
+    {% set amount_attr = amount_form.vars.attr %}
+    {% if amount_form.vars.help is not empty %}
+        {% set amount_attr = amount_attr|merge({'aria-describedby': amount_form.vars.id ~ '_help'}) %}
+    {% endif %}
+    {{ form_row(amount_form, {'attr': amount_attr}) }}
+{% endif %}

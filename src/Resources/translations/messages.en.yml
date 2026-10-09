@@ -49,6 +49,9 @@ setono_sylius_gift_card:
         delivery_type: Delivery type
         delivery_type_virtual: Virtual
         delivery_type_physical: Physical
+        delivery: Delivery
+        gift_card_preview: Preview of your gift card
+        quantity_help: Each gift card you buy gets a code of its own.
         download_pdf: Download PDF
         initial_amount: Initial amount
         no_customer: No customer

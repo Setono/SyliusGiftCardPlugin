@@ -34,7 +34,7 @@ A gift card issued in the admin is virtual unless you choose *Physical* on the c
 
 ### Buying a gift card
 
-The customer chooses the amount, a design and an optional message on the product page (with a live preview). The amount field starts out at the price the page shows, i.e. the preselected variant's price in the channel, so the gift card product's price is the amount you suggest; a price the shop would refuse as an amount (zero, or outside `purchase.minimum_amount` / `maximum_amount`) leaves the field empty, and a shop whose maximum equals its minimum starts it at that one amount whatever the price. A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)). Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
+The customer chooses the amount, a design and an optional message on the gift card's product page, a page of the plugin's own built around a live preview of the card (see [The gift card product page](#the-gift-card-product-page)). The amount field starts out at the price of the variant the page preselects, in the channel, so the gift card product's price is the amount you suggest (the page does not print it as a price); a price the shop would refuse as an amount (zero, or outside `purchase.minimum_amount` / `maximum_amount`) leaves the field empty, and a shop whose maximum equals its minimum starts it at that one amount whatever the price. A disabled gift card is created per order item unit at add-to-cart time; at checkout completion it is reconciled against the final amounts, and when the order is paid it is enabled and emailed to the customer (virtual cards with their PDF attached, see [Virtual vs physical](#virtual-vs-physical)). Cancelling the order, or refunding it in full, disables the cards it bought; a partial refund does not, because it does not say which items the money went back for.
 
 The **Create gift card product** button builds a gift card product whose inventory is not tracked, so it sells any number of cards. If you track it, for printed cards of which you have a limited stock, say, the stock is checked against all the cards of a variant in the cart together: every card added gets a cart line of its own, where another product's lines of the same variant merge into one, and Sylius' own stock checks look at one line at a time. The product page refuses cards that the cart's other lines of the variant leave no stock for, and the cart page and the checkout refuse a cart whose lines of the variant together hold more than is in stock.
 
@@ -444,7 +444,8 @@ the message.
 Customers buy gift cards through a product flagged as a gift card product: the **Gift card** checkbox on the admin's
 product form. The **Create gift card product** button on the admin's gift card index creates the recommended one, a
 product in every channel with a *Virtual* and a *Physical* variant (see [Virtual vs physical](#virtual-vs-physical)).
-It is created disabled, so you can review it first; once you enable it, its product page shows the gift card form.
+It is created disabled, so you can review it first; once you enable it, the shop shows it on the
+[gift card product page](#the-gift-card-product-page).
 
 ### Load the fixtures (optional)
 
@@ -496,7 +497,7 @@ sylius_fixtures:
 bin/console assets:install
 ```
 
-The product page loads the plugin's script and stylesheet straight from `public/bundles/setonosyliusgiftcardplugin`,
+The gift card product page loads the plugin's script and stylesheet straight from `public/bundles/setonosyliusgiftcardplugin`,
 which this command fills; nothing goes through your Webpack Encore build. See
 [Assets and Content Security Policy](#assets-and-content-security-policy) if your shop sends a Content Security Policy.
 
@@ -623,15 +624,103 @@ registered under its interface, e.g. `Setono\SyliusGiftCardPlugin\Calculator\Eli
 you register there is what the whole plugin uses, the state machine callbacks included. The resources are the
 exception: they follow Sylius' conventions, see [Overriding models, repositories and factories](#overriding-models-repositories-and-factories).
 
+### The gift card product page
+
+The shop shows a gift card product on a page of the plugin's own, `@SetonoSyliusGiftCardPlugin/shop/product/show.html.twig`,
+instead of Sylius' product page. It is laid out like Sylius' page, so your theme styles it the same way: the live
+preview of the card takes the place of the product images, and next to it are the product's name and short
+description and Sylius' add to cart form, with what the customer chooses in the order they put the card together:
+the delivery type (only when the product offers both: a product with a single delivery type has nothing to choose),
+the amount, the design, the message and the quantity. A description you wrote for the product follows below. What
+Sylius' page shows and a gift card has no use for is left out: the image placeholder, ratings and reviews, the price
+(the amount field starts at it), the code, the variant table with a price per variant, the empty details tab and the
+latest products.
+
+The quantity stays, because buying several identical cards at once is a legitimate purchase (one for each member of a
+team, say), and every unit becomes a card of its own with a code of its own, which the field's help says.
+
+The add to cart form is Sylius' own: Sylius' partial route builds it (the plugin's form type extension adds the gift
+card fields) and renders it with `@SetonoSyliusGiftCardPlugin/shop/product/show/_add_to_cart_form.html.twig`, and it
+posts to Sylius' cart route with its CSRF token, so the cart handler and the redirect to the cart work as on any
+product page.
+
+The page is rendered by `Setono\SyliusGiftCardPlugin\EventSubscriber\GiftCardProductPageSubscriber`. Sylius' resource
+controller dispatches `sylius.product.show` once it has found the product, and answers the request with the response
+a listener sets on the event. The subscriber does that for a gift card product on the shop's product page
+(`sylius_shop_product_show`), rendering the template with the variables Sylius' controller passes to its own
+(`configuration`, `metadata`, `resource` and `product`), so the product is not looked up twice. The admin's product
+page and the shop's partial product route fire the same event and are left alone, and so is a request for another
+format than HTML. The subscriber runs at priority -100, after your own listeners on the event: one that answers the
+request itself (a redirect, say) keeps its response.
+
+To change the page:
+
+- **Add, move or disable a part** in your `sylius_ui` configuration. Every part of the page is a block on one of the
+  plugin's template events below, ten priorities apart so a block of yours fits in between (the blocks are listed
+  under [Moving or disabling the plugin's blocks](#moving-or-disabling-the-plugins-blocks)):
+
+  | Event | Where |
+  |-------|-------|
+  | `setono_sylius_gift_card.shop.product.show.header` | Above the two columns |
+  | `setono_sylius_gift_card.shop.product.show.preview` | The first column |
+  | `setono_sylius_gift_card.shop.product.show.purchase` | The second column |
+  | `setono_sylius_gift_card.shop.product.show.add_to_cart_form` | Inside the add to cart form, above its button |
+  | `setono_sylius_gift_card.shop.product.show.content` | Below the two columns |
+
+  ```yaml
+  # config/packages/sylius_ui.yaml
+  sylius_ui:
+      events:
+          setono_sylius_gift_card.shop.product.show.add_to_cart_form:
+              blocks:
+                  # a note under the message field
+                  gift_wrapping_note:
+                      template: 'gift_card/_gift_wrapping_note.html.twig'
+                      priority: 15
+          setono_sylius_gift_card.shop.product.show.header:
+              blocks:
+                  breadcrumb:
+                      enabled: false
+  ```
+
+  The blocks get the page's variables (`product` among them), and those inside the form `product`, `order_item` and
+  `form`, the add to cart form.
+- **Override a template** the way you override any bundle's, in `templates/bundles/SetonoSyliusGiftCardPlugin/`
+  (e.g. `templates/bundles/SetonoSyliusGiftCardPlugin/shop/product/show.html.twig` for the whole page, or one of the
+  block templates under `shop/product/show/`), or in a Sylius theme, under the theme's
+  `templates/bundles/SetonoSyliusGiftCardPlugin/`. Where Sylius has a template for a part (the breadcrumb, the
+  product's name), the block uses Sylius', so your override of it shows on this page too.
+- **Keep Sylius' product page**, or a product page of your own, for gift card products after all, by overriding the
+  page with a template that extends it, e.g. `{% extends '@SyliusShop/Product/show.html.twig' %}`. It gets the
+  variables Sylius' page gets, and the `setono_gift_card_information` block puts the gift card fields into Sylius' add
+  to cart form.
+
+Sylius' own `sylius.shop.product.show.*` events do not fire on this page. A block you put on them for every product
+page, a trust badge say, has to go on the plugin's events too to show on the gift card's page. The live preview script
+works within the element with the id `setono-gift-card-information`, which the page puts around both columns: an
+override has to keep the preview and the form inside it.
+
 ### Moving or disabling the plugin's blocks
 
 Everything the plugin adds to Sylius' pages is a block on one of Sylius' UI events, so it stays in place when you
 override a Sylius template that still fires the event, and you can move or disable each block in your own `sylius_ui`
-configuration:
+configuration. The same goes for the blocks of the [gift card product page](#the-gift-card-product-page), which sit on
+the plugin's own events:
 
 | Event | Block | Priority | What it renders |
 |-------|-------|----------|-----------------|
-| `sylius.shop.product.show.add_to_cart_form` | `setono_gift_card_information` | 10 | The amount, design and message fields with the live preview, on a gift card product's page |
+| `setono_sylius_gift_card.shop.product.show.header` | `breadcrumb` | 10 | Sylius' breadcrumb (`@SyliusShop/Product/Show/_breadcrumb.html.twig`) |
+| `setono_sylius_gift_card.shop.product.show.preview` | `preview` | 10 | The live preview of the card |
+| `setono_sylius_gift_card.shop.product.show.purchase` | `name` | 30 | The product's name, with Sylius' template (`@SyliusShop/Product/Show/_header.html.twig`) |
+| `setono_sylius_gift_card.shop.product.show.purchase` | `short_description` | 20 | The product's short description, when it has one |
+| `setono_sylius_gift_card.shop.product.show.purchase` | `add_to_cart` | 10 | Sylius' add to cart form, or Sylius' out of stock message |
+| `setono_sylius_gift_card.shop.product.show.add_to_cart_form` | `delivery` | 50 | The choice of delivery type, a radio group, when the product offers more than one variant |
+| `setono_sylius_gift_card.shop.product.show.add_to_cart_form` | `amount` | 40 | The amount field |
+| `setono_sylius_gift_card.shop.product.show.add_to_cart_form` | `design` | 30 | The design picker, when the channel has enabled designs |
+| `setono_sylius_gift_card.shop.product.show.add_to_cart_form` | `message` | 20 | The message field, with the count of characters left |
+| `setono_sylius_gift_card.shop.product.show.add_to_cart_form` | `quantity` | 10 | The quantity field |
+| `setono_sylius_gift_card.shop.product.show.content` | `description` | 10 | The product's description, when it has one |
+| `sylius.shop.product.show.add_to_cart_form` | `setono_gift_card_information` | 10 | The amount, design and message fields with the live preview, wherever Sylius' own add to cart form is rendered for a gift card product (the shop's product page is the plugin's, which does not fire this event) |
 | `sylius.shop.cart.summary` | `setono_gift_card_totals` | 18 | What the applied gift cards cover and what remains to pay, right below Sylius' totals (20) |
 | `sylius.shop.cart.summary` | `setono_gift_cards` | 12 | The form to apply a code and the applied gift cards, above Sylius' checkout button (10) |
 | `sylius.shop.checkout.sidebar` | `setono_gift_card_totals` | 18 | The same figures on the address, shipping and payment steps, right below Sylius' summary (20) and above its support box (10) |
@@ -659,21 +748,27 @@ sylius_ui:
 ```
 
 Disabling a block only stops it from rendering, so render what it rendered yourself where it is still needed. That
-matters most for the two form blocks, because Sylius ends both forms with `render_rest: false`: without
-`setono_gift_card_information` a gift card product cannot be added to the cart, as the amount the customer has to
-choose is never submitted, and without `setono_gift_card` the product form submits the checkbox as unchecked, so every
-save of a gift card product turns it back into a normal one.
+matters most for the form blocks, because Sylius ends both forms with `render_rest: false`, so a field no block renders
+is never submitted. On the gift card product page, a gift card cannot be added to the cart without the `amount` block,
+as the amount the customer has to choose is missing, and a product offering both delivery types needs the `delivery`
+block; the same goes for `setono_gift_card_information` wherever Sylius' own add to cart form is rendered for a gift
+card product. Without the `quantity` block a customer buys one card at a time, and changes the quantity in the cart.
+Without `setono_gift_card` the product form submits the checkbox as unchecked, so every save of a gift card product
+turns it back into a normal one.
 
 ### Assets and Content Security Policy
 
-The `setono_gift_card_information` block brings its own assets rather than going through your Webpack Encore build. It
-includes `bundles/setonosyliusgiftcardplugin/js/product-gift-card.js` (plain JavaScript, no jQuery) and
-`bundles/setonosyliusgiftcardplugin/css/product-gift-card.css` with a `<script defer src>` and a `<link>` tag inside the
-add-to-cart form, and the card's own styles as an inline `<style>` element
-(`@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig`, which the PDF shares). A Content Security Policy on
-the product page therefore has to allow scripts and styles from your own origin (`'self'`) and inline styles
-(`style-src 'unsafe-inline'`). To add a nonce, or to serve the files through your own build, override
-`@SetonoSyliusGiftCardPlugin/shop/product/show/_gift_card_information.html.twig`.
+The gift card product page brings its own assets rather than going through your Webpack Encore build. It includes
+`bundles/setonosyliusgiftcardplugin/css/product-gift-card.css` with a `<link>` tag in the layout's `stylesheets` block
+and `bundles/setonosyliusgiftcardplugin/js/product-gift-card.js` (plain JavaScript, no jQuery) with a
+`<script defer src>` tag in its `javascripts` block, and the card's own styles as an inline `<style>` element
+(`@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig`, which the PDF shares) in the `preview` block. The
+`setono_gift_card_information` block on Sylius' add to cart form includes the same three inside the form. A Content
+Security Policy on the product page therefore has to allow scripts and styles from your own origin (`'self'`) and
+inline styles (`style-src 'unsafe-inline'`). To add a nonce, or to serve the files through your own build, override
+`@SetonoSyliusGiftCardPlugin/shop/product/show.html.twig` and
+`@SetonoSyliusGiftCardPlugin/shop/product/show/_preview.html.twig` (and
+`@SetonoSyliusGiftCardPlugin/shop/product/show/_gift_card_information.html.twig` where Sylius' form is used).
 
 ### Customizing the PDF
 

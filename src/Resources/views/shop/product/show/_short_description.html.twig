@@ -1,0 +1,4 @@
+{# Sylius renders an empty segment for a product without one, which leaves a gap under the name #}
+{% if product.shortDescription is not empty %}
+    <p class="ssgc-product__short-description" {{ sylius_test_html_attribute('gift-card-product-short-description') }}>{{ product.shortDescription }}</p>
+{% endif %}

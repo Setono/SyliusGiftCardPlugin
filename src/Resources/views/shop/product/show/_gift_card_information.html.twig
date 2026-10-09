@@ -1,72 +1,23 @@
+{# The gift card fields on Sylius' own product page, on its sylius.shop.product.show.add_to_cart_form event. The shop
+   shows a gift card product on the plugin's page (@SetonoSyliusGiftCardPlugin/shop/product/show.html.twig) instead,
+   so this is only rendered where Sylius' add to cart form is rendered for one some other way, and keeps the product
+   buyable there. It is made of the same parts as the plugin's page #}
 {% if form.giftCardInformation is defined %}
-    {% set gift_card_form = form.giftCardInformation %}
     {% set channel = sylius.channel %}
-    {% set brand_name = channel ? channel.name : ('setono_sylius_gift_card.pdf.gift_card'|trans) %}
-    {% set brand_initial = brand_name|slice(0, 1)|upper %}
-    {# an empty currency makes the preview format a plain number rather than pretend the shop sells in dollars #}
-    {% set currency_code = channel and channel.baseCurrency ? channel.baseCurrency.code : '' %}
 
-    {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig') }}
-
-    {# The limit is configurable, so it is read back off the field the form type built #}
-    {% set message_limit = gift_card_form.customMessage.vars.attr.maxlength|default(null) %}
-
+    {# The live preview script works within this element. An empty currency makes the preview format a plain number
+       rather than pretend the shop sells in dollars #}
     <div id="setono-gift-card-information"
          class="ui segment"
          data-preview-message-placeholder="{{ 'setono_sylius_gift_card.ui.your_message_here'|trans }}"
-         data-currency="{{ currency_code }}"
+         data-currency="{{ channel and channel.baseCurrency ? channel.baseCurrency.code : '' }}"
          data-locale="{{ app.request.locale|replace({'_': '-'}) }}">
         <h4 class="ui dividing header">{{ 'setono_sylius_gift_card.ui.gift_card'|trans }}</h4>
 
-        <div class="ssgc-preview">
-            <div class="ssgc-preview__frame">
-                {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card.html.twig', {
-                    brand_name: brand_name,
-                    brand_initial: brand_initial,
-                    formatted_amount: '',
-                    formatted_code: null,
-                    message: gift_card_form.customMessage.vars.value|default(''),
-                    front_image_url: null,
-                    preview: true,
-                    locale_code: app.request.locale,
-                }, false) }}
-            </div>
-        </div>
-
-        {{ form_row(gift_card_form.amount) }}
-
-        {# A channel without enabled designs has nothing to pick, so the picker is skipped and the card keeps its framed default #}
-        {% if gift_card_form.design is defined and gift_card_form.design.vars.choices is not empty %}
-            {# A radio group is named by a legend: a `<label for>` can only point at one control, so it never names the group as a whole #}
-            <fieldset class="setono-gift-card-design-fieldset">
-                <legend>{{ gift_card_form.design.vars.label|trans }}</legend>
-                <div class="ui small images" data-js-gift-card-design-picker>
-                    {% for choice in gift_card_form.design %}
-                        <label class="setono-gift-card-design-choice">
-                            {{ form_widget(choice) }}
-                            {% set image_path = choice.vars.attr['data-image-path']|default('') %}
-                            {% if image_path is not empty %}
-                                <img src="{{ image_path|imagine_filter('setono_sylius_gift_card_design_thumbnail') }}"
-                                     alt="{{ choice.vars.label }}"
-                                     data-design-image="{{ image_path|imagine_filter('setono_sylius_gift_card_design_preview') }}"/>
-                            {% endif %}
-                            <span>{{ choice.vars.label }}</span>
-                        </label>
-                    {% endfor %}
-                </div>
-            </fieldset>
-        {% endif %}
-
-        {{ form_row(gift_card_form.customMessage) }}
-        {% if message_limit is not null %}
-            {# The counter is rendered here rather than by the script so it is right before the script runs. It
-               also carries the sentence with %remaining% still in it, because the number sits in a different
-               place in every language and the script must not build the sentence out of fragments #}
-            <small class="ssgc-message-counter"
-                   data-js-gc-message-counter
-                   data-template="{{ 'setono_sylius_gift_card.ui.characters_left'|trans }}"
-                   aria-live="polite">{{ 'setono_sylius_gift_card.ui.characters_left'|trans({'%remaining%': message_limit}) }}</small>
-        {% endif %}
+        {{ include('@SetonoSyliusGiftCardPlugin/shop/product/show/_preview.html.twig') }}
+        {{ include('@SetonoSyliusGiftCardPlugin/shop/product/show/add_to_cart_form/_amount.html.twig') }}
+        {{ include('@SetonoSyliusGiftCardPlugin/shop/product/show/add_to_cart_form/_design.html.twig') }}
+        {{ include('@SetonoSyliusGiftCardPlugin/shop/product/show/add_to_cart_form/_message.html.twig') }}
     </div>
 
     <script defer src="{{ asset('bundles/setonosyliusgiftcardplugin/js/product-gift-card.js') }}"></script>
