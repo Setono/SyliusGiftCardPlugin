@@ -66,8 +66,13 @@ setono_sylius_gift_card:
             header: Customers cannot pay with gift cards yet
             explanation: 'The shop sells gift cards but has no payment method to make gift card payments with, so it refuses every gift card a customer tries to pay with.'
             create_button: Create gift card payment method
-            button_help: 'The button creates it as an offline payment method in every channel, named in every language of the shop, which checkout never offers to customers. Its code is'
+            button_help: 'The button creates it as an offline payment method named in every language of the shop. It is in no channel, as gift cards pay with it in every channel and checkout never offers it to customers. Its code is'
             run_command: 'In a deploy script, run'
+        payment_method_message:
+            header: This is the gift card payment method
+            code: 'Gift card payments are made with this payment method, which the gift card plugin finds by its code, so the code has to stay'
+            channels: 'Its channels make no difference to gift card payments: gift cards pay with it in every channel, whichever channels are ticked below.'
+            no_channel: 'The plugin creates it in no channel, because customers never choose it at checkout, and Sylius RefundPlugin would otherwise list it as a refund destination in the channels it is in.'
         setup_warning:
             topbar: 'Gift card setup incomplete: no design in %channels%'
             header: The gift card setup is not complete

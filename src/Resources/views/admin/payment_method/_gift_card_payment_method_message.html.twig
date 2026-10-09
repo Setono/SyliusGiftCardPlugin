@@ -1,0 +1,20 @@
+{# Rendered above the form on the create and edit pages of the payment method gift card payments are made with, and on
+   no other payment method's. The plugin creates the method in no channel, so a merchant who comes across it may wonder
+   whether to add it to their channels, or give it a code of their own. The code shown is the method's, which is the
+   configured one whenever this renders #}
+{% if setono_gift_card_is_payment_method(resource) %}
+    <div class="ui icon info message" {{ sylius_test_html_attribute('gift-card-payment-method-message') }}>
+        <i class="info circle icon"></i>
+        <div class="content">
+            <div class="header">{{ 'setono_sylius_gift_card.ui.payment_method_message.header'|trans }}</div>
+            <ul class="list">
+                <li>
+                    {{ 'setono_sylius_gift_card.ui.payment_method_message.code'|trans }}
+                    <code {{ sylius_test_html_attribute('gift-card-payment-method-code') }}>{{ resource.code }}</code>.
+                </li>
+                <li>{{ 'setono_sylius_gift_card.ui.payment_method_message.channels'|trans }}</li>
+                <li>{{ 'setono_sylius_gift_card.ui.payment_method_message.no_channel'|trans }}</li>
+            </ul>
+        </div>
+    </div>
+{% endif %}

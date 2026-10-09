@@ -75,7 +75,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - The gift card payment method is no longer created the first time a customer pays with a gift card. Create it
   once with the **Create gift card payment method** button in the admin's setup warning, with
   `bin/console setono:gift-card:create-payment-method` in a deploy, or with the `setono_gift_card_payment_method`
-  fixture; until it exists the shop refuses gift cards and every admin page warns about it
+  fixture; until it exists the shop refuses gift cards and every admin page warns about it. It is created in no channel,
+  which is all it needs: gift card payments are made with it in every channel whichever channels it is in, and in a
+  channel Sylius RefundPlugin would list it as a refund destination. Its create and edit pages in the admin explain this
 
 ### Removed
 - **The API layer** — the whole API Platform / `sylius/api-bundle` integration. Stay on `0.12.x` if you need it

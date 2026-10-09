@@ -103,7 +103,7 @@ That includes the override of `@SyliusAdmin/Product/Tab/_details.html.twig` that
 
 ## Gift card payment method
 
-A redeemed gift card becomes a payment made with an offline payment method with the code `gift_card` (the `redemption.payment_method_code` setting). It is not created automatically: create it once after upgrading, either with the **Create gift card payment method** button in the warning the admin shows while it is missing (on the gift card index), or by running the command below in your deploy. Both create the method in every channel and leave an existing one alone, so they are safe on a shop that already has it.
+A redeemed gift card becomes a payment made with an offline payment method with the code `gift_card` (the `redemption.payment_method_code` setting). It is not created automatically: create it once after upgrading, either with the **Create gift card payment method** button in the warning the admin shows while it is missing (on the gift card index), or by running the command below in your deploy. Both create the method in no channel, which is all it needs: gift card payments are made with it in every channel, whichever channels it is in. Both leave an existing method alone, channels included, so they are safe on a shop that already has it.
 
 ```bash
 bin/console setono:gift-card:create-payment-method
