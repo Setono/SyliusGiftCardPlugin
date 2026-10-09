@@ -243,7 +243,7 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
     }
 
     /**
-     * Without a command there is no line to tell the product by, so there is nothing to ask for either
+     * Without a command there is nothing to hold the gift card information, so it is not asked for
      *
      * @test
      */
@@ -254,6 +254,56 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
         self::assertFalse($form->has('giftCardInformation'));
     }
 
+    /**
+     * Sylius makes the line with the product's first enabled variant, so the line of a product none of whose variants
+     * is enabled has none. The extension read the product off it, which ended every add to cart of such a product in a
+     * 500 while the form was built (#480). It goes by the product the form is given instead
+     *
+     * @test
+     */
+    public function it_asks_for_the_gift_card_information_on_a_gift_card_product_whose_line_has_no_variant(): void
+    {
+        $product = $this->productWithVariants(giftCard: true);
+
+        $form = $this->createForm($this->commandWithoutVariant(), $product);
+
+        self::assertTrue($form->has('giftCardInformation'));
+    }
+
+    /** @test */
+    public function it_leaves_the_form_of_any_other_product_whose_line_has_no_variant_alone(): void
+    {
+        $product = $this->productWithVariants(giftCard: false);
+
+        $form = $this->createForm($this->commandWithoutVariant(), $product);
+
+        self::assertFalse($form->has('giftCardInformation'));
+    }
+
+    /**
+     * A page opened before the admin disabled the product's variants still sends the variant it had chosen, which
+     * Sylius' variant choice accepts, so the line gets its variant only once the form is submitted. The gift card
+     * information was asked for and validated all the same, so the submission is handed on like any other
+     *
+     * @test
+     */
+    public function it_hands_a_submission_that_chooses_the_variant_the_line_lacked_to_the_cart_handler(): void
+    {
+        $command = $this->commandWithoutVariant();
+
+        $this->cartGiftCardHandler->handle($command)->shouldBeCalledOnce();
+
+        $form = $this->createForm($command, $this->productWithVariants(giftCard: true));
+        $form->submit([
+            'cartItem' => ['quantity' => '1', 'variant' => 'PHYSICAL'],
+            'giftCardInformation' => ['amount' => '50.00'],
+        ]);
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame('PHYSICAL', $command->getCartItem()->getVariant()?->getCode());
+        self::assertSame(5000, $command->getGiftCardInformation()->getAmount());
+    }
+
     /** @test */
     public function it_extends_the_add_to_cart_form(): void
     {
@@ -261,11 +311,13 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
     }
 
     /**
+     * @param ProductInterface|null $product the product the add to cart route looks up, by default the line's
+     *
      * @return FormInterface<AddToCartCommand>
      */
-    private function createForm(AddToCartCommand $command): FormInterface
+    private function createForm(AddToCartCommand $command, ?ProductInterface $product = null): FormInterface
     {
-        $product = $command->getCartItem()->getProduct();
+        $product ??= $command->getCartItem()->getProduct();
         self::assertInstanceOf(ProductInterface::class, $product);
 
         /** @var FormInterface<AddToCartCommand> $form */
@@ -288,6 +340,37 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
         new OrderItemUnit($item);
 
         return new AddToCartCommand($cart ?? new Order(), $item, new GiftCardInformation($item->getUnitPrice()));
+    }
+
+    /**
+     * What the decorated command factory hands the form for a product none of whose variants is enabled: a line
+     * without a variant, and gift card information without an amount to suggest
+     */
+    private function commandWithoutVariant(): AddToCartCommand
+    {
+        $item = new OrderItem();
+        new OrderItemUnit($item);
+
+        return new AddToCartCommand(new Order(), $item, new GiftCardInformation(null));
+    }
+
+    /**
+     * A product with two variants, so the form asks which one to add. The choice tells them apart by their codes, and
+     * labels them by their names
+     */
+    private function productWithVariants(bool $giftCard): Product
+    {
+        $product = $this->product($giftCard);
+
+        foreach (['VIRTUAL', 'PHYSICAL'] as $code) {
+            $variant = new ProductVariant();
+            $variant->setCode($code);
+            $variant->setCurrentLocale('en_US');
+            $variant->setName(ucfirst(strtolower($code)));
+            $product->addVariant($variant);
+        }
+
+        return $product;
     }
 
     private function product(bool $giftCard): Product
