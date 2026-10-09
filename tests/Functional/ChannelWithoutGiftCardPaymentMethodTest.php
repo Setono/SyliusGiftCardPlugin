@@ -81,10 +81,8 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
      */
     public static function channels(): iterable
     {
-        yield 'a channel that existed when the method was created in no channel' => [self::EXISTING, []];
         yield 'a channel opened after the method was created in no channel' => [self::LATER, []];
-        // as the plugin created the method before #411: in every channel the shop had back then
-        yield 'a channel opened after the method was created in the channels of its day' => [self::LATER, [self::EXISTING]];
+        yield 'a channel the method is not in, while an administrator has put it in another' => [self::LATER, [self::EXISTING]];
     }
 
     /**

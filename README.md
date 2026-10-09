@@ -431,8 +431,7 @@ method by its code alone, so gift card payments are made with it in every channe
 channel opened later included. What does look at a payment method's channels only offers it as a choice: Sylius'
 checkout, which never offers this method to customers anyway, and [Sylius RefundPlugin](https://github.com/Sylius/RefundPlugin),
 which lists the offline payment methods of an order's channel as refund destinations. In no channel, the gift card
-payment method stays off that list. A method that is in channels already, because an earlier version of the plugin
-created it in every channel or an administrator added them, is left as it is and works the same.
+payment method stays off that list. A method an administrator has put in channels is left as it is and works the same.
 
 The method's create and edit pages in the admin say so above Sylius' form: the plugin finds the method by its code, so
 the code has to stay `gift_card` (or whatever `redemption.payment_method_code` is), its channels make no difference to
