@@ -433,11 +433,21 @@ checkout, which never offers this method to customers anyway, and [Sylius Refund
 which lists the offline payment methods of an order's channel as refund destinations. In no channel, the gift card
 payment method stays off that list. A method an administrator has put in channels is left as it is and works the same.
 
+The method's **Enabled** switch means what it means for any payment method: whether customers can pay with it. While it
+is disabled the shop refuses gift cards just as it does while the method is missing. The cart keeps its gift card field
+but refuses every code ("Gift cards cannot be used in this shop at the moment"), and gift cards already on a cart are
+taken off when the customer places the order, who is sent back to the cart to pay by other means. Gift cards are still
+for sale, so every admin page warns that customers cannot spend them, and the warning links to the method's edit page.
+Payments already made with gift cards are not affected: refunding one, or cancelling its order, gives the card its
+balance back as before. Checkout never offers the method to customers, so it does not need disabling to keep it out of
+checkout: disable it only to stop gift cards being redeemed for a while. The command leaves a disabled method disabled,
+and says so.
+
 The method's create and edit pages in the admin say so above Sylius' form: the plugin finds the method by its code, so
 the code has to stay `gift_card` (or whatever `redemption.payment_method_code` is), its channels make no difference to
-gift card payments, which work in every channel, and it is in no channel by default because customers never choose it at
-checkout and Sylius RefundPlugin would otherwise list it as a refund destination. No other payment method's pages show
-the message.
+gift card payments, which work in every channel, it is in no channel by default because customers never choose it at
+checkout and Sylius RefundPlugin would otherwise list it as a refund destination, and disabling it stops customers
+paying with gift cards. No other payment method's pages show the message.
 
 ### Create a gift card product
 
@@ -727,9 +737,9 @@ the plugin's own events:
 | `sylius.shop.checkout.complete.summary` | `setono_gift_card_totals` | 8 | The same figures on the complete step, right below Sylius' order summary (10) |
 | `sylius.shop.order.thank_you.after_message` | `setono_gift_card_payment_instructions` | -10 | The instructions for paying the rest, see [Redeeming a gift card](#redeeming-a-gift-card) |
 | `sylius.admin.product.tab_details` | `setono_gift_card` | 10 | The **Gift card** checkbox on the product form |
-| `sylius.admin.layout.topbar_middle` | `setono_gift_card_setup_warning` | 10 | The setup warning in the top bar of every admin page |
-| `setono_sylius_gift_card.admin.gift_card.index` and `setono_sylius_gift_card.admin.gift_card_design.index` | `setono_gift_card_setup_warning` | 30 | The full setup warning above the gift card and design indexes |
-| `sylius.admin.payment_method.index` | `setono_gift_card_payment_method_warning` | 30 | The warning about the missing gift card payment method, with its button, above the payment method index |
+| `sylius.admin.layout.topbar_middle` | `setono_gift_card_setup_warning` | 10 | The setup warning, and the warning about a disabled gift card payment method, in the top bar of every admin page |
+| `setono_sylius_gift_card.admin.gift_card.index` and `setono_sylius_gift_card.admin.gift_card_design.index` | `setono_gift_card_setup_warning` | 30 | The full setup warning, and the warning about a disabled gift card payment method, above the gift card and design indexes |
+| `sylius.admin.payment_method.index` | `setono_gift_card_payment_method_warning` | 30 | The warning about the missing gift card payment method, with its button, or about the disabled one, with a link to its edit page, above the payment method index |
 | `sylius.admin.payment_method.create` and `sylius.admin.payment_method.update` | `setono_gift_card_payment_method_message` | 12 | What the gift card payment method is, above the form on its own create and edit pages, between Sylius' header (20) and the form (10) |
 
 ```yaml

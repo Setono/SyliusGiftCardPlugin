@@ -282,8 +282,9 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                         ],
                     ],
                     // The warning about an incomplete setup (no gift card payment method, or a channel selling gift
-                    // cards without a design): a label in the top bar of every admin page, and the full message above
-                    // the header of the indexes that can fix it (Sylius' header block sits at priority 20)
+                    // cards without a design) or a disabled gift card payment method: a label in the top bar of every
+                    // admin page, and the full message above the header of the indexes that can fix it (Sylius' header
+                    // block sits at priority 20)
                     'sylius.admin.layout.topbar_middle' => [
                         'blocks' => [
                             'setono_gift_card_setup_warning' => [

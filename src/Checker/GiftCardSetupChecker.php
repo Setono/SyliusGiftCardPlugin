@@ -10,6 +10,7 @@ use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardDesignRepositoryInterface;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 final class GiftCardSetupChecker implements GiftCardSetupCheckerInterface
 {
@@ -57,10 +58,24 @@ final class GiftCardSetupChecker implements GiftCardSetupCheckerInterface
 
     public function isPaymentMethodMissing(): bool
     {
-        if (null !== $this->paymentMethodProvider->findPaymentMethod()) {
-            return false;
+        return null === $this->paymentMethodProvider->findPaymentMethod() && $this->isSellingGiftCards();
+    }
+
+    public function getDisabledPaymentMethod(): ?PaymentMethodInterface
+    {
+        $paymentMethod = $this->paymentMethodProvider->findPaymentMethod();
+        if (null === $paymentMethod || $paymentMethod->isEnabled()) {
+            return null;
         }
 
+        return $this->isSellingGiftCards() ? $paymentMethod : null;
+    }
+
+    /**
+     * Whether some enabled channel sells gift cards
+     */
+    private function isSellingGiftCards(): bool
+    {
         $selling = $this->getCodesOfChannelsSellingGiftCards();
         if ([] === $selling) {
             return false;

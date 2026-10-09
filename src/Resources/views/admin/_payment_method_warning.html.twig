@@ -22,3 +22,16 @@
         </p>
     </div>
 {% endif %}
+{# The same places say so while the method is disabled, which refuses gift cards just the same (#484). The merchant may
+   have disabled it on purpose, but the shop goes on selling cards nobody can spend, so it is not left unsaid. Enabling
+   it is a tick on its edit page, which the link leads to #}
+{% set disabled_payment_method = setono_gift_card_disabled_payment_method() %}
+{% if disabled_payment_method is not null %}
+    <div class="ui error message" {{ sylius_test_html_attribute('gift-card-payment-method-disabled-warning-message') }}>
+        <div class="header">{{ 'setono_sylius_gift_card.ui.payment_method_disabled_warning.header'|trans }}</div>
+        <p>{{ 'setono_sylius_gift_card.ui.payment_method_disabled_warning.explanation'|trans }}</p>
+        <a class="ui labeled icon primary button" href="{{ path('sylius_admin_payment_method_update', {'id': disabled_payment_method.id}) }}" {{ sylius_test_html_attribute('gift-card-payment-method-disabled-warning-edit') }}>
+            <i class="pencil icon"></i>{{ 'setono_sylius_gift_card.ui.payment_method_disabled_warning.edit_button'|trans }}
+        </a>
+    </div>
+{% endif %}

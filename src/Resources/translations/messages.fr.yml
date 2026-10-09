@@ -71,11 +71,17 @@ setono_sylius_gift_card:
             create_button: Créer le moyen de paiement par chèque-cadeau
             button_help: 'Le bouton le crée comme moyen de paiement hors ligne nommé dans toutes les langues de la boutique. Il n''est dans aucun canal, car les chèques-cadeaux paient avec lui dans tous les canaux et il n''est jamais proposé aux clients lors de la commande. Son code est'
             run_command: 'Dans un script de déploiement, exécutez'
+        payment_method_disabled_warning:
+            topbar: 'Chèques-cadeaux inutilisables : le moyen de paiement par chèque-cadeau est désactivé'
+            header: Les clients ne peuvent pas payer avec des chèques-cadeaux
+            explanation: 'Le moyen de paiement par chèque-cadeau est désactivé : la boutique refuse donc tous les chèques-cadeaux avec lesquels un client essaie de payer, et retire les chèques-cadeaux d''une commande sur le point d''être passée. Les chèques-cadeaux restent en vente, et personne ne peut en utiliser un tant que le moyen de paiement n''est pas réactivé. Les paiements déjà effectués par chèque-cadeau ne sont pas concernés : en rembourser un rend toujours son solde au chèque-cadeau.'
+            edit_button: Modifier le moyen de paiement par chèque-cadeau
         payment_method_message:
             header: Ceci est le moyen de paiement par chèque-cadeau
             code: 'Les paiements par chèque-cadeau sont enregistrés avec ce moyen de paiement, que le plugin de chèques-cadeaux retrouve par son code : ce code doit donc rester'
             channels: 'Ses canaux ne changent rien aux paiements par chèque-cadeau : les chèques-cadeaux paient avec lui dans tous les canaux, quels que soient les canaux cochés ci-dessous.'
             no_channel: 'Le plugin ne l''ajoute à aucun canal, car les clients ne le choisissent jamais lors de la commande, et Sylius RefundPlugin le proposerait sinon comme destination de remboursement dans les canaux où il se trouve.'
+            enabled: 'Il n''est jamais proposé aux clients lors de la commande : inutile donc de le désactiver pour l''en écarter. Le désactiver empêche tout paiement par chèque-cadeau, jusqu''à ce qu''il soit réactivé.'
         setup_warning:
             topbar: 'Configuration des chèques-cadeaux incomplète : aucun modèle dans %channels%'
             header: La configuration des chèques-cadeaux n''est pas terminée

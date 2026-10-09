@@ -28,6 +28,8 @@ test.describe('gift card payment method', () => {
         // the code it has to keep, and the plugin it keeps the method out of the refund destinations of
         await expect(page.locator(MESSAGE_CODE)).toHaveText(CODE);
         await expect(message).toContainText('RefundPlugin');
+        // and that it is to stay enabled, as disabling it stops gift cards being redeemed (#484)
+        await expect(message.locator('[data-test-gift-card-payment-method-enabled]')).toBeVisible();
 
         // above Sylius' form, whose code field shows the same code
         await expect(

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Checker;
 
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 /**
  * The default design is not created on the fly (see GiftCardDesignProvider), so a shop can sell gift cards in a
@@ -12,7 +13,9 @@ use Sylius\Component\Core\Model\ChannelInterface;
  * the merchant should know, and this is what the admin asks to find out.
  *
  * Neither is the payment method gift card payments are made with (see GiftCardPaymentMethodProviderInterface). Without
- * it the shop refuses every gift card, which the merchant should know about even sooner
+ * it the shop refuses every gift card, which the merchant should know about even sooner, and so it does while the
+ * method is disabled. A merchant may disable it on purpose, to stop gift cards being redeemed for a while, but the shop
+ * goes on selling cards its customers cannot spend, which is not something to forget about
  */
 interface GiftCardSetupCheckerInterface
 {
@@ -30,4 +33,10 @@ interface GiftCardSetupCheckerInterface
      * has nothing to warn about
      */
     public function isPaymentMethodMissing(): bool;
+
+    /**
+     * The payment method gift card payments are made with, while it is disabled and some enabled channel sells gift
+     * cards, so the shop refuses every gift card a customer tries to pay with; null when there is nothing to warn about
+     */
+    public function getDisabledPaymentMethod(): ?PaymentMethodInterface;
 }
