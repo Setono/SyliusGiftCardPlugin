@@ -160,6 +160,22 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
     }
 
     /**
+     * The add to cart form leaves the line without a variant when a request leaves out the variant choice, and Sylius'
+     * order item reads its product off its variant. CartItemVariantRequired reports the missing variant, once
+     *
+     * @test
+     */
+    public function it_leaves_a_line_without_a_variant_to_the_variant_check(): void
+    {
+        // a cart that has no room left, so only the missing variant keeps it from being reported
+        $command = $this->command(cartTotal: self::MAXIMUM, amount: 100);
+
+        $this->validator->validate(new AddToCartCommand($command->getCart(), new OrderItem(), $command->getGiftCardInformation()), new GiftCardFitsCart());
+
+        $this->assertNoViolation();
+    }
+
+    /**
      * NotBlank reports a blank amount on the amount field
      *
      * @test

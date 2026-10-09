@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 const { signInAsAdministrator } = require('../support/admin');
 const { productIdsByKind, productShopPath } = require('../support/fixtures');
 const { moneyInCents, typedAmount } = require('../support/money');
-const { GIFT_CARD_INFORMATION, giftCardProductPath, shopLocale, shopLocales, submitAddToCart } = require('../support/shop');
+const { GIFT_CARD_INFORMATION, VARIANT_CHOICE, giftCardProductPath, shopLocale, shopLocales, submitAddToCart } = require('../support/shop');
 
 /**
  * The gift card form is added to the add to cart form by a form type extension, so it has to appear on gift
@@ -412,5 +412,37 @@ test.describe('shop gift card product', () => {
 
         // Sylius' add to cart script renders the 400 payload into this element
         await expect(page.locator('#sylius-cart-validation-error')).toContainText(amountErrors[0]);
+    });
+
+    /**
+     * A browser always sends a variant, as the choice is required, but a page that leaves the choice out does not. The
+     * line then had no variant, which Sylius' stock check read regardless: the request ended in a 500, and the button
+     * kept spinning (#479). It is refused on the variant field instead
+     */
+    test('an add to cart without a variant is reported instead of failing the request', async ({ page }) => {
+        await page.goto(await giftCardProductPath(page));
+
+        // the page the customer would have got had the variant choice not been rendered
+        const variants = page.locator(VARIANT_CHOICE);
+        expect(await variants.count(), 'the gift card product should offer a choice of delivery types').toBeGreaterThan(1);
+        await variants.evaluateAll((choices) => choices.forEach((choice) => choice.remove()));
+
+        await page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first().fill(typedAmount(5000));
+
+        const form = page.locator('form[name="sylius_add_to_cart"]');
+        const action = await form.getAttribute('action');
+        const [response] = await Promise.all([
+            page.waitForResponse((r) => 'POST' === r.request().method() && r.url().endsWith(action ?? '')),
+            form.locator('button[type="submit"]').first().click(),
+        ]);
+
+        expect(response.status(), 'adding to the cart must be refused as invalid, not fail with a server error').toBe(400);
+        const { errors } = await response.json();
+        const variantErrors = errors?.form?.errors?.children?.cartItem?.children?.variant?.errors ?? [];
+        expect(variantErrors, 'the refusal should be about the variant').toHaveLength(1);
+        expect(errors?.errors, 'the variant should be the only thing refused').toEqual(variantErrors);
+
+        // Sylius' add to cart script renders the 400 payload into this element
+        await expect(page.locator('#sylius-cart-validation-error')).toContainText(variantErrors[0]);
     });
 });
