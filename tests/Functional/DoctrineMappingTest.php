@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\PersistentCollection;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesign;
@@ -232,6 +233,40 @@ final class DoctrineMappingTest extends GiftCardFunctionalTestCase
         self::assertSame(-1000, $transaction->getAmount(), 'the ledger row should have outlived the order');
         self::assertNull($transaction->getOrder());
         self::assertNull($transaction->getPayment());
+    }
+
+    /**
+     * The gift card grid asks every row whether its card may be deleted, which needs to know whether the card is
+     * applied to any order, not the orders themselves
+     *
+     * @test
+     */
+    public function it_tells_whether_a_card_is_applied_to_an_order_without_loading_the_orders(): void
+    {
+        $applied = $this->createGiftCard('APPLIEDTOORDER');
+        $this->createGiftCard('APPLIEDTONONE');
+        $order = new Order();
+        $order->setChannel($this->getChannel());
+        $order->setCurrencyCode('USD');
+        $order->setLocaleCode('en_US');
+        $order->addGiftCard($applied);
+        $this->manager->persist($order);
+        $this->manager->flush();
+        $this->manager->clear();
+
+        $applied = $this->findGiftCard('APPLIEDTOORDER');
+        self::assertFalse($applied->isDeletable());
+        self::assertTrue($applied->hasAppliedOrders());
+
+        $none = $this->findGiftCard('APPLIEDTONONE');
+        self::assertTrue($none->isDeletable());
+        self::assertFalse($none->hasAppliedOrders());
+
+        foreach ([$applied, $none] as $giftCard) {
+            $appliedOrders = $giftCard->getAppliedOrders();
+            self::assertInstanceOf(PersistentCollection::class, $appliedOrders);
+            self::assertFalse($appliedOrders->isInitialized(), sprintf('the orders of %s should not have been loaded', (string) $giftCard->getCode()));
+        }
     }
 
     /** @test */

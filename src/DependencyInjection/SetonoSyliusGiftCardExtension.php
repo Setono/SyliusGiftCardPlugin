@@ -738,8 +738,9 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                     ],
                                     'icon' => 'balance scale',
                                 ],
-                                // Only offered for a card that may be deleted. GiftCardDeletionSubscriber still refuses
-                                // the others, pressed on a page opened before the card was spent from
+                                // Only offered for a card that may be deleted (GiftCardInterface::isDeletable()).
+                                // GiftCardDeletionSubscriber still refuses the others, pressed on a page opened before
+                                // the card was applied to an order or its balance moved, even if it came back since
                                 'delete' => [
                                     'type' => 'setono_sylius_gift_card_gift_card_delete',
                                 ],

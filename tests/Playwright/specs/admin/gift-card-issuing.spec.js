@@ -348,10 +348,13 @@ test.describe('admin issuing gift cards', () => {
         await clickAndConfirm(page, untouchedRow.getByRole('button', { name: /delete/i }));
         expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/successfully deleted/i));
 
-        // Back where it started, the card still has the two adjustments on its ledger
+        // Back where it started, the card still has the two adjustments on its ledger. The row is checked to be there
+        // first, so the missing button cannot pass on a card that is not on the page
         await adjustBalance(page, card.id, 500, 'Refunded in the store');
         expect(moneyInCents((await giftCardDetails(page, card.id)).Amount)).toBe(1500);
-        await expect((await giftCardRows(page, card.printedCode)).getByRole('button', { name: /delete/i })).toHaveCount(0);
+        const restoredRow = await giftCardRows(page, card.printedCode);
+        await expect(restoredRow.getByRole('link', { name: /adjust balance/i })).toHaveCount(1);
+        await expect(restoredRow.getByRole('button', { name: /delete/i })).toHaveCount(0);
     });
 
     /**

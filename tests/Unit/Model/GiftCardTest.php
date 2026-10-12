@@ -415,7 +415,6 @@ final class GiftCardTest extends TestCase
         $transaction = new GiftCardTransaction();
         $transaction->setType($type);
         $transaction->setAmount($amount);
-        $transaction->setGiftCard($giftCard);
         $giftCard->addTransaction($transaction);
     }
 
