@@ -149,10 +149,45 @@ final class GiftCardProductPageAddToCartTest extends AdminFunctionalTestCase
         /** @var array{errors?: array{form?: array{errors?: array{errors?: list<string>}}}} $body */
         $body = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame(
-            ['Gift cards cannot be bought in SEK here. Please check the amount and try again.'],
+            ['Gift cards cannot be bought in this currency here. Please check the amount and try again.'],
             $body['errors']['form']['errors']['errors'] ?? [],
         );
         self::assertSame([], $this->giftCards());
+    }
+
+    /**
+     * A request can name anything as the currency. It is refused without being repeated, as Sylius' add to cart script
+     * inserts the error into the page as markup, and the amount is held to the limits in the currency the visitor
+     * browses in rather than in one the money formatter cannot format, which ended the request in a 500
+     *
+     * @test
+     *
+     * @dataProvider currenciesNoCurrencyHas
+     */
+    public function it_refuses_a_currency_no_currency_has_without_repeating_it(string $currencyCode): void
+    {
+        $response = $this->addToCart($this->createGiftCardProduct(), '0.01', $currencyCode);
+
+        self::assertSame(400, $response->getStatusCode());
+        self::assertStringNotContainsString($currencyCode, (string) $response->getContent());
+
+        /** @var array{errors?: array{form?: array{errors?: array{errors?: list<string>}}}} $body */
+        $body = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame(
+            ['Gift cards cannot be bought in this currency here. Please check the amount and try again.'],
+            $body['errors']['form']['errors']['errors'] ?? [],
+        );
+        self::assertSame(['The gift card amount must be at least $1.00.'], self::amountErrors($response));
+        self::assertSame([], $this->giftCards());
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function currenciesNoCurrencyHas(): iterable
+    {
+        yield 'a code intl cannot format' => ['X'];
+        yield 'markup' => ['<img src=x onerror=alert(1)>'];
     }
 
     /**

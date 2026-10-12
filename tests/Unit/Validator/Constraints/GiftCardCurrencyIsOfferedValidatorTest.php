@@ -52,13 +52,17 @@ final class GiftCardCurrencyIsOfferedValidatorTest extends ConstraintValidatorTe
         yield 'another currency of the channel' => ['EUR'];
     }
 
-    /** @test */
-    public function it_rejects_a_currency_the_channel_does_not_offer(): void
+    /**
+     * The message does not repeat the value, which a request can make anything, markup included, and Sylius' add to
+     * cart script inserts the message into the page as markup
+     *
+     * @test
+     */
+    public function it_rejects_a_currency_the_channel_does_not_offer_without_repeating_it(): void
     {
-        $this->validator->validate('SEK', new GiftCardCurrencyIsOffered());
+        $this->validator->validate('<img src=x onerror=alert(1)>', new GiftCardCurrencyIsOffered());
 
         $this->buildViolation('setono_sylius_gift_card.gift_card_information.currency_code.not_offered')
-            ->setParameter('{{ currency }}', 'SEK')
             ->assertRaised();
     }
 

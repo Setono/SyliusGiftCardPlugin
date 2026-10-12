@@ -51,8 +51,8 @@ final class GiftCardCurrencyIsOfferedValidator extends ConstraintValidator
             return;
         }
 
-        $this->context->buildViolation($constraint->message)
-            ->setParameter('{{ currency }}', $value)
-            ->addViolation();
+        // The value is not repeated in the message: a request can submit anything, and Sylius' add to cart script inserts
+        // the message into the page as markup
+        $this->context->addViolation($constraint->message);
     }
 }

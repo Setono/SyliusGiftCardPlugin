@@ -70,10 +70,16 @@ final class GiftCardFitsCartValidator extends ConstraintValidator
         $cart = $value->getCart();
         $cartCurrencyCode = (string) $cart->getCurrencyCode();
 
-        // The currency the amount was typed in, which information an application builds itself may not name
+        // The currency the amount was typed in, which information an application builds itself may not name, and which a
+        // request can name as anything until GiftCardCurrencyIsOffered has refused it: a currency the channel does not
+        // offer is not taken, as converting from a currency without an exchange rate is one to one
         $channel = $cart->getChannel();
-        $currencyCode = $information->getCurrencyCode()
-            ?? (null === $channel ? $cartCurrencyCode : $this->currencyProvider->getCurrencyCode($channel));
+        $currencyCode = $information->getCurrencyCode();
+        if (null === $channel) {
+            $currencyCode = $cartCurrencyCode;
+        } elseif (null === $currencyCode || !in_array($currencyCode, $this->currencyProvider->getCurrencyCodes($channel), true)) {
+            $currencyCode = $this->currencyProvider->getCurrencyCode($channel);
+        }
         $unitPrice = $this->currencyConverter->convert($amount, $currencyCode, $cartCurrencyCode);
 
         // An order discount or shipping keeps the total apart from the items total, so the larger of the two is the

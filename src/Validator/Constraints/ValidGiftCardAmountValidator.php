@@ -53,10 +53,15 @@ final class ValidGiftCardAmountValidator extends ConstraintValidator
             return;
         }
 
-        // The amount is in the currency the card is held in, and held to the limits in that currency without conversion
+        // The amount is in the currency the card is held in, and held to the limits in that currency without conversion.
+        // The form submits that currency, so it can be anything a request says until GiftCardCurrencyIsOffered has
+        // refused it, which does not keep this from running: a currency the channel does not offer is not taken, or the
+        // money formatter would fail on a code it cannot format
         $information = $this->context->getObject();
-        $currencyCode = ($information instanceof GiftCardInformationInterface ? $information->getCurrencyCode() : null)
-            ?? $this->currencyProvider->getCurrencyCode($channel);
+        $currencyCode = $information instanceof GiftCardInformationInterface ? $information->getCurrencyCode() : null;
+        if (null === $currencyCode || !in_array($currencyCode, $this->currencyProvider->getCurrencyCodes($channel), true)) {
+            $currencyCode = $this->currencyProvider->getCurrencyCode($channel);
+        }
 
         $limits = $this->amountLimitsProvider->getLimits($channel, $currencyCode);
 

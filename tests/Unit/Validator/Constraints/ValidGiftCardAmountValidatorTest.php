@@ -214,6 +214,40 @@ final class ValidGiftCardAmountValidatorTest extends ConstraintValidatorTestCase
             ->assertRaised();
     }
 
+    /**
+     * The form submits the currency, so it can be anything a request says until GiftCardCurrencyIsOffered has refused it,
+     * which does not keep this from running. A currency the channel does not offer is not taken, or the money formatter
+     * would fail on a code it cannot format: the amount is held to the limits in the currency the customer browses in
+     *
+     * @test
+     *
+     * @dataProvider currenciesTheChannelDoesNotOffer
+     */
+    public function it_holds_the_amount_to_the_limits_in_the_currency_browsed_in_when_the_submitted_one_is_not_offered(string $currencyCode): void
+    {
+        $this->channelLimits(100, 50000);
+        $this->localeContext->getLocaleCode()->willReturn('da_DK');
+
+        $information = new GiftCardInformation(99);
+        $information->setCurrencyCode($currencyCode);
+        $this->setObject($information);
+
+        $this->validator->validate(99, new ValidGiftCardAmount());
+
+        $this->buildViolation('setono_sylius_gift_card.gift_card_information.amount.too_low')
+            ->setParameter('{{ minimum }}', '1,00 kr.')
+            ->assertRaised();
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function currenciesTheChannelDoesNotOffer(): iterable
+    {
+        yield 'a currency of another channel' => ['SEK'];
+        yield 'a code no currency has' => ['X'];
+    }
+
     /** @test */
     public function it_only_validates_amounts_in_minor_units(): void
     {
@@ -248,6 +282,7 @@ final class ValidGiftCardAmountValidatorTest extends ConstraintValidatorTestCase
         // the customer browses in the channel's base currency
         $currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
         $currencyProvider->getCurrencyCode(Argument::any())->willReturn('DKK');
+        $currencyProvider->getCurrencyCodes(Argument::any())->willReturn(['DKK', 'EUR']);
 
         return new ValidGiftCardAmountValidator(
             $this->channelContext->reveal(),

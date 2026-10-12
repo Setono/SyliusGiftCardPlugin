@@ -255,6 +255,33 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
     }
 
     /**
+     * A request can name any currency until GiftCardCurrencyIsOffered has refused it, which does not keep this from
+     * running. One the channel does not offer is not taken, as converting from a currency without an exchange rate is one
+     * to one: the amount is taken in the currency the customer browses in, $2,800,000.00 here, which the cart holds
+     *
+     * @test
+     */
+    public function it_takes_the_amount_in_the_currency_browsed_in_when_the_submitted_one_is_not_offered(): void
+    {
+        $this->validator->validate($this->command(cartTotal: 0, amount: 280_000_000, currencyCode: 'X'), new GiftCardFitsCart());
+
+        $this->assertNoViolation();
+    }
+
+    /**
+     * A currency the channel offers is taken as submitted, whatever the customer browses in by now: DKK 3,000,000.00
+     * fits the cart, which the same amount in dollars would not
+     *
+     * @test
+     */
+    public function it_takes_the_amount_in_the_submitted_currency_when_the_channel_offers_it(): void
+    {
+        $this->validator->validate($this->command(cartTotal: 0, amount: 300_000_000, currencyCode: 'DKK'), new GiftCardFitsCart());
+
+        $this->assertNoViolation();
+    }
+
+    /**
      * $2,800,000.00 is DKK 20,888,000.00, which the cart holds
      *
      * @test
@@ -326,6 +353,7 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
         // the customer browses in dollars, unless a test says otherwise
         $this->currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
         $this->currencyProvider->getCurrencyCode(Argument::any())->willReturn('USD');
+        $this->currencyProvider->getCurrencyCodes(Argument::any())->willReturn(['DKK', 'USD']);
 
         // kroner at 7.46 to the dollar
         return new GiftCardFitsCartValidator(self::MAXIMUM, $this->moneyFormatter->reveal(), $this->localeContext->reveal(), new FixedRateCurrencyConverter(), $this->currencyProvider->reveal());
@@ -363,6 +391,11 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
 
         $information = new GiftCardInformation($amount);
         $information->setCurrencyCode($currencyCode);
+
+        // a currency is checked against the channel's
+        if (null !== $currencyCode) {
+            $cart->setChannel(new Channel());
+        }
 
         return new AddToCartCommand($cart, $item, $information);
     }
