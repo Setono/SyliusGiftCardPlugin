@@ -12,12 +12,14 @@
             <argument type="service" id="sylius.repository.currency"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
             <argument>%setono_sylius_gift_card.minimum_code_length%</argument>
         </service>
 
         <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardFixture">
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardExampleFactory"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
 
             <tag name="sylius_fixtures.fixture"/>
         </service>
