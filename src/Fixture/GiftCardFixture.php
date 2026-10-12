@@ -20,7 +20,7 @@ class GiftCardFixture extends AbstractResourceFixture
         $resourceNode
             ->children()
                 ->scalarNode('code')
-                    ->info('The code of the card, of at least setono_sylius_gift_card.minimum_code_length characters. Generated when left out')
+                    ->info('The code of the card, of at least setono_sylius_gift_card.minimum_code_length letters and digits. Stored in capitals with dashes and spaces dropped, the way the cart looks codes up. Generated when left out')
                     ->cannotBeEmpty()
                 ->end()
                 ->scalarNode('channel')

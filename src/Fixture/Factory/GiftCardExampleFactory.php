@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Fixture\Factory;
 
 use Setono\SyliusGiftCardPlugin\DependencyInjection\Configuration;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
@@ -43,6 +44,7 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
         protected RepositoryInterface $currencyRepository,
         protected GiftCardBalanceOperatorInterface $balanceOperator,
         protected GiftCardCurrencyProviderInterface $currencyProvider,
+        protected GiftCardCodeNormalizerInterface $giftCardCodeNormalizer,
         protected int $minimumCodeLength = Configuration::MINIMUM_CODE_LENGTH,
     ) {
         $this->faker = \Faker\Factory::create();
@@ -121,9 +123,24 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
                 // The configuration refuses a minimum_code_length outside these bounds, but cannot see the value of
                 // one taken from an environment variable, which is only known at runtime
                 Assert::range($this->minimumCodeLength, Configuration::MINIMUM_CODE_LENGTH, Configuration::MAXIMUM_CODE_LENGTH, 'The minimum_code_length (%s) must be between %2$s and %3$s');
-                Assert::minLength($code, $this->minimumCodeLength, 'A gift card code must have at least %2$s characters, so it cannot be guessed, got: %s');
 
-                return $code;
+                // The cart normalizes the code a customer types before looking it up, so a code stored the way the
+                // fixture wrote it, in lowercase or with dashes and spaces, could never be redeemed. It is normalized
+                // first, like a code typed in the admin, so only its letters and digits count towards the minimum,
+                // and a code that normalizes to an existing card's code finds that card
+                $normalized = $this->giftCardCodeNormalizer->normalize($code);
+
+                // Not Assert::minLength(), which would quote the normalized code: the message quotes the code the way
+                // the fixture wrote it, which is what can be found in the file
+                if (strlen($normalized) < $this->minimumCodeLength) {
+                    throw new \InvalidArgumentException(sprintf(
+                        'A gift card code must have at least %d letters and digits, so it cannot be guessed, got: "%s"',
+                        $this->minimumCodeLength,
+                        $code,
+                    ));
+                }
+
+                return $normalized;
             })
 
             // Resolved without looking at the channel: when the fixture names no channel, the channel is worked out from

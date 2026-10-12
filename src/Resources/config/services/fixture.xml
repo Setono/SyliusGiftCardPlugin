@@ -12,6 +12,7 @@
             <argument type="service" id="sylius.repository.currency"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
             <argument>%setono_sylius_gift_card.minimum_code_length%</argument>
         </service>
 

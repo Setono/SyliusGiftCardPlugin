@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardExampleFactory;
+use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
@@ -400,9 +401,64 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
     public function it_rejects_a_code_shorter_than_the_minimum(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('A gift card code must have at least 12 characters, so it cannot be guessed, got: "SHORTCODE01"');
+        $this->expectExceptionMessage('A gift card code must have at least 12 letters and digits, so it cannot be guessed, got: "SHORTCODE01"');
 
         $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'SHORTCODE01', 'amount' => 10]]]);
+    }
+
+    /**
+     * The cart normalizes the code a customer types before it looks the card up, so a code is stored normalized
+     * however the fixture writes it. One stored as written, in lowercase or with dashes and spaces, could never be
+     * redeemed (#490)
+     *
+     * @test
+     */
+    public function it_stores_the_code_the_way_the_cart_looks_it_up(): void
+    {
+        $this->loadFixture('setono_gift_card', ['custom' => ['printed' => ['code' => 'abcd-efgh jkmn-pqrs', 'amount' => 50]]]);
+
+        /** @var GiftCardCodeNormalizerInterface $normalizer */
+        $normalizer = self::getContainer()->get(GiftCardCodeNormalizerInterface::class);
+
+        foreach (['abcd-efgh jkmn-pqrs', 'ABCD-EFGH-JKMN-PQRS', 'ABCDEFGHJKMNPQRS'] as $typed) {
+            $this->manager->clear();
+
+            $giftCard = $this->repository->findOneEnabledByCodeAndChannel($normalizer->normalize($typed), $this->getChannel());
+            self::assertInstanceOf(GiftCardInterface::class, $giftCard, sprintf('the cart should find the card when "%s" is typed', $typed));
+            self::assertSame('ABCDEFGHJKMNPQRS', $giftCard->getCode());
+            self::assertSame(5000, $giftCard->getAmount());
+        }
+    }
+
+    /**
+     * Only the letters and digits of a code count towards the minimum, as in the admin, since those are all that
+     * is stored
+     *
+     * @test
+     */
+    public function it_counts_only_the_letters_and_digits_of_a_code_towards_the_minimum(): void
+    {
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'abcd-efgh-jkmn']]]);
+        self::assertSame('ABCDEFGHJKMN', $this->findGiftCard('ABCDEFGHJKMN')->getCode());
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('A gift card code must have at least 12 letters and digits, so it cannot be guessed, got: "ab-cd-ef-gh-jk"');
+
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'ab-cd-ef-gh-jk']]]);
+    }
+
+    /**
+     * Fixtures may be loaded again with a code written another way, which is still the same card
+     *
+     * @test
+     */
+    public function it_updates_the_gift_card_whose_code_a_code_written_another_way_normalizes_to(): void
+    {
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'FIXTURERELOAD02', 'amount' => 10]]]);
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'fixture-reload-02', 'amount' => 20]]]);
+
+        self::assertCount(1, $this->repository->findAll());
+        self::assertSame(2000, $this->findGiftCard('FIXTURERELOAD02')->getAmount());
     }
 
     /**
