@@ -8,6 +8,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
+use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Currency\Model\Currency;
@@ -19,7 +20,7 @@ use Symfony\Component\Routing\RouterInterface;
 /**
  * Issuing and deleting gift cards through Sylius' resource routes, with what the plugin hooks into them: the
  * opening balance is recorded when a card is issued, along with the administrator who issued it, and a card whose
- * balance has moved cannot be deleted
+ * balance has ever moved cannot be deleted
  */
 final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
 {
@@ -508,6 +509,34 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
         self::assertTrue($response->isRedirect());
         self::assertStringContainsString('The gift card cannot be removed.', (string) $this->followRedirect($response)->getContent());
         self::assertSame(3000, $this->reloadGiftCard($giftCard)->getAmount());
+    }
+
+    /**
+     * A balance back where it started is not a card nothing has happened to: deleting it would take the adjustments
+     * on its ledger with it (#491)
+     *
+     * @test
+     */
+    public function it_refuses_to_delete_a_gift_card_whose_balance_moved_and_came_back(): void
+    {
+        $giftCard = $this->persistGiftCard('READJUSTED', 5000);
+        $token = $this->deleteToken($giftCard);
+
+        /** @var GiftCardBalanceOperatorInterface $balanceOperator */
+        $balanceOperator = self::getContainer()->get(GiftCardBalanceOperatorInterface::class);
+        $giftCard = $this->reloadGiftCard($giftCard);
+        $balanceOperator->adjust($giftCard, -2000, 'Typed the wrong amount');
+        $balanceOperator->adjust($giftCard, 2000, 'Undid the wrong amount');
+        $this->manager->flush();
+
+        $response = $this->delete($giftCard, $token);
+
+        self::assertTrue($response->isRedirect());
+        self::assertStringContainsString('The gift card cannot be removed.', (string) $this->followRedirect($response)->getContent());
+
+        $giftCard = $this->reloadGiftCard($giftCard);
+        self::assertSame(5000, $giftCard->getAmount());
+        self::assertCount(2, $giftCard->getTransactions(), 'the adjustments stay on the ledger');
     }
 
     /**

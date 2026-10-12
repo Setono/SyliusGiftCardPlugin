@@ -121,7 +121,22 @@ class GiftCard implements GiftCardInterface
             return true;
         }
 
-        return null === $this->orderItemUnit && $this->amount === $this->initialAmount;
+        // Anything else only while nothing has happened to it. Its balance being back where it started is not enough:
+        // a card restored after a cancelled order, or adjusted down and up again, has a history, and deleting the card
+        // would take its ledger rows and its links to those orders with it (#491). A balance that moved still counts,
+        // for a card created without the balance operator, whose ledger does not account for it. The cheap checks go
+        // first, so the grid only loads the collections of the cards that pass them
+        if (null !== $this->orderItemUnit || $this->amount !== $this->initialAmount || $this->hasAppliedOrders()) {
+            return false;
+        }
+
+        foreach ($this->transactions as $transaction) {
+            if (GiftCardTransactionInterface::TYPE_ISSUE !== $transaction->getType()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function getOrderItemUnit(): ?OrderItemUnitInterface

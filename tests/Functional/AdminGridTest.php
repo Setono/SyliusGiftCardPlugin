@@ -375,16 +375,31 @@ final class AdminGridTest extends AdminFunctionalTestCase
     }
 
     /**
-     * A card that was bought or whose balance has moved cannot be deleted, so its row does not offer to
+     * A card that was bought, applied to an order or whose balance has moved cannot be deleted, so its row does not
+     * offer to. A balance back where it started does not make a card deletable again (#491)
      *
      * @test
      */
     public function it_only_offers_to_delete_a_card_that_may_be_deleted(): void
     {
+        /** @var GiftCardBalanceOperatorInterface $balanceOperator */
+        $balanceOperator = self::getContainer()->get(GiftCardBalanceOperatorInterface::class);
+
         $untouched = $this->persistGiftCard('UNTOUCHED', 5000);
+        $balanceOperator->issue($untouched);
         $spent = $this->persistGiftCard('PARTLYSPENT', 5000);
         $spent->setAmount(1000);
         $paid = $this->persistBoughtGiftCard('PAID', enabled: true);
+        $readjusted = $this->persistGiftCard('READJUSTED', 5000);
+        $balanceOperator->adjust($readjusted, -2000, 'Typed the wrong amount');
+        $balanceOperator->adjust($readjusted, 2000, 'Undid the wrong amount');
+        $applied = $this->persistGiftCard('APPLIED', 5000);
+        $cart = new Order();
+        $cart->setChannel($this->getChannel());
+        $cart->setCurrencyCode('USD');
+        $cart->setLocaleCode('en_US');
+        $cart->addGiftCard($applied);
+        $this->manager->persist($cart);
         $this->manager->flush();
 
         $response = $this->request('GET', '/admin/gift-cards/');
@@ -392,6 +407,8 @@ final class AdminGridTest extends AdminFunctionalTestCase
         self::assertCount(1, $this->deleteForms($response, $untouched));
         self::assertCount(0, $this->deleteForms($response, $spent));
         self::assertCount(0, $this->deleteForms($response, $paid));
+        self::assertCount(0, $this->deleteForms($response, $readjusted));
+        self::assertCount(0, $this->deleteForms($response, $applied));
     }
 
     /** @test */

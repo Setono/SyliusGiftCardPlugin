@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardStatus;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransaction;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
@@ -241,6 +242,10 @@ final class GiftCardTest extends TestCase
         $giftCard->setAmount(5000);
 
         self::assertTrue($giftCard->isDeletable());
+
+        $this->addTransaction($giftCard, GiftCardTransactionInterface::TYPE_ISSUE, 5000);
+
+        self::assertTrue($giftCard->isDeletable(), 'its issuance is all its ledger holds');
     }
 
     /** @test */
@@ -249,6 +254,63 @@ final class GiftCardTest extends TestCase
         $giftCard = new GiftCard();
         $giftCard->setInitialAmount(5000);
         $giftCard->setAmount(3000);
+
+        self::assertFalse($giftCard->isDeletable());
+    }
+
+    /**
+     * A card whose balance is back where it started has a history all the same, which deleting it would take with it
+     * (#491)
+     *
+     * @dataProvider provideHistoriesEndingAtTheInitialAmount
+     *
+     * @test
+     *
+     * @param list<array{string, int}> $movements
+     */
+    public function it_cannot_be_deleted_once_its_balance_moved_and_came_back(array $movements): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setInitialAmount(5000);
+        $giftCard->setAmount(5000);
+        $this->addTransaction($giftCard, GiftCardTransactionInterface::TYPE_ISSUE, 5000);
+
+        foreach ($movements as [$type, $amount]) {
+            $this->addTransaction($giftCard, $type, $amount);
+        }
+
+        self::assertFalse($giftCard->isDeletable());
+    }
+
+    /**
+     * @return iterable<string, array{list<array{string, int}>}>
+     */
+    public static function provideHistoriesEndingAtTheInitialAmount(): iterable
+    {
+        yield 'redeemed on an order, then restored when it was cancelled or the payment refunded' => [[
+            [GiftCardTransactionInterface::TYPE_REDEEM, -2000],
+            [GiftCardTransactionInterface::TYPE_RESTORE, 2000],
+        ]];
+        yield 'adjusted down and up again in the admin' => [[
+            [GiftCardTransactionInterface::TYPE_MANUAL, -2000],
+            [GiftCardTransactionInterface::TYPE_MANUAL, 2000],
+        ]];
+    }
+
+    /**
+     * Applied to an order, a card is linked to it even before the order is placed, and deleting the card would take
+     * the link with it
+     *
+     * @test
+     */
+    public function it_cannot_be_deleted_once_it_was_applied_to_an_order(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->setInitialAmount(5000);
+        $giftCard->setAmount(5000);
+        $this->addTransaction($giftCard, GiftCardTransactionInterface::TYPE_ISSUE, 5000);
+
+        $giftCard->addAppliedOrder(new Order());
 
         self::assertFalse($giftCard->isDeletable());
     }
@@ -346,6 +408,15 @@ final class GiftCardTest extends TestCase
     public function it_asks_for_the_notification_email_by_default(): void
     {
         self::assertTrue((new GiftCard())->getSendNotificationEmail());
+    }
+
+    private function addTransaction(GiftCard $giftCard, string $type, int $amount): void
+    {
+        $transaction = new GiftCardTransaction();
+        $transaction->setType($type);
+        $transaction->setAmount($amount);
+        $transaction->setGiftCard($giftCard);
+        $giftCard->addTransaction($transaction);
     }
 
     private function boughtGiftCard(): GiftCard
