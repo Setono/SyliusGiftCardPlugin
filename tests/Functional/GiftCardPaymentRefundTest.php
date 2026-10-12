@@ -73,6 +73,32 @@ final class GiftCardPaymentRefundTest extends OrderLifecycleTestCase
     }
 
     /**
+     * Disabling the gift card payment method stops new gift card payments (#484), not the ones already made: a payment
+     * is told for a gift card payment by its method's code, whatever the method's state, so cancelling the order, which
+     * finds its gift card payments and refunds them, gives the card its balance back all the same
+     *
+     * @test
+     *
+     * @dataProvider adapters
+     */
+    public function cancelling_the_order_restores_the_balance_while_the_gift_card_payment_method_is_disabled(string $adapter): void
+    {
+        $this->useStateMachineAdapter($adapter);
+
+        [$order, $giftCard, $payment] = $this->placePaidOrderCoveredInPartByAGiftCard('DISABLEDREFUND01');
+
+        $paymentMethod = $payment->getMethod();
+        self::assertNotNull($paymentMethod);
+        $paymentMethod->disable();
+        $this->manager->flush();
+
+        $this->apply($order, OrderTransitions::GRAPH, OrderTransitions::TRANSITION_CANCEL);
+
+        self::assertSame(PaymentInterface::STATE_REFUNDED, $payment->getState(), 'rollback should have refunded the gift card payment');
+        $this->assertRestoredOnce($order, $giftCard, $payment);
+    }
+
+    /**
      * Asserts against the database rather than the identity map: the balance and the ledger are read back with
      * queries, so this is what was actually persisted
      */

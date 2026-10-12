@@ -34,7 +34,7 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
         $this->expectException(GiftCardPaymentMethodNotFoundException::class);
         $this->expectExceptionMessage('setono:gift-card:create-payment-method');
 
-        $this->provider()->getPaymentMethod();
+        $this->provider()->getEnabledPaymentMethod();
     }
 
     /**
@@ -57,7 +57,7 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
 
         // gateway_name is a NOT NULL column, so createWithGateway() alone (which only sets the factory name) would
         // have failed the command's flush
-        $paymentMethod = $this->provider()->getPaymentMethod();
+        $paymentMethod = $this->provider()->getEnabledPaymentMethod();
         self::assertSame('gift_card', $paymentMethod->getCode());
         self::assertTrue($paymentMethod->isEnabled());
         self::assertCount(0, $paymentMethod->getChannels());
@@ -75,7 +75,7 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
 
         $this->runCommand();
         $this->manager->clear();
-        $created = $this->provider()->getPaymentMethod();
+        $created = $this->provider()->getEnabledPaymentMethod();
 
         $tester = $this->runCommand();
 
@@ -83,7 +83,43 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
         self::assertStringContainsString('The gift card payment method "gift_card" already exists', $tester->getDisplay());
 
         self::assertCount(1, $this->paymentMethodRepository()->findBy(['code' => 'gift_card']));
-        self::assertSame($created->getId(), $this->provider()->getPaymentMethod()->getId());
+        self::assertSame($created->getId(), $this->provider()->getEnabledPaymentMethod()->getId());
+    }
+
+    /**
+     * An administrator may have disabled the method on purpose, to stop gift cards being redeemed for a while (#484), so
+     * a deploy running the command leaves it disabled, and only says so
+     *
+     * @test
+     */
+    public function the_command_leaves_a_disabled_payment_method_disabled_and_says_so(): void
+    {
+        $this->createGiftCardPaymentMethod()->disable();
+        $this->manager->flush();
+        $this->manager->clear();
+
+        $tester = $this->runCommand();
+
+        self::assertSame(Command::SUCCESS, $tester->getStatusCode());
+        $display = (string) preg_replace('/\s+/', ' ', $tester->getDisplay());
+        self::assertStringContainsString('The gift card payment method "gift_card" already exists', $display);
+        self::assertStringContainsString('The gift card payment method "gift_card" is disabled, so the shop refuses gift cards until it is enabled again in the admin', $display);
+
+        $this->manager->clear();
+        self::assertCount(1, $this->paymentMethodRepository()->findBy(['code' => 'gift_card']));
+        $paymentMethod = $this->provider()->findPaymentMethod();
+        self::assertInstanceOf(PaymentMethodInterface::class, $paymentMethod);
+        self::assertFalse($paymentMethod->isEnabled());
+        self::assertNull($this->provider()->findEnabledPaymentMethod());
+    }
+
+    /** @test */
+    public function the_command_says_nothing_about_an_enabled_payment_method_being_disabled(): void
+    {
+        $this->createGiftCardPaymentMethod();
+        $this->manager->clear();
+
+        self::assertStringNotContainsString('disabled', $this->runCommand()->getDisplay());
     }
 
     /**
@@ -113,7 +149,7 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
         $this->runCommand();
         $this->manager->clear();
 
-        $paymentMethod = $this->provider()->getPaymentMethod();
+        $paymentMethod = $this->provider()->getEnabledPaymentMethod();
 
         $names = [];
         foreach ($paymentMethod->getTranslations()->getKeys() as $localeCode) {
@@ -155,7 +191,7 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
     {
         $this->runCommand();
         $this->manager->clear();
-        $this->provider()->getPaymentMethod()->addChannel($this->getChannel());
+        $this->provider()->getEnabledPaymentMethod()->addChannel($this->getChannel());
         $this->manager->flush();
         $this->manager->clear();
 
@@ -163,7 +199,7 @@ final class GiftCardPaymentMethodSetupTest extends GiftCardFunctionalTestCase
         $this->manager->clear();
 
         $channelCodes = [];
-        foreach ($this->provider()->getPaymentMethod()->getChannels() as $channel) {
+        foreach ($this->provider()->getEnabledPaymentMethod()->getChannels() as $channel) {
             $channelCodes[] = $channel->getCode();
         }
 

@@ -10,6 +10,7 @@ use Setono\SyliusGiftCardPlugin\Checker\GiftCardSetupCheckerInterface;
 use Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardSetupExtension;
 use Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardSetupRuntime;
 use Sylius\Component\Core\Model\Channel;
+use Sylius\Component\Core\Model\PaymentMethod;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 use Twig\RuntimeLoader\FactoryRuntimeLoader;
@@ -52,6 +53,27 @@ final class GiftCardSetupExtensionTest extends TestCase
 
         $twig = new Environment(new ArrayLoader([
             'warning' => '{{ setono_gift_card_missing_payment_method_code() }}',
+        ]));
+        $twig->addExtension(new GiftCardSetupExtension());
+        $twig->addRuntimeLoader(new FactoryRuntimeLoader([
+            GiftCardSetupRuntime::class => static fn (): GiftCardSetupRuntime => new GiftCardSetupRuntime($checker->reveal(), 'gift_card'),
+        ]));
+
+        self::assertSame('gift_card', $twig->render('warning'));
+    }
+
+    /** @test */
+    public function it_gives_templates_the_disabled_payment_method(): void
+    {
+        $paymentMethod = new PaymentMethod();
+        $paymentMethod->setCode('gift_card');
+        $paymentMethod->disable();
+
+        $checker = $this->prophesize(GiftCardSetupCheckerInterface::class);
+        $checker->getDisabledPaymentMethod()->willReturn($paymentMethod);
+
+        $twig = new Environment(new ArrayLoader([
+            'warning' => '{{ setono_gift_card_disabled_payment_method().code }}',
         ]));
         $twig->addExtension(new GiftCardSetupExtension());
         $twig->addRuntimeLoader(new FactoryRuntimeLoader([

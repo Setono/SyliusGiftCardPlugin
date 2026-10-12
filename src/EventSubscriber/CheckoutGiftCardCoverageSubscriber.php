@@ -36,7 +36,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * the resolver gets to ask, this removes the cards that cannot be used any more (or, when they all still can but
  * cover less, re-sizes the gateway payment), tells the customer why and sends them back to the cart, from where
  * checkout starts over and the payment step is no longer skipped. While the shop has no payment method to make gift
- * card payments with, no card can pay, so every card is removed.
+ * card payments with, or has disabled it, no card can pay, so every card is removed.
  *
  * It answers the request with that redirect, which makes it the controller of the request: it flushes what it changed
  * itself, as nothing after it does
@@ -84,7 +84,7 @@ final class CheckoutGiftCardCoverageSubscriber implements EventSubscriberInterfa
             return;
         }
 
-        $flashes = null === $this->paymentMethodProvider->findPaymentMethod()
+        $flashes = null === $this->paymentMethodProvider->findEnabledPaymentMethod()
             ? $this->removeEveryGiftCard($cart)
             : $this->removeIneligibleGiftCards($cart);
 
@@ -101,17 +101,27 @@ final class CheckoutGiftCardCoverageSubscriber implements EventSubscriberInterfa
     }
 
     /**
-     * The shop has no payment method to make gift card payments with, so the cards cannot pay for the order at all. The
-     * shop refuses new cards while the method is missing, so these were applied before it went missing
+     * The shop has no payment method to make gift card payments with, or has disabled it, so the cards cannot pay for
+     * the order at all. The shop refuses new cards while the method is missing or disabled, so these were applied
+     * before that
      *
      * @return list<array{message: string, parameters: array<string, string>}>
      */
     private function removeEveryGiftCard(OrderInterface $cart): array
     {
-        $this->logger->error(sprintf(
-            'The gift cards on cart %s were removed as checkout completed, because the gift card payment method does not exist. Create it with bin/console setono:gift-card:create-payment-method',
-            (string) $cart->getId(),
-        ));
+        // A missing method is a setup step left undone, while a disabled one is the merchant's choice, which is no
+        // error of the shop's
+        if (null === $this->paymentMethodProvider->findPaymentMethod()) {
+            $this->logger->error(sprintf(
+                'The gift cards on cart %s were removed as checkout completed, because the gift card payment method does not exist. Create it with bin/console setono:gift-card:create-payment-method',
+                (string) $cart->getId(),
+            ));
+        } else {
+            $this->logger->info(sprintf(
+                'The gift cards on cart %s were removed as checkout completed, because the gift card payment method is disabled',
+                (string) $cart->getId(),
+            ));
+        }
 
         foreach ($cart->getGiftCards()->toArray() as $giftCard) {
             // detaches the card and re-processes the cart, so the gateway payment is sized to the whole order again

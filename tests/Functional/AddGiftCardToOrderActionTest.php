@@ -6,6 +6,8 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
+use Sylius\Component\Core\Model\PaymentMethod;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 /**
  * A gift card code is a bearer token, and the cart's gift card form is the one place in the shop where codes can be
@@ -30,6 +32,8 @@ final class AddGiftCardToOrderActionTest extends AdminFunctionalTestCase
 
     private int $cartId;
 
+    private int $giftCardPaymentMethodId;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -37,7 +41,7 @@ final class AddGiftCardToOrderActionTest extends AdminFunctionalTestCase
         $this->getChannel()->setHostname('shop.example.test');
 
         // the shop refuses every gift card, before looking at the code, until it is set up
-        $this->createGiftCardPaymentMethod();
+        $this->giftCardPaymentMethodId = (int) $this->createGiftCardPaymentMethod()->getId();
 
         $cart = new Order();
         $cart->setChannel($this->getChannel());
@@ -132,6 +136,26 @@ final class AddGiftCardToOrderActionTest extends AdminFunctionalTestCase
     }
 
     /**
+     * A disabled gift card payment method refuses gift cards just as a missing one does (#484), before the code is looked
+     * at, so a usable card and an unknown code get the same answer. The cart keeps offering the form all the same
+     *
+     * @test
+     */
+    public function it_refuses_every_code_while_the_gift_card_payment_method_is_disabled(): void
+    {
+        $this->createEnabledGiftCard('USABLE0000000002', 5000);
+        $paymentMethod = $this->giftCardPaymentMethod();
+        $paymentMethod->disable();
+        $this->manager->flush();
+
+        foreach (['USABLE0000000002', self::UNKNOWN] as $code) {
+            self::assertSame(['Gift cards cannot be used in this shop at the moment.'], $this->errorsWhenApplying($code), $code);
+        }
+
+        self::assertSame([], $this->codesOnCart());
+    }
+
+    /**
      * Submits the code with the cart page's form, with the token the page renders or without any
      *
      * @return list<string> the errors the cart page shows afterwards
@@ -153,6 +177,14 @@ final class AddGiftCardToOrderActionTest extends AdminFunctionalTestCase
         self::assertSame(200, $cart->getStatusCode(), 'the cart page should render');
 
         return self::textsOf($cart, self::ERRORS);
+    }
+
+    private function giftCardPaymentMethod(): PaymentMethodInterface
+    {
+        $paymentMethod = $this->manager->find(PaymentMethod::class, $this->giftCardPaymentMethodId);
+        self::assertInstanceOf(PaymentMethodInterface::class, $paymentMethod);
+
+        return $paymentMethod;
     }
 
     /**

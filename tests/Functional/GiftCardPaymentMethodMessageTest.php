@@ -50,6 +50,11 @@ final class GiftCardPaymentMethodMessageTest extends AdminFunctionalTestCase
         self::assertStringContainsString('so the code has to stay gift_card.', $message[0]);
         self::assertStringContainsString('gift cards pay with it in every channel', $message[0]);
         self::assertStringContainsString('Sylius RefundPlugin', $message[0]);
+        // and that it stays enabled, as disabling it stops gift cards being redeemed (#484)
+        self::assertSame(
+            ['Checkout never offers it to customers, so it does not need disabling to keep it out of checkout. Disabling it stops customers paying with gift cards altogether, until it is enabled again.'],
+            self::textsOf($page, self::MESSAGE . '//*[@data-test-gift-card-payment-method-enabled]'),
+        );
         self::assertCount(1, self::textsOf($page, self::MESSAGE . '/following::form[@name="sylius_payment_method"]'), 'the message should come before the form');
 
         // and the form shows the method in none of the shop's channels

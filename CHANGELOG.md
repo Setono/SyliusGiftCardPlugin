@@ -85,6 +85,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   fixture; until it exists the shop refuses gift cards and every admin page warns about it. It is created in no channel,
   which is all it needs: gift card payments are made with it in every channel whichever channels it is in, and in a
   channel Sylius RefundPlugin would list it as a refund destination. Its create and edit pages in the admin explain this
+- The gift card payment method's **Enabled** switch stops gift cards being redeemed: while the method is disabled the
+  shop refuses gift cards as it does while the method is missing, and every admin page says so, with a link to the
+  method's edit page. Gift card payments already made, and refunding them, are not affected
 
 ### Removed
 - **The API layer** — the whole API Platform / `sylius/api-bundle` integration. Stay on `0.12.x` if you need it

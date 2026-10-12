@@ -9,6 +9,7 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Checker\GiftCardSetupCheckerInterface;
 use Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardSetupRuntime;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 final class GiftCardSetupRuntimeTest extends TestCase
 {
@@ -87,5 +88,30 @@ final class GiftCardSetupRuntimeTest extends TestCase
 
         self::assertNull($runtime->getMissingPaymentMethodCode());
         self::assertNull($runtime->getMissingPaymentMethodCode());
+    }
+
+    /**
+     * The warning about a disabled payment method links to its edit page, so it is given the method, and only while the
+     * shop sells gift cards with it disabled. Nothing to warn about is an answer as well, which is kept for the request
+     * like any other, and forgotten on reset
+     *
+     * @test
+     */
+    public function it_gives_the_disabled_payment_method_while_it_is_disabled(): void
+    {
+        $paymentMethod = $this->prophesize(PaymentMethodInterface::class)->reveal();
+
+        $checker = $this->prophesize(GiftCardSetupCheckerInterface::class);
+        $checker->getDisabledPaymentMethod()->willReturn(null, $paymentMethod)->shouldBeCalledTimes(2);
+
+        $runtime = new GiftCardSetupRuntime($checker->reveal(), 'gift_card');
+
+        self::assertNull($runtime->getDisabledPaymentMethod());
+        self::assertNull($runtime->getDisabledPaymentMethod());
+
+        $runtime->reset();
+
+        self::assertSame($paymentMethod, $runtime->getDisabledPaymentMethod());
+        self::assertSame($paymentMethod, $runtime->getDisabledPaymentMethod());
     }
 }

@@ -28,9 +28,9 @@ final class GiftCardCoverageGuard implements GiftCardCoverageGuardInterface
             return true;
         }
 
-        // Without the payment method the gift card payments cannot be made when the order is placed, so the cards
-        // pay nothing at all, whatever they cover on the cart
-        if (null === $this->paymentMethodProvider->findPaymentMethod()) {
+        // Without the payment method, or with it disabled, the gift card payments cannot be made when the order is
+        // placed, so the cards pay nothing at all, whatever they cover on the cart
+        if (null === $this->paymentMethodProvider->findEnabledPaymentMethod()) {
             return false;
         }
 

@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\LoggerInterface;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\CheckoutGiftCardCoverageSubscriber;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
@@ -52,6 +53,9 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
     /** @var ObjectProphecy<GiftCardPaymentMethodProviderInterface> */
     private ObjectProphecy $paymentMethodProvider;
 
+    /** @var ObjectProphecy<LoggerInterface> */
+    private ObjectProphecy $logger;
+
     protected function setUp(): void
     {
         $this->cartContext = $this->prophesize(CartContextInterface::class);
@@ -60,8 +64,12 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
         $this->orderProcessor = $this->prophesize(OrderProcessorInterface::class);
         $this->manager = $this->prophesize(EntityManagerInterface::class);
 
+        $paymentMethod = $this->prophesize(PaymentMethodInterface::class)->reveal();
         $this->paymentMethodProvider = $this->prophesize(GiftCardPaymentMethodProviderInterface::class);
-        $this->paymentMethodProvider->findPaymentMethod()->willReturn($this->prophesize(PaymentMethodInterface::class)->reveal());
+        $this->paymentMethodProvider->findPaymentMethod()->willReturn($paymentMethod);
+        $this->paymentMethodProvider->findEnabledPaymentMethod()->willReturn($paymentMethod);
+
+        $this->logger = $this->prophesize(LoggerInterface::class);
     }
 
     /** @test */
@@ -161,7 +169,33 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
     public function it_removes_every_gift_card_while_the_gift_card_payment_method_is_missing(): void
     {
         $this->paymentMethodProvider->findPaymentMethod()->willReturn(null);
+        $this->paymentMethodProvider->findEnabledPaymentMethod()->willReturn(null);
 
+        // a setup step left undone, which the shop's logs should show as an error
+        $this->logger->error(Argument::containingString('cart 42 were removed as checkout completed, because the gift card payment method does not exist'))->shouldBeCalledOnce();
+        $this->logger->info(Argument::any())->shouldNotBeCalled();
+
+        $this->assertEveryGiftCardIsRemoved();
+    }
+
+    /**
+     * A disabled method refuses gift cards just as a missing one does (#484). The merchant disabled it, so the cards are
+     * removed as they are while it is missing, but the shop's logs do not count that as an error
+     *
+     * @test
+     */
+    public function it_removes_every_gift_card_while_the_gift_card_payment_method_is_disabled(): void
+    {
+        $this->paymentMethodProvider->findEnabledPaymentMethod()->willReturn(null);
+
+        $this->logger->info(Argument::containingString('cart 42 were removed as checkout completed, because the gift card payment method is disabled'))->shouldBeCalledOnce();
+        $this->logger->error(Argument::any())->shouldNotBeCalled();
+
+        $this->assertEveryGiftCardIsRemoved();
+    }
+
+    private function assertEveryGiftCardIsRemoved(): void
+    {
         $first = $this->prophesize(GiftCardInterface::class)->reveal();
         $second = $this->prophesize(GiftCardInterface::class)->reveal();
 
@@ -210,6 +244,7 @@ final class CheckoutGiftCardCoverageSubscriberTest extends TestCase
             $urlGenerator->reveal(),
             $managerRegistry->reveal(),
             $this->paymentMethodProvider->reveal(),
+            $this->logger->reveal(),
         );
     }
 

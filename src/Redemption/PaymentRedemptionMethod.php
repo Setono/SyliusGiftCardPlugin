@@ -72,9 +72,9 @@ final class PaymentRedemptionMethod extends RedemptionMethod
         $paymentMethod = null;
 
         foreach ($entries as ['giftCard' => $giftCard, 'amount' => $amount]) {
-            // The checkout guard does not let an order through with gift cards while the method is missing, so this
-            // only throws for an order placed some other way
-            $paymentMethod ??= $this->paymentMethodProvider->getPaymentMethod();
+            // The checkout guard does not let an order through with gift cards while the method is missing or
+            // disabled, so this only throws for an order placed some other way
+            $paymentMethod ??= $this->paymentMethodProvider->getEnabledPaymentMethod();
 
             $payment = $this->paymentFactory->createNew();
             $payment->setMethod($paymentMethod);

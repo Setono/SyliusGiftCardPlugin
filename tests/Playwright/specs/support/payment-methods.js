@@ -3,11 +3,18 @@
  */
 
 const { expect } = require('@playwright/test');
-const { GRID_ROWS } = require('./admin');
+const { GRID_ROWS, setChecked } = require('./admin');
 const { clickAndWaitForPage } = require('./navigation');
 
 const FORM = 'form[name="sylius_payment_method"]';
 const INSTRUCTIONS = `${FORM} textarea[name$="[instructions]"]`;
+const ENABLED = `${FORM} input[name="sylius_payment_method[enabled]"]`;
+
+/**
+ * The code of the payment method gift card payments are made with: the redemption.payment_method_code setting, which the
+ * test application leaves at gift_card, and which the plugin's fixture gives the method it seeds
+ */
+const GIFT_CARD_PAYMENT_METHOD_CODE = 'gift_card';
 
 /**
  * Gives the payment method of the given code the given instructions, in every locale, so the shop shows them whichever
@@ -32,6 +39,42 @@ async function givePaymentMethodInstructions(page, code, instructions) {
         await page.goto(url);
         await saveInstructions(page, previous);
     };
+}
+
+/**
+ * Enables or disables the payment method of the given code through its edit form.
+ *
+ * Every spec of a shard shares one database, so the state is put back with the function this returns, which gives the
+ * method the state it had before
+ *
+ * @param {import('@playwright/test').Page} page an authenticated admin page
+ * @param {string} code
+ * @param {boolean} enabled
+ * @returns {Promise<() => Promise<void>>}
+ */
+async function setPaymentMethodEnabled(page, code, enabled) {
+    const url = await paymentMethodEditUrl(page, code);
+
+    await page.goto(url);
+    const previous = await page.locator(ENABLED).isChecked();
+    await saveEnabled(page, enabled);
+
+    return async () => {
+        await page.goto(url);
+        await saveEnabled(page, previous);
+    };
+}
+
+/**
+ * Ticks or unticks Enabled on the payment method whose form is open, and saves it
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {boolean} enabled
+ */
+async function saveEnabled(page, enabled) {
+    await setChecked(page.locator(ENABLED), enabled);
+    await clickAndWaitForPage(page, page.locator(`${FORM} button[type="submit"]`).first());
+    await expect(page.locator(ENABLED), 'saving the payment method should have kept the state').toBeChecked({ checked: enabled });
 }
 
 /**
@@ -99,4 +142,11 @@ async function saveInstructions(page, values) {
     expect(await page.locator(INSTRUCTIONS).evaluateAll((textareas) => textareas.map((textarea) => textarea.value))).toEqual(values);
 }
 
-module.exports = { givePaymentMethodInstructions, otherPaymentMethodEditUrl, paymentMethodEditUrl };
+module.exports = {
+    GIFT_CARD_PAYMENT_METHOD_CODE,
+    givePaymentMethodInstructions,
+    otherPaymentMethodEditUrl,
+    paymentMethodEditUrl,
+    saveEnabled,
+    setPaymentMethodEnabled,
+};

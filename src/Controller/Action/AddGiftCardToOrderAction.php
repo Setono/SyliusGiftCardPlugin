@@ -66,10 +66,17 @@ final class AddGiftCardToOrderAction
         }
 
         // A card applied now could not pay when the order is placed: the gift card payments are made with a payment
-        // method the shop sets up once, and the admin warns until it has. Every code gets the same answer, before
-        // the code is looked at, so this tells a guesser nothing about the code
-        if (null === $this->paymentMethodProvider->findPaymentMethod()) {
-            $this->logger->error('A customer tried to apply a gift card, but the gift card payment method does not exist. Create it with bin/console setono:gift-card:create-payment-method');
+        // method the shop sets up once and may disable, and the admin warns while it is missing or disabled. Every code
+        // gets the same answer, before the code is looked at, so this tells a guesser nothing about the code
+        if (null === $this->paymentMethodProvider->findEnabledPaymentMethod()) {
+            // A missing method is a setup step left undone, while a disabled one is the merchant's choice, which is no
+            // error of the shop's
+            if (null === $this->paymentMethodProvider->findPaymentMethod()) {
+                $this->logger->error('A customer tried to apply a gift card, but the gift card payment method does not exist. Create it with bin/console setono:gift-card:create-payment-method');
+            } else {
+                $this->logger->info('A customer tried to apply a gift card, but the gift card payment method is disabled');
+            }
+
             $this->addFlash($request, 'error', 'setono_sylius_gift_card.gift_card.redemption_unavailable');
 
             return $this->redirect($request);

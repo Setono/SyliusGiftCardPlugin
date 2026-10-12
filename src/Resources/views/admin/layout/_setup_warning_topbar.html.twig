@@ -1,11 +1,22 @@
-{# Shown in the top bar of every admin page while the gift card setup is not complete. The gift card index carries
-   the full explanation and both ways to fix it, and so does the designs index for a channel without a design #}
+{# Shown in the top bar of every admin page while the gift card setup is not complete, or while the gift card payment
+   method is disabled. Each label leads to where it is fixed: the gift card index, which carries the full explanation
+   and both ways to create the missing payment method, the disabled payment method's edit page, and the designs index
+   for a channel without a design #}
 {% set payment_method_code = setono_gift_card_missing_payment_method_code() %}
 {% if payment_method_code is not null %}
     <a class="item" href="{{ path('setono_sylius_gift_card_admin_gift_card_index') }}" {{ sylius_test_html_attribute('gift-card-payment-method-warning') }}>
         <div class="ui red label">
             <i class="warning sign icon"></i>
             {{ 'setono_sylius_gift_card.ui.payment_method_warning.topbar'|trans }}
+        </div>
+    </a>
+{% endif %}
+{% set disabled_payment_method = setono_gift_card_disabled_payment_method() %}
+{% if disabled_payment_method is not null %}
+    <a class="item" href="{{ path('sylius_admin_payment_method_update', {'id': disabled_payment_method.id}) }}" {{ sylius_test_html_attribute('gift-card-payment-method-disabled-warning') }}>
+        <div class="ui red label">
+            <i class="warning sign icon"></i>
+            {{ 'setono_sylius_gift_card.ui.payment_method_disabled_warning.topbar'|trans }}
         </div>
     </a>
 {% endif %}

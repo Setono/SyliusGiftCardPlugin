@@ -114,12 +114,12 @@ final class GiftCardCoverageGuardTest extends TestCase
     }
 
     /**
-     * The gift card payments are made with a payment method the shop sets up once, so without it the cards cannot pay
-     * when the order is placed, however usable they are and whatever they cover on the cart
+     * The gift card payments are made with a payment method the shop sets up once, so without it, or with it disabled,
+     * the cards cannot pay when the order is placed, however usable they are and whatever they cover on the cart
      *
      * @test
      */
-    public function it_is_not_satisfied_while_the_gift_card_payment_method_is_missing(): void
+    public function it_is_not_satisfied_while_the_gift_card_payment_method_is_missing_or_disabled(): void
     {
         $order = $this->orderWith([$this->giftCard()], [], 5000);
 
@@ -140,10 +140,14 @@ final class GiftCardCoverageGuardTest extends TestCase
         return new GiftCardCoverageGuard($checker ?? $this->eligible(), $this->coverageOf($coverage), $paymentChecker->reveal(), $this->paymentMethodProvider());
     }
 
-    private function paymentMethodProvider(bool $exists = true): GiftCardPaymentMethodProviderInterface
+    /**
+     * @param bool $enabled whether gift card payments can be made with the method; the provider tells a missing method
+     *                      and a disabled one apart, which the guard does not need to
+     */
+    private function paymentMethodProvider(bool $enabled = true): GiftCardPaymentMethodProviderInterface
     {
         $provider = $this->prophesize(GiftCardPaymentMethodProviderInterface::class);
-        $provider->findPaymentMethod()->willReturn($exists ? $this->prophesize(PaymentMethodInterface::class)->reveal() : null);
+        $provider->findEnabledPaymentMethod()->willReturn($enabled ? $this->prophesize(PaymentMethodInterface::class)->reveal() : null);
 
         return $provider->reveal();
     }

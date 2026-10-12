@@ -2,6 +2,7 @@ const { test, expect } = require('@playwright/test');
 const { GRID_ROWS, clickAndConfirm, flashMessages, setChecked } = require('../support/admin');
 const { blankIcons } = require('../support/icons');
 const { clickAndWaitForPage } = require('../support/navigation');
+const { GIFT_CARD_PAYMENT_METHOD_CODE, paymentMethodEditUrl, saveEnabled, setPaymentMethodEnabled } = require('../support/payment-methods');
 
 /**
  * The admin warns while a channel sells gift cards without an enabled design. The seeded shop has the classic
@@ -14,6 +15,9 @@ const MESSAGE = '[data-test-gift-card-setup-warning-message]';
 const PAYMENT_METHOD_TOPBAR_WARNING = '[data-test-gift-card-payment-method-warning]';
 const PAYMENT_METHOD_MESSAGE = '[data-test-gift-card-payment-method-warning-message]';
 const CREATE_PAYMENT_METHOD_BUTTON = `${PAYMENT_METHOD_MESSAGE} form[action$="/admin/gift-cards/create-payment-method"] button[type="submit"]`;
+const DISABLED_PAYMENT_METHOD_TOPBAR_WARNING = '[data-test-gift-card-payment-method-disabled-warning]';
+const DISABLED_PAYMENT_METHOD_MESSAGE = '[data-test-gift-card-payment-method-disabled-warning-message]';
+const DISABLED_PAYMENT_METHOD_EDIT_LINK = `${DISABLED_PAYMENT_METHOD_MESSAGE} [data-test-gift-card-payment-method-disabled-warning-edit]`;
 
 /**
  * The row of the gift card payment method in Sylius' payment methods grid, found by the code the plugin gives it (the
@@ -63,6 +67,7 @@ test.describe('gift card setup warning', () => {
         await page.goto('/admin/');
         await expect(page.locator(TOPBAR_WARNING)).toHaveCount(0);
         await expect(page.locator(PAYMENT_METHOD_TOPBAR_WARNING)).toHaveCount(0);
+        await expect(page.locator(DISABLED_PAYMENT_METHOD_TOPBAR_WARNING)).toHaveCount(0);
 
         await page.goto('/admin/gift-card-designs/');
         await expect(page.locator(MESSAGE)).toHaveCount(0);
@@ -121,6 +126,54 @@ test.describe('gift card setup warning', () => {
             if (0 < (await button.count())) {
                 await clickAndWaitForPage(page, button);
             }
+        }
+    });
+
+    /**
+     * A disabled gift card payment method refuses gift cards just as a missing one does (#484). The merchant may have
+     * disabled it on purpose, but the shop goes on selling cards nobody can spend, so every admin page says so and leads
+     * to the method's edit page, where it is enabled again. The finally puts the method back the way it was, whatever
+     * fails in between, so the specs after this one find a shop that takes gift cards
+     */
+    test('while the gift card payment method is disabled, every page says so and leads to its edit page', async ({ page }) => {
+        const editUrl = await paymentMethodEditUrl(page, GIFT_CARD_PAYMENT_METHOD_CODE);
+        const restore = await setPaymentMethodEnabled(page, GIFT_CARD_PAYMENT_METHOD_CODE, false);
+
+        try {
+            // on a page that has nothing to do with gift cards, the top bar leads straight to the method's edit page
+            await page.goto('/admin/products/');
+            const topbar = page.locator(DISABLED_PAYMENT_METHOD_TOPBAR_WARNING);
+            await expect(topbar).toBeVisible();
+            expect(await blankIcons(topbar), 'the icons of the top bar label that draw nothing').toEqual([]);
+            // the method is there, so nothing says it is missing
+            await expect(page.locator(PAYMENT_METHOD_TOPBAR_WARNING)).toHaveCount(0);
+
+            await clickAndWaitForPage(page, topbar);
+            expect(new URL(page.url()).pathname).toBe(editUrl);
+
+            // the indexes the setup warning is on explain it, with a link to the same page and no button creating a method
+            for (const index of ['/admin/gift-cards/', '/admin/gift-card-designs/', '/admin/payment-methods/']) {
+                await page.goto(index);
+
+                const message = page.locator(DISABLED_PAYMENT_METHOD_MESSAGE);
+                await expect(message, index).toBeVisible();
+                expect(await blankIcons(message), `the icons of the warning on ${index} that draw nothing`).toEqual([]);
+                await expect(page.locator(PAYMENT_METHOD_MESSAGE), index).toHaveCount(0);
+                await expect(page.locator('form[action$="/admin/gift-cards/create-payment-method"]'), index).toHaveCount(0);
+            }
+
+            await clickAndWaitForPage(page, page.locator(DISABLED_PAYMENT_METHOD_EDIT_LINK));
+            expect(new URL(page.url()).pathname).toBe(editUrl);
+
+            // where enabling it again takes the warning away
+            await saveEnabled(page, true);
+            await expect(page.locator(DISABLED_PAYMENT_METHOD_TOPBAR_WARNING)).toHaveCount(0);
+
+            await page.goto('/admin/gift-cards/');
+            await expect(page.locator(DISABLED_PAYMENT_METHOD_TOPBAR_WARNING)).toHaveCount(0);
+            await expect(page.locator(DISABLED_PAYMENT_METHOD_MESSAGE)).toHaveCount(0);
+        } finally {
+            await restore();
         }
     });
 

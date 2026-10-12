@@ -109,4 +109,4 @@ A redeemed gift card becomes a payment made with an offline payment method with 
 bin/console setono:gift-card:create-payment-method
 ```
 
-Until the method exists the shop refuses gift cards, and the admin warns on every page. A shop seeded with fixtures gets it from the `setono_gift_card_payment_method` fixture, which the plugin's fixture suite includes.
+Until the method exists the shop refuses gift cards, and the admin warns on every page. It does the same while the method is disabled: its **Enabled** switch decides whether customers can pay with gift cards, so leave it enabled. Checkout never offers the method to customers, so it does not need disabling to keep it out of checkout. A shop seeded with fixtures gets it from the `setono_gift_card_payment_method` fixture, which the plugin's fixture suite includes.

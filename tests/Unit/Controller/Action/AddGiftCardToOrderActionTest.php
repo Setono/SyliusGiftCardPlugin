@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\LoggerInterface;
 use Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicatorInterface;
 use Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityChecker;
 use Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderAction;
@@ -309,20 +310,34 @@ final class AddGiftCardToOrderActionTest extends TestCase
     }
 
     /**
-     * The gift card payments are made with a payment method the shop sets up once. Until it has, a card applied to the
-     * cart could not pay when the order is placed, so every code is refused, before the code is looked at: an unknown
-     * code and a usable one get the same answer, which tells a guesser nothing
+     * The gift card payments are made with a payment method the shop sets up once. Until it has, or while it is
+     * disabled (#484), a card applied to the cart could not pay when the order is placed, so every code is refused,
+     * before the code is looked at: an unknown code and a usable one get the same answer, which tells a guesser nothing.
+     * A missing method is a setup step left undone, which the shop's logs show as an error, while a disabled one is the
+     * merchant's choice
      *
      * @test
+     *
+     * @dataProvider unavailablePaymentMethods
      */
-    public function it_refuses_every_gift_card_while_the_gift_card_payment_method_is_missing(): void
+    public function it_refuses_every_gift_card_while_the_gift_card_payment_method_is_missing_or_disabled(bool $exists): void
     {
         $paymentMethodProvider = $this->prophesize(GiftCardPaymentMethodProviderInterface::class);
-        $paymentMethodProvider->findPaymentMethod()->willReturn(null);
+        $paymentMethodProvider->findEnabledPaymentMethod()->willReturn(null);
+        $paymentMethodProvider->findPaymentMethod()->willReturn($exists ? $this->prophesize(PaymentMethodInterface::class)->reveal() : null);
 
         foreach ([$this->giftCard(), null] as $giftCard) {
             $applicator = $this->prophesize(GiftCardApplicatorInterface::class);
             $applicator->apply(Argument::cetera())->shouldNotBeCalled();
+
+            $logger = $this->prophesize(LoggerInterface::class);
+            if ($exists) {
+                $logger->info(Argument::containingString('the gift card payment method is disabled'))->shouldBeCalledOnce();
+                $logger->error(Argument::any())->shouldNotBeCalled();
+            } else {
+                $logger->error(Argument::containingString('the gift card payment method does not exist'))->shouldBeCalledOnce();
+                $logger->info(Argument::any())->shouldNotBeCalled();
+            }
 
             $action = $this->createAction(
                 $this->createFormFactory($giftCard),
@@ -331,6 +346,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
                 null,
                 $applicator->reveal(),
                 $paymentMethodProvider->reveal(),
+                $logger->reveal(),
             );
 
             $session = $this->session();
@@ -340,6 +356,15 @@ final class AddGiftCardToOrderActionTest extends TestCase
             self::assertSame([self::REDEMPTION_UNAVAILABLE], $session->getFlashBag()->get('error'));
             self::assertSame([], $session->getFlashBag()->get('success'));
         }
+    }
+
+    /**
+     * @return iterable<string, array{bool}> whether the method exists
+     */
+    public static function unavailablePaymentMethods(): iterable
+    {
+        yield 'missing' => [false];
+        yield 'disabled' => [true];
     }
 
     /**
@@ -368,6 +393,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
         ?CartContextInterface $cartContext = null,
         ?GiftCardApplicatorInterface $applicator = null,
         ?GiftCardPaymentMethodProviderInterface $paymentMethodProvider = null,
+        ?LoggerInterface $logger = null,
     ): AddGiftCardToOrderAction {
         if (null === $cartContext) {
             $cartContextProphecy = $this->prophesize(CartContextInterface::class);
@@ -385,7 +411,9 @@ final class AddGiftCardToOrderActionTest extends TestCase
 
         if (null === $paymentMethodProvider) {
             $paymentMethodProviderProphecy = $this->prophesize(GiftCardPaymentMethodProviderInterface::class);
-            $paymentMethodProviderProphecy->findPaymentMethod()->willReturn($this->prophesize(PaymentMethodInterface::class)->reveal());
+            $paymentMethod = $this->prophesize(PaymentMethodInterface::class)->reveal();
+            $paymentMethodProviderProphecy->findPaymentMethod()->willReturn($paymentMethod);
+            $paymentMethodProviderProphecy->findEnabledPaymentMethod()->willReturn($paymentMethod);
             $paymentMethodProvider = $paymentMethodProviderProphecy->reveal();
         }
 
@@ -398,6 +426,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
             $paymentMethodProvider,
             $rateLimiterFactory,
             $ipRateLimiterFactory,
+            $logger ?? $this->prophesize(LoggerInterface::class)->reveal(),
         );
     }
 
