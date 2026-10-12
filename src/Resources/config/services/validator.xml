@@ -21,6 +21,7 @@
             <argument type="service" id="sylius.money_formatter"/>
             <argument type="service" id="sylius.context.locale"/>
             <argument type="service" id="sylius.currency_converter"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface"/>
 
             <tag name="validator.constraint_validator"/>
         </service>

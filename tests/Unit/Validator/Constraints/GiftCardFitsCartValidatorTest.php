@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Validator\Constraints;
 
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Order\AddToCartCommand;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
@@ -18,6 +20,7 @@ use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCartValidator;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Sylius\Component\Core\Model\Adjustment;
 use Sylius\Component\Core\Model\AdjustmentInterface;
+use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\Product as PlainProduct;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Model\ProductVariant;
@@ -48,6 +51,9 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
 
     /** @var ObjectProphecy<MoneyFormatterInterface> */
     private ObjectProphecy $moneyFormatter;
+
+    /** @var ObjectProphecy<GiftCardCurrencyProviderInterface> */
+    private ObjectProphecy $currencyProvider;
 
     /** @test */
     public function it_refuses_a_gift_card_the_cart_has_no_room_left_for(): void
@@ -231,6 +237,24 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
     }
 
     /**
+     * Information an application builds itself may not name its currency, which is then the one the customer browses
+     * in, the one the amount field was in: dollars here, on a cart in a channel kept in kroner
+     *
+     * @test
+     */
+    public function it_takes_the_amount_to_be_in_the_currency_browsed_in_when_the_information_does_not_say(): void
+    {
+        $command = $this->command(cartTotal: 0, amount: 300_000_000);
+        $command->getCart()->setChannel(new Channel());
+
+        $this->validator->validate($command, new GiftCardFitsCart());
+
+        $this->buildViolation(self::MESSAGE)
+            ->setParameter('{{ maximum }}', '21.474.836,47 kr.')
+            ->assertRaised();
+    }
+
+    /**
      * $2,800,000.00 is DKK 20,888,000.00, which the cart holds
      *
      * @test
@@ -249,7 +273,7 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
      */
     public function it_holds_the_cart_to_the_maximum_it_is_given(): void
     {
-        $validator = new GiftCardFitsCartValidator(4_000_000_000, $this->moneyFormatter->reveal(), $this->localeContext->reveal(), new FixedRateCurrencyConverter());
+        $validator = new GiftCardFitsCartValidator(4_000_000_000, $this->moneyFormatter->reveal(), $this->localeContext->reveal(), new FixedRateCurrencyConverter(), $this->currencyProvider->reveal());
         $validator->initialize($this->context);
 
         $validator->validate($this->command(cartTotal: 0, amount: 2_000_000_000, quantity: 2), new GiftCardFitsCart());
@@ -299,8 +323,12 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
         $this->moneyFormatter->format(self::MAXIMUM, 'DKK', 'da_DK')->willReturn('21.474.836,47 kr.');
         $this->moneyFormatter->format(self::MAXIMUM, 'DKK', null)->willReturn('DKK 21,474,836.47');
 
+        // the customer browses in dollars, unless a test says otherwise
+        $this->currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
+        $this->currencyProvider->getCurrencyCode(Argument::any())->willReturn('USD');
+
         // kroner at 7.46 to the dollar
-        return new GiftCardFitsCartValidator(self::MAXIMUM, $this->moneyFormatter->reveal(), $this->localeContext->reveal(), new FixedRateCurrencyConverter());
+        return new GiftCardFitsCartValidator(self::MAXIMUM, $this->moneyFormatter->reveal(), $this->localeContext->reveal(), new FixedRateCurrencyConverter(), $this->currencyProvider->reveal());
     }
 
     /**

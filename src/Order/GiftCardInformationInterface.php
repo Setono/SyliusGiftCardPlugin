@@ -22,7 +22,9 @@ interface GiftCardInformationInterface
 
     /**
      * The currency the amount is in, which is the currency the card is held in: the one the customer browses in, when
-     * the channel offers it (GiftCardCurrencyProviderInterface). Null means the cart's currency
+     * the channel offers it (GiftCardCurrencyProviderInterface), which the plugin's factory sets. Null means the one
+     * GiftCardCurrencyProviderInterface::getCurrencyCode() gives for the cart's channel, the currency the amount field
+     * is in whatever the information says
      */
     public function getCurrencyCode(): ?string;
 

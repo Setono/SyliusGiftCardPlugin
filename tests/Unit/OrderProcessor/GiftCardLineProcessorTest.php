@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\OrderProcessor;
 
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
-use Setono\SyliusGiftCardPlugin\OrderProcessor\GiftCardUnitPriceProcessor;
+use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
+use Setono\SyliusGiftCardPlugin\OrderProcessor\GiftCardLineProcessor;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
@@ -18,10 +22,54 @@ use Sylius\Component\Order\Model\Order as BaseOrder;
 
 /**
  * A gift card held in another currency than the cart's is worth its amount in that currency, so its line costs that
- * amount converted at the exchange rate of the day, every time the cart is processed (#488)
+ * amount converted at the exchange rate of the day, every time the cart is processed (#488). Every unit of a line gets a
+ * card held like the line's others first
  */
-final class GiftCardUnitPriceProcessorTest extends TestCase
+final class GiftCardLineProcessorTest extends TestCase
 {
+    use ProphecyTrait;
+
+    /** @var ObjectProphecy<OrderGiftCardOperatorInterface> */
+    private ObjectProphecy $giftCardOperator;
+
+    protected function setUp(): void
+    {
+        $this->giftCardOperator = $this->prophesize(OrderGiftCardOperatorInterface::class);
+    }
+
+    /**
+     * A unit added by raising the quantity gets a card before Sylius can drop the one add to cart gave the line
+     *
+     * @test
+     */
+    public function it_gives_every_unit_of_the_carts_gift_card_lines_a_card(): void
+    {
+        $order = $this->cart();
+        $this->giftCardOperator->completeLines($order)->shouldBeCalledOnce();
+
+        $this->processor()->process($order);
+    }
+
+    /**
+     * Sylius adds a unit at the end of a line, but a line may have lost its first unit, so the card is looked for on any
+     *
+     * @test
+     */
+    public function it_prices_the_line_by_the_card_of_any_of_its_units(): void
+    {
+        $order = $this->cart();
+        $item = $this->giftCardLine($order, 'USD', 5000, units: 2);
+
+        $first = $item->getUnits()->first();
+        self::assertInstanceOf(OrderItemUnit::class, $first);
+        $first->getGiftCard()?->setOrderItemUnit(null);
+        $first->setGiftCard(null);
+
+        $this->processor()->process($order);
+
+        self::assertSame(37300, $item->getUnitPrice());
+    }
+
     /**
      * $50.00 at 7.46 kroner to the dollar
      *
@@ -49,7 +97,7 @@ final class GiftCardUnitPriceProcessorTest extends TestCase
         $item = $this->giftCardLine($order, 'USD', 5000);
 
         $this->processor()->process($order);
-        (new GiftCardUnitPriceProcessor(new FixedRateCurrencyConverter(['USD' => 1.0, 'DKK' => 7.0])))->process($order);
+        (new GiftCardLineProcessor(new FixedRateCurrencyConverter(['USD' => 1.0, 'DKK' => 7.0]), $this->giftCardOperator->reveal()))->process($order);
 
         self::assertSame(35000, $item->getUnitPrice());
     }
@@ -172,6 +220,7 @@ final class GiftCardUnitPriceProcessorTest extends TestCase
         $item = $this->giftCardLine($order, 'USD', 5000);
         $item->setUnitPrice(37000);
         $order->setState(Order::STATE_NEW);
+        $this->giftCardOperator->completeLines(Argument::any())->shouldNotBeCalled();
 
         $this->processor()->process($order);
 
@@ -186,10 +235,10 @@ final class GiftCardUnitPriceProcessorTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    private function processor(): GiftCardUnitPriceProcessor
+    private function processor(): GiftCardLineProcessor
     {
         // kroner at 7.46 to the dollar
-        return new GiftCardUnitPriceProcessor(new FixedRateCurrencyConverter());
+        return new GiftCardLineProcessor(new FixedRateCurrencyConverter(), $this->giftCardOperator->reveal());
     }
 
     private function cart(): Order

@@ -26,6 +26,15 @@ interface OrderGiftCardOperatorInterface
     public function reconcile(OrderInterface $order): void;
 
     /**
+     * Called whenever the cart is processed. Gives every unit of a gift card line that has no gift card yet, one added
+     * by raising the quantity on the cart page, a pending card held like the line's other cards: in their currency and
+     * amount, with their design, message and delivery type. Sylius drops units from the front of a line when the
+     * quantity is lowered, so a line raised and lowered again would otherwise lose the card add to cart gave it, and
+     * with it the currency and the amount the customer chose (#488). A line without any card is left to reconcile()
+     */
+    public function completeLines(OrderInterface $order): void;
+
+    /**
      * Called when the order is paid. Enables all gift cards bought on the order and records their issuance in the
      * ledger, against the order
      */

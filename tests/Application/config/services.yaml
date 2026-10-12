@@ -7,5 +7,5 @@ services:
     # The end to end suite's channel shows its prices in euros as well as dollars (#488), and Sylius has no fixture for
     # the exchange rate that takes
     Setono\SyliusGiftCardPlugin\Tests\Application\Fixture\ExchangeRateFixture:
-        arguments: ['@sylius.factory.exchange_rate', '@sylius.manager.exchange_rate', '@sylius.repository.currency']
+        arguments: ['@sylius.factory.exchange_rate', '@doctrine', '@sylius.repository.currency']
         tags: ['sylius_fixtures.fixture']

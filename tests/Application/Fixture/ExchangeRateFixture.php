@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Application\Fixture;
 
-use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\ManagerRegistry;
+use Setono\Doctrine\ORMTrait;
 use Sylius\Bundle\FixturesBundle\Fixture\AbstractFixture;
 use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Currency\Model\ExchangeRateInterface;
@@ -20,15 +21,18 @@ use Webmozart\Assert\Assert;
  */
 final class ExchangeRateFixture extends AbstractFixture
 {
+    use ORMTrait;
+
     /**
      * @param FactoryInterface<ExchangeRateInterface> $exchangeRateFactory
      * @param RepositoryInterface<CurrencyInterface> $currencyRepository
      */
     public function __construct(
         private readonly FactoryInterface $exchangeRateFactory,
-        private readonly ObjectManager $exchangeRateManager,
+        ManagerRegistry $managerRegistry,
         private readonly RepositoryInterface $currencyRepository,
     ) {
+        $this->managerRegistry = $managerRegistry;
     }
 
     public function getName(): string
@@ -47,10 +51,10 @@ final class ExchangeRateFixture extends AbstractFixture
             $exchangeRate->setTargetCurrency($this->currency($rate['target']));
             $exchangeRate->setRatio($rate['ratio']);
 
-            $this->exchangeRateManager->persist($exchangeRate);
+            $manager = $this->getManager($exchangeRate);
+            $manager->persist($exchangeRate);
+            $manager->flush();
         }
-
-        $this->exchangeRateManager->flush();
     }
 
     protected function configureOptionsNode(ArrayNodeDefinition $optionsNode): void

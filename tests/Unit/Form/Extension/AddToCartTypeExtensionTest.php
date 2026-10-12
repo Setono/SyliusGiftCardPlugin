@@ -453,6 +453,7 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
                     $moneyFormatter->reveal(),
                     $localeContext->reveal(),
                     new FixedRateCurrencyConverter(),
+                    $currencyProvider->reveal(),
                 ),
                 ValidGiftCardAmountValidator::class => new ValidGiftCardAmountValidator(
                     $channelContext->reveal(),

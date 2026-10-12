@@ -3,6 +3,7 @@ const { GRID_ROWS, signInAsAdministrator } = require('../support/admin');
 const { checkOutAsGuest, checkoutFigure, placeOrder, uniqueEmail } = require('../support/checkout');
 const { filterGiftCards, giftCardDetails, giftCardIds, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
 const { moneyInCents } = require('../support/money');
+const { clickAndWaitForPage } = require('../support/navigation');
 const { completeOrderPayments, openOrderOf } = require('../support/orders');
 const { GIFT_CARD_PRODUCT_PAGE, addGiftCardToCart, addOrdinaryProductToCart, cartFigure, giftCardProductPath, redeemGiftCard, shopPath, switchCurrency } = require('../support/shop');
 
@@ -34,6 +35,10 @@ test.describe('gift cards in a display currency', () => {
         await admin?.close();
     });
 
+    /**
+     * Raising the quantity on the cart page and lowering it again drops the unit add to cart gave the card, as Sylius
+     * drops units from the front of a line. The line keeps the card all the same, in the display currency
+     */
     test('a card bought while browsing in a display currency holds the amount typed in it', async ({ page }) => {
         const currency = await switchCurrency(page);
         const email = uniqueEmail('display-currency');
@@ -49,6 +54,12 @@ test.describe('gift cards in a display currency', () => {
         const line = page.locator('#sylius-cart-items tbody tr').first();
         const unitPrice = moneyInCents(await line.locator('.sylius-unit-price').innerText());
         expect(Math.abs(unitPrice - amount), `the line should cost about what was typed, not ${unitPrice}`).toBeLessThanOrEqual(1);
+
+        for (const units of [2, 1]) {
+            await line.locator('input[name$="[quantity]"]').fill(String(units));
+            await clickAndWaitForPage(page, page.locator('[data-test-cart-update-button]'));
+            expect(moneyInCents(await line.locator('.sylius-unit-price').innerText()), `unit price for ${units} units`).toBe(unitPrice);
+        }
 
         await checkOutAsGuest(page, email);
         await placeOrder(page);

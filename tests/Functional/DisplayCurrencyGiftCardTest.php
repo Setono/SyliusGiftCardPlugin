@@ -26,6 +26,7 @@ use Sylius\Component\Currency\Context\CurrencyContextInterface;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Currency\Model\ExchangeRate;
 use Sylius\Component\Order\Context\CartContextInterface;
+use Sylius\Component\Order\Modifier\OrderItemQuantityModifierInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Sylius\Component\Payment\PaymentTransitions;
 use Symfony\Component\HttpFoundation\Request;
@@ -112,6 +113,49 @@ final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
             self::assertSame(4000, $giftCard->getAmount(), 'the card should hold the amount the shopper chose');
             self::assertSame(4000, $giftCard->getInitialAmount());
         }
+    }
+
+    /**
+     * Sylius drops units from the front of a line, so raising the quantity on the cart page and lowering it again drops
+     * the unit add to cart gave the card. The unit added meanwhile was given a copy of it when the cart was processed,
+     * so the line still holds the card the customer chose, in euros, design and message included
+     *
+     * @test
+     */
+    public function it_keeps_the_card_bought_when_the_quantity_is_raised_and_lowered_again_on_the_cart_page(): void
+    {
+        $cart = $this->cart();
+        $item = $this->addItem($cart, 'GIFT_CARD', 5000, giftCard: true);
+
+        /** @var GiftCardInformationFactoryInterface $informationFactory */
+        $informationFactory = self::getContainer()->get(GiftCardInformationFactoryInterface::class);
+        $information = $informationFactory->createNew($cart, $item);
+        $information->setCustomMessage('Happy birthday');
+
+        $this->handler()->handle(new AddToCartCommand($cart, $item, $information));
+        $this->processor()->process($cart);
+        $this->manager->persist($cart);
+        $this->manager->flush();
+
+        /** @var OrderItemQuantityModifierInterface $quantityModifier */
+        $quantityModifier = self::getContainer()->get('sylius.order_item_quantity_modifier');
+        foreach ([2, 1] as $quantity) {
+            $quantityModifier->modify($item, $quantity);
+            $this->processor()->process($cart);
+            $this->manager->flush();
+        }
+
+        self::assertSame(5000, $item->getUnitPrice(), 'the line should still cost the 40.00 EUR in dollars');
+
+        $this->operator()->reconcile($cart);
+
+        $unit = $item->getUnits()->first();
+        self::assertInstanceOf(OrderItemUnit::class, $unit);
+        $giftCard = $unit->getGiftCard();
+        self::assertInstanceOf(GiftCardInterface::class, $giftCard);
+        self::assertSame('EUR', $giftCard->getCurrencyCode());
+        self::assertSame(4000, $giftCard->getAmount());
+        self::assertSame('Happy birthday', $giftCard->getCustomMessage());
     }
 
     /**

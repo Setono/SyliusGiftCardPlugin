@@ -20,7 +20,7 @@ interface GiftCardApplicatorInterface
      *
      * @throws GiftCardNotFoundException if the gift card code is not found
      * @throws ChannelMismatchException if the order channel does not match the gift card channel
-     * @throws GiftCardCurrencyMismatchException if the order currency does not match the gift card currency
+     * @throws GiftCardCurrencyMismatchException if the order's channel does not offer the gift card's currency
      */
     public function apply(OrderInterface $order, $giftCard): void;
 

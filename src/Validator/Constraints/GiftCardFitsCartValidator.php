@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Validator\Constraints;
 
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
 use Setono\SyliusGiftCardPlugin\Order\AddToCartCommandInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Sylius\Component\Currency\Converter\CurrencyConverterInterface;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
@@ -35,6 +36,7 @@ final class GiftCardFitsCartValidator extends ConstraintValidator
         private readonly MoneyFormatterInterface $moneyFormatter,
         private readonly LocaleContextInterface $localeContext,
         private readonly CurrencyConverterInterface $currencyConverter,
+        private readonly GiftCardCurrencyProviderInterface $currencyProvider,
     ) {
     }
 
@@ -67,7 +69,12 @@ final class GiftCardFitsCartValidator extends ConstraintValidator
 
         $cart = $value->getCart();
         $cartCurrencyCode = (string) $cart->getCurrencyCode();
-        $unitPrice = $this->currencyConverter->convert($amount, $information->getCurrencyCode() ?? $cartCurrencyCode, $cartCurrencyCode);
+
+        // The currency the amount was typed in, which information an application builds itself may not name
+        $channel = $cart->getChannel();
+        $currencyCode = $information->getCurrencyCode()
+            ?? (null === $channel ? $cartCurrencyCode : $this->currencyProvider->getCurrencyCode($channel));
+        $unitPrice = $this->currencyConverter->convert($amount, $currencyCode, $cartCurrencyCode);
 
         // An order discount or shipping keeps the total apart from the items total, so the larger of the two is the
         // one to hold. The line adds the same to both

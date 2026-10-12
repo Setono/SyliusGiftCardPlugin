@@ -8,6 +8,7 @@
             <argument type="service" id="setono_sylius_gift_card.factory.gift_card"/>
             <argument type="service" id="doctrine"/>
             <argument type="service" id="sylius.currency_converter"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Cart\CartGiftCardHandlerInterface"
                  alias="Setono\SyliusGiftCardPlugin\Cart\CartGiftCardHandler"/>
@@ -15,8 +16,9 @@
         <!-- Priority 45: right after Sylius' prices recalculator (50), which leaves the immutable gift card lines alone,
              so the line is priced before shipments (40), shipping charges (30), promotions (20) and taxes (10) are
              worked out from the cart -->
-        <service id="Setono\SyliusGiftCardPlugin\OrderProcessor\GiftCardUnitPriceProcessor">
+        <service id="Setono\SyliusGiftCardPlugin\OrderProcessor\GiftCardLineProcessor">
             <argument type="service" id="sylius.currency_converter"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface"/>
 
             <tag name="sylius.order_processor" priority="45"/>
         </service>

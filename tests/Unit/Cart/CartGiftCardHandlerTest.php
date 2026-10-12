@@ -18,6 +18,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDesign;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Order\AddToCartCommand;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
@@ -42,6 +43,9 @@ final class CartGiftCardHandlerTest extends TestCase
     /** @var ObjectProphecy<EntityManagerInterface> */
     private ObjectProphecy $manager;
 
+    /** @var ObjectProphecy<GiftCardCurrencyProviderInterface> */
+    private ObjectProphecy $currencyProvider;
+
     protected function setUp(): void
     {
         $this->channel = new Channel();
@@ -50,6 +54,27 @@ final class CartGiftCardHandlerTest extends TestCase
         $this->giftCardFactory->createForChannel($this->channel)->will(static fn (): GiftCardInterface => new GiftCard());
 
         $this->manager = $this->prophesize(EntityManagerInterface::class);
+
+        // the customer browses in the cart's currency, unless a test says otherwise
+        $this->currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
+        $this->currencyProvider->getCurrencyCode($this->channel)->willReturn('DKK');
+    }
+
+    /**
+     * Information an application builds itself may not name its currency, which is then the one the customer browses
+     * in, the one the amount field was in
+     *
+     * @test
+     */
+    public function it_holds_the_card_in_the_currency_browsed_in_when_the_information_does_not_say(): void
+    {
+        $this->currencyProvider->getCurrencyCode($this->channel)->willReturn('USD');
+        $item = $this->item(unitPrice: 1000, units: 1);
+
+        $this->handle($item, new GiftCardInformation(5000));
+
+        self::assertSame(37300, $item->getUnitPrice());
+        self::assertSame('USD', $this->onlyGiftCard($item)->getCurrencyCode());
     }
 
     /** @test */
@@ -202,7 +227,7 @@ final class CartGiftCardHandlerTest extends TestCase
         $managerRegistry->getManagerForClass(GiftCard::class)->willReturn($this->manager->reveal());
 
         // kroner at 7.46 to the dollar
-        $handler = new CartGiftCardHandler($this->giftCardFactory->reveal(), $managerRegistry->reveal(), new FixedRateCurrencyConverter());
+        $handler = new CartGiftCardHandler($this->giftCardFactory->reveal(), $managerRegistry->reveal(), new FixedRateCurrencyConverter(), $this->currencyProvider->reveal());
         $handler->handle(new AddToCartCommand($cart, $item, $information));
     }
 

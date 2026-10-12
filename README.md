@@ -78,7 +78,9 @@ any currency its channel offers, so a card bought for DKK 300 on a channel kept 
   these is converted on its own, so they can be a minor unit or two apart from the order total less the card.
 - **The admin:** the *New gift card* form offers the currencies of the chosen channel and starts out at its base
   currency. A card in a currency its channel does not offer could never be redeemed, so the form, the fixture and the
-  shop's redemption refuse one.
+  shop's redemption refuse one. That includes a card held in a currency its channel has since stopped offering, and
+  the admin cannot change a card's currency, so keep offering a currency for as long as cards held in it are
+  outstanding: removing it from the channel stops the outstanding cards from paying, not only new sales in it.
 
 The shop carries the currency risk: what a card in another currency is worth in the base currency moves with the
 exchange rate between buying and redeeming, as with anything the shop owes in another currency. The balance report
