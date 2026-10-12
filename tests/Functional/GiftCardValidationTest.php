@@ -11,6 +11,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
+use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Locale\Model\Locale;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -248,19 +249,38 @@ final class GiftCardValidationTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * EUR is a real currency, just not the one the channel keeps its orders in
+     * EUR is a real currency, just not one the channel offers, so the card could never be redeemed
      *
      * @test
      */
-    public function it_rejects_a_gift_card_in_another_currency_than_the_channels_base_currency(): void
+    public function it_rejects_a_gift_card_in_a_currency_the_channel_does_not_offer(): void
     {
         $giftCard = $this->createGiftCard('EURCARD00000001');
         $giftCard->setCurrencyCode('EUR');
 
         self::assertSame(
-            ['currencyCode: setono_sylius_gift_card.gift_card.currency_code.not_base_currency'],
+            ['currencyCode: setono_sylius_gift_card.gift_card.currency_code.not_offered_by_channel'],
             $this->violations($giftCard, templates: true),
         );
+    }
+
+    /**
+     * A card in a currency the channel offers besides its base currency pays converted into the order's currency (#488)
+     *
+     * @test
+     */
+    public function it_accepts_a_gift_card_in_a_currency_the_channel_offers_besides_its_base_currency(): void
+    {
+        $euro = new Currency();
+        $euro->setCode('EUR');
+        $this->manager->persist($euro);
+        $this->getChannel()->addCurrency($euro);
+        $this->manager->flush();
+
+        $giftCard = $this->createGiftCard('EURCARD00000002');
+        $giftCard->setCurrencyCode('EUR');
+
+        self::assertSame([], $this->violations($giftCard, templates: true));
     }
 
     /**

@@ -16,7 +16,7 @@ final class GiftCardAmountLimitsProviderTest extends TestCase
     /** @test */
     public function it_provides_the_configured_limits(): void
     {
-        $limits = (new GiftCardAmountLimitsProvider(100, 250000))->getLimits($this->prophesize(ChannelInterface::class)->reveal());
+        $limits = (new GiftCardAmountLimitsProvider(100, 250000))->getLimits($this->prophesize(ChannelInterface::class)->reveal(), 'USD');
 
         self::assertSame(100, $limits->minimum);
         self::assertSame(250000, $limits->maximum);
@@ -25,7 +25,7 @@ final class GiftCardAmountLimitsProviderTest extends TestCase
     /** @test */
     public function it_provides_no_maximum_when_none_is_configured(): void
     {
-        $limits = (new GiftCardAmountLimitsProvider(100, null))->getLimits($this->prophesize(ChannelInterface::class)->reveal());
+        $limits = (new GiftCardAmountLimitsProvider(100, null))->getLimits($this->prophesize(ChannelInterface::class)->reveal(), 'USD');
 
         self::assertSame(100, $limits->minimum);
         self::assertNull($limits->maximum);

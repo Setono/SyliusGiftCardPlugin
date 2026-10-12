@@ -16,5 +16,11 @@
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface"
                  alias="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider"/>
+
+        <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProvider">
+            <argument type="service" id="sylius.context.currency"/>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProvider"/>
     </services>
 </container>

@@ -9,6 +9,7 @@
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface"/>
             <argument type="service" id="sylius.money_formatter"/>
             <argument type="service" id="sylius.context.locale"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface"/>
 
             <tag name="validator.constraint_validator"/>
         </service>
@@ -19,6 +20,7 @@
             <argument>%sylius_core.max_int_value%</argument>
             <argument type="service" id="sylius.money_formatter"/>
             <argument type="service" id="sylius.context.locale"/>
+            <argument type="service" id="sylius.currency_converter"/>
 
             <tag name="validator.constraint_validator"/>
         </service>
@@ -37,7 +39,9 @@
             <tag name="validator.constraint_validator"/>
         </service>
 
-        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsChannelBaseCurrencyValidator">
+        <service id="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsOfferedByChannelValidator">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface"/>
+
             <tag name="validator.constraint_validator"/>
         </service>
 

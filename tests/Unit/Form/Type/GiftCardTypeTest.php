@@ -20,8 +20,10 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDesign;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImage;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImageInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProvider;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCodeLengthValidator;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsOfferedByChannelValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignIsAvailableInChannelValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
@@ -30,6 +32,7 @@ use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\CustomerInterface;
+use Sylius\Component\Currency\Context\CompositeCurrencyContext;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Registry\ServiceRegistryInterface;
@@ -54,6 +57,8 @@ final class GiftCardTypeTest extends TypeTestCase
     use ProphecyTrait;
 
     private ChannelInterface $channel;
+
+    private GiftCardCurrencyProvider $currencyProvider;
 
     /** @var ObjectProphecy<RepositoryInterface<CustomerInterface>> */
     private ObjectProphecy $customerRepository;
@@ -236,7 +241,13 @@ final class GiftCardTypeTest extends TypeTestCase
         self::assertSame('setono_sylius_gift_card.gift_card.amount.not_blank', $form->get('amount')->getErrors()[0]->getMessage());
     }
 
-    /** @test */
+    /**
+     * A new card has its channel chosen on the same form, so it offers the currencies of every channel, each telling
+     * which channels offer it and which have it as their base currency, for the template's script to narrow them to the
+     * chosen channel's (#488)
+     *
+     * @test
+     */
     public function it_lets_the_currency_be_chosen_while_the_card_is_new(): void
     {
         $giftCard = new GiftCard();
@@ -247,8 +258,11 @@ final class GiftCardTypeTest extends TypeTestCase
         self::assertTrue($form->has('channel'));
         self::assertTrue($form->has('currencyCode'));
         self::assertFalse($form->get('currencyCode')->isDisabled());
-        // The channel's base currency is offered first
-        self::assertSame(['DKK'], $form->get('currencyCode')->getConfig()->getOption('preferred_choices'));
+        self::assertSame([
+            'DKK' => ['data-channels' => 'WEB', 'data-base-channels' => 'WEB'],
+            'EUR' => ['data-channels' => 'WEB', 'data-base-channels' => ''],
+            'SEK' => ['data-channels' => 'OUTLET', 'data-base-channels' => 'OUTLET'],
+        ], self::choiceAttributes($form->createView()->children['currencyCode']));
 
         $form->submit([
             'code' => 'NEWCARD',
@@ -262,27 +276,80 @@ final class GiftCardTypeTest extends TypeTestCase
     }
 
     /**
-     * Order amounts are in the channel's base currency and a card's balance is compared one to one with them, so a card
-     * can only be issued in that currency. The violation is put on the currency field, where the admin chose it
+     * A card is held in a currency its channel offers, its base currency or another, and pays converted into the order's
+     * currency (#488). One its channel does not offer could never be redeemed, so the violation is put on the currency
+     * field, where the admin chose it
      *
      * @test
      */
-    public function it_refuses_a_currency_other_than_the_base_currency_of_the_channel(): void
+    public function it_refuses_a_currency_the_channel_does_not_offer(): void
     {
         $form = $this->factory->create(GiftCardType::class, new GiftCard());
-        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'currencyCode' => 'EUR']));
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'currencyCode' => 'SEK']));
 
         self::assertTrue($form->isSynchronized());
         self::assertFalse($form->isValid());
         self::assertSame(
-            ['setono_sylius_gift_card.gift_card.currency_code.not_base_currency'],
+            ['setono_sylius_gift_card.gift_card.currency_code.not_offered_by_channel'],
             self::errorMessageTemplates($form->get('currencyCode')),
         );
 
-        $form = $this->factory->create(GiftCardType::class, new GiftCard());
-        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'currencyCode' => 'DKK']));
+        foreach (['DKK', 'EUR'] as $currencyCode) {
+            $form = $this->factory->create(GiftCardType::class, new GiftCard());
+            $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'currencyCode' => $currencyCode]));
 
-        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+            self::assertTrue($form->isValid(), $currencyCode . ': ' . (string) $form->getErrors(true));
+        }
+    }
+
+    /**
+     * The form starts a new card out at the base currency of the channel its channel field starts out at: the card's
+     * channel, else the first channel it lists, so a card can be issued by filling in the amount alone (#358)
+     *
+     * @test
+     */
+    public function it_starts_a_new_card_at_the_base_currency_of_the_channel_the_form_starts_at(): void
+    {
+        self::assertSame('DKK', $this->currencyValue(new GiftCard()));
+
+        $giftCard = new GiftCard();
+        $giftCard->setChannel($this->channel('OUTLET', 'Outlet', 'SEK'));
+
+        self::assertSame('SEK', $this->currencyValue($giftCard));
+        self::assertNull($giftCard->getCurrencyCode(), 'the card itself is not given the currency before it is submitted');
+
+        // a new card that already has a currency, given by an application's factory say, keeps it
+        $giftCard = new GiftCard();
+        $giftCard->setChannel($this->channel);
+        $giftCard->setCurrencyCode('EUR');
+
+        self::assertSame('EUR', $this->currencyValue($giftCard));
+    }
+
+    /**
+     * Each currency is labelled by its code, and the help tells the admin what choosing one means while it can still be
+     * chosen
+     *
+     * @test
+     */
+    public function it_labels_the_currencies_by_their_codes_and_explains_them_while_the_card_is_new(): void
+    {
+        $vars = $this->factory->create(GiftCardType::class, new GiftCard())->createView()->children['currencyCode']->vars;
+        self::assertIsArray($vars);
+        self::assertSame('sylius.ui.currency', $vars['label'] ?? null);
+        self::assertSame('setono_sylius_gift_card.form.gift_card.currency_code_help', $vars['help'] ?? null);
+
+        $labels = [];
+        self::assertIsArray($vars['choices'] ?? null);
+        foreach ($vars['choices'] as $choice) {
+            self::assertInstanceOf(ChoiceView::class, $choice);
+            $labels[] = $choice->label;
+        }
+        self::assertSame(['DKK', 'EUR', 'SEK'], $labels);
+
+        $vars = $this->factory->create(GiftCardType::class, $this->existingGiftCard())->createView()->children['currencyCode']->vars;
+        self::assertIsArray($vars);
+        self::assertNull($vars['help'] ?? null);
     }
 
     /** @test */
@@ -299,6 +366,7 @@ final class GiftCardTypeTest extends TypeTestCase
         self::assertFalse($form->has('channel'));
         self::assertTrue($form->has('currencyCode'));
         self::assertTrue($form->get('currencyCode')->isDisabled());
+        self::assertSame(['DKK' => []], self::choiceAttributes($form->createView()->children['currencyCode']));
 
         // A disabled field ignores whatever is submitted for it, so the card keeps the currency it was issued in
         $form->submit([
@@ -718,7 +786,7 @@ final class GiftCardTypeTest extends TypeTestCase
         $giftCard = new GiftCard();
 
         $form = $this->factory->create(GiftCardType::class, $giftCard);
-        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'channel' => 'OUTLET', 'design' => 'christmas']));
+        $form->submit($this->validSubmission(['code' => 'GIFTCARDCODE', 'channel' => 'OUTLET', 'currencyCode' => 'SEK', 'design' => 'christmas']));
 
         self::assertTrue($form->isValid(), (string) $form->getErrors(true));
         self::assertSame($this->christmas, $giftCard->getDesign());
@@ -830,8 +898,9 @@ final class GiftCardTypeTest extends TypeTestCase
      */
     protected function getExtensions(): array
     {
-        $this->channel = $this->channel('WEB', 'Web store');
-        $outlet = $this->channel('OUTLET', 'Outlet');
+        // the web store is kept in kroner and also offers euros, the outlet is kept in Swedish kronor
+        $this->channel = $this->channel('WEB', 'Web store', 'DKK', 'EUR');
+        $outlet = $this->channel('OUTLET', 'Outlet', 'SEK');
 
         $frontImage = new GiftCardDesignImage();
         $frontImage->setPath('ab/cd/birthday.png');
@@ -848,17 +917,15 @@ final class GiftCardTypeTest extends TypeTestCase
         $channelRepository = $this->prophesize(RepositoryInterface::class);
         $channelRepository->findAll()->willReturn([$this->channel, $outlet]);
 
-        /** @var ObjectProphecy<RepositoryInterface<CurrencyInterface>> $currencyRepositoryProphecy */
-        $currencyRepositoryProphecy = $this->prophesize(RepositoryInterface::class);
-        $currencyRepositoryProphecy->findAll()->willReturn([$this->currency('DKK'), $this->currency('EUR')]);
-        $currencyRepository = $currencyRepositoryProphecy->reveal();
+        // nobody browses in a currency in the admin
+        $this->currencyProvider = new GiftCardCurrencyProvider(new CompositeCurrencyContext());
 
         $codeGenerator = $this->prophesize(GiftCardCodeGeneratorInterface::class);
         $codeGenerator->generate()->willReturn('GENERATEDCODE');
 
         $type = new GiftCardType(
             GiftCard::class,
-            $currencyRepository,
+            $this->currencyProvider,
             $codeGenerator->reveal(),
             new GiftCardCodeNormalizer(),
             12,
@@ -910,6 +977,7 @@ final class GiftCardTypeTest extends TypeTestCase
                 // built by the container with the configured minimum, 12 unless raised
                 GiftCardCodeLengthValidator::class => new GiftCardCodeLengthValidator(12),
                 GiftCardDesignIsAvailableInChannelValidator::class => new GiftCardDesignIsAvailableInChannelValidator($designProvider),
+                GiftCardCurrencyIsOfferedByChannelValidator::class => new GiftCardCurrencyIsOfferedByChannelValidator($this->currencyProvider),
             ]))
             ->getValidator()
         ;
@@ -952,12 +1020,47 @@ final class GiftCardTypeTest extends TypeTestCase
         return $choices;
     }
 
-    private function channel(string $code, string $name): ChannelInterface
+    /**
+     * The currency the form's currency field starts out at for the card
+     */
+    private function currencyValue(GiftCard $giftCard): mixed
+    {
+        $vars = $this->factory->create(GiftCardType::class, $giftCard)->createView()->children['currencyCode']->vars;
+        self::assertIsArray($vars);
+
+        return $vars['value'] ?? null;
+    }
+
+    /**
+     * @return array<string, array<array-key, mixed>> the attributes of each currency the field offers, by its value
+     */
+    private static function choiceAttributes(FormView $field): array
+    {
+        $vars = $field->vars;
+        self::assertIsArray($vars);
+        self::assertIsArray($vars['choices']);
+
+        $choices = [];
+        foreach ($vars['choices'] as $choice) {
+            self::assertInstanceOf(ChoiceView::class, $choice);
+            self::assertIsString($choice->value);
+            self::assertIsArray($choice->attr);
+
+            $choices[$choice->value] = $choice->attr;
+        }
+
+        return $choices;
+    }
+
+    private function channel(string $code, string $name, string $baseCurrencyCode = 'DKK', string ...$currencyCodes): ChannelInterface
     {
         $channel = new Channel();
         $channel->setCode($code);
         $channel->setName($name);
-        $channel->setBaseCurrency($this->currency('DKK'));
+        $channel->setBaseCurrency($this->currency($baseCurrencyCode));
+        foreach ($currencyCodes as $currencyCode) {
+            $channel->addCurrency($this->currency($currencyCode));
+        }
 
         return $channel;
     }

@@ -17,6 +17,21 @@ sylius_fixtures:
     suites:
         default:
             fixtures:
+                # The channel shows its prices in euros as well as in its base currency, dollars, at 0.80 euros to the
+                # dollar, so the specs can buy and redeem a gift card held in a display currency (#488). The shop
+                # starts every visitor in dollars, so only a spec switching to euros sees them
+                channel:
+                    options:
+                        custom:
+                            fashion_web_store:
+                                currencies:
+                                    - 'USD'
+                                    - 'EUR'
+                e2e_exchange_rate:
+                    options:
+                        rates:
+                            - { source: 'USD', target: 'EUR', ratio: 0.8 }
+
                 # Sylius gives each of its three shipping methods a zone picked at random, the US or the rest of
                 # the world. When all three drew the US, nothing shipped to the countries the address step lists
                 # first, and the end to end specs walking the checkout (specs/support/checkout.js) submitted an

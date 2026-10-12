@@ -18,11 +18,13 @@ use Setono\SyliusGiftCardPlugin\Order\AddToCartCommand;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimits;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
+use Setono\SyliusGiftCardPlugin\Tests\Unit\Currency\FixedRateCurrencyConverter;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCartItemAvailabilityValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCartValidator;
@@ -402,7 +404,10 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
         $designProvider->getDesigns($channel->reveal())->willReturn([]);
 
         $amountLimitsProvider = $this->prophesize(GiftCardAmountLimitsProviderInterface::class);
-        $amountLimitsProvider->getLimits($channel->reveal())->willReturn(new GiftCardAmountLimits(100, null));
+        $amountLimitsProvider->getLimits($channel->reveal(), 'USD')->willReturn(new GiftCardAmountLimits(100, null));
+
+        $currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
+        $currencyProvider->getCurrencyCode($channel->reveal())->willReturn('USD');
 
         $moneyFormatter = $this->prophesize(MoneyFormatterInterface::class);
         $moneyFormatter->format(Argument::cetera())->willReturn('$1.00');
@@ -426,6 +431,7 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
                 $amountLimitsProvider->reveal(),
                 $moneyFormatter->reveal(),
                 $localeContext->reveal(),
+                $currencyProvider->reveal(),
             ),
             new EntityType($this->createManagerRegistry()),
         ];
@@ -446,12 +452,14 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
                     2147483647,
                     $moneyFormatter->reveal(),
                     $localeContext->reveal(),
+                    new FixedRateCurrencyConverter(),
                 ),
                 ValidGiftCardAmountValidator::class => new ValidGiftCardAmountValidator(
                     $channelContext->reveal(),
                     $amountLimitsProvider->reveal(),
                     $moneyFormatter->reveal(),
                     $localeContext->reveal(),
+                    $currencyProvider->reveal(),
                 ),
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
                 GiftCardCartItemAvailabilityValidator::class => new GiftCardCartItemAvailabilityValidator(new AvailabilityChecker()),

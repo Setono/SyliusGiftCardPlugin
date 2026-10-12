@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const { GRID_ROWS, flashMessages, setChecked } = require('../support/admin');
-const { anyCustomerEmail, firstGiftCardId, firstDesignId, giftCardCode, channelBaseCurrencyCode, currencyOtherThan } = require('../support/fixtures');
-const { giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
+const { anyCustomerEmail, firstGiftCardId, firstDesignId, giftCardCode, channelCurrencyCodes } = require('../support/fixtures');
+const { filterGiftCards, giftCardDetails, giftCardRows, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
 const { moneyInCents } = require('../support/money');
 const { clickAndWaitForPage } = require('../support/navigation');
 const { pdfPageCount, pdfText } = require('../support/pdf');
@@ -102,27 +102,37 @@ test.describe('admin gift cards', () => {
     });
 
     /**
-     * The list offers every currency the shop knows, but Sylius keeps order amounts in the channel's base
-     * currency, so a card issued in any other currency would carry a balance in the wrong unit. The form is the only
-     * place where an admin can find that out before the customer does.
+     * A card is held in a currency its channel offers, and pays converted into the channel's base currency, which orders
+     * are kept in (#488). The form offers the chosen channel's currencies and starts out at its base currency, so a card
+     * can be issued by filling in the amount alone (#358), and a currency the channel does not offer is not offered at
+     * all. The card can be issued in another currency the channel offers
      */
-    test('a currency other than the channel base currency is rejected when issuing a card', async ({ page }) => {
+    test('the form offers the currencies of the chosen channel, starting out at its base currency', async ({ page }) => {
         await page.goto('/admin/gift-cards/new');
         const channelCode = await page.locator('select[name*="[channel]"]').inputValue();
 
-        const base = await channelBaseCurrencyCode(page, channelCode);
-        // the fixtures may seed nothing but the channel's own currency, so make sure there is another one to pick
-        const other = await currencyOtherThan(page, base);
+        const offered = await channelCurrencyCodes(page, channelCode);
+        expect(offered.length, 'the seeded channel should show its prices in a currency besides its base currency').toBeGreaterThan(1);
+
+        await page.goto('/admin/currencies/');
+        const known = (await page.locator(`${GRID_ROWS} > td:first-child`).allInnerTexts()).map((code) => code.trim());
+        const notOffered = known.filter((code) => '' !== code && !offered.includes(code));
 
         await page.goto('/admin/gift-cards/new');
         const currency = page.locator('select[name*="[currencyCode]"]');
-        await currency.selectOption(other);
-        await page.locator('input[name*="[amount]"]').fill('100');
-        await clickAndWaitForPage(page, page.locator('form[name="setono_sylius_gift_card_gift_card"] button[type="submit"]').first());
+        await expect(currency).toHaveValue(offered[0]);
 
-        // The message has to be translated, not a raw key: constraint messages resolve in the validators domain
-        await expect(page.locator('.sylius-validation-error').first())
-            .toContainText(/is not the base currency of the channel/i);
+        // the script hides what the chosen channel does not offer; what is left is exactly what it offers
+        const choices = await currency.locator('option:not([disabled])').evaluateAll((options) => options.map((option) => option.value));
+        expect([...choices].sort()).toEqual([...offered].sort());
+        for (const code of notOffered) {
+            await expect(currency.locator(`option[value="${code}"]`), `${code} is no currency of the channel`).toHaveCount(0);
+        }
+
+        const card = await issueGiftCard(page, { amount: 2500, currency: offered[1] });
+        await filterGiftCards(page, { code: { type: 'equal', value: card.code }, currencyCode: offered[1] });
+        await expect(page.locator(GRID_ROWS), `the card should be held in ${offered[1]}`).toHaveCount(1);
+        expect(moneyInCents((await giftCardDetails(page, card.id)).Amount)).toBe(2500);
     });
 
     /**

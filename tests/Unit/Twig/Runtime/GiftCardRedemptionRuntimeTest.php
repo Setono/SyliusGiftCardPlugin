@@ -8,11 +8,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverage;
+use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardRedemptionRuntime;
+use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface as BaseOrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Payment\Model\PaymentMethodInterface;
@@ -34,10 +38,46 @@ final class GiftCardRedemptionRuntimeTest extends TestCase
     /** @var ObjectProphecy<GiftCardPaymentCheckerInterface> */
     private ObjectProphecy $paymentChecker;
 
+    /** @var ObjectProphecy<GiftCardCoverageCalculatorInterface> */
+    private ObjectProphecy $coverageCalculator;
+
+    /** @var ObjectProphecy<GiftCardCurrencyProviderInterface> */
+    private ObjectProphecy $currencyProvider;
+
     protected function setUp(): void
     {
         $this->redemptionMethod = $this->prophesize(GiftCardRedemptionMethodInterface::class);
         $this->paymentChecker = $this->prophesize(GiftCardPaymentCheckerInterface::class);
+        $this->coverageCalculator = $this->prophesize(GiftCardCoverageCalculatorInterface::class);
+        $this->currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
+    }
+
+    /**
+     * The cart shows a card held in the currency the customer browses in by what it gives in that currency, which the
+     * coverage tells (#488)
+     *
+     * @test
+     */
+    public function it_hands_the_cart_the_coverage_of_the_order(): void
+    {
+        $order = $this->order(10000);
+        $coverage = new GiftCardCoverage([]);
+        $this->coverageCalculator->calculate($order)->willReturn($coverage);
+
+        self::assertSame($coverage, $this->runtime()->getCoverage($order));
+    }
+
+    /**
+     * The product page's live preview formats the amount in the currency the amount field is in
+     *
+     * @test
+     */
+    public function it_tells_the_currency_a_gift_card_bought_now_is_held_in(): void
+    {
+        $channel = $this->prophesize(ChannelInterface::class)->reveal();
+        $this->currencyProvider->getCurrencyCode($channel)->willReturn('DKK');
+
+        self::assertSame('DKK', $this->runtime()->getCurrencyCode($channel));
     }
 
     /** @test */
@@ -149,6 +189,8 @@ final class GiftCardRedemptionRuntimeTest extends TestCase
             $this->redemptionMethod->reveal(),
             $this->prophesize(FormFactoryInterface::class)->reveal(),
             $this->paymentChecker->reveal(),
+            $this->coverageCalculator->reveal(),
+            $this->currencyProvider->reveal(),
         );
     }
 

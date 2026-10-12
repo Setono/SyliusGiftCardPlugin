@@ -335,6 +335,31 @@ async function cartFigure(page, figure) {
 }
 
 /**
+ * Switches the shop to a currency it shows its prices in besides the one it is in, the way a customer does with the
+ * currency switcher, and returns it. The shop starts a visitor in its channel's base currency, so this is a display
+ * currency: Sylius keeps the cart in the base currency all the same, and converts what it shows
+ *
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string>} the code of the currency the shop is in now
+ */
+async function switchCurrency(page) {
+    await page.goto(await shopPath(page));
+
+    const active = (await page.locator('[data-test-active-currency]').innerText()).trim();
+    const offered = page.locator('[data-test-available-currency]');
+    expect(await offered.count(), 'the shop should show its prices in a currency besides its base currency').toBeGreaterThan(0);
+
+    const code = (await offered.first().innerText()).trim();
+    expect(code).not.toBe(active);
+
+    // the switcher is a dropdown, and its links lead straight to the switch
+    await page.goto(/** @type {string} */ (await offered.first().getAttribute('href')));
+    await expect(page.locator('[data-test-active-currency]')).toHaveText(code);
+
+    return code;
+}
+
+/**
  * The error messages the page flashes, e.g. why a gift card was refused, one string per message
  *
  * @param {import('@playwright/test').Page} page
@@ -368,4 +393,5 @@ module.exports = {
     shopPath,
     singleDeliveryTypeGiftCardProductPath,
     submitAddToCart,
+    switchCurrency,
 };

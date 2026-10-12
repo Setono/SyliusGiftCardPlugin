@@ -10,6 +10,8 @@ class GiftCardInformation implements GiftCardInformationInterface
 {
     protected ?GiftCardDesignInterface $design = null;
 
+    protected ?string $currencyCode = null;
+
     public function __construct(protected ?int $amount = null, protected ?string $customMessage = null)
     {
     }
@@ -32,6 +34,16 @@ class GiftCardInformation implements GiftCardInformationInterface
     public function setCustomMessage(?string $customMessage): void
     {
         $this->customMessage = $customMessage;
+    }
+
+    public function getCurrencyCode(): ?string
+    {
+        return $this->currencyCode;
+    }
+
+    public function setCurrencyCode(?string $currencyCode): void
+    {
+        $this->currencyCode = $currencyCode;
     }
 
     public function getDesign(): ?GiftCardDesignInterface

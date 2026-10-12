@@ -5,12 +5,12 @@
 {% if form.giftCardInformation is defined %}
     {% set channel = sylius.channel %}
 
-    {# The live preview script works within this element. An empty currency makes the preview format a plain number
-       rather than pretend the shop sells in dollars #}
+    {# The live preview script works within this element. The currency is the one the amount field is in. An empty
+       currency makes the preview format a plain number rather than pretend the shop sells in dollars #}
     <div id="setono-gift-card-information"
          class="ui segment"
          data-preview-message-placeholder="{{ 'setono_sylius_gift_card.ui.your_message_here'|trans }}"
-         data-currency="{{ channel and channel.baseCurrency ? channel.baseCurrency.code : '' }}"
+         data-currency="{{ channel ? setono_gift_card_currency_code(channel) : '' }}"
          data-locale="{{ app.request.locale|replace({'_': '-'}) }}">
         <h4 class="ui dividing header">{{ 'setono_sylius_gift_card.ui.gift_card'|trans }}</h4>
 

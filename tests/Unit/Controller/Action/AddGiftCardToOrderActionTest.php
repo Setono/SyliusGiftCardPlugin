@@ -20,6 +20,7 @@ use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizer;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProvider;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\RedirectUrlResolverInterface;
@@ -28,6 +29,7 @@ use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Currency\Context\CompositeCurrencyContext;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
@@ -449,7 +451,7 @@ final class AddGiftCardToOrderActionTest extends TestCase
         $validator = Validation::createValidatorBuilder()
             ->addXmlMapping(dirname(__DIR__, 4) . '/src/Resources/config/validation/AddGiftCardToOrderCommand.xml')
             ->setConstraintValidatorFactory(new ContainerConstraintValidatorFactory(new ServiceLocator([
-                GiftCardIsEligibleValidator::class => static fn (): GiftCardIsEligibleValidator => new GiftCardIsEligibleValidator($cartContext->reveal(), new GiftCardEligibilityChecker(), new GiftCardCodeNormalizer()),
+                GiftCardIsEligibleValidator::class => static fn (): GiftCardIsEligibleValidator => new GiftCardIsEligibleValidator($cartContext->reveal(), new GiftCardEligibilityChecker(new GiftCardCurrencyProvider(new CompositeCurrencyContext())), new GiftCardCodeNormalizer()),
             ])))
             ->getValidator();
 

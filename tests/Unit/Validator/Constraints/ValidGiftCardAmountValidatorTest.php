@@ -7,8 +7,10 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Validator\Constraints;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimits;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmount;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
@@ -25,9 +27,9 @@ use Symfony\Component\Validator\Exception\UnexpectedValueException;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
 /**
- * The amount a customer may buy a gift card for is bounded by the limits of the channel being shopped in, and the
- * violation quotes the limit that was crossed as money in the channel's base currency, formatted in the locale being
- * browsed the way the amount field's help text quotes it
+ * The amount a customer may buy a gift card for is bounded by the limits of the channel being shopped in, in the
+ * currency the card is held in, and the violation quotes the limit that was crossed as money in that currency,
+ * formatted in the locale being browsed the way the amount field's help text quotes it
  *
  * @extends ConstraintValidatorTestCase<ValidGiftCardAmountValidator>
  */
@@ -181,11 +183,35 @@ final class ValidGiftCardAmountValidatorTest extends ConstraintValidatorTestCase
     public function it_has_no_limits_to_enforce_in_a_channel_that_is_not_a_shop_channel(): void
     {
         $this->channelContext->getChannel()->willReturn($this->prophesize(BaseChannelInterface::class)->reveal());
-        $this->amountLimitsProvider->getLimits(Argument::any())->shouldNotBeCalled();
+        $this->amountLimitsProvider->getLimits(Argument::cetera())->shouldNotBeCalled();
 
         $this->validator->validate(1, new ValidGiftCardAmount());
 
         $this->assertNoViolation();
+    }
+
+    /**
+     * The amount is in the currency the card is held in, which the gift card information names when the customer
+     * browses in another currency than the channel's base currency (#488). It is held to the limits in that currency,
+     * without conversion, and they are quoted in it
+     *
+     * @test
+     */
+    public function it_holds_the_amount_to_the_limits_in_the_currency_the_card_is_held_in(): void
+    {
+        $channel = $this->channelLimits(100, 50000);
+        $this->amountLimitsProvider->getLimits($channel, 'EUR')->willReturn(new GiftCardAmountLimits(1000, null));
+        $this->localeContext->getLocaleCode()->willReturn('da_DK');
+
+        $information = new GiftCardInformation(999);
+        $information->setCurrencyCode('EUR');
+        $this->setObject($information);
+
+        $this->validator->validate(999, new ValidGiftCardAmount());
+
+        $this->buildViolation('setono_sylius_gift_card.gift_card_information.amount.too_low')
+            ->setParameter('{{ minimum }}', '10,00 €')
+            ->assertRaised();
     }
 
     /** @test */
@@ -217,16 +243,22 @@ final class ValidGiftCardAmountValidatorTest extends ConstraintValidatorTestCase
         $moneyFormatter->format(100, 'DKK', 'da_DK')->willReturn('1,00 kr.');
         $moneyFormatter->format(50000, 'DKK', 'da_DK')->willReturn('500,00 kr.');
         $moneyFormatter->format(100, 'DKK', null)->willReturn('DKK 1.00');
+        $moneyFormatter->format(1000, 'EUR', 'da_DK')->willReturn('10,00 €');
+
+        // the customer browses in the channel's base currency
+        $currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
+        $currencyProvider->getCurrencyCode(Argument::any())->willReturn('DKK');
 
         return new ValidGiftCardAmountValidator(
             $this->channelContext->reveal(),
             $this->amountLimitsProvider->reveal(),
             $moneyFormatter->reveal(),
             $this->localeContext->reveal(),
+            $currencyProvider->reveal(),
         );
     }
 
-    private function channelLimits(int $minimum, ?int $maximum): void
+    private function channelLimits(int $minimum, ?int $maximum): ChannelInterface
     {
         $currency = new Currency();
         $currency->setCode('DKK');
@@ -235,6 +267,8 @@ final class ValidGiftCardAmountValidatorTest extends ConstraintValidatorTestCase
         $channel->getBaseCurrency()->willReturn($currency);
 
         $this->channelContext->getChannel()->willReturn($channel->reveal());
-        $this->amountLimitsProvider->getLimits($channel->reveal())->willReturn(new GiftCardAmountLimits($minimum, $maximum));
+        $this->amountLimitsProvider->getLimits($channel->reveal(), 'DKK')->willReturn(new GiftCardAmountLimits($minimum, $maximum));
+
+        return $channel->reveal();
     }
 }

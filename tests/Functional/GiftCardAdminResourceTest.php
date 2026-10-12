@@ -10,6 +10,8 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Currency\Model\Currency;
+use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
@@ -506,6 +508,111 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
         self::assertTrue($response->isRedirect());
         self::assertStringContainsString('The gift card cannot be removed.', (string) $this->followRedirect($response)->getContent());
         self::assertSame(3000, $this->reloadGiftCard($giftCard)->getAmount());
+    }
+
+    /**
+     * A card is held in a currency its channel offers, its base currency or another, and pays converted into the
+     * currency of the order it is redeemed on (#488)
+     *
+     * @test
+     */
+    public function it_issues_a_gift_card_in_a_currency_the_channel_offers_besides_its_base_currency(): void
+    {
+        $this->getChannel()->addCurrency($this->createCurrency('EUR'));
+        $this->manager->flush();
+
+        $response = $this->issue([
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'EUR',
+            'amount' => '40',
+        ]);
+
+        self::assertTrue($response->isRedirect(), sprintf('Expected a redirect, got a %d response', $response->getStatusCode()));
+
+        $giftCard = $this->findTheOnlyGiftCard();
+        self::assertSame('EUR', $giftCard->getCurrencyCode());
+        self::assertSame(4000, $giftCard->getAmount());
+    }
+
+    /**
+     * The form offers the currencies of every channel, each telling which channels offer it and which have it as their
+     * base currency, so the script narrows them to the chosen channel's. It starts out at the base currency of the
+     * channel it starts out at, so a card can be issued by filling in the amount alone (#358)
+     *
+     * @test
+     */
+    public function it_starts_the_create_form_at_the_base_currency_of_the_channel_and_marks_which_channels_offer_each_currency(): void
+    {
+        $euro = $this->createCurrency('EUR');
+        $this->getChannel()->addCurrency($euro);
+        $euroChannel = $this->createChannel('EURO_CHANNEL');
+        $euroChannel->setBaseCurrency($euro);
+        $this->manager->flush();
+
+        $form = $this->request('GET', '/admin/gift-cards/new');
+        self::assertSame(200, $form->getStatusCode());
+
+        $select = sprintf('//select[@name="%s[currencyCode]"]', self::FORM);
+        self::assertSame(['USD'], self::textsOf($form, $select . '/option[@selected]/@value'));
+        self::assertSame(['USD', 'EUR'], self::textsOf($form, $select . '/option/@value'));
+        self::assertSame(['TEST_CHANNEL EURO_CHANNEL'], self::textsOf($form, $select . '/option[@value="USD"]/@data-channels'));
+        self::assertSame(['TEST_CHANNEL'], self::textsOf($form, $select . '/option[@value="USD"]/@data-base-channels'));
+        self::assertSame(['TEST_CHANNEL EURO_CHANNEL'], self::textsOf($form, $select . '/option[@value="EUR"]/@data-channels'));
+        self::assertSame(['EURO_CHANNEL'], self::textsOf($form, $select . '/option[@value="EUR"]/@data-base-channels'));
+
+        // the script reads the channel field the select names
+        self::assertSame(
+            [sprintf('%s_channel', self::FORM)],
+            self::textsOf($form, $select . '[@data-js-gift-card-currency]/@data-channel-field'),
+        );
+        self::assertCount(1, self::textsOf($form, '//script[contains(@src, "admin-gift-card-currency.js")]/@src'));
+
+        // the currency the form starts out at is the only field besides the amount the admin has to fill in
+        $response = $this->issue([
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => self::valueOf($form, $select . '/option[@selected]'),
+            'amount' => '25',
+        ], $form);
+
+        self::assertTrue($response->isRedirect(), sprintf('Expected a redirect, got a %d response', $response->getStatusCode()));
+        self::assertSame('USD', $this->findTheOnlyGiftCard()->getCurrencyCode());
+    }
+
+    /**
+     * A card in a currency its channel does not offer could never be redeemed. The form offers every channel's
+     * currencies, so the one picked may be another channel's
+     *
+     * @test
+     */
+    public function it_refuses_a_currency_the_chosen_channel_does_not_offer(): void
+    {
+        $euroChannel = $this->createChannel('EURO_CHANNEL');
+        $euroChannel->setBaseCurrency($this->createCurrency('EUR'));
+        $this->manager->flush();
+
+        $response = $this->issue([
+            'channel' => 'TEST_CHANNEL',
+            'currencyCode' => 'EUR',
+            'amount' => '25',
+        ]);
+
+        self::assertSame(422, $response->getStatusCode());
+        self::assertSame(
+            ['The channel Test channel does not offer the currency EUR. A gift card is held in a currency its channel offers: USD.'],
+            self::textsOf($response, sprintf(
+                '//div[contains(concat(" ", normalize-space(@class), " "), " field ")][.//select[@name="%s[currencyCode]"]]//*[contains(@class, "sylius-validation-error")]',
+                self::FORM,
+            )),
+        );
+    }
+
+    private function createCurrency(string $code): CurrencyInterface
+    {
+        $currency = new Currency();
+        $currency->setCode($code);
+        $this->manager->persist($currency);
+
+        return $currency;
     }
 
     /**

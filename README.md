@@ -56,6 +56,37 @@ An order the gift cards pay only in part stays *awaiting payment* until the rest
 
 The thank you page of such an order shows how to pay the rest, e.g. where to send a bank transfer. Sylius shows the instructions of the order's last payment there, and the gift card payment is added after the payment for the rest when the order is placed, so the plugin shows the instructions of the payment for the rest itself: the `setono_gift_card_payment_instructions` block on the `sylius.shop.order.thank_you.after_message` UI event, right above where Sylius' would be. An application that overrides `@SyliusShop/Order/thankYou.html.twig` keeps this as long as its template still fires that event; if the override shows the right instructions itself, disable the block through your own `sylius_ui` configuration. In your own templates, `setono_gift_card_remaining_payment(order)` gives the payment for the rest (`null` when the gift cards pay the whole order).
 
+### Gift cards in other currencies
+
+Sylius keeps every order in its channel's base currency. The other currencies a channel offers only change how amounts
+are shown, converted at the exchange rates kept in the admin (*Configuration › Exchange rates*), and the customer is
+charged in the base currency all the same. A gift card is held in the currency it was bought or issued in, which can be
+any currency its channel offers, so a card bought for DKK 300 on a channel kept in euros holds DKK 300.
+
+- **Buying:** a customer browsing in another currency than the base currency types the amount in that currency, and the
+  live preview shows it in that currency too. The card is created in it, holding exactly the amount typed. Its line costs
+  that amount converted into the base currency at the exchange rate of the day, and is priced again whenever the cart
+  is processed, the way every other price shown in that currency follows the rate.
+- **Redeeming:** a card held in a currency the order's channel offers pays converted into the order's currency. It is
+  judged against the order as the customer sees it in the card's currency: a card holding at least what the order shows
+  pays the whole order, and gives exactly what the customer was shown, so a DKK 300 card always covers an order shown as
+  DKK 300, whatever converting back and forth does to the last minor unit. A smaller card gives its whole balance. The
+  gift card payment is in the order's currency, and records what it took off the card in the card's currency, which is
+  exactly what comes back if the payment is refunded or the order cancelled.
+- **The cart:** a card held in the currency the customer browses in shows what it gives by its own amount. What remains
+  to pay is what the customer is charged, in the base currency, shown converted like the rest of the summary. Each of
+  these is converted on its own, so they can be a minor unit or two apart from the order total less the card.
+- **The admin:** the *New gift card* form offers the currencies of the chosen channel and starts out at its base
+  currency. A card in a currency its channel does not offer could never be redeemed, so the form, the fixture and the
+  shop's redemption refuse one.
+
+The shop carries the currency risk: what a card in another currency is worth in the base currency moves with the
+exchange rate between buying and redeeming, as with anything the shop owes in another currency. The balance report
+groups the outstanding balance by currency. The exchange rates are the shop's: Sylius converts an amount between two
+currencies it has no exchange rate for one to one, which the plugin does not guard against, so keep a rate for every
+currency a channel offers. To hold every card in its channel's base currency instead, decorate
+`Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface` (see [Customization](#customization)).
+
 ### Managing gift cards in the admin
 
 The gift card grid and a card's page show one status per card:
@@ -524,7 +555,7 @@ setono_sylius_gift_card:
     minimum_code_length: 12              # fewest significant characters of any code a card is issued with, generated or typed; 12 to 255, never below 12 because a code is a bearer token and must not be guessable; see below
     default_validity_period: '3 years'   # how long a card stays valid (an interval such as '18 months' or '1 year 6 months'), or null to never expire; see below
     purchase:
-        minimum_amount: 100              # minor units (e.g. cents), at least 1
+        minimum_amount: 100              # minor units (e.g. cents) of whichever currency the amount is typed in, at least 1
         maximum_amount: ~                # minor units, at least minimum_amount, or ~ for no maximum
         maximum_message_length: 200      # characters a customer may write on the card, 1 to 65535
     delivery:
@@ -581,6 +612,11 @@ types a code of their own on the *New gift card* form is held to it, and so is a
 fixture. A typed code is counted once it is normalized: it is saved in capitals with dashes and spaces dropped, the way
 the cart looks codes up, so only its letters and digits count. Cards that already exist keep their code whatever its
 length, so cards brought over from `0.12.x` with shorter codes stay usable and editable.
+
+The purchase limits are minor units without a currency, and the amount a customer types is held to them in the currency
+it is typed in, without conversion: a minimum of 100 is 1.00 in dollars and in Danish kroner alike. To set limits per
+currency, or per channel, decorate `Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface`, whose
+`getLimits()` is given the channel and the currency.
 
 `purchase.maximum_amount` cannot be set below `purchase.minimum_amount`, since no amount would then be left for a
 customer to buy: the container refuses it with `The maximum_amount (500) must be at least the minimum_amount (1000)`.
@@ -815,6 +851,14 @@ services:
         decorates: Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface
         arguments: ['@.inner']
 ```
+
+### Holding gift cards in the base currency only
+
+A gift card is held in any currency its channel offers (see [Gift cards in other currencies](#gift-cards-in-other-currencies)).
+To hold every card in the currency its orders are kept in, decorate
+`Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface` so that `getCurrencyCodes()` returns the
+channel's base currency alone and `getCurrencyCode()` returns it too. The shop then takes amounts in the base currency,
+the admin offers only it, and a card in any other currency is refused.
 
 ### Customizing the add-to-cart command
 

@@ -6,11 +6,13 @@ namespace Setono\SyliusGiftCardPlugin\Order\Factory;
 
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformationInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Sylius\Component\Core\Calculator\ProductVariantPricesCalculatorInterface;
 use Sylius\Component\Core\Exception\MissingChannelConfigurationException;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface as CoreOrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface as CoreOrderItemInterface;
+use Sylius\Component\Currency\Converter\CurrencyConverterInterface;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\Model\OrderItemInterface;
 
@@ -23,19 +25,31 @@ final class GiftCardInformationFactory implements GiftCardInformationFactoryInte
         private readonly string $className,
         private readonly ProductVariantPricesCalculatorInterface $productVariantPricesCalculator,
         private readonly GiftCardAmountLimitsProviderInterface $amountLimitsProvider,
+        private readonly GiftCardCurrencyProviderInterface $currencyProvider,
+        private readonly CurrencyConverterInterface $currencyConverter,
     ) {
     }
 
     public function createNew(OrderInterface $cart, OrderItemInterface $cartItem): GiftCardInformationInterface
     {
-        return new $this->className($this->resolveInitialAmount($cart, $cartItem));
+        $channel = $cart instanceof CoreOrderInterface ? $cart->getChannel() : null;
+
+        // The card is held in the currency the customer browses in, when the channel offers it, so the amount is typed
+        // in that currency too (#488)
+        $currencyCode = $channel instanceof ChannelInterface ? $this->currencyProvider->getCurrencyCode($channel) : null;
+
+        $information = new $this->className($this->resolveInitialAmount($channel, $currencyCode, $cartItem));
+        $information->setCurrencyCode($currencyCode);
+
+        return $information;
     }
 
     /**
-     * The amount field starts out at the price the product page shows next to it, so the customer adjusts a suggested
+     * The amount field starts out at the price the shop shows for the product, so the customer adjusts a suggested
      * amount rather than filling in a blank. That is the variant's price in the cart's channel, not the line's unit
      * price: Sylius only prices a line once it has been added to the cart, so on the product page the line costs 0.
-     * The channel price is in the channel's base currency, which is the currency the amount field is in.
+     * The channel price is in the channel's base currency, so it is converted into the currency the amount field is in,
+     * the way the shop shows its prices in the currency the customer browses in.
      *
      * Without a variant or a channel there is nothing to suggest. A shop whose maximum equals its minimum sells gift
      * cards of that one amount, so the field starts out at it, whatever the product is priced at. Otherwise, without a
@@ -43,16 +57,15 @@ final class GiftCardInformationFactory implements GiftCardInformationFactoryInte
      * amount, because the product is sold for nothing or for less or more than the purchase limits allow, would start
      * the customer off at an error. In each of those cases the field starts out empty
      */
-    private function resolveInitialAmount(OrderInterface $cart, OrderItemInterface $cartItem): ?int
+    private function resolveInitialAmount(?ChannelInterface $channel, ?string $currencyCode, OrderItemInterface $cartItem): ?int
     {
-        $channel = $cart instanceof CoreOrderInterface ? $cart->getChannel() : null;
         $variant = $cartItem instanceof CoreOrderItemInterface ? $cartItem->getVariant() : null;
 
-        if (!$channel instanceof ChannelInterface || null === $variant) {
+        if (null === $channel || null === $currencyCode || null === $variant) {
             return null;
         }
 
-        $limits = $this->amountLimitsProvider->getLimits($channel);
+        $limits = $this->amountLimitsProvider->getLimits($channel, $currencyCode);
         if ($limits->maximum === $limits->minimum) {
             return $limits->minimum;
         }
@@ -62,6 +75,8 @@ final class GiftCardInformationFactory implements GiftCardInformationFactoryInte
         } catch (MissingChannelConfigurationException) {
             return null;
         }
+
+        $price = $this->currencyConverter->convert($price, (string) $channel->getBaseCurrency()?->getCode(), $currencyCode);
 
         if ($price <= 0 || $price < $limits->minimum || (null !== $limits->maximum && $price > $limits->maximum)) {
             return null;

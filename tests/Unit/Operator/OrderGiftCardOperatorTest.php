@@ -108,6 +108,55 @@ final class OrderGiftCardOperatorTest extends TestCase
     }
 
     /**
+     * A card bought while browsing in another currency than the order's is held in that currency, and worth the amount
+     * the customer chose in it, which its line costs converted (#488): converting the line's price back would not give
+     * it exactly. A unit added by raising the quantity gets a card held the same way. A card in the order's currency is
+     * worth its line's price
+     *
+     * @test
+     */
+    public function it_holds_the_cards_of_a_line_in_the_currency_and_amount_they_were_bought_in(): void
+    {
+        $this->expiryResolver->resolve()->willReturn(null);
+
+        $euros = self::giftCard('EUROS');
+        $euros->setCurrencyCode('EUR');
+        $euros->setInitialAmount(4000);
+        $euros->setAmount(4000);
+
+        $dollars = self::giftCard('DOLLARS');
+        $dollars->setCurrencyCode('USD');
+        $dollars->setInitialAmount(1);
+        $dollars->setAmount(1);
+
+        $channel = new Channel();
+        $order = new Order();
+        $order->setChannel($channel);
+        $order->setCurrencyCode('USD');
+        self::addLine($order, true, [$euros, null], unitPrice: 5000);
+        self::addLine($order, true, [$dollars], unitPrice: 2500);
+
+        $this->giftCardFactory->createForChannel($channel)->will(static fn (): GiftCardInterface => new GiftCard());
+        $this->managerRegistry->getManagerForClass(GiftCard::class)->willReturn($this->prophesize(EntityManagerInterface::class)->reveal());
+
+        $this->operator->reconcile($order);
+
+        $items = $order->getItems()->toArray();
+        foreach ($items[0]->getUnits() as $unit) {
+            self::assertInstanceOf(OrderItemUnit::class, $unit);
+
+            $giftCard = $unit->getGiftCard();
+            self::assertNotNull($giftCard);
+            self::assertSame('EUR', $giftCard->getCurrencyCode());
+            self::assertSame(4000, $giftCard->getAmount());
+            self::assertSame(4000, $giftCard->getInitialAmount());
+        }
+
+        self::assertSame('USD', $dollars->getCurrencyCode());
+        self::assertSame(2500, $dollars->getAmount(), 'a card in the order\'s currency is worth its line\'s price');
+    }
+
+    /**
      * One email per order, carrying every card bought on it. Units still without a card and lines of other products
      * have nothing to send
      *
@@ -244,7 +293,7 @@ final class OrderGiftCardOperatorTest extends TestCase
     /**
      * @param list<GiftCardInterface|null> $giftCards one entry per unit
      */
-    private static function addLine(Order $order, bool $giftCardProduct, array $giftCards): void
+    private static function addLine(Order $order, bool $giftCardProduct, array $giftCards, int $unitPrice = 0): void
     {
         $product = new Product();
         $product->setGiftCard($giftCardProduct);
@@ -254,6 +303,7 @@ final class OrderGiftCardOperatorTest extends TestCase
 
         $item = new OrderItem();
         $item->setVariant($variant);
+        $item->setUnitPrice($unitPrice);
         $order->addItem($item);
 
         foreach ($giftCards as $giftCard) {

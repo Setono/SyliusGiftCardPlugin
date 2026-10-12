@@ -11,6 +11,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculator">
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\EligibleTotalCalculatorInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface"/>
+            <argument type="service" id="sylius.currency_converter"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface"
                  alias="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculator"/>
@@ -23,7 +24,9 @@
         <service id="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface"
                  alias="Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperator"/>
 
-        <service id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityChecker"/>
+        <service id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityChecker">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface"/>
+        </service>
         <service id="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityCheckerInterface"
                  alias="Setono\SyliusGiftCardPlugin\Checker\GiftCardEligibilityChecker"/>
 

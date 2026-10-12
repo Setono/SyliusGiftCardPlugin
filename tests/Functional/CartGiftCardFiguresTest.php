@@ -10,7 +10,10 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
+use Sylius\Component\Core\Currency\CurrencyStorageInterface;
 use Sylius\Component\Core\Model\ProductVariant;
+use Sylius\Component\Currency\Model\Currency;
+use Sylius\Component\Currency\Model\ExchangeRate;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -120,6 +123,99 @@ final class CartGiftCardFiguresTest extends GiftCardFunctionalTestCase
         self::assertSame(0, self::matchCount($this->render(self::TOTALS_TEMPLATE, $cart), '//*[@data-test-gift-card-totals]'));
     }
 
+    /**
+     * A card held in the currency the customer browses in shows what it gives by its own amount, rather than that
+     * converted into dollars and back: an order of $40.21 shows as DKK 299.97 at 7.46 kroner to the dollar, which a
+     * DKK 300.00 card pays in full (#488)
+     *
+     * @test
+     */
+    public function a_card_in_the_currency_browsed_in_shows_what_it_gives_in_that_currency(): void
+    {
+        $this->browseInKroner();
+
+        $cart = $this->createCart(4021);
+        $cart->addGiftCard($this->createGiftCard('FIGURES000000006', 30000, 'DKK'));
+
+        self::assertSame('-DKK 299.97', $this->coveredBy($this->render(self::GIFT_CARDS_TEMPLATE, $cart), 'FIGURES000000006'));
+
+        $totals = $this->render(self::TOTALS_TEMPLATE, $cart);
+        self::assertSame('-DKK 299.97', $this->amountIn($totals, 'gift-cards-total'));
+        self::assertSame('DKK 0.00', $this->amountIn($totals, 'gift-cards-remaining-total'));
+    }
+
+    /**
+     * A smaller card gives its whole balance, and what is left to pay is what the customer is charged, $13.40, shown in
+     * kroner like the rest of the summary
+     *
+     * @test
+     */
+    public function a_card_in_the_currency_browsed_in_covering_part_of_the_order_shows_its_whole_balance(): void
+    {
+        $this->browseInKroner();
+
+        $cart = $this->createCart(4021);
+        $cart->addGiftCard($this->createGiftCard('FIGURES000000007', 20000, 'DKK'));
+
+        self::assertSame('-DKK 200.00', $this->coveredBy($this->render(self::GIFT_CARDS_TEMPLATE, $cart), 'FIGURES000000007'));
+
+        $totals = $this->render(self::TOTALS_TEMPLATE, $cart);
+        self::assertSame('-DKK 200.00', $this->amountIn($totals, 'gift-cards-total'));
+        self::assertSame('DKK 99.96', $this->amountIn($totals, 'gift-cards-remaining-total'));
+    }
+
+    /**
+     * A dollar card's amount means nothing in kroner, so it shows what it pays converted like any other dollar figure,
+     * and the cards' total is the dollars they pay together, converted
+     *
+     * @test
+     */
+    public function cards_in_different_currencies_show_what_they_pay_converted_into_the_currency_browsed_in(): void
+    {
+        $this->browseInKroner();
+
+        $cart = $this->createCart(4021);
+        $cart->addGiftCard($this->createGiftCard('FIGURES000000008', 1000));
+        $cart->addGiftCard($this->createGiftCard('FIGURES000000009', 30000, 'DKK'));
+
+        $giftCards = $this->render(self::GIFT_CARDS_TEMPLATE, $cart);
+        self::assertSame('-DKK 74.60', $this->coveredBy($giftCards, 'FIGURES000000008'));
+        self::assertSame('-DKK 225.37', $this->coveredBy($giftCards, 'FIGURES000000009'));
+
+        $totals = $this->render(self::TOTALS_TEMPLATE, $cart);
+        self::assertSame('-DKK 299.97', $this->amountIn($totals, 'gift-cards-total'));
+        self::assertSame('DKK 0.00', $this->amountIn($totals, 'gift-cards-remaining-total'));
+    }
+
+    /**
+     * What the currency switcher does: the channel offers kroner, the shop keeps 7.46 kroner to the dollar, and the
+     * customer has picked kroner, which the currency context reads for the channel from then on
+     */
+    private function browseInKroner(): void
+    {
+        $channel = $this->getChannel();
+
+        $krone = new Currency();
+        $krone->setCode('DKK');
+        $this->manager->persist($krone);
+        $channel->addCurrency($krone);
+
+        $dollar = $channel->getBaseCurrency();
+        self::assertNotNull($dollar);
+
+        $exchangeRate = new ExchangeRate();
+        $exchangeRate->setSourceCurrency($dollar);
+        $exchangeRate->setTargetCurrency($krone);
+        $exchangeRate->setRatio(7.46);
+        $this->manager->persist($exchangeRate);
+
+        $this->manager->flush();
+
+        /** @var CurrencyStorageInterface $currencyStorage */
+        $currencyStorage = self::getContainer()->get('sylius.storage.currency');
+        $currencyStorage->set($channel, 'DKK');
+    }
+
     private function render(string $template, Order $cart): \DOMXPath
     {
         /** @var Environment $twig */
@@ -152,7 +248,8 @@ final class CartGiftCardFiguresTest extends GiftCardFunctionalTestCase
         $nodes = self::query($html, $expression);
         self::assertSame(1, $nodes->length, sprintf('expected exactly one match for %s', $expression));
 
-        return trim((string) $nodes->item(0)?->nodeValue);
+        // The money formatter keeps a currency code and its amount together with a no-break space
+        return str_replace("\u{a0}", ' ', trim((string) $nodes->item(0)?->nodeValue));
     }
 
     private static function matchCount(\DOMXPath $html, string $expression): int
@@ -212,13 +309,16 @@ final class CartGiftCardFiguresTest extends GiftCardFunctionalTestCase
         return $cart;
     }
 
-    private function createGiftCard(string $code, int $amount): GiftCardInterface
+    private function createGiftCard(string $code, int $amount, ?string $currencyCode = null): GiftCardInterface
     {
         /** @var GiftCardFactoryInterface $factory */
         $factory = self::getContainer()->get('setono_sylius_gift_card.factory.gift_card');
 
         $giftCard = $factory->createForChannel($this->getChannel());
         $giftCard->setCode($code);
+        if (null !== $currencyCode) {
+            $giftCard->setCurrencyCode($currencyCode);
+        }
         $giftCard->setInitialAmount($amount);
         $giftCard->setAmount($amount);
         $giftCard->enable();

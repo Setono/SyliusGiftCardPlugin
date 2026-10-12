@@ -12,6 +12,8 @@
             <argument>%setono_sylius_gift_card.order.model.gift_card_information.class%</argument>
             <argument type="service" id="sylius.calculator.product_variant_price"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface"/>
+            <argument type="service" id="sylius.currency_converter"/>
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactoryInterface"
                  alias="Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactory"/>

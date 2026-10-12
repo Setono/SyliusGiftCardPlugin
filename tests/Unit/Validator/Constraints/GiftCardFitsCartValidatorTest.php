@@ -12,6 +12,7 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
+use Setono\SyliusGiftCardPlugin\Tests\Unit\Currency\FixedRateCurrencyConverter;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCart;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCartValidator;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
@@ -215,13 +216,40 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
     }
 
     /**
+     * A card held in another currency than the cart's costs its amount converted into the cart's currency (#488), which
+     * is what has to fit: $3,000,000.00 is a card's worth, but DKK 22,380,000.00 is more than the cart holds
+     *
+     * @test
+     */
+    public function it_holds_the_cart_to_the_price_of_a_card_in_another_currency_converted_into_the_carts(): void
+    {
+        $this->validator->validate($this->command(cartTotal: 0, amount: 300_000_000, currencyCode: 'USD'), new GiftCardFitsCart());
+
+        $this->buildViolation(self::MESSAGE)
+            ->setParameter('{{ maximum }}', '21.474.836,47 kr.')
+            ->assertRaised();
+    }
+
+    /**
+     * $2,800,000.00 is DKK 20,888,000.00, which the cart holds
+     *
+     * @test
+     */
+    public function it_accepts_a_card_in_another_currency_whose_converted_price_the_cart_has_room_for(): void
+    {
+        $this->validator->validate($this->command(cartTotal: 0, amount: 280_000_000, currencyCode: 'USD'), new GiftCardFitsCart());
+
+        $this->assertNoViolation();
+    }
+
+    /**
      * An application that widened Sylius' columns raises sylius_core.max_int_value with them
      *
      * @test
      */
     public function it_holds_the_cart_to_the_maximum_it_is_given(): void
     {
-        $validator = new GiftCardFitsCartValidator(4_000_000_000, $this->moneyFormatter->reveal(), $this->localeContext->reveal());
+        $validator = new GiftCardFitsCartValidator(4_000_000_000, $this->moneyFormatter->reveal(), $this->localeContext->reveal(), new FixedRateCurrencyConverter());
         $validator->initialize($this->context);
 
         $validator->validate($this->command(cartTotal: 0, amount: 2_000_000_000, quantity: 2), new GiftCardFitsCart());
@@ -271,14 +299,15 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
         $this->moneyFormatter->format(self::MAXIMUM, 'DKK', 'da_DK')->willReturn('21.474.836,47 kr.');
         $this->moneyFormatter->format(self::MAXIMUM, 'DKK', null)->willReturn('DKK 21,474,836.47');
 
-        return new GiftCardFitsCartValidator(self::MAXIMUM, $this->moneyFormatter->reveal(), $this->localeContext->reveal());
+        // kroner at 7.46 to the dollar
+        return new GiftCardFitsCartValidator(self::MAXIMUM, $this->moneyFormatter->reveal(), $this->localeContext->reveal(), new FixedRateCurrencyConverter());
     }
 
     /**
      * What the shop's add to cart form holds once submitted: a cart already holding an item of the given total, and a
      * new line of the product at the quantity chosen, with the amount chosen. The line is not in the cart yet
      */
-    private function command(int $cartTotal, ?int $amount, int $quantity = 1, ?ProductInterface $product = null): AddToCartCommand
+    private function command(int $cartTotal, ?int $amount, int $quantity = 1, ?ProductInterface $product = null, ?string $currencyCode = null): AddToCartCommand
     {
         $cart = new Order();
         $cart->setCurrencyCode('DKK');
@@ -304,7 +333,10 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
             new OrderItemUnit($item);
         }
 
-        return new AddToCartCommand($cart, $item, new GiftCardInformation($amount));
+        $information = new GiftCardInformation($amount);
+        $information->setCurrencyCode($currencyCode);
+
+        return new AddToCartCommand($cart, $item, $information);
     }
 
     private function adjustCart(AddToCartCommand $command, string $type, int $amount): void

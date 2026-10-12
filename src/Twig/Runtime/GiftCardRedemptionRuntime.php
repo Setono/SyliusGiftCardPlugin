@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Twig\Runtime;
 
+use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverage;
+use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
 use Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderCommand;
 use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface as BaseOrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Payment\Model\PaymentMethodInterface;
@@ -23,7 +27,18 @@ final class GiftCardRedemptionRuntime implements RuntimeExtensionInterface
         private readonly GiftCardRedemptionMethodInterface $redemptionMethod,
         private readonly FormFactoryInterface $formFactory,
         private readonly GiftCardPaymentCheckerInterface $paymentChecker,
+        private readonly GiftCardCoverageCalculatorInterface $coverageCalculator,
+        private readonly GiftCardCurrencyProviderInterface $currencyProvider,
     ) {
+    }
+
+    /**
+     * The currency a gift card bought in the channel now is held in, and the amount field is in, so the product page's
+     * live preview formats the amount in it
+     */
+    public function getCurrencyCode(ChannelInterface $channel): string
+    {
+        return $this->currencyProvider->getCurrencyCode($channel);
     }
 
     public function createApplyForm(): FormView
@@ -31,6 +46,15 @@ final class GiftCardRedemptionRuntime implements RuntimeExtensionInterface
         return $this->formFactory->create(AddGiftCardToOrderType::class, new AddGiftCardToOrderCommand(), [
             'action' => '',
         ])->createView();
+    }
+
+    /**
+     * What each gift card on the order pays, in the order's currency, and what that takes off the card, in the card's,
+     * so the cart can show a card held in the currency the customer browses in by its own amount
+     */
+    public function getCoverage(OrderInterface $order): GiftCardCoverage
+    {
+        return $this->coverageCalculator->calculate($order);
     }
 
     public function getCoveredAmount(OrderInterface $order): int

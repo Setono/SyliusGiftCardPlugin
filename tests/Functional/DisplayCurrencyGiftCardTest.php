@@ -10,7 +10,7 @@ use Setono\SyliusGiftCardPlugin\Exception\GiftCardCurrencyMismatchException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Order\AddToCartCommand;
-use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
+use Setono\SyliusGiftCardPlugin\Order\Factory\GiftCardInformationFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
@@ -21,9 +21,13 @@ use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Core\OrderCheckoutTransitions;
+use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Currency\Context\CurrencyContextInterface;
 use Sylius\Component\Currency\Model\Currency;
+use Sylius\Component\Currency\Model\ExchangeRate;
 use Sylius\Component\Order\Context\CartContextInterface;
+use Sylius\Component\Order\Processor\OrderProcessorInterface;
+use Sylius\Component\Payment\PaymentTransitions;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -32,11 +36,12 @@ use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
- * A shopper on a USD channel who has switched the shop to EUR. Sylius keeps the order in the channel's base
- * currency all the same: the cart contexts stamp a new cart with the base currency, and the other currencies a
- * channel offers only change how amounts are rendered (the shop's money macro converts from the base currency when
- * printing). Gift card balances are compared one to one with order amounts, so a card bought or redeemed by this
- * shopper has to be issued in, and checked against, the currency the order is kept in, never the one on screen
+ * A shopper on a USD channel who has switched the shop to EUR. Sylius keeps the order in the channel's base currency
+ * all the same: the cart contexts stamp a new cart with the base currency, and the other currencies a channel offers
+ * only change how amounts are rendered (the shop's money macro converts from the base currency when printing), at the
+ * exchange rate the shop keeps. A gift card is held in the currency it is bought in: a card bought for 40.00 EUR while
+ * browsing in euros holds 40.00 EUR, costs that converted into dollars, and pays converted into the currency of the
+ * order it is redeemed on (#488). Here a dollar is worth 0.80 EUR
  */
 final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
 {
@@ -52,6 +57,15 @@ final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
         $this->manager->persist($euro);
         $channel->addCurrency($euro);
 
+        $dollar = $channel->getBaseCurrency();
+        self::assertNotNull($dollar);
+
+        $exchangeRate = new ExchangeRate();
+        $exchangeRate->setSourceCurrency($dollar);
+        $exchangeRate->setTargetCurrency($euro);
+        $exchangeRate->setRatio(0.8);
+        $this->manager->persist($exchangeRate);
+
         $this->manager->flush();
 
         // the gift card payments are made with it, and the shop refuses gift cards until it is set up
@@ -60,13 +74,28 @@ final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
         $this->browseInEuro();
     }
 
-    /** @test */
-    public function it_issues_a_card_bought_while_browsing_in_another_currency_in_the_base_currency(): void
+    /**
+     * The amount is typed in euros and the card holds them, while its line costs them in dollars, the way every price
+     * this shopper sees in euros is a dollar price converted. A unit added by raising the quantity gets a card held the
+     * same way
+     *
+     * @test
+     */
+    public function it_holds_a_card_bought_while_browsing_in_another_currency_in_that_currency(): void
     {
         $cart = $this->cart();
-
         $item = $this->addItem($cart, 'GIFT_CARD', 5000, giftCard: true);
-        $this->handler()->handle(new AddToCartCommand($cart, $item, new GiftCardInformation(5000)));
+
+        /** @var GiftCardInformationFactoryInterface $informationFactory */
+        $informationFactory = self::getContainer()->get(GiftCardInformationFactoryInterface::class);
+        $information = $informationFactory->createNew($cart, $item);
+        self::assertSame('EUR', $information->getCurrencyCode(), 'the amount should be typed in the currency the shopper browses in');
+        self::assertSame(4000, $information->getAmount(), 'the amount should start at the $50.00 price shown in euros');
+
+        $this->handler()->handle(new AddToCartCommand($cart, $item, $information));
+        $this->processor()->process($cart);
+
+        self::assertSame(5000, $item->getUnitPrice(), 'the line should cost the 40.00 EUR in dollars');
 
         // bumping the quantity in the cart adds a unit without a card, which reconciliation issues one for
         new OrderItemUnit($item);
@@ -79,9 +108,87 @@ final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
 
             $giftCard = $unit->getGiftCard();
             self::assertInstanceOf(GiftCardInterface::class, $giftCard);
-            self::assertSame('USD', $giftCard->getCurrencyCode(), 'the card should be issued in the channel base currency');
-            self::assertSame(5000, $giftCard->getAmount(), 'the card should hold what the unit costs in that currency');
+            self::assertSame('EUR', $giftCard->getCurrencyCode(), 'the card should be held in the currency it was bought in');
+            self::assertSame(4000, $giftCard->getAmount(), 'the card should hold the amount the shopper chose');
+            self::assertSame(4000, $giftCard->getInitialAmount());
         }
+    }
+
+    /**
+     * 40.00 EUR is $50.00, so the card pays the whole $50.00 order, and the payment is in dollars, the order's currency
+     *
+     * @test
+     */
+    public function it_redeems_a_card_in_the_display_currency_converted_into_the_orders_currency(): void
+    {
+        $giftCard = $this->createEnabledGiftCard('EUROCARD00000001', 4000, currencyCode: 'EUR');
+        $cart = $this->cart();
+        $this->addItem($cart, 'MUG', 5000);
+
+        self::assertCount(0, $this->validateAgainstCart($giftCard), 'the channel offers euros, so the card should be accepted');
+
+        $this->applicator()->apply($cart, $giftCard);
+
+        self::assertSame(5000, $cart->getTotal(), 'redeeming should not change what the order costs');
+        self::assertSame(5000, $this->redemptionMethod()->getCoveredAmount($cart), 'the card should cover the order in dollars');
+
+        $this->placeOrder($cart);
+
+        self::assertSame(0, $giftCard->getAmount(), 'placing the order should take the 40.00 EUR off the card');
+        self::assertSame(OrderPaymentStates::STATE_PAID, $cart->getPaymentState());
+
+        $payment = $cart->getLastPayment(PaymentInterface::STATE_COMPLETED);
+        self::assertNotNull($payment, 'the card should have paid for the order');
+        self::assertSame(5000, $payment->getAmount());
+        self::assertSame('USD', $payment->getCurrencyCode());
+    }
+
+    /**
+     * 20.00 EUR is $25.00 of the $50.00 order
+     *
+     * @test
+     */
+    public function it_covers_part_of_the_order_with_a_smaller_card_in_the_display_currency(): void
+    {
+        $giftCard = $this->createEnabledGiftCard('EUROCARD00000002', 2000, currencyCode: 'EUR');
+        $cart = $this->cart();
+        $this->addItem($cart, 'MUG', 5000);
+
+        $this->applicator()->apply($cart, $giftCard);
+
+        self::assertSame(2500, $this->redemptionMethod()->getCoveredAmount($cart));
+    }
+
+    /**
+     * Refunding the gift card payment gives the card back exactly the 40.00 EUR it gave, not the $50.00 payment
+     * converted back at whatever the exchange rate is by then
+     *
+     * @test
+     */
+    public function it_gives_a_card_in_the_display_currency_back_exactly_what_it_gave_when_its_payment_is_refunded(): void
+    {
+        $giftCard = $this->createEnabledGiftCard('EUROCARD00000003', 4000, currencyCode: 'EUR');
+        $cart = $this->cart();
+        $this->addItem($cart, 'MUG', 5000);
+        $this->applicator()->apply($cart, $giftCard);
+        $this->placeOrder($cart);
+        self::assertSame(0, $giftCard->getAmount(), 'precondition: the card paid the order');
+
+        // the euro has gained on the dollar since
+        $exchangeRate = $this->manager->getRepository(ExchangeRate::class)->findOneBy([]);
+        self::assertInstanceOf(ExchangeRate::class, $exchangeRate);
+        $exchangeRate->setRatio(0.5);
+        $this->manager->flush();
+
+        $payment = $cart->getLastPayment(PaymentInterface::STATE_COMPLETED);
+        self::assertNotNull($payment);
+
+        /** @var StateMachineInterface $stateMachine */
+        $stateMachine = self::getContainer()->get('sylius_abstraction.state_machine');
+        $stateMachine->apply($payment, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_REFUND);
+        $this->manager->flush();
+
+        self::assertSame(4000, $giftCard->getAmount());
     }
 
     /** @test */
@@ -111,14 +218,18 @@ final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * A card in the currency the shopper happens to browse in holds an amount in a currency the order is not
-     * kept in, so letting it pay one to one for the order would hand out money at the wrong rate
+     * A card in a currency the channel does not offer has no exchange rate the shop keeps for this channel's shoppers,
+     * so it cannot pay for the order
      *
      * @test
      */
-    public function it_refuses_a_card_in_the_display_currency_on_an_order_kept_in_the_base_currency(): void
+    public function it_refuses_a_card_in_a_currency_the_channel_does_not_offer(): void
     {
-        $giftCard = $this->createEnabledGiftCard('DISPLAYCURRENCY1', 20000, currencyCode: 'EUR');
+        $pound = new Currency();
+        $pound->setCode('GBP');
+        $this->manager->persist($pound);
+
+        $giftCard = $this->createEnabledGiftCard('POUNDCARD0000001', 20000, currencyCode: 'GBP');
         $cart = $this->cart();
         $this->addItem($cart, 'MUG', 10000);
 
@@ -209,6 +320,14 @@ final class DisplayCurrencyGiftCardTest extends GiftCardFunctionalTestCase
         $handler = self::getContainer()->get(CartGiftCardHandlerInterface::class);
 
         return $handler;
+    }
+
+    private function processor(): OrderProcessorInterface
+    {
+        /** @var OrderProcessorInterface $processor */
+        $processor = self::getContainer()->get('sylius.order_processing.order_processor');
+
+        return $processor;
     }
 
     private function operator(): OrderGiftCardOperatorInterface

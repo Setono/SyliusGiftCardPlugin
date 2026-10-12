@@ -21,6 +21,7 @@ use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
+use Setono\SyliusGiftCardPlugin\Tests\Unit\Currency\FixedRateCurrencyConverter;
 use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\ProductVariant;
@@ -60,6 +61,30 @@ final class CartGiftCardHandlerTest extends TestCase
 
         self::assertSame(5000, $item->getUnitPrice());
         self::assertTrue($item->isImmutable(), 'the order processor would reprice the line at the variant price otherwise');
+    }
+
+    /**
+     * The amount is typed in the currency the customer browses in, when the channel offers it, and the card is held in
+     * that currency: a card for $50.00 on a cart kept in kroner holds $50.00, and its line costs that in kroner (#488)
+     *
+     * @test
+     */
+    public function it_holds_the_card_in_the_currency_the_amount_was_typed_in_and_prices_the_line_converted(): void
+    {
+        $information = new GiftCardInformation(5000);
+        $information->setCurrencyCode('USD');
+
+        $item = $this->item(unitPrice: 1000, units: 1);
+
+        $this->handle($item, $information);
+
+        self::assertSame(37300, $item->getUnitPrice());
+        self::assertTrue($item->isImmutable());
+
+        $giftCard = $this->onlyGiftCard($item);
+        self::assertSame('USD', $giftCard->getCurrencyCode());
+        self::assertSame(5000, $giftCard->getAmount());
+        self::assertSame(5000, $giftCard->getInitialAmount());
     }
 
     /** @test */
@@ -176,7 +201,8 @@ final class CartGiftCardHandlerTest extends TestCase
         $managerRegistry = $this->prophesize(ManagerRegistry::class);
         $managerRegistry->getManagerForClass(GiftCard::class)->willReturn($this->manager->reveal());
 
-        $handler = new CartGiftCardHandler($this->giftCardFactory->reveal(), $managerRegistry->reveal());
+        // kroner at 7.46 to the dollar
+        $handler = new CartGiftCardHandler($this->giftCardFactory->reveal(), $managerRegistry->reveal(), new FixedRateCurrencyConverter());
         $handler->handle(new AddToCartCommand($cart, $item, $information));
     }
 

@@ -20,6 +20,14 @@ interface GiftCardInformationInterface
 
     public function setCustomMessage(?string $customMessage): void;
 
+    /**
+     * The currency the amount is in, which is the currency the card is held in: the one the customer browses in, when
+     * the channel offers it (GiftCardCurrencyProviderInterface). Null means the cart's currency
+     */
+    public function getCurrencyCode(): ?string;
+
+    public function setCurrencyCode(?string $currencyCode): void;
+
     public function getDesign(): ?GiftCardDesignInterface;
 
     public function setDesign(?GiftCardDesignInterface $design): void;

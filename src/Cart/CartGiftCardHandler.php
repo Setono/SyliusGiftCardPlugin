@@ -13,6 +13,7 @@ use Setono\SyliusGiftCardPlugin\Order\AddToCartCommandInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Core\Model\ProductVariantInterface;
+use Sylius\Component\Currency\Converter\CurrencyConverterInterface;
 use Webmozart\Assert\Assert;
 
 final class CartGiftCardHandler implements CartGiftCardHandlerInterface
@@ -22,6 +23,7 @@ final class CartGiftCardHandler implements CartGiftCardHandlerInterface
     public function __construct(
         private readonly GiftCardFactoryInterface $giftCardFactory,
         ManagerRegistry $managerRegistry,
+        private readonly CurrencyConverterInterface $currencyConverter,
     ) {
         $this->managerRegistry = $managerRegistry;
     }
@@ -38,15 +40,21 @@ final class CartGiftCardHandler implements CartGiftCardHandlerInterface
         // ever runs on a valid form
         Assert::notNull($amount);
 
-        // Fix the price to the customer chosen amount and prevent Sylius from recalculating it
-        $cartItem->setUnitPrice($amount);
+        $cartCurrencyCode = $cart->getCurrencyCode();
+        Assert::notNull($cartCurrencyCode);
+
+        // The card is held in the currency the amount was typed in, which is the one the customer browses in when the
+        // channel offers it (#488)
+        $currencyCode = $information->getCurrencyCode() ?? $cartCurrencyCode;
+
+        // Fix the price to the customer chosen amount, in the cart's currency, and prevent Sylius from recalculating it
+        // from the variant's price. GiftCardUnitPriceProcessor keeps a card held in another currency priced at the
+        // exchange rate of the day
+        $cartItem->setUnitPrice($this->currencyConverter->convert($amount, $currencyCode, $cartCurrencyCode));
         $cartItem->setImmutable(true);
 
         $channel = $cart->getChannel();
         Assert::isInstanceOf($channel, ChannelInterface::class);
-
-        $currencyCode = $cart->getCurrencyCode();
-        Assert::notNull($currencyCode);
 
         foreach ($cartItem->getUnits() as $unit) {
             Assert::isInstanceOf($unit, OrderItemUnitInterface::class);

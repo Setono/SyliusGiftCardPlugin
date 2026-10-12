@@ -44,8 +44,8 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         $channel = $order->getChannel();
         Assert::isInstanceOf($channel, ChannelInterface::class);
 
-        $currencyCode = $order->getCurrencyCode();
-        Assert::notNull($currencyCode);
+        $orderCurrencyCode = $order->getCurrencyCode();
+        Assert::notNull($orderCurrencyCode);
 
         /** @var CustomerInterface|null $customer */
         $customer = $order->getCustomer();
@@ -58,6 +58,17 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         foreach ($items as $item) {
             $template = self::findTemplateGiftCard($item);
             $deliveryType = self::resolveDeliveryType($item);
+
+            // The cards of a line are held in the currency the customer bought them in, which the cards add to cart
+            // created tell (#488)
+            $currencyCode = $template?->getCurrencyCode() ?? $orderCurrencyCode;
+
+            // The card is worth the amount the customer chose. In the order's currency that is the price of its line.
+            // Not the unit total: promotions never discount a gift card line, and tax charged on top of it, where a gift
+            // card product carries a tax category, is not part of what the card is worth. In another currency the
+            // line's price is that amount converted, which converting back would not give exactly, so it is the amount
+            // the cards add to cart created hold
+            $amount = null === $template || $currencyCode === $orderCurrencyCode ? $item->getUnitPrice() : $template->getInitialAmount();
 
             /** @var OrderItemUnitInterface $unit */
             foreach ($item->getUnits() as $unit) {
@@ -75,10 +86,6 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
                     $this->getManager($giftCard)->persist($giftCard);
                 }
 
-                // The card is worth the amount the customer chose, which is the price of its line. Not the unit total:
-                // promotions never discount a gift card line, and tax charged on top of it, where a gift card product
-                // carries a tax category, is not part of what the card is worth
-                $amount = $item->getUnitPrice();
                 $giftCard->setInitialAmount($amount);
                 $giftCard->setAmount($amount);
 

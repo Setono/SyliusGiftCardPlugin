@@ -7,9 +7,11 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Validator\Constraints;
 use Doctrine\Common\Collections\ArrayCollection;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
-use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsChannelBaseCurrency;
-use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsChannelBaseCurrencyValidator;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProvider;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsOfferedByChannel;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsOfferedByChannelValidator;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Currency\Context\CompositeCurrencyContext;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Currency\Model\CurrencyInterface;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -17,48 +19,50 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
 /**
- * @extends ConstraintValidatorTestCase<GiftCardCurrencyIsChannelBaseCurrencyValidator>
+ * A gift card is held in a currency its channel offers, its base currency or another, and pays converted into the
+ * order's currency at the exchange rate the shop keeps (#488). A card in a currency its channel does not offer could
+ * never be redeemed
+ *
+ * @extends ConstraintValidatorTestCase<GiftCardCurrencyIsOfferedByChannelValidator>
  */
-final class GiftCardCurrencyIsChannelBaseCurrencyValidatorTest extends ConstraintValidatorTestCase
+final class GiftCardCurrencyIsOfferedByChannelValidatorTest extends ConstraintValidatorTestCase
 {
     use ProphecyTrait;
 
-    /** @test */
-    public function it_rejects_a_channel_currency_that_is_not_the_base_currency(): void
+    /**
+     * @test
+     *
+     * @dataProvider offeredCurrencies
+     */
+    public function it_accepts_a_currency_the_channel_offers(string $currencyCode): void
     {
-        // EUR is offered for display, but every order amount and gift card balance is in DKK
-        $giftCard = $this->giftCard('EUR', $this->channel('DKK', ['DKK', 'EUR']));
+        // the web store is kept in kroner, and also shows its prices in euros
+        $giftCard = $this->giftCard($currencyCode, $this->channel('DKK', ['EUR']));
 
-        $this->validator->validate($giftCard, new GiftCardCurrencyIsChannelBaseCurrency());
-
-        $this->buildViolation('setono_sylius_gift_card.gift_card.currency_code.not_base_currency')
-            ->setParameter('{{ currency }}', 'EUR')
-            ->setParameter('{{ base_currency }}', 'DKK')
-            ->setParameter('{{ channel }}', 'Web store')
-            ->atPath('property.path.currencyCode')
-            ->assertRaised();
-    }
-
-    /** @test */
-    public function it_accepts_the_base_currency_of_the_channel(): void
-    {
-        $giftCard = $this->giftCard('DKK', $this->channel('DKK', ['EUR']));
-
-        $this->validator->validate($giftCard, new GiftCardCurrencyIsChannelBaseCurrency());
+        $this->validator->validate($giftCard, new GiftCardCurrencyIsOfferedByChannel());
 
         $this->assertNoViolation();
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function offeredCurrencies(): iterable
+    {
+        yield 'the base currency' => ['DKK'];
+        yield 'another currency of the channel' => ['EUR'];
+    }
+
     /** @test */
-    public function it_rejects_a_currency_the_channel_does_not_know(): void
+    public function it_rejects_a_currency_the_channel_does_not_offer(): void
     {
         $giftCard = $this->giftCard('USD', $this->channel('DKK', ['DKK', 'EUR']));
 
-        $this->validator->validate($giftCard, new GiftCardCurrencyIsChannelBaseCurrency());
+        $this->validator->validate($giftCard, new GiftCardCurrencyIsOfferedByChannel());
 
-        $this->buildViolation('setono_sylius_gift_card.gift_card.currency_code.not_base_currency')
+        $this->buildViolation('setono_sylius_gift_card.gift_card.currency_code.not_offered_by_channel')
             ->setParameter('{{ currency }}', 'USD')
-            ->setParameter('{{ base_currency }}', 'DKK')
+            ->setParameter('{{ currencies }}', 'DKK, EUR')
             ->setParameter('{{ channel }}', 'Web store')
             ->atPath('property.path.currencyCode')
             ->assertRaised();
@@ -70,14 +74,14 @@ final class GiftCardCurrencyIsChannelBaseCurrencyValidatorTest extends Constrain
         $withoutChannel = new GiftCard();
         $withoutChannel->setCurrencyCode('USD');
 
-        $this->validator->validate($withoutChannel, new GiftCardCurrencyIsChannelBaseCurrency());
+        $this->validator->validate($withoutChannel, new GiftCardCurrencyIsOfferedByChannel());
 
         $withoutCurrency = new GiftCard();
         $withoutCurrency->setChannel($this->channel('DKK', ['DKK']));
 
-        $this->validator->validate($withoutCurrency, new GiftCardCurrencyIsChannelBaseCurrency());
+        $this->validator->validate($withoutCurrency, new GiftCardCurrencyIsOfferedByChannel());
 
-        $this->validator->validate(null, new GiftCardCurrencyIsChannelBaseCurrency());
+        $this->validator->validate(null, new GiftCardCurrencyIsOfferedByChannel());
 
         $this->assertNoViolation();
     }
@@ -93,28 +97,30 @@ final class GiftCardCurrencyIsChannelBaseCurrencyValidatorTest extends Constrain
         $channel->getName()->willReturn(null);
         $channel->getCode()->willReturn('WEB');
         $channel->getBaseCurrency()->willReturn($this->currency('DKK'));
+        $channel->getCurrencies()->willReturn(new ArrayCollection());
 
-        $this->validator->validate($this->giftCard('EUR', $channel->reveal()), new GiftCardCurrencyIsChannelBaseCurrency());
+        $this->validator->validate($this->giftCard('EUR', $channel->reveal()), new GiftCardCurrencyIsOfferedByChannel());
 
-        $this->buildViolation('setono_sylius_gift_card.gift_card.currency_code.not_base_currency')
+        $this->buildViolation('setono_sylius_gift_card.gift_card.currency_code.not_offered_by_channel')
             ->setParameter('{{ currency }}', 'EUR')
-            ->setParameter('{{ base_currency }}', 'DKK')
+            ->setParameter('{{ currencies }}', 'DKK')
             ->setParameter('{{ channel }}', 'WEB')
             ->atPath('property.path.currencyCode')
             ->assertRaised();
     }
 
     /**
-     * A channel without a base currency is a misconfigured channel, not a gift card in the wrong currency
+     * A channel without any currency is a misconfigured channel, not a gift card in the wrong currency
      *
      * @test
      */
-    public function it_has_nothing_to_compare_against_in_a_channel_without_a_base_currency(): void
+    public function it_has_nothing_to_compare_against_in_a_channel_without_a_currency(): void
     {
         $channel = $this->prophesize(ChannelInterface::class);
         $channel->getBaseCurrency()->willReturn(null);
+        $channel->getCurrencies()->willReturn(new ArrayCollection());
 
-        $this->validator->validate($this->giftCard('EUR', $channel->reveal()), new GiftCardCurrencyIsChannelBaseCurrency());
+        $this->validator->validate($this->giftCard('EUR', $channel->reveal()), new GiftCardCurrencyIsOfferedByChannel());
 
         $this->assertNoViolation();
     }
@@ -122,7 +128,7 @@ final class GiftCardCurrencyIsChannelBaseCurrencyValidatorTest extends Constrain
     /** @test */
     public function it_leaves_a_blank_currency_to_the_property_constraints(): void
     {
-        $this->validator->validate($this->giftCard('', $this->channel('DKK', ['DKK'])), new GiftCardCurrencyIsChannelBaseCurrency());
+        $this->validator->validate($this->giftCard('', $this->channel('DKK', ['DKK'])), new GiftCardCurrencyIsOfferedByChannel());
 
         $this->assertNoViolation();
     }
@@ -132,7 +138,7 @@ final class GiftCardCurrencyIsChannelBaseCurrencyValidatorTest extends Constrain
     {
         $this->expectException(UnexpectedTypeException::class);
 
-        $this->validator->validate(new \stdClass(), new GiftCardCurrencyIsChannelBaseCurrency());
+        $this->validator->validate(new \stdClass(), new GiftCardCurrencyIsOfferedByChannel());
     }
 
     /** @test */
@@ -143,9 +149,9 @@ final class GiftCardCurrencyIsChannelBaseCurrencyValidatorTest extends Constrain
         $this->validator->validate(new GiftCard(), new NotBlank());
     }
 
-    protected function createValidator(): GiftCardCurrencyIsChannelBaseCurrencyValidator
+    protected function createValidator(): GiftCardCurrencyIsOfferedByChannelValidator
     {
-        return new GiftCardCurrencyIsChannelBaseCurrencyValidator();
+        return new GiftCardCurrencyIsOfferedByChannelValidator(new GiftCardCurrencyProvider(new CompositeCurrencyContext()));
     }
 
     private function giftCard(string $currencyCode, ChannelInterface $channel): GiftCard

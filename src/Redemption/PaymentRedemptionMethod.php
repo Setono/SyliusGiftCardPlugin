@@ -39,6 +39,14 @@ final class PaymentRedemptionMethod extends RedemptionMethod
     private const DETAIL_GIFT_CARD_CODE = 'setono_gift_card_code';
 
     /**
+     * What the payment took off the card, in the card's currency, which differs from the payment's amount for a card
+     * held in another currency than the order's (#488)
+     */
+    private const DETAIL_GIFT_CARD_AMOUNT = 'setono_gift_card_amount';
+
+    private const DETAIL_GIFT_CARD_CURRENCY_CODE = 'setono_gift_card_currency_code';
+
+    /**
      * @param FactoryInterface<PaymentInterface> $paymentFactory
      */
     public function __construct(
@@ -71,7 +79,7 @@ final class PaymentRedemptionMethod extends RedemptionMethod
 
         $paymentMethod = null;
 
-        foreach ($entries as ['giftCard' => $giftCard, 'amount' => $amount]) {
+        foreach ($entries as ['giftCard' => $giftCard, 'amount' => $amount, 'giftCardAmount' => $giftCardAmount]) {
             // The checkout guard does not let an order through with gift cards while the method is missing or
             // disabled, so this only throws for an order placed some other way
             $paymentMethod ??= $this->paymentMethodProvider->getEnabledPaymentMethod();
@@ -83,6 +91,8 @@ final class PaymentRedemptionMethod extends RedemptionMethod
             $payment->setDetails([
                 self::DETAIL_GIFT_CARD_ID => $giftCard->getId(),
                 self::DETAIL_GIFT_CARD_CODE => $giftCard->getCode(),
+                self::DETAIL_GIFT_CARD_AMOUNT => $giftCardAmount,
+                self::DETAIL_GIFT_CARD_CURRENCY_CODE => $giftCard->getCurrencyCode(),
             ]);
 
             $order->addPayment($payment);
@@ -90,9 +100,10 @@ final class PaymentRedemptionMethod extends RedemptionMethod
             $this->transition($payment, PaymentTransitions::TRANSITION_CREATE);
             $this->transition($payment, PaymentTransitions::TRANSITION_COMPLETE);
 
+            // The payment is in the order's currency, while the card gives what the coverage took off it in its own
             $this->balanceOperator->redeem(
                 $giftCard,
-                $amount,
+                $giftCardAmount,
                 $order,
                 $payment,
                 sprintf('redeem:order:%s:gift_card:%s', (string) $order->getId(), (string) $giftCard->getId()),
@@ -141,7 +152,7 @@ final class PaymentRedemptionMethod extends RedemptionMethod
         // a re-fired callback) shares one key and the balance comes back exactly once per payment
         $this->balanceOperator->restore(
             $giftCard,
-            (int) $payment->getAmount(),
+            self::getGiftCardAmount($payment),
             $order,
             $payment,
             sprintf('restore:payment:%s', (string) $payment->getId()),
@@ -245,6 +256,18 @@ final class PaymentRedemptionMethod extends RedemptionMethod
         }
 
         return false;
+    }
+
+    /**
+     * What the payment took off the card, in the card's currency: exactly that comes back, rather than the payment's
+     * amount converted back at whatever the exchange rate is by then. A payment without the detail was made in the
+     * card's currency, which was the order's, so its amount is what it took
+     */
+    private static function getGiftCardAmount(PaymentInterface $payment): int
+    {
+        $giftCardAmount = $payment->getDetails()[self::DETAIL_GIFT_CARD_AMOUNT] ?? null;
+
+        return is_int($giftCardAmount) ? $giftCardAmount : (int) $payment->getAmount();
     }
 
     private function resolveGiftCard(PaymentInterface $payment): ?GiftCardInterface

@@ -12,6 +12,7 @@ use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardInformationType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesign;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProvider;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
@@ -19,6 +20,7 @@ use Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidat
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatter;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\Channel;
+use Sylius\Component\Currency\Context\CompositeCurrencyContext;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -159,6 +161,8 @@ final class AmountViolationLocaleTest extends TypeTestCase
         // the range are quoted, and Sylius' own money formatter
         $limits = new GiftCardAmountLimitsProvider(100, 250000);
         $moneyFormatter = new MoneyFormatter();
+        // nobody browses in any currency here, so the amount is in the channel's base currency
+        $currencyProvider = new GiftCardCurrencyProvider(new CompositeCurrencyContext());
 
         $type = new GiftCardInformationType(
             GiftCardInformation::class,
@@ -169,6 +173,7 @@ final class AmountViolationLocaleTest extends TypeTestCase
             $limits,
             $moneyFormatter,
             $localeContext->reveal(),
+            $currencyProvider,
         );
 
         $validator = Validation::createValidatorBuilder()
@@ -179,6 +184,7 @@ final class AmountViolationLocaleTest extends TypeTestCase
                     $limits,
                     $moneyFormatter,
                     $localeContext->reveal(),
+                    $currencyProvider,
                 ),
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
                 GiftCardDesignRequiredValidator::class => new GiftCardDesignRequiredValidator(

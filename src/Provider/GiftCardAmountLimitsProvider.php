@@ -14,7 +14,7 @@ final class GiftCardAmountLimitsProvider implements GiftCardAmountLimitsProvider
     ) {
     }
 
-    public function getLimits(ChannelInterface $channel): GiftCardAmountLimits
+    public function getLimits(ChannelInterface $channel, string $currencyCode): GiftCardAmountLimits
     {
         return new GiftCardAmountLimits($this->minimumAmount, $this->maximumAmount);
     }

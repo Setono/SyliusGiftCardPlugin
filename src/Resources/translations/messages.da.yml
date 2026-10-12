@@ -4,6 +4,7 @@ setono_sylius_gift_card:
             gift_card: Gavekort
         gift_card:
             code_help: 'Genereret til dig. Du kan skrive din egen kode i stedet, med mindst %minimum% bogstaver og tal: den gemmes med store bogstaver, og kun bogstaverne A–Z og tal bevares.'
+            currency_code_help: 'De valutaer, kanalen tilbyder. Et gavekort i en anden valuta end kanalens basisvaluta betaler omregnet til dagens vekselkurs. Valutaen kan ikke ændres, når gavekortet er udstedt.'
             custom_message: Personlig besked
             custom_message_placeholder: Denne besked printes på gavekortet...
             delivery_type_help: 'Vælg Fysisk, når du selv udleverer eller sender et trykt gavekort: butikken sender det ikke. Notifikationsmailen indeholder koden og PDF''en uanset hvad. Det kan ikke ændres, når gavekortet er udstedt.'

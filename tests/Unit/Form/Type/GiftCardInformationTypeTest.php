@@ -7,6 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Form\Type;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Doctrine\Persistence\ObjectManager;
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardInformationType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesign;
@@ -15,6 +16,7 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimits;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
@@ -50,6 +52,11 @@ final class GiftCardInformationTypeTest extends TypeTestCase
     private ?int $maximumAmount = null;
 
     private ?string $baseCurrencyCode = 'USD';
+
+    /**
+     * The currency the customer browses in, when it is not the base currency
+     */
+    private ?string $browsingCurrencyCode = null;
 
     /** @test */
     public function it_maps_a_valid_submission(): void
@@ -208,6 +215,23 @@ final class GiftCardInformationTypeTest extends TypeTestCase
 
         self::assertSame('setono_sylius_gift_card.form.gift_card_information.amount_help_fixed', $amount->getOption('help'));
         self::assertSame(['%amount%' => '1,00 $US'], $amount->getOption('help_translation_parameters'));
+    }
+
+    /**
+     * The card is held in the currency the customer browses in, when the channel offers it, so the amount is typed in
+     * that currency and the limits are quoted in it (#488)
+     *
+     * @test
+     */
+    public function it_takes_the_amount_in_the_currency_the_customer_browses_in(): void
+    {
+        $this->browsingCurrencyCode = 'EUR';
+        $this->rebuildFormFactory();
+
+        $amount = $this->factory->create(GiftCardInformationType::class, $this->createInformation())->get('amount')->getConfig();
+
+        self::assertSame('EUR', $amount->getOption('currency'));
+        self::assertSame(['%minimum%' => '1,00 €'], $amount->getOption('help_translation_parameters'));
     }
 
     /**
@@ -407,9 +431,13 @@ final class GiftCardInformationTypeTest extends TypeTestCase
         $designProvider->getDesigns($channel->reveal())->willReturn([$this->design, $this->illustratedDesign]);
 
         $amountLimitsProvider = $this->prophesize(GiftCardAmountLimitsProviderInterface::class);
-        $amountLimitsProvider->getLimits($channel->reveal())->willReturn(new GiftCardAmountLimits(100, $this->maximumAmount));
+        $amountLimitsProvider->getLimits($channel->reveal(), Argument::any())->willReturn(new GiftCardAmountLimits(100, $this->maximumAmount));
+
+        $currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
+        $currencyProvider->getCurrencyCode($channel->reveal())->willReturn($this->browsingCurrencyCode ?? $this->baseCurrencyCode ?? '');
 
         $moneyFormatter = $this->prophesize(MoneyFormatterInterface::class);
+        $moneyFormatter->format(100, 'EUR', 'fr_FR')->willReturn('1,00 €');
         $moneyFormatter->format(100, 'USD', 'fr_FR')->willReturn('1,00 $US');
         $moneyFormatter->format(250000, 'USD', 'fr_FR')->willReturn('2 500,00 $US');
 
@@ -425,6 +453,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             $amountLimitsProvider->reveal(),
             $moneyFormatter->reveal(),
             $localeContext->reveal(),
+            $currencyProvider->reveal(),
         );
 
         // The design picker is an EntityType, but the choices are handed to it explicitly, so only the
@@ -436,6 +465,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             $amountLimitsProvider->reveal(),
             $moneyFormatter->reveal(),
             $localeContext->reveal(),
+            $currencyProvider->reveal(),
         );
 
         // The rules live in the validation mapping rather than on the form, so the mapping is what is loaded here
