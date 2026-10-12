@@ -66,7 +66,10 @@ any currency its channel offers, so a card bought for DKK 300 on a channel kept 
 - **Buying:** a customer browsing in another currency than the base currency types the amount in that currency, and the
   live preview shows it in that currency too. The card is created in it, holding exactly the amount typed. Its line costs
   that amount converted into the base currency at the exchange rate of the day, and is priced again whenever the cart
-  is processed, the way every other price shown in that currency follows the rate.
+  is processed, the way every other price shown in that currency follows the rate. The page submits the currency the
+  amount field was shown in, a hidden field next to it, so a customer who switches currency in another tab, or presses
+  Back after switching, still gets the card they typed; a template of your own rendering the amount should render
+  `form.giftCardInformation.currencyCode` too.
 - **Redeeming:** a card held in a currency the order's channel offers pays converted into the order's currency. It is
   judged against the order as the customer sees it in the card's currency: a card holding at least what the order shows
   pays the whole order, and gives exactly what the customer was shown, so a DKK 300 card always covers an order shown as

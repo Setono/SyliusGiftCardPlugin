@@ -26,6 +26,7 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
 use Setono\SyliusGiftCardPlugin\Tests\Unit\Currency\FixedRateCurrencyConverter;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCartItemAvailabilityValidator;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsOfferedValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCartValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
@@ -463,6 +464,7 @@ final class AddToCartTypeExtensionTest extends TypeTestCase
                     $currencyProvider->reveal(),
                 ),
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
+                GiftCardCurrencyIsOfferedValidator::class => new GiftCardCurrencyIsOfferedValidator($channelContext->reveal(), $currencyProvider->reveal()),
                 GiftCardCartItemAvailabilityValidator::class => new GiftCardCartItemAvailabilityValidator(new AvailabilityChecker()),
                 GiftCardDesignRequiredValidator::class => new GiftCardDesignRequiredValidator(
                     $channelContext->reveal(),

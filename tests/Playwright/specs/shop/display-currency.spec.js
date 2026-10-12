@@ -2,10 +2,21 @@ const { test, expect } = require('@playwright/test');
 const { GRID_ROWS, signInAsAdministrator } = require('../support/admin');
 const { checkOutAsGuest, checkoutFigure, placeOrder, uniqueEmail } = require('../support/checkout');
 const { filterGiftCards, giftCardDetails, giftCardIds, giftCardTransactions, issueGiftCard } = require('../support/gift-cards');
-const { moneyInCents } = require('../support/money');
+const { moneyInCents, typedAmount } = require('../support/money');
 const { clickAndWaitForPage } = require('../support/navigation');
 const { completeOrderPayments, openOrderOf } = require('../support/orders');
-const { GIFT_CARD_PRODUCT_PAGE, addGiftCardToCart, addOrdinaryProductToCart, cartFigure, giftCardProductPath, redeemGiftCard, shopPath, switchCurrency } = require('../support/shop');
+const {
+    GIFT_CARD_INFORMATION,
+    GIFT_CARD_PRODUCT_PAGE,
+    addGiftCardToCart,
+    addOrdinaryProductToCart,
+    cartFigure,
+    giftCardProductPath,
+    redeemGiftCard,
+    shopPath,
+    submitAddToCart,
+    switchCurrency,
+} = require('../support/shop');
 
 /**
  * Gift cards in a display currency (#488).
@@ -76,6 +87,31 @@ test.describe('gift cards in a display currency', () => {
         const details = await giftCardDetails(admin.page, id);
         expect(moneyInCents(details.Amount)).toBe(amount);
         expect(moneyInCents(details['Initial amount'])).toBe(amount);
+    });
+
+    /**
+     * The page says which currency the amount was typed in, so switching the shop back to its base currency in another
+     * tab before adding the card to the cart does not change what the card is worth: shown in the display currency
+     * again, the line costs what was typed, not that amount in the base currency converted
+     */
+    test('a card is held in the currency its page was shown in, though the shop is switched in another tab', async ({ page }) => {
+        const currency = await switchCurrency(page);
+        const amount = 4000;
+
+        await page.goto(await giftCardProductPath(page));
+        await page.locator(`${GIFT_CARD_INFORMATION}[name*="[amount]"]`).first().fill(typedAmount(amount));
+
+        const other = await page.context().newPage();
+        const base = await switchCurrency(other);
+        expect(base).not.toBe(currency);
+        await other.close();
+
+        await submitAddToCart(page);
+
+        expect(await switchCurrency(page)).toBe(currency);
+        await page.goto(await shopPath(page, 'cart/'));
+        const unitPrice = moneyInCents(await page.locator('#sylius-cart-items tbody tr').first().locator('.sylius-unit-price').innerText());
+        expect(Math.abs(unitPrice - amount), `the line should cost about what was typed, not ${unitPrice}`).toBeLessThanOrEqual(1);
     });
 
     /**

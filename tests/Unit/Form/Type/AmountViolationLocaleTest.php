@@ -14,6 +14,7 @@ use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProvider;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProvider;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsOfferedValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator;
@@ -187,6 +188,7 @@ final class AmountViolationLocaleTest extends TypeTestCase
                     $currencyProvider,
                 ),
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
+                GiftCardCurrencyIsOfferedValidator::class => new GiftCardCurrencyIsOfferedValidator($channelContext->reveal(), $currencyProvider),
                 GiftCardDesignRequiredValidator::class => new GiftCardDesignRequiredValidator(
                     $channelContext->reveal(),
                     $designProvider->reveal(),

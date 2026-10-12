@@ -18,6 +18,7 @@ use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimits;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsOfferedValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator;
@@ -29,6 +30,7 @@ use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\ChoiceList\View\ChoiceView;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormExtensionInterface;
 use Symfony\Component\Form\Forms;
 use Symfony\Component\Form\PreloadedExtension;
@@ -77,6 +79,61 @@ final class GiftCardInformationTypeTest extends TypeTestCase
         self::assertSame(5000, $information->getAmount());
         self::assertSame('Happy birthday', $information->getCustomMessage());
         self::assertSame($this->design, $information->getDesign());
+    }
+
+    /**
+     * The page says which currency the amount field was shown in, as Sylius builds the form again for the submission,
+     * when the currency in effect may be another one: switched to in another tab, or before pressing Back (#488). The
+     * amount is taken in the currency the page names
+     *
+     * @test
+     */
+    public function it_takes_the_amount_in_the_currency_the_page_was_shown_in(): void
+    {
+        $information = $this->createInformation();
+        $information->setCurrencyCode('USD');
+
+        $form = $this->factory->create(GiftCardInformationType::class, $information);
+        $vars = $form->createView()->children['currencyCode']->vars;
+        self::assertIsArray($vars);
+        self::assertIsArray($vars['block_prefixes'] ?? null);
+        self::assertContains('hidden', $vars['block_prefixes']);
+        self::assertSame('USD', $vars['value'] ?? null);
+
+        $form->submit([
+            'amount' => '40.00',
+            'currencyCode' => 'EUR',
+            'design' => 'classic',
+        ]);
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame('EUR', $information->getCurrencyCode());
+        self::assertSame(4000, $information->getAmount());
+    }
+
+    /**
+     * Only a currency the channel offers can hold a gift card, whatever a submission names
+     *
+     * @test
+     */
+    public function it_refuses_a_currency_the_channel_does_not_offer(): void
+    {
+        $form = $this->factory->create(GiftCardInformationType::class, $this->createInformation());
+        $form->submit([
+            'amount' => '40.00',
+            'currencyCode' => 'SEK',
+            'design' => 'classic',
+        ]);
+
+        self::assertFalse($form->isValid());
+
+        // a hidden field's error is the form's
+        $errors = [];
+        foreach ($form->getErrors() as $error) {
+            self::assertInstanceOf(FormError::class, $error);
+            $errors[] = $error->getMessageTemplate();
+        }
+        self::assertSame(['setono_sylius_gift_card.gift_card_information.currency_code.not_offered'], $errors);
     }
 
     /**
@@ -435,6 +492,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
 
         $currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
         $currencyProvider->getCurrencyCode($channel->reveal())->willReturn($this->browsingCurrencyCode ?? $this->baseCurrencyCode ?? '');
+        $currencyProvider->getCurrencyCodes($channel->reveal())->willReturn(['USD', 'EUR']);
 
         $moneyFormatter = $this->prophesize(MoneyFormatterInterface::class);
         $moneyFormatter->format(100, 'EUR', 'fr_FR')->willReturn('1,00 €');
@@ -474,6 +532,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             ->setConstraintValidatorFactory(new ConstraintValidatorFactory([
                 ValidGiftCardAmountValidator::class => $amountValidator,
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
+                GiftCardCurrencyIsOfferedValidator::class => new GiftCardCurrencyIsOfferedValidator($channelContext->reveal(), $currencyProvider->reveal()),
                 GiftCardDesignRequiredValidator::class => new GiftCardDesignRequiredValidator(
                     $channelContext->reveal(),
                     $designProvider->reveal(),

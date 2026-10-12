@@ -45,6 +45,8 @@ final class ExchangeRateFixture extends AbstractFixture
      */
     public function load(array $options): void
     {
+        $manager = null;
+
         foreach ($options['rates'] as $rate) {
             $exchangeRate = $this->exchangeRateFactory->createNew();
             $exchangeRate->setSourceCurrency($this->currency($rate['source']));
@@ -53,8 +55,9 @@ final class ExchangeRateFixture extends AbstractFixture
 
             $manager = $this->getManager($exchangeRate);
             $manager->persist($exchangeRate);
-            $manager->flush();
         }
+
+        $manager?->flush();
     }
 
     protected function configureOptionsNode(ArrayNodeDefinition $optionsNode): void

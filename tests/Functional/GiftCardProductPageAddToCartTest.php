@@ -10,6 +10,8 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
 use Sylius\Component\Core\Model\ChannelPricing;
 use Sylius\Component\Core\Model\ProductVariant;
+use Sylius\Component\Currency\Model\Currency;
+use Sylius\Component\Currency\Model\ExchangeRate;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -105,9 +107,82 @@ final class GiftCardProductPageAddToCartTest extends AdminFunctionalTestCase
     }
 
     /**
-     * Opens the product page, which starts the visitor's session and renders the form's token, and posts its form
+     * The page says which currency the amount field was shown in, and the submission's amount is taken in it: the
+     * visitor may have switched currency in another tab, or before pressing Back, since the page was shown, and a card
+     * typed in euros is held in euros, its line costing them in dollars (#488)
+     *
+     * @test
      */
-    private function addToCart(Product $product, string $amount): Response
+    public function it_takes_the_amount_in_the_currency_the_page_was_shown_in(): void
+    {
+        $this->offerEuros();
+        $product = $this->createGiftCardProduct();
+
+        $page = $this->request('GET', sprintf('%s/en_US/products/%s', self::SHOP, (string) $product->getSlug()));
+        self::assertSame(
+            ['USD'],
+            self::textsOf($page, sprintf('//input[@type="hidden"][@name="%s[giftCardInformation][currencyCode]"]/@value', self::FORM)),
+            'the page should say the amount field is in the dollars the visitor browses in',
+        );
+
+        // shown in euros, before the visitor switched back to dollars
+        $response = $this->addToCart($product, '40', 'EUR');
+        self::assertTrue($response->isRedirect('/en_US/cart/'), sprintf('Expected a redirect to the cart, got a %d response', $response->getStatusCode()));
+
+        $giftCards = $this->giftCards();
+        self::assertCount(1, $giftCards);
+        self::assertSame('EUR', $giftCards[0]->getCurrencyCode());
+        self::assertSame(4000, $giftCards[0]->getAmount());
+
+        $cart = $this->manager->find(Order::class, $this->cartId);
+        self::assertInstanceOf(Order::class, $cart);
+        self::assertSame(5000, $cart->getItemsTotal(), 'the line should cost the 40.00 EUR in dollars');
+    }
+
+    /** @test */
+    public function it_refuses_a_currency_the_channel_does_not_offer(): void
+    {
+        $response = $this->addToCart($this->createGiftCardProduct(), '40', 'SEK');
+
+        self::assertSame(400, $response->getStatusCode());
+        // a hidden field's error is the form's, which Sylius' script shows above the add to cart button
+        /** @var array{errors?: array{form?: array{errors?: array{errors?: list<string>}}}} $body */
+        $body = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame(
+            ['Gift cards cannot be bought in SEK here. Please check the amount and try again.'],
+            $body['errors']['form']['errors']['errors'] ?? [],
+        );
+        self::assertSame([], $this->giftCards());
+    }
+
+    /**
+     * The channel shows its prices in euros as well, at 0.80 euros to the dollar
+     */
+    private function offerEuros(): void
+    {
+        $channel = $this->getChannel();
+        $dollar = $channel->getBaseCurrency();
+        self::assertNotNull($dollar);
+
+        $euro = new Currency();
+        $euro->setCode('EUR');
+        $this->manager->persist($euro);
+        $channel->addCurrency($euro);
+
+        $exchangeRate = new ExchangeRate();
+        $exchangeRate->setSourceCurrency($dollar);
+        $exchangeRate->setTargetCurrency($euro);
+        $exchangeRate->setRatio(0.8);
+        $this->manager->persist($exchangeRate);
+
+        $this->manager->flush();
+    }
+
+    /**
+     * Opens the product page, which starts the visitor's session and renders the form's token, and posts its form,
+     * naming the currency the amount was typed in when one is given, as the page does
+     */
+    private function addToCart(Product $product, string $amount, ?string $currencyCode = null): Response
     {
         $page = $this->request('GET', sprintf('%s/en_US/products/%s', self::SHOP, (string) $product->getSlug()));
         self::assertSame(200, $page->getStatusCode(), 'the product page should render');
@@ -116,9 +191,14 @@ final class GiftCardProductPageAddToCartTest extends AdminFunctionalTestCase
         $action = self::textsOf($page, $form . '/@action');
         self::assertCount(1, $action, 'the product page should render the add to cart form');
 
+        $giftCardInformation = ['amount' => $amount];
+        if (null !== $currencyCode) {
+            $giftCardInformation['currencyCode'] = $currencyCode;
+        }
+
         return $this->request('POST', self::SHOP . $action[0], [self::FORM => [
             'cartItem' => ['quantity' => '1'],
-            'giftCardInformation' => ['amount' => $amount],
+            'giftCardInformation' => $giftCardInformation,
             '_token' => self::valueOf($page, sprintf('%s//input[@name="%s[_token]"]', $form, self::FORM)),
         ]]);
     }

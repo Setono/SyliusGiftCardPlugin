@@ -14,6 +14,7 @@ use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -60,6 +61,10 @@ final class GiftCardInformationType extends AbstractType
                     'inputmode' => 'decimal',
                 ],
             ], $this->amountHelpOptions($channel, $currencyCode)))
+            // The currency the amount field is shown in. Sylius builds the form again when it is submitted, and in that
+            // request the currency in effect may be another one, switched to in another tab or before pressing Back, so
+            // the page says which one the customer typed the amount in
+            ->add('currencyCode', HiddenType::class)
             ->add('customMessage', TextareaType::class, [
                 'label' => 'setono_sylius_gift_card.form.gift_card_information.custom_message',
                 'help' => 'setono_sylius_gift_card.form.gift_card_information.custom_message_help',

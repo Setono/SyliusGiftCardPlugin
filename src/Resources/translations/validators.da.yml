@@ -44,6 +44,8 @@ setono_sylius_gift_card:
             too_low: 'Gavekortets beløb skal være mindst {{ minimum }}.'
             too_high: 'Gavekortets beløb må ikke være mere end {{ maximum }}.'
             too_large: Gavekortets beløb er større, end et gavekort kan rumme.
+        currency_code:
+            not_offered: 'Gavekort kan ikke købes i {{ currency }} her. Kontrollér venligst beløbet, og prøv igen.'
         design:
             required: 'Vælg venligst et design.'
     gift_card_design:

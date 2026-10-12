@@ -8,4 +8,9 @@
         {% set amount_attr = amount_attr|merge({'aria-describedby': amount_form.vars.id ~ '_help'}) %}
     {% endif %}
     {{ form_row(amount_form, {'attr': amount_attr}) }}
+    {# The currency the amount field is shown in, so the amount is taken in it whatever the currency is by the time the
+       form is submitted #}
+    {% if form.giftCardInformation.currencyCode is defined %}
+        {{ form_widget(form.giftCardInformation.currencyCode) }}
+    {% endif %}
 {% endif %}
