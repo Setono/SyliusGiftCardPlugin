@@ -49,7 +49,8 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
      * that was not bought, is not applied to any order, and whose ledger holds nothing but its issuance. A card that
      * was bought, is applied, or was spent from or adjusted keeps its history, whatever its balance is now. Only the
      * orders a card is applied to now count: once it is taken off a cart, or the cart is deleted, it has no link left
-     * to lose
+     * to lose. A card a customer paid for stays undeletable after its order is deleted, by the order number its
+     * issuance keeps (GiftCardTransactionInterface::getOrderNumber())
      */
     public function isDeletable(): bool;
 

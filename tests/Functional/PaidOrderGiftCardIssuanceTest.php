@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Sylius\Component\Core\OrderPaymentStates;
@@ -79,6 +80,51 @@ final class PaidOrderGiftCardIssuanceTest extends OrderLifecycleTestCase
         sort($attached);
         sort($attachments);
         self::assertSame($attachments, $attached, 'every card should have been attached to the email');
+    }
+
+    /**
+     * A shop that purges old orders keeps the cards bought on them: deleting the order sets the card's unit and the
+     * order of its issuance to null. A card a customer paid for must not become deletable then, with its balance
+     * intact and nothing else on its ledger, so its issuance keeps the number of the order that paid for it (#494)
+     *
+     * @test
+     */
+    public function a_paid_card_cannot_be_deleted_once_its_order_is_deleted(): void
+    {
+        $order = $this->createCart();
+        $item = $this->addItem($order, 'GIFT_CARD', 5000, giftCard: true);
+        $unit = $item->getUnits()->first();
+        self::assertInstanceOf(OrderItemUnit::class, $unit);
+        $unit->setGiftCard($this->createPendingGiftCard('BOUGHT0000000003'));
+        $cash = $this->selectPayment($order, 5000);
+        $this->manager->flush();
+
+        $this->placeOrder($order);
+        $this->apply($cash, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_COMPLETE);
+        $number = $order->getNumber();
+        self::assertNotNull($number, 'precondition: placing the order gave it a number');
+
+        $this->manager->remove($order);
+        $this->manager->flush();
+        $this->manager->clear();
+
+        /** @var GiftCardRepositoryInterface $repository */
+        $repository = self::getContainer()->get('setono_sylius_gift_card.repository.gift_card');
+        $giftCard = $repository->findOneByCode('BOUGHT0000000003');
+        self::assertInstanceOf(GiftCardInterface::class, $giftCard, 'the card should have outlived its order');
+        self::assertNull($giftCard->getOrderItemUnit(), 'precondition: deleting the order took the unit');
+        self::assertTrue($giftCard->isEnabled());
+        self::assertSame($giftCard->getInitialAmount(), $giftCard->getAmount(), 'precondition: nothing was spent from the card');
+
+        $ledger = $giftCard->getTransactions()->toArray();
+        self::assertCount(1, $ledger, 'precondition: the issuance is all the ledger holds');
+        $issuance = reset($ledger);
+        self::assertInstanceOf(GiftCardTransactionInterface::class, $issuance);
+        self::assertSame(GiftCardTransactionInterface::TYPE_ISSUE, $issuance->getType());
+        self::assertNull($issuance->getOrder());
+        self::assertSame($number, $issuance->getOrderNumber(), 'the issuance should still name the order that paid for the card');
+
+        self::assertFalse($giftCard->isDeletable());
     }
 
     /**

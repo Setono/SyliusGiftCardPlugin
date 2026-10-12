@@ -59,7 +59,7 @@ Write a data migration for your own data as needed.
 
 ### The ledger table
 
-`setono_sylius_gift_card__gift_card_transaction` has the columns `amount`, `type`, `reason`, `idempotency_key` (nullable, unique), `created_by` (nullable), `created_at`, and the foreign keys `gift_card_id` (`CASCADE` on delete), `order_id` and `payment_id` (both `SET NULL` on delete).
+`setono_sylius_gift_card__gift_card_transaction` has the columns `amount`, `type`, `reason`, `idempotency_key` (nullable, unique), `created_by` (nullable), `order_number` (nullable), `created_at`, and the foreign keys `gift_card_id` (`CASCADE` on delete), `order_id` and `payment_id` (both `SET NULL` on delete).
 
 `created_by` holds the user identifier of the admin who adjusted a balance or issued a card in the admin. It is a copy of the identifier as text, not a foreign key to `sylius_admin_user`, so the ledger keeps naming the admin after their account is renamed or deleted. An application that created this table from a `1.x` development version before `created_by` existed gets this from `doctrine:migrations:diff`:
 
@@ -68,6 +68,15 @@ ALTER TABLE setono_sylius_gift_card__gift_card_transaction ADD created_by VARCHA
 ```
 
 The rows such an application already has keep `created_by` `NULL`, and the issuance rows of cards bought in the shop before then have no `order_id`. The card's order item still leads to that order.
+
+`order_number` holds the number of the order a row belongs to, copied when the row is written, so the ledger keeps naming the order once `order_id` is set to `NULL` because the order was deleted. It is also what keeps a card a customer paid for from becoming deletable then: an issuance that names an order is that of a bought card. An application that created this table from a `1.x` development version before `order_number` existed gets the column from `doctrine:migrations:diff`, and fills it for the rows it already has from the orders that still exist:
+
+```sql
+ALTER TABLE setono_sylius_gift_card__gift_card_transaction ADD order_number VARCHAR(255) DEFAULT NULL;
+UPDATE setono_sylius_gift_card__gift_card_transaction SET order_number = (SELECT number FROM sylius_order WHERE sylius_order.id = setono_sylius_gift_card__gift_card_transaction.order_id) WHERE order_id IS NOT NULL;
+```
+
+A row whose order was deleted before then has no number to copy.
 
 ### Column names
 

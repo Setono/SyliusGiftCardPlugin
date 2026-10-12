@@ -41,6 +41,18 @@ interface GiftCardTransactionInterface extends ResourceInterface
 
     public function setOrder(?OrderInterface $order): void;
 
+    /**
+     * The number of the order the movement belongs to (see getOrder()), as it was when the row was written: a copy
+     * rather than a reference, so the ledger keeps naming the order after the order is deleted, when getOrder() turns
+     * null. It also keeps the issuance of a bought card telling it apart from one issued in the admin, which decides
+     * whether the card may be deleted (GiftCardInterface::isDeletable()).
+     *
+     * Null where getOrder() is, and for the rows written before the plugin kept the number
+     */
+    public function getOrderNumber(): ?string;
+
+    public function setOrderNumber(?string $orderNumber): void;
+
     public function getPayment(): ?PaymentInterface;
 
     public function setPayment(?PaymentInterface $payment): void;

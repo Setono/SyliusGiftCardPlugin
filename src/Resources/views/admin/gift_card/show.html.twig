@@ -168,9 +168,12 @@
                                         {{ transaction.amount|sylius_format_money(giftCard.currencyCode, sylius.localeCode) }}
                                     </td>
                                     <td>{{ transaction.reason ?: '-' }}</td>
+                                    {# Once the order is deleted, the row still names it by the number it copied, unlinked #}
                                     <td>
                                         {% if transaction.order %}
                                             <a href="{{ path('sylius_admin_order_show', {'id': transaction.order.id}) }}">#{{ transaction.order.number }}</a>
+                                        {% elseif transaction.orderNumber %}
+                                            #{{ transaction.orderNumber }}
                                         {% else %}
                                             -
                                         {% endif %}

@@ -246,6 +246,33 @@ final class GiftCardShowPageTest extends AdminFunctionalTestCase
         );
     }
 
+    /**
+     * A deleted order leaves its ledger rows without an order to link, but they keep naming it by the number they
+     * copied, as text since there is nothing left to link to (#494)
+     *
+     * @test
+     */
+    public function it_names_a_deleted_order_in_the_ledger_by_its_number(): void
+    {
+        $order = $this->persistOrder('000043');
+        $giftCard = $this->persistGiftCard('SHOWPAGELEDGER02', 5000);
+
+        /** @var GiftCardBalanceOperatorInterface $balanceOperator */
+        $balanceOperator = self::getContainer()->get(GiftCardBalanceOperatorInterface::class);
+        $balanceOperator->issue($giftCard, $order);
+        $this->manager->flush();
+
+        $this->manager->remove($order);
+        $this->manager->flush();
+        $this->manager->clear();
+
+        $response = $this->show($giftCard);
+
+        $ledger = '//table[thead/tr/th[normalize-space() = "Created by"]]';
+        self::assertSame(['Issued', '#000043', '-'], self::textsOf($response, $ledger . '/tbody/tr[1]/td[position() = 2 or position() >= 5]'));
+        self::assertSame([], self::textsOf($response, $ledger . '/tbody/tr[1]/td[5]/a'), 'nothing is left to link to');
+    }
+
     private function show(GiftCardInterface $giftCard): Response
     {
         $response = $this->request('GET', sprintf('/admin/gift-cards/%d', (int) $giftCard->getId()));

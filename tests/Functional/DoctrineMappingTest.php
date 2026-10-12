@@ -59,6 +59,7 @@ final class DoctrineMappingTest extends GiftCardFunctionalTestCase
                 'table' => 'setono_sylius_gift_card__gift_card_transaction',
                 'idempotencyKey' => 'idempotency_key',
                 'createdBy' => 'created_by',
+                'orderNumber' => 'order_number',
                 'createdAt' => 'created_at',
                 'giftCard' => 'gift_card_id',
                 'order' => 'order_id',
