@@ -88,6 +88,14 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - The gift card payment method's **Enabled** switch stops gift cards being redeemed: while the method is disabled the
   shop refuses gift cards as it does while the method is missing, and every admin page says so, with a link to the
   method's edit page. Gift card payments already made, and refunding them, are not affected
+- Gift cards held in the currency they are bought or issued in, any currency their channel offers (#488). A customer
+  browsing in another currency than the channel's base currency buys a card for the amount they type in it, which the
+  card holds; its line costs that amount converted at the shop's exchange rate. A card pays converted into the
+  currency of the order, judged against the order as shown in the card's currency, so a card covers an order shown as
+  its balance in full, and refunding its payment gives back exactly what it took. The admin's *New gift card* form
+  offers the chosen channel's currencies and starts out at its base currency (#358). Decorate
+  `GiftCardCurrencyProviderInterface` to hold cards in the base currency alone; the purchase limits apply in the
+  currency the amount is typed in, and `GiftCardAmountLimitsProviderInterface::getLimits()` is given it
 
 ### Removed
 - **The API layer** — the whole API Platform / `sylius/api-bundle` integration. Stay on `0.12.x` if you need it

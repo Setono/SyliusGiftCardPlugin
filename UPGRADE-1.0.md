@@ -101,6 +101,10 @@ If you overrode any of the removed templates (gift card configuration admin, the
 
 That includes the override of `@SyliusAdmin/Product/Tab/_details.html.twig` that `0.12.x` asked for: the "Gift card" checkbox is now rendered by the plugin's `setono_gift_card` block on the `sylius.admin.product.tab_details` event, and the `giftCardAmountConfigurable` field the override rendered no longer exists, so a `form_row(form.giftCardAmountConfigurable)` left in it breaks the product form. Remove the override, or at least that line.
 
+## Currencies
+
+A gift card is held in the currency it was bought or issued in, which can be any currency its channel offers, and pays converted into the order's currency, which is the channel's base currency, at the exchange rates kept in the admin (*Configuration › Exchange rates*). A customer browsing in another currency than the base currency buys a card for the amount they type in that currency. Keep an exchange rate for every currency a channel offers: Sylius converts between two currencies it has no rate for one to one. To hold every card in its channel's base currency instead, decorate `GiftCardCurrencyProviderInterface` (see the README's *Holding gift cards in the base currency only*).
+
 ## Gift card payment method
 
 A redeemed gift card becomes a payment made with an offline payment method with the code `gift_card` (the `redemption.payment_method_code` setting). It is not created automatically: create it once after upgrading, either with the **Create gift card payment method** button in the warning the admin shows while it is missing (on the gift card index), or by running the command below in your deploy. Both create the method in no channel, which is all it needs: gift card payments are made with it in every channel, whichever channels it is in. Both leave an existing method alone, channels included, so they are safe on a shop that already has it.

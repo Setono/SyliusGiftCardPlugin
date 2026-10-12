@@ -16,7 +16,7 @@ final class GiftCardCurrencyMismatchException extends InvalidArgumentException i
         // Named by its id rather than its code: a code is a bearer token, and an exception message ends up in logs
         // and error trackers
         parent::__construct(sprintf(
-            'The gift card with id %s is in currency "%s" but the order currency is "%s"',
+            'The gift card with id %s is in currency "%s", which the channel of the order, in currency "%s", does not offer',
             (string) $giftCard->getId(),
             (string) $giftCard->getCurrencyCode(),
             $orderCurrencyCode,

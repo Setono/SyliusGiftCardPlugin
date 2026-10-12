@@ -13,19 +13,24 @@
     order total the summaries show stays what the order costs, and this is where the customer sees what is left to pay.
 
     Amounts go through the `money` macro, like every other figure in the summary, so they follow the display currency
-    the shopper picked rather than the currency the order is stored in.
+    the shopper picked rather than the currency the order is stored in. Gift cards held in that currency show what
+    they give by their own amounts, rather than those converted into the order's currency and back, so a DKK 300 card
+    shows as DKK 300 (#488). What remains to pay is what the customer is charged, in the order's currency, converted
+    like the rest of the summary.
 #}
 {% set order = cart ?? order %}
 
 {% if order.giftCards is not empty %}
-    {% set covered = setono_gift_card_covered_amount(order) %}
+    {% set coverage = setono_gift_card_coverage(order) %}
+    {% set covered = coverage.total %}
     {% if covered > 0 %}
+        {% set given = coverage.giftCardAmountTotal(sylius.currencyCode) %}
         <div class="ui segment" {{ sylius_test_html_attribute('gift-card-totals') }}>
             <table class="ui very basic table">
                 <tbody>
                     <tr {{ sylius_test_html_attribute('gift-cards-total') }}>
                         <td>{{ 'setono_sylius_gift_card.ui.gift_cards'|trans }}:</td>
-                        <td class="right aligned">{{ money.convertAndFormat(-covered) }}</td>
+                        <td class="right aligned">{{ given is not null ? money.format(-given, sylius.currencyCode) : money.convertAndFormat(-covered) }}</td>
                     </tr>
                     <tr {{ sylius_test_html_attribute('gift-cards-remaining-total') }}>
                         <td>{{ 'setono_sylius_gift_card.ui.remaining_to_pay'|trans }}:</td>

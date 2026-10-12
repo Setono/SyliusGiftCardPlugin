@@ -2,6 +2,7 @@
 
 {% set order = cart %}
 {% set applyForm = setono_gift_card_apply_form() %}
+{% set coverage = setono_gift_card_coverage(order) %}
 
 <div class="ui segment" {{ sylius_test_html_attribute('gift-card-redemption') }}>
     <h4 class="ui dividing header">{{ 'setono_sylius_gift_card.ui.gift_card'|trans }}</h4>
@@ -23,7 +24,13 @@
                     <tr {{ sylius_test_html_attribute('applied-gift-card', giftCard.code) }}>
                         <td>{{ giftCard.code|setono_gift_card_format_code }}</td>
                         <td class="right aligned">
-                            {{ money.convertAndFormat(-setono_gift_card_covered_amount_by_gift_card(order, giftCard)) }}
+                            {# A card held in the currency the customer browses in shows what it gives by its own
+                               amount, rather than that converted into the order's currency and back #}
+                            {% if giftCard.currencyCode == sylius.currencyCode %}
+                                {{ money.format(-coverage.giftCardAmountForGiftCard(giftCard), giftCard.currencyCode) }}
+                            {% else %}
+                                {{ money.convertAndFormat(-coverage.amountForGiftCard(giftCard)) }}
+                            {% endif %}
                         </td>
                         <td class="right aligned collapsing">
                             <form method="post" action="{{ path('setono_sylius_gift_card_shop_remove_gift_card_from_order', {'giftCard': giftCard.code}) }}">

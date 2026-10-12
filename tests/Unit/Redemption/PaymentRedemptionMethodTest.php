@@ -51,6 +51,9 @@ final class PaymentRedemptionMethodTest extends TestCase
     /** @var list<string> */
     private array $log = [];
 
+    /** @var array<int, int> what each card was redeemed for, by the card's id */
+    private array $redeemed = [];
+
     /** @var ObjectProphecy<EntityManagerInterface> */
     private ObjectProphecy $manager;
 
@@ -72,6 +75,7 @@ final class PaymentRedemptionMethodTest extends TestCase
     protected function setUp(): void
     {
         $this->log = [];
+        $this->redeemed = [];
         $this->connection = $this->prophesize(Connection::class);
         $this->connection->isTransactionActive()->willReturn(true);
 
@@ -157,6 +161,35 @@ final class PaymentRedemptionMethodTest extends TestCase
         self::assertSame([], $this->log);
     }
 
+    /**
+     * A card held in another currency than the order's pays an amount in the order's currency, which is the payment's,
+     * and gives one in its own, which is what comes off its balance and what the payment records it took (#488)
+     *
+     * @test
+     */
+    public function it_pays_in_the_order_currency_and_takes_what_the_card_gives_in_its_own(): void
+    {
+        // the locking is what the tests above are about
+        $this->connection->isTransactionActive()->willReturn(false);
+
+        $order = $this->order();
+
+        $this->redemptionMethod([[$this->giftCard(7, 'DKK'), 4021, 29997]])->commit($order);
+
+        self::assertSame([7 => 29997], $this->redeemed);
+
+        $payment = $order->getPayments()->first();
+        self::assertInstanceOf(PaymentInterface::class, $payment);
+        self::assertSame(4021, $payment->getAmount());
+        self::assertSame('USD', $payment->getCurrencyCode());
+        self::assertSame([
+            'setono_gift_card_id' => 7,
+            'setono_gift_card_code' => 'CARD7',
+            'setono_gift_card_amount' => 29997,
+            'setono_gift_card_currency_code' => 'DKK',
+        ], $payment->getDetails());
+    }
+
     /** @test */
     public function it_restores_what_a_refunded_gift_card_payment_took_keyed_on_the_payment(): void
     {
@@ -167,6 +200,25 @@ final class PaymentRedemptionMethodTest extends TestCase
         $this->giftCardRepository->findOneByCode('CARD0001')->willReturn($giftCard);
 
         $this->balanceOperator->restore($giftCard, 3000, $order, $payment, 'restore:payment:42')->shouldBeCalledOnce();
+
+        $this->rollbackRedemptionMethod()->rollbackPayment($payment);
+    }
+
+    /**
+     * The payment records what it took off a card held in another currency, and exactly that comes back, not the
+     * payment's amount converted back at whatever the exchange rate is by then
+     *
+     * @test
+     */
+    public function it_restores_what_a_refunded_gift_card_payment_took_off_the_card_in_its_currency(): void
+    {
+        $order = $this->prophesize(OrderInterface::class)->reveal();
+        $giftCard = $this->prophesize(GiftCardInterface::class)->reveal();
+        $payment = $this->giftCardPayment(42, PaymentInterface::STATE_REFUNDED, 4021, 'CARD0001', $order, 29997);
+
+        $this->giftCardRepository->findOneByCode('CARD0001')->willReturn($giftCard);
+
+        $this->balanceOperator->restore($giftCard, 29997, $order, $payment, 'restore:payment:42')->shouldBeCalledOnce();
 
         $this->rollbackRedemptionMethod()->rollbackPayment($payment);
     }
@@ -246,22 +298,29 @@ final class PaymentRedemptionMethodTest extends TestCase
     /**
      * Built for the commit tests: the coverage is what the given cards cover, and every redemption is logged
      *
-     * @param list<array{0: GiftCardInterface, 1: int}> $coverage
+     * @param list<array{0: GiftCardInterface, 1: int, 2?: int}> $coverage each card, what it pays in the order's
+     *                                                               currency, and what it gives in its own, when that
+     *                                                               differs
      */
     private function redemptionMethod(array $coverage): PaymentRedemptionMethod
     {
         $coverageCalculator = $this->prophesize(GiftCardCoverageCalculatorInterface::class);
         $coverageCalculator->calculate(Argument::any())->willReturn(new GiftCardCoverage(array_map(
-            static fn (array $entry): array => ['giftCard' => $entry[0], 'amount' => $entry[1]],
+            static fn (array $entry): array => ['giftCard' => $entry[0], 'amount' => $entry[1], 'giftCardAmount' => $entry[2] ?? $entry[1]],
             $coverage,
         )));
 
         $log = &$this->log;
+        $redeemed = &$this->redeemed;
         $balanceOperator = $this->prophesize(GiftCardBalanceOperatorInterface::class);
-        $balanceOperator->redeem(Argument::cetera())->will(function (array $args) use (&$log): void {
+        $balanceOperator->redeem(Argument::cetera())->will(function (array $args) use (&$log, &$redeemed): void {
             /** @var GiftCardInterface $giftCard */
             $giftCard = $args[0];
             $log[] = 'redeem ' . (string) $giftCard->getId();
+
+            /** @var int $amount */
+            $amount = $args[1];
+            $redeemed[(int) $giftCard->getId()] = $amount;
         });
 
         $paymentMethodProvider = $this->prophesize(GiftCardPaymentMethodProviderInterface::class);
@@ -314,26 +373,36 @@ final class PaymentRedemptionMethodTest extends TestCase
         );
     }
 
-    private function giftCard(int $id): GiftCardInterface
+    private function giftCard(int $id, string $currencyCode = 'USD'): GiftCardInterface
     {
         $giftCard = $this->prophesize(GiftCardInterface::class);
         $giftCard->getId()->willReturn($id);
         $giftCard->getCode()->willReturn('CARD' . $id);
+        $giftCard->getCurrencyCode()->willReturn($currencyCode);
 
         return $giftCard->reveal();
     }
 
-    private function giftCardPayment(int $id, string $state, int $amount, string $giftCardCode, OrderInterface $order): PaymentInterface
+    /**
+     * @param int|null $giftCardAmount what the payment records it took off the card, which a payment made before cards
+     *                                 were held in other currencies than the order's does not
+     */
+    private function giftCardPayment(int $id, string $state, int $amount, string $giftCardCode, OrderInterface $order, ?int $giftCardAmount = null): PaymentInterface
     {
+        $details = [
+            'setono_gift_card_id' => 7,
+            'setono_gift_card_code' => $giftCardCode,
+        ];
+        if (null !== $giftCardAmount) {
+            $details['setono_gift_card_amount'] = $giftCardAmount;
+        }
+
         $payment = $this->prophesize(PaymentInterface::class);
         $payment->getId()->willReturn($id);
         $payment->getState()->willReturn($state);
         $payment->getAmount()->willReturn($amount);
         $payment->getOrder()->willReturn($order);
-        $payment->getDetails()->willReturn([
-            'setono_gift_card_id' => 7,
-            'setono_gift_card_code' => $giftCardCode,
-        ]);
+        $payment->getDetails()->willReturn($details);
 
         $this->paymentChecker->isGiftCardPayment($payment)->willReturn(true);
 

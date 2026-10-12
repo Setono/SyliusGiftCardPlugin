@@ -9,11 +9,11 @@ use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
 use Sylius\Bundle\ChannelBundle\Form\Type\ChannelChoiceType;
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
 use Sylius\Component\Core\Model\ChannelInterface;
-use Sylius\Component\Currency\Model\CurrencyInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\CallbackTransformer;
@@ -33,14 +33,13 @@ use Symfony\Component\Form\FormInterface;
 final class GiftCardType extends AbstractResourceType
 {
     /**
-     * @param RepositoryInterface<CurrencyInterface> $currencyRepository
      * @param class-string<GiftCardDesignInterface> $designClass
      * @param RepositoryInterface<ChannelInterface> $channelRepository
      * @param list<string> $validationGroups
      */
     public function __construct(
         string $dataClass,
-        private readonly RepositoryInterface $currencyRepository,
+        private readonly GiftCardCurrencyProviderInterface $currencyProvider,
         private readonly GiftCardCodeGeneratorInterface $giftCardCodeGenerator,
         private readonly GiftCardCodeNormalizerInterface $giftCardCodeNormalizer,
         private readonly int $minimumCodeLength,
@@ -144,21 +143,7 @@ final class GiftCardType extends AbstractResourceType
                 'help_translation_parameters' => ['%minimum%' => $this->minimumCodeLength],
             ]);
 
-            $channel = $giftCard->getChannel();
-            $preferredCurrency = $channel instanceof ChannelInterface ? $channel->getBaseCurrency() : null;
-            $preferredChoices = $preferredCurrency instanceof CurrencyInterface ? [$preferredCurrency->getCode()] : [];
-
-            // The currency is part of the card's value: the balance and every ledger row are integers in its minor
-            // units, so changing it after issuance would silently revalue the card. Like the channel it is chosen
-            // while the card is new; afterwards it is shown, but locked
-            $event->getForm()->add('currencyCode', ChoiceType::class, [
-                'label' => 'sylius.ui.currency',
-                'choices' => $this->currencyRepository->findAll(),
-                'choice_label' => 'code',
-                'choice_value' => 'code',
-                'preferred_choices' => $preferredChoices,
-                'disabled' => null !== $giftCard->getId(),
-            ]);
+            $this->addCurrencyCode($event->getForm(), $giftCard);
 
             // How the card reaches the customer is settled when it is issued. A card bought in the shop takes it from
             // its variant, which also decides whether the order ships it, so changing it afterwards would only make
@@ -217,6 +202,73 @@ final class GiftCardType extends AbstractResourceType
     public function getBlockPrefix(): string
     {
         return 'setono_sylius_gift_card_gift_card';
+    }
+
+    /**
+     * The currency is part of the card's value: the balance and every ledger row are integers in its minor units, so
+     * changing it after issuance would silently revalue the card. Like the channel it is chosen while the card is new;
+     * afterwards it is shown, but locked.
+     *
+     * A card is held in one of the currencies its channel offers, and pays converted into the order's currency (#488).
+     * A new card has its channel chosen on this same form, so it offers the currencies of every channel, each telling
+     * which channels offer it and which have it as their base currency, so the template's script narrows them to the
+     * chosen channel's and picks its base currency. It starts out at the base currency of the channel the form starts
+     * out at, and a currency the channel does not offer is turned down when the card is validated
+     *
+     * @param FormInterface<mixed> $form
+     */
+    private function addCurrencyCode(FormInterface $form, GiftCardInterface $giftCard): void
+    {
+        /** @var array<string, list<string>> $channelCodes the codes of the channels offering each currency */
+        $channelCodes = [];
+
+        /** @var array<string, list<string>> $baseChannelCodes the codes of the channels having each as base currency */
+        $baseChannelCodes = [];
+
+        $isNew = null === $giftCard->getId();
+        $currencyCode = $giftCard->getCurrencyCode();
+
+        /** @var array<string, mixed> $options */
+        $options = [];
+
+        if ($isNew) {
+            /** @var list<ChannelInterface> $channels */
+            $channels = $this->channelRepository->findAll();
+            foreach ($channels as $channel) {
+                $currencyCodes = $this->currencyProvider->getCurrencyCodes($channel);
+                foreach ($currencyCodes as $offeredCurrencyCode) {
+                    $channelCodes[$offeredCurrencyCode][] = (string) $channel->getCode();
+                }
+
+                if (isset($currencyCodes[0])) {
+                    $baseChannelCodes[$currencyCodes[0]][] = (string) $channel->getCode();
+                }
+            }
+
+            // The channel field starts out at the card's channel, else at the first channel it lists. The field starts
+            // out at that channel's base currency without the card being given it, so a submission leaving the currency
+            // out is reported as blank rather than taken for the base currency
+            $channel = $giftCard->getChannel() ?? $channels[0] ?? null;
+            $baseCurrencyCode = null === $channel ? null : $this->currencyProvider->getCurrencyCodes($channel)[0] ?? null;
+            if (null === $currencyCode && null !== $baseCurrencyCode) {
+                $options['data'] = $baseCurrencyCode;
+            }
+        } elseif (null !== $currencyCode) {
+            $channelCodes[$currencyCode] = [];
+        }
+
+        $currencyCodes = array_keys($channelCodes);
+
+        $form->add('currencyCode', ChoiceType::class, $options + [
+            'label' => 'sylius.ui.currency',
+            'choices' => array_combine($currencyCodes, $currencyCodes),
+            'choice_attr' => static fn (string $choice): array => $isNew ? [
+                'data-channels' => implode(' ', $channelCodes[$choice] ?? []),
+                'data-base-channels' => implode(' ', $baseChannelCodes[$choice] ?? []),
+            ] : [],
+            'disabled' => !$isNew,
+            'help' => $isNew ? 'setono_sylius_gift_card.form.gift_card.currency_code_help' : null,
+        ]);
     }
 
     /**

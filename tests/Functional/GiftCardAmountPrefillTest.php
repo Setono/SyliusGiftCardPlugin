@@ -12,14 +12,19 @@ use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
 use Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType;
 use Sylius\Bundle\OrderBundle\Factory\AddToCartCommandFactoryInterface;
+use Sylius\Component\Core\Currency\CurrencyStorageInterface;
 use Sylius\Component\Core\Factory\CartItemFactoryInterface;
 use Sylius\Component\Core\Model\ChannelPricing;
 use Sylius\Component\Core\Model\ProductVariant;
+use Sylius\Component\Currency\Model\Currency;
+use Sylius\Component\Currency\Model\ExchangeRate;
 use Sylius\Component\Order\Modifier\OrderItemQuantityModifierInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 
 /**
  * Renders the add to cart form the way Sylius' OrderItemController does on the product page, before anything has been
@@ -38,10 +43,48 @@ final class GiftCardAmountPrefillTest extends GiftCardFunctionalTestCase
         $channel->setHostname(self::HOSTNAME);
         $this->manager->flush();
 
-        // the form resolves the channel from the current request, like on the product page
+        // the form resolves the channel from the current request, like on the product page, and the currency from the
+        // session the currency switcher writes to
+        $request = Request::create(sprintf('http://%s/en_US/products/gift-card', self::HOSTNAME));
+        $request->setSession(new Session(new MockArraySessionStorage()));
+
         /** @var RequestStack $requestStack */
         $requestStack = self::getContainer()->get('request_stack');
-        $requestStack->push(Request::create(sprintf('http://%s/en_US/products/gift-card', self::HOSTNAME)));
+        $requestStack->push($request);
+    }
+
+    /**
+     * A customer browsing in euros types the amount in euros, the currency the card is then held in, and it starts out
+     * at the product's $50.00 shown in euros, at 0.80 euros to the dollar (#488)
+     *
+     * @test
+     */
+    public function it_starts_the_amount_field_at_the_price_shown_in_the_currency_the_customer_browses_in(): void
+    {
+        $channel = $this->getChannel();
+        $dollar = $channel->getBaseCurrency();
+        self::assertNotNull($dollar);
+
+        $euro = new Currency();
+        $euro->setCode('EUR');
+        $this->manager->persist($euro);
+        $channel->addCurrency($euro);
+
+        $exchangeRate = new ExchangeRate();
+        $exchangeRate->setSourceCurrency($dollar);
+        $exchangeRate->setTargetCurrency($euro);
+        $exchangeRate->setRatio(0.8);
+        $this->manager->persist($exchangeRate);
+        $this->manager->flush();
+
+        /** @var CurrencyStorageInterface $currencyStorage */
+        $currencyStorage = self::getContainer()->get('sylius.storage.currency');
+        $currencyStorage->set($channel, 'EUR');
+
+        $vars = $this->amountFieldVars($this->createGiftCardProduct(5000));
+        self::assertSame('40.00', $vars['value'] ?? null);
+        self::assertIsString($vars['money_pattern'] ?? null);
+        self::assertStringContainsString('€', $vars['money_pattern'], 'the amount field should be in euros');
     }
 
     /** @test */
@@ -91,6 +134,14 @@ final class GiftCardAmountPrefillTest extends GiftCardFunctionalTestCase
      */
     private function renderAmountField(Product $product): mixed
     {
+        return $this->amountFieldVars($product)['value'] ?? null;
+    }
+
+    /**
+     * @return array<array-key, mixed> the view variables of the amount field
+     */
+    private function amountFieldVars(Product $product): array
+    {
         $container = self::getContainer();
 
         /** @var FactoryInterface<Order> $orderFactory */
@@ -123,7 +174,7 @@ final class GiftCardAmountPrefillTest extends GiftCardFunctionalTestCase
         $vars = $view->children['giftCardInformation']->children['amount']->vars;
         self::assertIsArray($vars);
 
-        return $vars['value'];
+        return $vars;
     }
 
     private function createGiftCardProduct(int $channelPrice): Product

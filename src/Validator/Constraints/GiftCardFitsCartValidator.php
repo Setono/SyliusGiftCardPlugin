@@ -6,7 +6,9 @@ namespace Setono\SyliusGiftCardPlugin\Validator\Constraints;
 
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
 use Setono\SyliusGiftCardPlugin\Order\AddToCartCommandInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
+use Sylius\Component\Currency\Converter\CurrencyConverterInterface;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Sylius\Component\Locale\Context\LocaleNotFoundException;
 use Symfony\Component\Validator\Constraint;
@@ -20,8 +22,9 @@ use Symfony\Component\Validator\Exception\UnexpectedValueException;
  * the database refused the cart with a 500.
  *
  * The cart is not processed yet when the command is validated, so this adds the line to the totals the cart was last
- * processed to: its unit price is the amount, as no promotion discounts a gift card. What processing adds besides (a
- * tax on the gift card product, shipping for a physical card) is not known yet, and is left out.
+ * processed to: its unit price is the amount, converted into the cart's currency when the card is held in another
+ * (#488), as no promotion discounts a gift card. What processing adds besides (a tax on the gift card product, shipping
+ * for a physical card) is not known yet, and is left out.
  */
 final class GiftCardFitsCartValidator extends ConstraintValidator
 {
@@ -32,6 +35,8 @@ final class GiftCardFitsCartValidator extends ConstraintValidator
         private readonly int $maximumTotal,
         private readonly MoneyFormatterInterface $moneyFormatter,
         private readonly LocaleContextInterface $localeContext,
+        private readonly CurrencyConverterInterface $currencyConverter,
+        private readonly GiftCardCurrencyProviderInterface $currencyProvider,
     ) {
     }
 
@@ -53,7 +58,8 @@ final class GiftCardFitsCartValidator extends ConstraintValidator
             return;
         }
 
-        $amount = $value->getGiftCardInformation()->getAmount();
+        $information = $value->getGiftCardInformation();
+        $amount = $information->getAmount();
 
         // A blank amount is the amount field's to report. So is an amount no line's unit price can hold, which is
         // about the card and not about the cart: reporting it here as well would tell the customer twice
@@ -62,16 +68,29 @@ final class GiftCardFitsCartValidator extends ConstraintValidator
         }
 
         $cart = $value->getCart();
+        $cartCurrencyCode = (string) $cart->getCurrencyCode();
+
+        // The currency the amount was typed in, which information an application builds itself may not name, and which a
+        // request can name as anything until GiftCardCurrencyIsOffered has refused it: a currency the channel does not
+        // offer is not taken, as converting from a currency without an exchange rate is one to one
+        $channel = $cart->getChannel();
+        $currencyCode = $information->getCurrencyCode();
+        if (null === $channel) {
+            $currencyCode = $cartCurrencyCode;
+        } elseif (null === $currencyCode || !in_array($currencyCode, $this->currencyProvider->getCurrencyCodes($channel), true)) {
+            $currencyCode = $this->currencyProvider->getCurrencyCode($channel);
+        }
+        $unitPrice = $this->currencyConverter->convert($amount, $currencyCode, $cartCurrencyCode);
 
         // An order discount or shipping keeps the total apart from the items total, so the larger of the two is the
         // one to hold. The line adds the same to both
-        $largestTotal = max($cart->getItemsTotal(), $cart->getTotal()) + $amount * $cartItem->getQuantity();
+        $largestTotal = max($cart->getItemsTotal(), $cart->getTotal()) + $unitPrice * $cartItem->getQuantity();
         if ($largestTotal <= $this->maximumTotal) {
             return;
         }
 
         $this->context->buildViolation($constraint->message)
-            ->setParameter('{{ maximum }}', $this->formatMaximum((string) $cart->getCurrencyCode()))
+            ->setParameter('{{ maximum }}', $this->formatMaximum($cartCurrencyCode))
             ->addViolation()
         ;
     }

@@ -10,9 +10,11 @@ use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\OrderItemUnitInterface;
 use Setono\SyliusGiftCardPlugin\Order\AddToCartCommandInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Core\Model\ProductVariantInterface;
+use Sylius\Component\Currency\Converter\CurrencyConverterInterface;
 use Webmozart\Assert\Assert;
 
 final class CartGiftCardHandler implements CartGiftCardHandlerInterface
@@ -22,6 +24,8 @@ final class CartGiftCardHandler implements CartGiftCardHandlerInterface
     public function __construct(
         private readonly GiftCardFactoryInterface $giftCardFactory,
         ManagerRegistry $managerRegistry,
+        private readonly CurrencyConverterInterface $currencyConverter,
+        private readonly GiftCardCurrencyProviderInterface $currencyProvider,
     ) {
         $this->managerRegistry = $managerRegistry;
     }
@@ -38,15 +42,22 @@ final class CartGiftCardHandler implements CartGiftCardHandlerInterface
         // ever runs on a valid form
         Assert::notNull($amount);
 
-        // Fix the price to the customer chosen amount and prevent Sylius from recalculating it
-        $cartItem->setUnitPrice($amount);
-        $cartItem->setImmutable(true);
+        $cartCurrencyCode = $cart->getCurrencyCode();
+        Assert::notNull($cartCurrencyCode);
 
         $channel = $cart->getChannel();
         Assert::isInstanceOf($channel, ChannelInterface::class);
 
-        $currencyCode = $cart->getCurrencyCode();
-        Assert::notNull($currencyCode);
+        // The card is held in the currency the amount was typed in, which is the one the customer browses in when the
+        // channel offers it (#488). Information an application builds itself may not say, and its amount field was in
+        // that currency all the same
+        $currencyCode = $information->getCurrencyCode() ?? $this->currencyProvider->getCurrencyCode($channel);
+
+        // Fix the price to the customer chosen amount, in the cart's currency, and prevent Sylius from recalculating it
+        // from the variant's price. GiftCardLineProcessor keeps a card held in another currency priced at the
+        // exchange rate of the day
+        $cartItem->setUnitPrice($this->currencyConverter->convert($amount, $currencyCode, $cartCurrencyCode));
+        $cartItem->setImmutable(true);
 
         foreach ($cartItem->getUnits() as $unit) {
             Assert::isInstanceOf($unit, OrderItemUnitInterface::class);

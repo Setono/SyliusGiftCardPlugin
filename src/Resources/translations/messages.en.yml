@@ -4,6 +4,7 @@ setono_sylius_gift_card:
             gift_card: Gift card
         gift_card:
             code_help: 'Generated for you. You can type a code of your own instead, of at least %minimum% letters and digits: it is saved in capitals, keeping only the letters A–Z and the digits.'
+            currency_code_help: 'The currencies the channel offers. A gift card in another currency than the channel''s base currency pays converted at the exchange rate of the day. It cannot be changed once the gift card is issued.'
             custom_message: Custom message
             custom_message_placeholder: This message is printed on the gift card...
             delivery_type_help: 'Choose Physical when you hand over or post a printed gift card yourself: the shop does not ship it. The notification email includes the code and the PDF either way. It cannot be changed once the gift card is issued.'

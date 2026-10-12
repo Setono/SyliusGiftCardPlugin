@@ -7,6 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Form\Type;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Doctrine\Persistence\ObjectManager;
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Form\Type\GiftCardInformationType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesign;
@@ -15,7 +16,9 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimits;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface;
+use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsOfferedValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardDesignRequiredValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLengthValidator;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\ValidGiftCardAmountValidator;
@@ -27,6 +30,7 @@ use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\ChoiceList\View\ChoiceView;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormExtensionInterface;
 use Symfony\Component\Form\Forms;
 use Symfony\Component\Form\PreloadedExtension;
@@ -51,6 +55,11 @@ final class GiftCardInformationTypeTest extends TypeTestCase
 
     private ?string $baseCurrencyCode = 'USD';
 
+    /**
+     * The currency the customer browses in, when it is not the base currency
+     */
+    private ?string $browsingCurrencyCode = null;
+
     /** @test */
     public function it_maps_a_valid_submission(): void
     {
@@ -70,6 +79,61 @@ final class GiftCardInformationTypeTest extends TypeTestCase
         self::assertSame(5000, $information->getAmount());
         self::assertSame('Happy birthday', $information->getCustomMessage());
         self::assertSame($this->design, $information->getDesign());
+    }
+
+    /**
+     * The page says which currency the amount field was shown in, as Sylius builds the form again for the submission,
+     * when the currency in effect may be another one: switched to in another tab, or before pressing Back (#488). The
+     * amount is taken in the currency the page names
+     *
+     * @test
+     */
+    public function it_takes_the_amount_in_the_currency_the_page_was_shown_in(): void
+    {
+        $information = $this->createInformation();
+        $information->setCurrencyCode('USD');
+
+        $form = $this->factory->create(GiftCardInformationType::class, $information);
+        $vars = $form->createView()->children['currencyCode']->vars;
+        self::assertIsArray($vars);
+        self::assertIsArray($vars['block_prefixes'] ?? null);
+        self::assertContains('hidden', $vars['block_prefixes']);
+        self::assertSame('USD', $vars['value'] ?? null);
+
+        $form->submit([
+            'amount' => '40.00',
+            'currencyCode' => 'EUR',
+            'design' => 'classic',
+        ]);
+
+        self::assertTrue($form->isValid(), (string) $form->getErrors(true));
+        self::assertSame('EUR', $information->getCurrencyCode());
+        self::assertSame(4000, $information->getAmount());
+    }
+
+    /**
+     * Only a currency the channel offers can hold a gift card, whatever a submission names
+     *
+     * @test
+     */
+    public function it_refuses_a_currency_the_channel_does_not_offer(): void
+    {
+        $form = $this->factory->create(GiftCardInformationType::class, $this->createInformation());
+        $form->submit([
+            'amount' => '40.00',
+            'currencyCode' => 'SEK',
+            'design' => 'classic',
+        ]);
+
+        self::assertFalse($form->isValid());
+
+        // a hidden field's error is the form's
+        $errors = [];
+        foreach ($form->getErrors() as $error) {
+            self::assertInstanceOf(FormError::class, $error);
+            $errors[] = $error->getMessageTemplate();
+        }
+        self::assertSame(['setono_sylius_gift_card.gift_card_information.currency_code.not_offered'], $errors);
     }
 
     /**
@@ -208,6 +272,23 @@ final class GiftCardInformationTypeTest extends TypeTestCase
 
         self::assertSame('setono_sylius_gift_card.form.gift_card_information.amount_help_fixed', $amount->getOption('help'));
         self::assertSame(['%amount%' => '1,00 $US'], $amount->getOption('help_translation_parameters'));
+    }
+
+    /**
+     * The card is held in the currency the customer browses in, when the channel offers it, so the amount is typed in
+     * that currency and the limits are quoted in it (#488)
+     *
+     * @test
+     */
+    public function it_takes_the_amount_in_the_currency_the_customer_browses_in(): void
+    {
+        $this->browsingCurrencyCode = 'EUR';
+        $this->rebuildFormFactory();
+
+        $amount = $this->factory->create(GiftCardInformationType::class, $this->createInformation())->get('amount')->getConfig();
+
+        self::assertSame('EUR', $amount->getOption('currency'));
+        self::assertSame(['%minimum%' => '1,00 €'], $amount->getOption('help_translation_parameters'));
     }
 
     /**
@@ -407,9 +488,14 @@ final class GiftCardInformationTypeTest extends TypeTestCase
         $designProvider->getDesigns($channel->reveal())->willReturn([$this->design, $this->illustratedDesign]);
 
         $amountLimitsProvider = $this->prophesize(GiftCardAmountLimitsProviderInterface::class);
-        $amountLimitsProvider->getLimits($channel->reveal())->willReturn(new GiftCardAmountLimits(100, $this->maximumAmount));
+        $amountLimitsProvider->getLimits($channel->reveal(), Argument::any())->willReturn(new GiftCardAmountLimits(100, $this->maximumAmount));
+
+        $currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
+        $currencyProvider->getCurrencyCode($channel->reveal())->willReturn($this->browsingCurrencyCode ?? $this->baseCurrencyCode ?? '');
+        $currencyProvider->getCurrencyCodes($channel->reveal())->willReturn(['USD', 'EUR']);
 
         $moneyFormatter = $this->prophesize(MoneyFormatterInterface::class);
+        $moneyFormatter->format(100, 'EUR', 'fr_FR')->willReturn('1,00 €');
         $moneyFormatter->format(100, 'USD', 'fr_FR')->willReturn('1,00 $US');
         $moneyFormatter->format(250000, 'USD', 'fr_FR')->willReturn('2 500,00 $US');
 
@@ -425,6 +511,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             $amountLimitsProvider->reveal(),
             $moneyFormatter->reveal(),
             $localeContext->reveal(),
+            $currencyProvider->reveal(),
         );
 
         // The design picker is an EntityType, but the choices are handed to it explicitly, so only the
@@ -436,6 +523,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             $amountLimitsProvider->reveal(),
             $moneyFormatter->reveal(),
             $localeContext->reveal(),
+            $currencyProvider->reveal(),
         );
 
         // The rules live in the validation mapping rather than on the form, so the mapping is what is loaded here
@@ -444,6 +532,7 @@ final class GiftCardInformationTypeTest extends TypeTestCase
             ->setConstraintValidatorFactory(new ConstraintValidatorFactory([
                 ValidGiftCardAmountValidator::class => $amountValidator,
                 GiftCardMessageLengthValidator::class => new GiftCardMessageLengthValidator(200),
+                GiftCardCurrencyIsOfferedValidator::class => new GiftCardCurrencyIsOfferedValidator($channelContext->reveal(), $currencyProvider->reveal()),
                 GiftCardDesignRequiredValidator::class => new GiftCardDesignRequiredValidator(
                     $channelContext->reveal(),
                     $designProvider->reveal(),

@@ -208,6 +208,25 @@ async function channelBaseCurrencyCode(page, channelCode) {
 }
 
 /**
+ * The currencies a channel offers, read off its edit page: its base currency, and every currency it shows its prices
+ * in, the base currency first
+ *
+ * @param {import('@playwright/test').Page} page an authenticated admin page
+ * @param {string} channelCode
+ * @returns {Promise<string[]>}
+ */
+async function channelCurrencyCodes(page, channelCode) {
+    const base = await channelBaseCurrencyCode(page, channelCode);
+
+    // channelBaseCurrencyCode() leaves the page on the channel's edit page
+    const offered = await page
+        .locator('select[name*="[currencies]"] option')
+        .evaluateAll((options) => options.filter((option) => option.selected).map((option) => option.value));
+
+    return [base, ...offered.filter((code) => code !== base)];
+}
+
+/**
  * The email of a customer the shop knows, read off the customers grid
  *
  * @param {import('@playwright/test').Page} page
@@ -224,41 +243,10 @@ async function anyCustomerEmail(page) {
     return email;
 }
 
-/**
- * Makes sure the shop knows at least one currency other than the given one, creating it through the admin when the
- * fixtures seeded only the channel's own, and returns its code.
- *
- * @param {import('@playwright/test').Page} page
- * @param {string} except
- * @returns {Promise<string>}
- */
-async function currencyOtherThan(page, except) {
-    await page.goto('/admin/currencies/');
-    const listed = await page.locator(`${GRID_ROWS} > td:first-child`).allInnerTexts();
-    const existing = listed.map((text) => text.trim()).find((code) => '' !== code && code !== except);
-    if (undefined !== existing) {
-        return existing;
-    }
-
-    await page.goto('/admin/currencies/new');
-    const select = page.locator('select[name="sylius_currency[code]"]');
-    const options = await select.locator('option').evaluateAll((all) => all.map((o) => o.value));
-    const pick = options.find((code) => '' !== code && code !== except);
-    if (undefined === pick) {
-        throw new Error('No currency other than the base currency can be created');
-    }
-
-    await select.selectOption(pick);
-    await clickAndWaitForPage(page, page.locator('form[name="sylius_currency"] button[type="submit"]').first());
-    await expect(page, `creating the currency ${pick} should have led away from the form`).not.toHaveURL(/\/admin\/currencies\/new$/);
-
-    return pick;
-}
-
 module.exports = {
     anyCustomerEmail,
     channelBaseCurrencyCode,
-    currencyOtherThan,
+    channelCurrencyCodes,
     firstDesignId,
     firstGiftCardId,
     giftCardCode,

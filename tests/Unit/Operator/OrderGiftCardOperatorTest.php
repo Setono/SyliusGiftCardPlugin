@@ -13,6 +13,8 @@ use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesign;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperator;
@@ -105,6 +107,130 @@ final class OrderGiftCardOperatorTest extends TestCase
             self::assertNotNull($giftCard);
             self::assertSame($expiresAt, $giftCard->getExpiresAt());
         }
+    }
+
+    /**
+     * A card bought while browsing in another currency than the order's is held in that currency, and worth the amount
+     * the customer chose in it, which its line costs converted (#488): converting the line's price back would not give
+     * it exactly. A unit added by raising the quantity gets a card held the same way. A card in the order's currency is
+     * worth its line's price
+     *
+     * @test
+     */
+    public function it_holds_the_cards_of_a_line_in_the_currency_and_amount_they_were_bought_in(): void
+    {
+        $this->expiryResolver->resolve()->willReturn(null);
+
+        $euros = self::giftCard('EUROS');
+        $euros->setCurrencyCode('EUR');
+        $euros->setInitialAmount(4000);
+        $euros->setAmount(4000);
+
+        $dollars = self::giftCard('DOLLARS');
+        $dollars->setCurrencyCode('USD');
+        $dollars->setInitialAmount(1);
+        $dollars->setAmount(1);
+
+        $channel = new Channel();
+        $order = new Order();
+        $order->setChannel($channel);
+        $order->setCurrencyCode('USD');
+        self::addLine($order, true, [$euros, null], unitPrice: 5000);
+        self::addLine($order, true, [$dollars], unitPrice: 2500);
+
+        $this->giftCardFactory->createForChannel($channel)->will(static fn (): GiftCardInterface => new GiftCard());
+        $this->managerRegistry->getManagerForClass(GiftCard::class)->willReturn($this->prophesize(EntityManagerInterface::class)->reveal());
+
+        $this->operator->reconcile($order);
+
+        $items = $order->getItems()->toArray();
+        foreach ($items[0]->getUnits() as $unit) {
+            self::assertInstanceOf(OrderItemUnit::class, $unit);
+
+            $giftCard = $unit->getGiftCard();
+            self::assertNotNull($giftCard);
+            self::assertSame('EUR', $giftCard->getCurrencyCode());
+            self::assertSame(4000, $giftCard->getAmount());
+            self::assertSame(4000, $giftCard->getInitialAmount());
+        }
+
+        self::assertSame('USD', $dollars->getCurrencyCode());
+        self::assertSame(2500, $dollars->getAmount(), 'a card in the order\'s currency is worth its line\'s price');
+    }
+
+    /**
+     * A unit added by raising the quantity on the cart page gets a card held like the line's other cards: in their
+     * currency and amount, with their design, message and delivery type, so the line keeps them when Sylius drops the
+     * unit add to cart gave a card (#488). A line without any card has nothing to copy, and is left to reconcile()
+     *
+     * @test
+     */
+    public function it_gives_every_unit_of_a_gift_card_line_a_copy_of_the_lines_card(): void
+    {
+        $design = new GiftCardDesign();
+
+        $template = self::giftCard('TEMPLATE');
+        $template->setCurrencyCode('EUR');
+        $template->setInitialAmount(4000);
+        $template->setAmount(4000);
+        $template->setDesign($design);
+        $template->setCustomMessage('Happy birthday');
+        // what add to cart gives a card of a shipped variant, pending until the order is paid
+        $template->setDeliveryType(GiftCardDeliveryType::Physical);
+        $template->disable();
+
+        $channel = new Channel();
+        $order = new Order();
+        $order->setChannel($channel);
+        $order->setCurrencyCode('USD');
+        // a line without a card is left alone, whatever comes after it
+        self::addLine($order, true, [null]);
+        self::addLine($order, true, [null, $template, null], shippingRequired: true);
+        self::addLine($order, false, [null]);
+
+        // the cards are created for the order's channel
+        $this->giftCardFactory->createForChannel($channel)->will(static fn (): GiftCardInterface => new GiftCard())->shouldBeCalledTimes(2);
+        $manager = $this->prophesize(EntityManagerInterface::class);
+        $manager->persist(Argument::type(GiftCardInterface::class))->shouldBeCalledTimes(2);
+        $manager->flush()->shouldNotBeCalled();
+        $this->managerRegistry->getManagerForClass(GiftCard::class)->willReturn($manager->reveal());
+
+        $this->operator->completeLines($order);
+
+        $items = $order->getItems()->toArray();
+        foreach ($items[1]->getUnits() as $unit) {
+            self::assertInstanceOf(OrderItemUnit::class, $unit);
+
+            $giftCard = $unit->getGiftCard();
+            self::assertNotNull($giftCard);
+            self::assertSame('EUR', $giftCard->getCurrencyCode());
+            self::assertSame(4000, $giftCard->getInitialAmount());
+            self::assertSame(4000, $giftCard->getAmount());
+            self::assertSame($design, $giftCard->getDesign());
+            self::assertSame('Happy birthday', $giftCard->getCustomMessage());
+            self::assertSame(GiftCardDeliveryType::Physical, $giftCard->getDeliveryType());
+            self::assertFalse($giftCard->isEnabled());
+        }
+
+        foreach ([$items[0], $items[2]] as $item) {
+            $unit = $item->getUnits()->first();
+            self::assertInstanceOf(OrderItemUnit::class, $unit);
+            self::assertNull($unit->getGiftCard());
+        }
+    }
+
+    /** @test */
+    public function it_completes_no_line_of_an_order_without_a_channel(): void
+    {
+        $template = self::giftCard('TEMPLATE');
+        $template->setCurrencyCode('EUR');
+
+        $order = new Order();
+        self::addLine($order, true, [$template, null]);
+
+        $this->giftCardFactory->createForChannel(Argument::any())->shouldNotBeCalled();
+
+        $this->operator->completeLines($order);
     }
 
     /**
@@ -244,16 +370,18 @@ final class OrderGiftCardOperatorTest extends TestCase
     /**
      * @param list<GiftCardInterface|null> $giftCards one entry per unit
      */
-    private static function addLine(Order $order, bool $giftCardProduct, array $giftCards): void
+    private static function addLine(Order $order, bool $giftCardProduct, array $giftCards, int $unitPrice = 0, bool $shippingRequired = false): void
     {
         $product = new Product();
         $product->setGiftCard($giftCardProduct);
 
         $variant = new ProductVariant();
         $variant->setProduct($product);
+        $variant->setShippingRequired($shippingRequired);
 
         $item = new OrderItem();
         $item->setVariant($variant);
+        $item->setUnitPrice($unitPrice);
         $order->addItem($item);
 
         foreach ($giftCards as $giftCard) {

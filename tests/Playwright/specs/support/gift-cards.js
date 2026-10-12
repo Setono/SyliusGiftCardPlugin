@@ -42,27 +42,27 @@ async function pickCustomer(page, email) {
 }
 
 /**
- * Issues a gift card through the admin's create form and returns it. The card is issued in the base currency of the
- * channel the form proposes, the only currency a card may be issued in.
+ * Issues a gift card through the admin's create form and returns it. The card is issued in the given currency, which
+ * has to be one the channel the form proposes offers, else in the channel's base currency.
  *
  * @param {import('@playwright/test').Page} page an authenticated admin page
- * @param {{amount: number, code?: string|null, enabled?: boolean, customerEmail?: string|null, customMessage?: string|null, expiresAt?: string|null, deliveryType?: string|null, design?: string|null}} card
- *        amount in minor units; code typed over the generated one the form proposes, left as proposed when null;
+ * @param {{amount: number, currency?: string|null, code?: string|null, enabled?: boolean, customerEmail?: string|null, customMessage?: string|null, expiresAt?: string|null, deliveryType?: string|null, design?: string|null}} card
+ *        amount in minor units of the currency; code typed over the generated one the form proposes, left as proposed when null;
  *        expiresAt as YYYY-MM-DD; deliveryType as its value (virtual or physical), left at the form's default when
  *        null; design as the code of a design the picker offers, none when null
  * @returns {Promise<{id: string, code: string, printedCode: string, shownCode: string, currency: string}>} the code as
  *          stored, without separators; as printed (the show page, the grid, the PDF and the emails group it, e.g.
  *          ABCD-EFGH-JKMN-PQRS); and the code the form held when it was submitted
  */
-async function issueGiftCard(page, { amount, code = null, enabled = true, customerEmail = null, customMessage = null, expiresAt = null, deliveryType = null, design = null }) {
+async function issueGiftCard(page, { amount, currency: chosenCurrency = null, code = null, enabled = true, customerEmail = null, customMessage = null, expiresAt = null, deliveryType = null, design = null }) {
     await page.goto('/admin/gift-cards/new');
     const channel = await page.locator(`${FORM} select[name$="[channel]"]`).inputValue();
-    if (!baseCurrencies.has(channel)) {
+    if (null === chosenCurrency && !baseCurrencies.has(channel)) {
         baseCurrencies.set(channel, await channelBaseCurrencyCode(page, channel));
         await page.goto('/admin/gift-cards/new');
     }
 
-    const currency = /** @type {string} */ (baseCurrencies.get(channel));
+    const currency = chosenCurrency ?? /** @type {string} */ (baseCurrencies.get(channel));
     await page.locator(`${FORM} select[name$="[currencyCode]"]`).selectOption(currency);
     await page.locator(`${FORM} [name$="[amount]"]`).fill(typedAmount(amount));
     await setChecked(page.locator(`${FORM} [name$="[enabled]"]`), enabled);
@@ -193,9 +193,10 @@ async function giftCardRows(page, text) {
  * filters not given keep what the grid opens with, which hides the pending cards.
  *
  * @param {import('@playwright/test').Page} page
- * @param {{code?: {type: string, value: string}, customer?: string, enabled?: string, expired?: string, spent?: string, pending?: string}} criteria
- *        customer is a part of the email; enabled, expired and spent take 'true', 'false' or '' for all; pending takes
- *        '' to hide the pending cards, 'show' to list them with the others or 'only'
+ * @param {{code?: {type: string, value: string}, customer?: string, currencyCode?: string, enabled?: string, expired?: string, spent?: string, pending?: string}} criteria
+ *        customer is a part of the email; currencyCode the code of the currency the cards are held in; enabled, expired
+ *        and spent take 'true', 'false' or '' for all; pending takes '' to hide the pending cards, 'show' to list them
+ *        with the others or 'only'
  */
 async function filterGiftCards(page, criteria) {
     await page.goto('/admin/gift-cards/');

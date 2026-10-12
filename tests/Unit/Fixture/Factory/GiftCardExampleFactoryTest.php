@@ -9,6 +9,7 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardExampleFactory;
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
@@ -38,6 +39,7 @@ final class GiftCardExampleFactoryTest extends TestCase
             $this->prophesize(ChannelRepositoryInterface::class)->reveal(),
             $this->prophesize(RepositoryInterface::class)->reveal(),
             $this->prophesize(GiftCardBalanceOperatorInterface::class)->reveal(),
+            $this->prophesize(GiftCardCurrencyProviderInterface::class)->reveal(),
             $minimumCodeLength,
         );
 

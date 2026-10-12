@@ -30,7 +30,7 @@ setono_sylius_gift_card:
         currency_code:
             not_blank: Please choose a currency
             invalid: This is not a valid currency
-            not_base_currency: 'The currency {{ currency }} is not the base currency of the channel {{ channel }} ({{ base_currency }}). Gift card balances are kept in the channel''s base currency, so a card can only be issued in it.'
+            not_offered_by_channel: 'The channel {{ channel }} does not offer the currency {{ currency }}. A gift card is held in a currency its channel offers: {{ currencies }}.'
         design:
             not_available_in_channel: 'The design {{ design }} is not available in the channel {{ channel }}. Choose one of the channel''s designs, or none.'
         send_notification_email:
@@ -44,6 +44,8 @@ setono_sylius_gift_card:
             too_low: 'The gift card amount must be at least {{ minimum }}.'
             too_high: 'The gift card amount may not be more than {{ maximum }}.'
             too_large: The gift card amount is more than a gift card can hold.
+        currency_code:
+            not_offered: 'Gift cards cannot be bought in this currency here. Please check the amount and try again.'
         design:
             required: 'Please choose a design.'
     gift_card_design:

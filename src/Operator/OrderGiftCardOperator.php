@@ -44,8 +44,8 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         $channel = $order->getChannel();
         Assert::isInstanceOf($channel, ChannelInterface::class);
 
-        $currencyCode = $order->getCurrencyCode();
-        Assert::notNull($currencyCode);
+        $orderCurrencyCode = $order->getCurrencyCode();
+        Assert::notNull($orderCurrencyCode);
 
         /** @var CustomerInterface|null $customer */
         $customer = $order->getCustomer();
@@ -59,26 +59,23 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
             $template = self::findTemplateGiftCard($item);
             $deliveryType = self::resolveDeliveryType($item);
 
+            // The cards of a line are held in the currency the customer bought them in, which the cards add to cart
+            // created tell (#488)
+            $currencyCode = $template?->getCurrencyCode() ?? $orderCurrencyCode;
+
+            // The card is worth the amount the customer chose. In the order's currency that is the price of its line.
+            // Not the unit total: promotions never discount a gift card line, and tax charged on top of it, where a gift
+            // card product carries a tax category, is not part of what the card is worth. In another currency the
+            // line's price is that amount converted, which converting back would not give exactly, so it is the amount
+            // the cards add to cart created hold
+            $amount = null === $template || $currencyCode === $orderCurrencyCode ? $item->getUnitPrice() : $template->getInitialAmount();
+
             /** @var OrderItemUnitInterface $unit */
             foreach ($item->getUnits() as $unit) {
                 $giftCard = $unit->getGiftCard();
 
-                if (null === $giftCard) {
-                    $giftCard = $this->giftCardFactory->createForChannel($channel);
-                    $giftCard->setCurrencyCode($currencyCode);
-                    $giftCard->setDeliveryType($deliveryType);
-                    $giftCard->setDesign($template?->getDesign());
-                    $giftCard->setCustomMessage($template?->getCustomMessage());
-                    $giftCard->setOrderItemUnit($unit);
-                    $giftCard->disable();
+                $giftCard ??= $this->createPendingGiftCard($channel, $unit, $template, $currencyCode, $deliveryType);
 
-                    $this->getManager($giftCard)->persist($giftCard);
-                }
-
-                // The card is worth the amount the customer chose, which is the price of its line. Not the unit total:
-                // promotions never discount a gift card line, and tax charged on top of it, where a gift card product
-                // carries a tax category, is not part of what the card is worth
-                $amount = $item->getUnitPrice();
                 $giftCard->setInitialAmount($amount);
                 $giftCard->setAmount($amount);
 
@@ -87,6 +84,33 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
                 if (null !== $customer) {
                     $giftCard->setCustomer($customer);
                 }
+            }
+        }
+    }
+
+    public function completeLines(OrderInterface $order): void
+    {
+        $channel = $order->getChannel();
+        if (!$channel instanceof ChannelInterface) {
+            return;
+        }
+
+        foreach (self::getGiftCardItems($order) as $item) {
+            $template = self::findTemplateGiftCard($item);
+            $currencyCode = $template?->getCurrencyCode();
+            if (null === $template || null === $currencyCode) {
+                continue;
+            }
+
+            /** @var OrderItemUnitInterface $unit */
+            foreach ($item->getUnits() as $unit) {
+                if (null !== $unit->getGiftCard()) {
+                    continue;
+                }
+
+                $giftCard = $this->createPendingGiftCard($channel, $unit, $template, $currencyCode, self::resolveDeliveryType($item));
+                $giftCard->setInitialAmount($template->getInitialAmount());
+                $giftCard->setAmount($template->getInitialAmount());
             }
         }
     }
@@ -167,6 +191,29 @@ final class OrderGiftCardOperator implements OrderGiftCardOperatorInterface
         }
 
         return $items;
+    }
+
+    /**
+     * A disabled card for the unit, held like the line's other cards, the template, if it has any
+     */
+    private function createPendingGiftCard(
+        ChannelInterface $channel,
+        OrderItemUnitInterface $unit,
+        ?GiftCardInterface $template,
+        string $currencyCode,
+        GiftCardDeliveryType $deliveryType,
+    ): GiftCardInterface {
+        $giftCard = $this->giftCardFactory->createForChannel($channel);
+        $giftCard->setCurrencyCode($currencyCode);
+        $giftCard->setDeliveryType($deliveryType);
+        $giftCard->setDesign($template?->getDesign());
+        $giftCard->setCustomMessage($template?->getCustomMessage());
+        $giftCard->setOrderItemUnit($unit);
+        $giftCard->disable();
+
+        $this->getManager($giftCard)->persist($giftCard);
+
+        return $giftCard;
     }
 
     private static function findTemplateGiftCard(OrderItemInterface $item): ?GiftCardInterface

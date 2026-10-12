@@ -19,7 +19,14 @@
 
     <div class="column">
         <div class="ui segment">
-            {{ form_row(form.currencyCode) }}
+            {% if form.channel is defined %}
+                {# A new card offers the currencies of every channel, and the script narrows them to the chosen
+                   channel's, picking its base currency; the form turns down any other #}
+                {{ form_row(form.currencyCode, {'attr': form.currencyCode.vars.attr|merge({'data-js-gift-card-currency': '', 'data-channel-field': form.channel.vars.id})}) }}
+                <script defer src="{{ asset('bundles/setonosyliusgiftcardplugin/js/admin-gift-card-currency.js') }}"></script>
+            {% else %}
+                {{ form_row(form.currencyCode) }}
+            {% endif %}
             {# The balance is only settable while issuing the card; afterwards it is changed through the
                adjust balance action, so every movement is recorded in the transaction ledger #}
             {% if form.amount is defined %}

@@ -30,7 +30,7 @@ setono_sylius_gift_card:
         currency_code:
             not_blank: Veuillez choisir une devise
             invalid: Cette devise n'est pas valide
-            not_base_currency: 'La devise {{ currency }} n''est pas la devise de base du canal {{ channel }} ({{ base_currency }}). Le solde d''un chèque-cadeau est tenu dans la devise de base du canal, il ne peut donc être émis que dans celle-ci.'
+            not_offered_by_channel: 'Le canal {{ channel }} ne propose pas la devise {{ currency }}. Un chèque-cadeau est tenu dans une devise que son canal propose : {{ currencies }}.'
         design:
             not_available_in_channel: "Le modèle {{ design }} n'est pas disponible dans le canal {{ channel }}. Choisissez l'un des modèles du canal, ou aucun."
         send_notification_email:
@@ -44,6 +44,8 @@ setono_sylius_gift_card:
             too_low: 'Le montant du chèque-cadeau doit être au moins de {{ minimum }}.'
             too_high: 'Le montant du chèque-cadeau ne peut pas dépasser {{ maximum }}.'
             too_large: Le montant du chèque-cadeau dépasse ce qu'un chèque-cadeau peut contenir.
+        currency_code:
+            not_offered: 'Les chèques-cadeaux ne peuvent pas être achetés dans cette devise ici. Veuillez vérifier le montant et réessayer.'
         design:
             required: 'Veuillez choisir un modèle.'
     gift_card_design:

@@ -231,7 +231,7 @@ final class GiftCardAwareOrderPaymentProcessorTest extends TestCase
     private function coverage(int $amount): GiftCardCoverage
     {
         return new GiftCardCoverage([
-            ['giftCard' => $this->prophesize(GiftCardInterface::class)->reveal(), 'amount' => $amount],
+            ['giftCard' => $this->prophesize(GiftCardInterface::class)->reveal(), 'amount' => $amount, 'giftCardAmount' => $amount],
         ]);
     }
 }

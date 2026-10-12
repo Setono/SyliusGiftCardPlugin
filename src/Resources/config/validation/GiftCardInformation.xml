@@ -26,6 +26,13 @@
                 <option name="groups">setono_sylius_gift_card</option>
             </constraint>
         </property>
+        <!-- The currency the amount field was shown in, which the form submits; null when it does not, and the amount is
+             in the one the customer browses in -->
+        <property name="currencyCode">
+            <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardCurrencyIsOffered">
+                <option name="groups">setono_sylius_gift_card</option>
+            </constraint>
+        </property>
         <property name="customMessage">
             <constraint name="Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardMessageLength">
                 <option name="groups">setono_sylius_gift_card</option>

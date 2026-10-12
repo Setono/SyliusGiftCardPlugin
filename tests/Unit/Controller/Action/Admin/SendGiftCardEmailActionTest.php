@@ -13,10 +13,12 @@ use Setono\SyliusGiftCardPlugin\Controller\Action\Admin\SendGiftCardEmailAction;
 use Setono\SyliusGiftCardPlugin\Mailer\GiftCardEmailManagerInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCard;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProvider;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Sylius\Component\Core\Model\Customer;
+use Sylius\Component\Currency\Context\CompositeCurrencyContext;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -50,7 +52,7 @@ final class SendGiftCardEmailActionTest extends TestCase
             $emailManager->reveal(),
             $this->prophesize(UrlGeneratorInterface::class)->reveal(),
             $this->csrfTokenManager('forged', false)->reveal(),
-            new GiftCardEligibilityChecker(),
+            new GiftCardEligibilityChecker(new GiftCardCurrencyProvider(new CompositeCurrencyContext())),
         );
 
         $this->expectException(AccessDeniedHttpException::class);
@@ -187,7 +189,7 @@ final class SendGiftCardEmailActionTest extends TestCase
             $emailManager->reveal(),
             $this->prophesize(UrlGeneratorInterface::class)->reveal(),
             $this->csrfTokenManager('valid', true)->reveal(),
-            new GiftCardEligibilityChecker(),
+            new GiftCardEligibilityChecker(new GiftCardCurrencyProvider(new CompositeCurrencyContext())),
         );
 
         $this->expectException(NotFoundHttpException::class);
@@ -198,7 +200,7 @@ final class SendGiftCardEmailActionTest extends TestCase
     private function action(
         GiftCardInterface $giftCard,
         GiftCardEmailManagerInterface $emailManager,
-        GiftCardEligibilityCheckerInterface $eligibilityChecker = new GiftCardEligibilityChecker(),
+        GiftCardEligibilityCheckerInterface $eligibilityChecker = new GiftCardEligibilityChecker(new GiftCardCurrencyProvider(new CompositeCurrencyContext())),
     ): SendGiftCardEmailAction {
         $giftCardRepository = $this->prophesize(GiftCardRepositoryInterface::class);
         $giftCardRepository->find(42)->willReturn($giftCard);

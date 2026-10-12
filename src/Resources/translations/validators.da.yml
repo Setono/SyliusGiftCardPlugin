@@ -30,7 +30,7 @@ setono_sylius_gift_card:
         currency_code:
             not_blank: Vælg venligst en valuta
             invalid: Dette er ikke en gyldig valuta
-            not_base_currency: 'Valutaen {{ currency }} er ikke basisvalutaen for kanalen {{ channel }} ({{ base_currency }}). Gavekortsaldi føres i kanalens basisvaluta, så et gavekort kan kun udstedes i den.'
+            not_offered_by_channel: 'Kanalen {{ channel }} tilbyder ikke valutaen {{ currency }}. Et gavekort føres i en valuta, som dets kanal tilbyder: {{ currencies }}.'
         design:
             not_available_in_channel: 'Designet {{ design }} er ikke tilgængeligt i kanalen {{ channel }}. Vælg et af kanalens designs, eller intet.'
         send_notification_email:
@@ -44,6 +44,8 @@ setono_sylius_gift_card:
             too_low: 'Gavekortets beløb skal være mindst {{ minimum }}.'
             too_high: 'Gavekortets beløb må ikke være mere end {{ maximum }}.'
             too_large: Gavekortets beløb er større, end et gavekort kan rumme.
+        currency_code:
+            not_offered: 'Gavekort kan ikke købes i denne valuta her. Kontrollér venligst beløbet, og prøv igen.'
         design:
             required: 'Vælg venligst et design.'
     gift_card_design:

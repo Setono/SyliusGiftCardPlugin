@@ -162,7 +162,7 @@ final class GiftCardCoverageGuardTest extends TestCase
 
     private function coverageOf(int $total): GiftCardCoverageCalculatorInterface
     {
-        $entries = $total > 0 ? [['giftCard' => $this->giftCard(), 'amount' => $total]] : [];
+        $entries = $total > 0 ? [['giftCard' => $this->giftCard(), 'amount' => $total, 'giftCardAmount' => $total]] : [];
 
         $calculator = $this->prophesize(GiftCardCoverageCalculatorInterface::class);
         $calculator->calculate(Argument::type(CoreOrderInterface::class))->willReturn(new GiftCardCoverage($entries));

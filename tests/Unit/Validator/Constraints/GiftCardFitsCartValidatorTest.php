@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Unit\Validator\Constraints;
 
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Order\AddToCartCommand;
 use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Product;
+use Setono\SyliusGiftCardPlugin\Tests\Unit\Currency\FixedRateCurrencyConverter;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCart;
 use Setono\SyliusGiftCardPlugin\Validator\Constraints\GiftCardFitsCartValidator;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Sylius\Component\Core\Model\Adjustment;
 use Sylius\Component\Core\Model\AdjustmentInterface;
+use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\Product as PlainProduct;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Model\ProductVariant;
@@ -47,6 +51,9 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
 
     /** @var ObjectProphecy<MoneyFormatterInterface> */
     private ObjectProphecy $moneyFormatter;
+
+    /** @var ObjectProphecy<GiftCardCurrencyProviderInterface> */
+    private ObjectProphecy $currencyProvider;
 
     /** @test */
     public function it_refuses_a_gift_card_the_cart_has_no_room_left_for(): void
@@ -215,13 +222,85 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
     }
 
     /**
+     * A card held in another currency than the cart's costs its amount converted into the cart's currency (#488), which
+     * is what has to fit: $3,000,000.00 is a card's worth, but DKK 22,380,000.00 is more than the cart holds
+     *
+     * @test
+     */
+    public function it_holds_the_cart_to_the_price_of_a_card_in_another_currency_converted_into_the_carts(): void
+    {
+        $this->validator->validate($this->command(cartTotal: 0, amount: 300_000_000, currencyCode: 'USD'), new GiftCardFitsCart());
+
+        $this->buildViolation(self::MESSAGE)
+            ->setParameter('{{ maximum }}', '21.474.836,47 kr.')
+            ->assertRaised();
+    }
+
+    /**
+     * Information an application builds itself may not name its currency, which is then the one the customer browses
+     * in, the one the amount field was in: dollars here, on a cart in a channel kept in kroner
+     *
+     * @test
+     */
+    public function it_takes_the_amount_to_be_in_the_currency_browsed_in_when_the_information_does_not_say(): void
+    {
+        $command = $this->command(cartTotal: 0, amount: 300_000_000);
+        $command->getCart()->setChannel(new Channel());
+
+        $this->validator->validate($command, new GiftCardFitsCart());
+
+        $this->buildViolation(self::MESSAGE)
+            ->setParameter('{{ maximum }}', '21.474.836,47 kr.')
+            ->assertRaised();
+    }
+
+    /**
+     * A request can name any currency until GiftCardCurrencyIsOffered has refused it, which does not keep this from
+     * running. One the channel does not offer is not taken, as converting from a currency without an exchange rate is one
+     * to one: the amount is taken in the currency the customer browses in, $2,800,000.00 here, which the cart holds
+     *
+     * @test
+     */
+    public function it_takes_the_amount_in_the_currency_browsed_in_when_the_submitted_one_is_not_offered(): void
+    {
+        $this->validator->validate($this->command(cartTotal: 0, amount: 280_000_000, currencyCode: 'X'), new GiftCardFitsCart());
+
+        $this->assertNoViolation();
+    }
+
+    /**
+     * A currency the channel offers is taken as submitted, whatever the customer browses in by now: DKK 3,000,000.00
+     * fits the cart, which the same amount in dollars would not
+     *
+     * @test
+     */
+    public function it_takes_the_amount_in_the_submitted_currency_when_the_channel_offers_it(): void
+    {
+        $this->validator->validate($this->command(cartTotal: 0, amount: 300_000_000, currencyCode: 'DKK'), new GiftCardFitsCart());
+
+        $this->assertNoViolation();
+    }
+
+    /**
+     * $2,800,000.00 is DKK 20,888,000.00, which the cart holds
+     *
+     * @test
+     */
+    public function it_accepts_a_card_in_another_currency_whose_converted_price_the_cart_has_room_for(): void
+    {
+        $this->validator->validate($this->command(cartTotal: 0, amount: 280_000_000, currencyCode: 'USD'), new GiftCardFitsCart());
+
+        $this->assertNoViolation();
+    }
+
+    /**
      * An application that widened Sylius' columns raises sylius_core.max_int_value with them
      *
      * @test
      */
     public function it_holds_the_cart_to_the_maximum_it_is_given(): void
     {
-        $validator = new GiftCardFitsCartValidator(4_000_000_000, $this->moneyFormatter->reveal(), $this->localeContext->reveal());
+        $validator = new GiftCardFitsCartValidator(4_000_000_000, $this->moneyFormatter->reveal(), $this->localeContext->reveal(), new FixedRateCurrencyConverter(), $this->currencyProvider->reveal());
         $validator->initialize($this->context);
 
         $validator->validate($this->command(cartTotal: 0, amount: 2_000_000_000, quantity: 2), new GiftCardFitsCart());
@@ -271,14 +350,20 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
         $this->moneyFormatter->format(self::MAXIMUM, 'DKK', 'da_DK')->willReturn('21.474.836,47 kr.');
         $this->moneyFormatter->format(self::MAXIMUM, 'DKK', null)->willReturn('DKK 21,474,836.47');
 
-        return new GiftCardFitsCartValidator(self::MAXIMUM, $this->moneyFormatter->reveal(), $this->localeContext->reveal());
+        // the customer browses in dollars, unless a test says otherwise
+        $this->currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
+        $this->currencyProvider->getCurrencyCode(Argument::any())->willReturn('USD');
+        $this->currencyProvider->getCurrencyCodes(Argument::any())->willReturn(['DKK', 'USD']);
+
+        // kroner at 7.46 to the dollar
+        return new GiftCardFitsCartValidator(self::MAXIMUM, $this->moneyFormatter->reveal(), $this->localeContext->reveal(), new FixedRateCurrencyConverter(), $this->currencyProvider->reveal());
     }
 
     /**
      * What the shop's add to cart form holds once submitted: a cart already holding an item of the given total, and a
      * new line of the product at the quantity chosen, with the amount chosen. The line is not in the cart yet
      */
-    private function command(int $cartTotal, ?int $amount, int $quantity = 1, ?ProductInterface $product = null): AddToCartCommand
+    private function command(int $cartTotal, ?int $amount, int $quantity = 1, ?ProductInterface $product = null, ?string $currencyCode = null): AddToCartCommand
     {
         $cart = new Order();
         $cart->setCurrencyCode('DKK');
@@ -304,7 +389,15 @@ final class GiftCardFitsCartValidatorTest extends ConstraintValidatorTestCase
             new OrderItemUnit($item);
         }
 
-        return new AddToCartCommand($cart, $item, new GiftCardInformation($amount));
+        $information = new GiftCardInformation($amount);
+        $information->setCurrencyCode($currencyCode);
+
+        // a currency is checked against the channel's
+        if (null !== $currencyCode) {
+            $cart->setChannel(new Channel());
+        }
+
+        return new AddToCartCommand($cart, $item, $information);
     }
 
     private function adjustCart(AddToCartCommand $command, string $type, int $amount): void

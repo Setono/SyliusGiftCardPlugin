@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Validator\Constraints;
 
+use Setono\SyliusGiftCardPlugin\Order\GiftCardInformationInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Channel\Context\ChannelNotFoundException;
@@ -23,6 +25,7 @@ final class ValidGiftCardAmountValidator extends ConstraintValidator
         private readonly GiftCardAmountLimitsProviderInterface $amountLimitsProvider,
         private readonly MoneyFormatterInterface $moneyFormatter,
         private readonly LocaleContextInterface $localeContext,
+        private readonly GiftCardCurrencyProviderInterface $currencyProvider,
     ) {
     }
 
@@ -50,8 +53,17 @@ final class ValidGiftCardAmountValidator extends ConstraintValidator
             return;
         }
 
-        $limits = $this->amountLimitsProvider->getLimits($channel);
-        $currencyCode = (string) $channel->getBaseCurrency()?->getCode();
+        // The amount is in the currency the card is held in, and held to the limits in that currency without conversion.
+        // The form submits that currency, so it can be anything a request says until GiftCardCurrencyIsOffered has
+        // refused it, which does not keep this from running: a currency the channel does not offer is not taken, or the
+        // money formatter would fail on a code it cannot format
+        $information = $this->context->getObject();
+        $currencyCode = $information instanceof GiftCardInformationInterface ? $information->getCurrencyCode() : null;
+        if (null === $currencyCode || !in_array($currencyCode, $this->currencyProvider->getCurrencyCodes($channel), true)) {
+            $currencyCode = $this->currencyProvider->getCurrencyCode($channel);
+        }
+
+        $limits = $this->amountLimitsProvider->getLimits($channel, $currencyCode);
 
         if ($value < $limits->minimum) {
             $this->context->buildViolation($constraint->tooLowMessage)

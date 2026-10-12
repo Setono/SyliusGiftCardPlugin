@@ -9,6 +9,7 @@ use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Operator\GiftCardBalanceOperatorInterface;
+use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use function sprintf;
 use Sylius\Bundle\CoreBundle\Fixture\Factory\AbstractExampleFactory;
@@ -41,6 +42,7 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
         protected ChannelRepositoryInterface $channelRepository,
         protected RepositoryInterface $currencyRepository,
         protected GiftCardBalanceOperatorInterface $balanceOperator,
+        protected GiftCardCurrencyProviderInterface $currencyProvider,
         protected int $minimumCodeLength = Configuration::MINIMUM_CODE_LENGTH,
     ) {
         $this->faker = \Faker\Factory::create();
@@ -71,8 +73,9 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
         /** @var ChannelInterface $channel */
         $channel = $options['channel'];
 
-        // The currency the fixture names, if it names one, has been checked to be this one
-        $currency = $channel->getBaseCurrency();
+        // The currency the fixture names has been checked to be one the channel offers. Left out, it is the base currency
+        /** @var CurrencyInterface|null $currency */
+        $currency = $options['currency'] ?? $channel->getBaseCurrency();
         Assert::notNull($currency);
 
         /** @var GiftCardDeliveryType $deliveryType */
@@ -102,6 +105,11 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
         return $giftCard;
     }
 
+    protected function offers(ChannelInterface $channel, CurrencyInterface $currency): bool
+    {
+        return in_array($currency->getCode(), $this->currencyProvider->getCurrencyCodes($channel), true);
+    }
+
     protected function configureOptions(OptionsResolver $resolver): void
     {
         $resolver
@@ -129,19 +137,19 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
                 }
 
                 // A currency handed to the factory is looked up by its code, like a code from a fixture file, so one
-                // that is not the managed instance still finds the channels that have it as their base currency
+                // that is not the managed instance is the same currency as the one the channels offer
                 $code = $currency instanceof CurrencyInterface ? $currency->getCode() : $currency;
                 Assert::string($code);
 
                 /** @var CurrencyInterface|null $found */
                 $found = $this->currencyRepository->findOneBy(['code' => $code]);
-                Assert::notNull($found, sprintf('Currency %s was not found. Gift cards are issued in the base currency of their channel', $code));
+                Assert::notNull($found, sprintf('Currency %s was not found', $code));
 
                 return $found;
             })
 
-            // A fixture naming the currency but no channel gets one of the channels with that base currency, so whether
-            // it loads does not depend on which channel happens to be picked
+            // A fixture naming the currency but no channel gets one of the channels with that base currency, else one of
+            // the channels offering it besides, so whether it loads does not depend on which channel happens to be picked
             ->setDefault('channel', function (Options $options): ChannelInterface {
                 /** @var CurrencyInterface|null $currency */
                 $currency = $options['currency'];
@@ -154,8 +162,16 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
 
                 /** @var list<ChannelInterface> $channels */
                 $channels = $this->channelRepository->findBy(['baseCurrency' => $currency]);
+                if ([] === $channels) {
+                    /** @var list<ChannelInterface> $channels */
+                    $channels = array_values(array_filter(
+                        $this->channelRepository->findAll(),
+                        fn (ChannelInterface $channel): bool => $this->offers($channel, $currency),
+                    ));
+                }
+
                 Assert::notEmpty($channels, sprintf(
-                    'Gift cards are issued in the base currency of their channel, and no channel has %s as its base currency',
+                    'Gift cards are issued in a currency their channel offers, and no channel offers %s',
                     (string) $currency->getCode(),
                 ));
 
@@ -171,21 +187,18 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
 
                 Assert::isInstanceOf($channel, ChannelInterface::class);
 
-                // Sylius keeps every order in the base currency of its channel; the other currencies a channel offers
-                // only change how amounts are displayed. A card in any other currency could never be redeemed, so the
-                // fixture only issues cards in the base currency, like the admin (GiftCardCurrencyIsChannelBaseCurrency)
+                // A card is held in a currency its channel offers, and pays converted into the order's currency, which is
+                // the channel's base currency (#488). A card in a currency the channel does not offer could never be
+                // redeemed, so the fixture refuses it, like the admin (GiftCardCurrencyIsOfferedByChannel)
                 /** @var CurrencyInterface|null $currency */
                 $currency = $options['currency'];
                 if (null === $currency) {
                     return $channel;
                 }
 
-                $baseCurrency = $channel->getBaseCurrency();
-                Assert::notNull($baseCurrency);
-
-                Assert::same($currency->getCode(), $baseCurrency->getCode(), sprintf(
-                    'Gift cards are issued in the channel\'s base currency (%s for channel %s), got: %s',
-                    (string) $baseCurrency->getCode(),
+                Assert::true($this->offers($channel, $currency), sprintf(
+                    'Gift cards are issued in a currency their channel offers (%s for channel %s), got: %s',
+                    implode(', ', $this->currencyProvider->getCurrencyCodes($channel)),
                     (string) $channel->getCode(),
                     (string) $currency->getCode(),
                 ));
