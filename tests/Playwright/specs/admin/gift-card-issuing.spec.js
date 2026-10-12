@@ -330,7 +330,8 @@ test.describe('admin issuing gift cards', () => {
 
     /**
      * Once money has moved on a card, deleting it would erase the ledger that accounts for that money, so its row no
-     * longer offers to. The server refuses as well, for a button on a page opened before (GiftCardAdminResourceTest)
+     * longer offers to, even once the balance is back where it started (#491). The server refuses as well, for a
+     * button on a page opened before (GiftCardAdminResourceTest)
      */
     test('a card whose balance has moved offers no delete button', async ({ page }) => {
         const card = await issueGiftCard(page, { amount: 1500 });
@@ -346,6 +347,14 @@ test.describe('admin issuing gift cards', () => {
         // An untouched card can be deleted, which keeps it from topping the grid for other specs
         await clickAndConfirm(page, untouchedRow.getByRole('button', { name: /delete/i }));
         expect(await flashMessages(page)).toContainEqual(expect.stringMatching(/successfully deleted/i));
+
+        // Back where it started, the card still has the two adjustments on its ledger. The row is checked to be there
+        // first, so the missing button cannot pass on a card that is not on the page
+        await adjustBalance(page, card.id, 500, 'Refunded in the store');
+        expect(moneyInCents((await giftCardDetails(page, card.id)).Amount)).toBe(1500);
+        const restoredRow = await giftCardRows(page, card.printedCode);
+        await expect(restoredRow.getByRole('link', { name: /adjust balance/i })).toHaveCount(1);
+        await expect(restoredRow.getByRole('button', { name: /delete/i })).toHaveCount(0);
     });
 
     /**

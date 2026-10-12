@@ -45,8 +45,11 @@ interface GiftCardInterface extends ResourceInterface, ToggleableInterface, Code
     public function getStatus(?\DateTimeInterface $date = null): GiftCardStatus;
 
     /**
-     * An admin cannot remove gift cards that were purchased with real money or (partially) spent.
-     * Only pending or untouched gift cards can be removed
+     * Whether an admin may delete the card: while it is pending, or while nothing has happened to it, that is a card
+     * that was not bought, is not applied to any order, and whose ledger holds nothing but its issuance. A card that
+     * was bought, is applied, or was spent from or adjusted keeps its history, whatever its balance is now. Only the
+     * orders a card is applied to now count: once it is taken off a cart, or the cart is deleted, it has no link left
+     * to lose
      */
     public function isDeletable(): bool;
 

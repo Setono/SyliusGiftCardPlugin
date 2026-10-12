@@ -7,6 +7,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
+use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -70,6 +71,29 @@ final class CancelledOrderGiftCardTest extends OrderLifecycleTestCase
         self::assertSame(PaymentInterface::STATE_REFUNDED, $giftCardPayment->getState());
         self::assertSame(6000, $this->persistedBalanceOf($giftCard));
         $this->assertRestoredOnce($order, $giftCard, $giftCardPayment);
+    }
+
+    /**
+     * The card has its whole balance back, but it paid an order, and its ledger and its link to that order stay on
+     * record, so it can no longer be deleted (#491)
+     *
+     * @test
+     */
+    public function a_card_whose_balance_came_back_with_the_cancelled_order_cannot_be_deleted(): void
+    {
+        [$order, $giftCard] = $this->placeOrderPaidInPartByAGiftCard('CANCELLED0000003');
+        $this->apply($order, OrderTransitions::GRAPH, OrderTransitions::TRANSITION_CANCEL);
+
+        $id = $giftCard->getId();
+        $this->manager->clear();
+
+        /** @var GiftCardRepositoryInterface $repository */
+        $repository = self::getContainer()->get('setono_sylius_gift_card.repository.gift_card');
+        $giftCard = $repository->find($id);
+        self::assertInstanceOf(GiftCardInterface::class, $giftCard);
+        self::assertSame($giftCard->getInitialAmount(), $giftCard->getAmount(), 'precondition: the balance is back where it started');
+
+        self::assertFalse($giftCard->isDeletable());
     }
 
     /**

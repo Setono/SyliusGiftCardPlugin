@@ -44,9 +44,10 @@
             <join-column name="order_item_unit_id" referenced-column-name="id" nullable="true" on-delete="SET NULL"/>
         </one-to-one>
 
-        <!-- Orders where this gift card was applied / redeemed -->
+        <!-- Orders where this gift card was applied / redeemed. EXTRA_LAZY, so whether a card is applied to any
+             (isDeletable(), which the admin grid asks of every row) is a COUNT rather than every order loaded -->
         <many-to-many field="appliedOrders" target-entity="Sylius\Component\Order\Model\OrderInterface"
-                      mapped-by="giftCards"/>
+                      mapped-by="giftCards" fetch="EXTRA_LAZY"/>
 
         <one-to-many field="transactions" target-entity="Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface"
                      mapped-by="giftCard">
