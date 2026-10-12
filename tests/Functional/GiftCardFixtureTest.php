@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardExampleFactory;
-use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface;
+use Setono\SyliusGiftCardPlugin\Form\DataTransformer\GiftCardToCodeDataTransformer;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
@@ -401,7 +401,7 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
     public function it_rejects_a_code_shorter_than_the_minimum(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('A gift card code must have at least 12 letters and digits, so it cannot be guessed, got: "SHORTCODE01"');
+        $this->expectExceptionMessage('A gift card code must have at least 12 characters once it is normalized, so it cannot be guessed, got: "SHORTCODE01", normalized to "SHORTCODE01"');
 
         $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'SHORTCODE01', 'amount' => 10]]]);
     }
@@ -409,7 +409,7 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
     /**
      * The cart normalizes the code a customer types before it looks the card up, so a code is stored normalized
      * however the fixture writes it. One stored as written, in lowercase or with dashes and spaces, could never be
-     * redeemed (#490)
+     * redeemed (#490). The card is looked up the way the cart's form does it
      *
      * @test
      */
@@ -417,13 +417,11 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
     {
         $this->loadFixture('setono_gift_card', ['custom' => ['printed' => ['code' => 'abcd-efgh jkmn-pqrs', 'amount' => 50]]]);
 
-        /** @var GiftCardCodeNormalizerInterface $normalizer */
-        $normalizer = self::getContainer()->get(GiftCardCodeNormalizerInterface::class);
+        /** @var GiftCardToCodeDataTransformer $cartLookup */
+        $cartLookup = self::getContainer()->get(GiftCardToCodeDataTransformer::class);
 
         foreach (['abcd-efgh jkmn-pqrs', 'ABCD-EFGH-JKMN-PQRS', 'ABCDEFGHJKMNPQRS'] as $typed) {
-            $this->manager->clear();
-
-            $giftCard = $this->repository->findOneEnabledByCodeAndChannel($normalizer->normalize($typed), $this->getChannel());
+            $giftCard = $cartLookup->reverseTransform($typed);
             self::assertInstanceOf(GiftCardInterface::class, $giftCard, sprintf('the cart should find the card when "%s" is typed', $typed));
             self::assertSame('ABCDEFGHJKMNPQRS', $giftCard->getCode());
             self::assertSame(5000, $giftCard->getAmount());
@@ -431,20 +429,66 @@ final class GiftCardFixtureTest extends GiftCardFunctionalTestCase
     }
 
     /**
-     * Only the letters and digits of a code count towards the minimum, as in the admin, since those are all that
-     * is stored
+     * Only what is stored of a code counts towards the minimum, as in the admin: its capitals and digits. Dashes,
+     * spaces, dots and underscores are dropped, and so are letters beyond A to Z
      *
      * @test
      */
-    public function it_counts_only_the_letters_and_digits_of_a_code_towards_the_minimum(): void
+    public function it_counts_only_what_is_stored_of_a_code_towards_the_minimum(): void
     {
-        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'abcd-efgh-jkmn']]]);
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'gavekort_æble_2024'], ['code' => 'abcd-efgh-jkmn']]]);
+        self::assertSame('GAVEKORTBLE2024', $this->findGiftCard('GAVEKORTBLE2024')->getCode());
         self::assertSame('ABCDEFGHJKMN', $this->findGiftCard('ABCDEFGHJKMN')->getCode());
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('A gift card code must have at least 12 letters and digits, so it cannot be guessed, got: "ab-cd-ef-gh-jk"');
+        $this->expectExceptionMessage('A gift card code must have at least 12 characters once it is normalized, so it cannot be guessed, got: "xmas.2020.ab", normalized to "XMAS2020AB"');
 
-        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'ab-cd-ef-gh-jk']]]);
+        $this->loadFixture('setono_gift_card', ['custom' => [['code' => 'xmas.2020.ab']]]);
+    }
+
+    /**
+     * Two entries of one file whose codes normalize to the same code would be one card. Within a batch of ten, which
+     * the fixture flushes together, the second used to fail on the unique code with the database's error; further
+     * apart, it quietly updated the first. Either way, the file is refused before anything is written
+     *
+     * @dataProvider provideEntriesGivingOneCode
+     *
+     * @test
+     *
+     * @param array<array-key, array<string, mixed>> $entries
+     */
+    public function it_refuses_two_entries_giving_the_same_code(array $entries, string $expectedMessage): void
+    {
+        try {
+            $this->loadFixture('setono_gift_card', ['custom' => $entries]);
+            self::fail('the fixture should have been refused');
+        } catch (InvalidConfigurationException $e) {
+            self::assertSame($expectedMessage, $e->getMessage());
+        }
+
+        self::assertSame([], $this->repository->findAll(), 'nothing is written');
+    }
+
+    /**
+     * @return iterable<string, array{array<array-key, array<string, mixed>>, string}>
+     */
+    public static function provideEntriesGivingOneCode(): iterable
+    {
+        yield 'spelled differently, next to each other' => [
+            ['printed' => ['code' => 'abcd-efgh-jkmn-pqrs'], 'plastic' => ['code' => 'ABCD EFGH JKMN PQRS']],
+            'Invalid configuration for path "setono_gift_card.custom": The entries "printed" and "plastic" give the same gift card code once it is normalized ("abcd-efgh-jkmn-pqrs" and "ABCD EFGH JKMN PQRS" are both ABCDEFGHJKMNPQRS). Each card needs a code of its own',
+        ];
+
+        $entries = [];
+        for ($i = 1; $i <= 11; ++$i) {
+            $entries[] = ['code' => sprintf('FIXTUREBATCH%04d', $i)];
+        }
+        $entries[] = ['code' => 'fixturebatch0001'];
+
+        yield 'written the same way, in different batches' => [
+            $entries,
+            'Invalid configuration for path "setono_gift_card.custom": The entries "0" and "11" give the same gift card code once it is normalized ("FIXTUREBATCH0001" and "fixturebatch0001" are both FIXTUREBATCH0001). Each card needs a code of its own',
+        ];
     }
 
     /**

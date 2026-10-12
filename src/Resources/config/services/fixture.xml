@@ -19,6 +19,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Fixture\GiftCardFixture">
             <argument type="service" id="setono_sylius_gift_card.manager.gift_card"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Fixture\Factory\GiftCardExampleFactory"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
 
             <tag name="sylius_fixtures.fixture"/>
         </service>

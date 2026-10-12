@@ -132,14 +132,15 @@ final class GiftCardExampleFactoryTest extends TestCase
     }
 
     /**
-     * The message quotes the code the way it was written, which is what can be found in the fixture file
+     * The message quotes the code the way it was written, which is what can be found in the fixture file, and what was
+     * counted
      *
      * @test
      */
     public function it_refuses_a_code_with_fewer_letters_and_digits_than_the_minimum_however_long_it_is_written(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('A gift card code must have at least 12 letters and digits, so it cannot be guessed, got: "ab-cd-ef-gh-jk"');
+        $this->expectExceptionMessage('A gift card code must have at least 12 characters once it is normalized, so it cannot be guessed, got: "ab-cd-ef-gh-jk", normalized to "ABCDEFGHJK"');
 
         $this->createFactory($this->prophesize(GiftCardRepositoryInterface::class)->reveal())->create(['code' => 'ab-cd-ef-gh-jk']);
     }
@@ -167,6 +168,60 @@ final class GiftCardExampleFactoryTest extends TestCase
         self::assertFalse($giftCard->isEnabled());
         self::assertSame(GiftCardDeliveryType::Physical, $giftCard->getDeliveryType());
         $balanceOperator->issue($giftCard)->shouldHaveBeenCalledOnce();
+    }
+
+    /**
+     * An amount is written in major units and stored in minor units, rounded to the nearest: 19.99 is 1998.9999... cents
+     * and 0.07 is 7.0000...1 in floating point
+     *
+     * @dataProvider provideAmounts
+     *
+     * @test
+     */
+    public function it_stores_an_amount_in_minor_units(float $amount, int $expected): void
+    {
+        $giftCardRepository = $this->prophesize(GiftCardRepositoryInterface::class);
+        $giftCardRepository->findOneBy(['code' => 'ABCDEFGHJKMNPQRS'])->willReturn(null);
+
+        $giftCard = $this->createFactory($giftCardRepository->reveal())->create(['code' => 'ABCDEFGHJKMNPQRS', 'channel' => $this->createChannel(), 'amount' => $amount]);
+
+        self::assertSame($expected, $giftCard->getAmount());
+    }
+
+    /**
+     * @return iterable<string, array{float, int}>
+     */
+    public static function provideAmounts(): iterable
+    {
+        yield 'rounded up' => [19.99, 1999];
+        yield 'rounded down' => [0.07, 7];
+        yield 'the most the balance column holds' => [21474836.47, 2147483647];
+        yield 'the least the balance column holds' => [-21474836.48, -2147483648];
+    }
+
+    /**
+     * The balance is kept in a signed 32-bit integer column, so an amount beyond it is refused rather than left to the
+     * database
+     *
+     * @dataProvider provideAmountsTheBalanceColumnCannotHold
+     *
+     * @test
+     */
+    public function it_refuses_an_amount_the_balance_column_cannot_hold(float $amount): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('A gift card amount has to fit the integer column its balance is kept in');
+
+        $this->createFactory($this->prophesize(GiftCardRepositoryInterface::class)->reveal())->create(['code' => 'ABCDEFGHJKMNPQRS', 'channel' => $this->createChannel(), 'amount' => $amount]);
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function provideAmountsTheBalanceColumnCannotHold(): iterable
+    {
+        yield 'a cent above it' => [21474836.48];
+        yield 'a cent below it' => [-21474836.49];
     }
 
     /** @test */

@@ -614,10 +614,12 @@ and refuses it for this option, as it did before the option could be taken from 
 
 `minimum_code_length` applies to every card issued from now on: `code_length` cannot be set below it, an admin who
 types a code of their own on the *New gift card* form is held to it, and so is a code given to the `setono_gift_card`
-fixture. Such a code is counted once it is normalized: it is saved in capitals with dashes and spaces dropped, the way
-the cart looks codes up, so only its letters and digits count, and a fixture may write `abcd-efgh-jkmn-pqrs` for the
-card a customer redeems as `ABCD-EFGH-JKMN-PQRS`. Cards that already exist keep their code whatever its length, so cards
-brought over from `0.12.x` with shorter codes stay usable and editable.
+fixture. Such a code is counted once it is normalized, the way the cart looks codes up: it is saved in capitals with
+everything but the letters A to Z and the digits dropped, so only those count. Dashes and spaces go, and so do dots,
+underscores and letters beyond A to Z: `gavekort_æble_2024` is saved as `GAVEKORTBLE2024`, and `xmas.2020.ab` counts as
+10 characters. A fixture may write `abcd-efgh-jkmn-pqrs` for the card a customer redeems as `ABCD-EFGH-JKMN-PQRS`, and it
+refuses two entries whose codes are the same once normalized. Cards that already exist keep their code whatever its
+length, so cards brought over from `0.12.x` with shorter codes stay usable and editable.
 
 The purchase limits are minor units without a currency, and the amount a customer types is held to them in the currency
 it is typed in, without conversion: a minimum of 100 is 1.00 in dollars and in Danish kroner alike. To set limits per

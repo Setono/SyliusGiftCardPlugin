@@ -126,17 +126,20 @@ class GiftCardExampleFactory extends AbstractExampleFactory implements ExampleFa
 
                 // The cart normalizes the code a customer types before looking it up, so a code stored the way the
                 // fixture wrote it, in lowercase or with dashes and spaces, could never be redeemed. It is normalized
-                // first, like a code typed in the admin, so only its letters and digits count towards the minimum,
-                // and a code that normalizes to an existing card's code finds that card
+                // first, like a code typed in the admin, so only what is stored counts towards the minimum, and a code
+                // that normalizes to an existing card's code finds that card
                 $normalized = $this->giftCardCodeNormalizer->normalize($code);
 
-                // Not Assert::minLength(), which would quote the normalized code: the message quotes the code the way
-                // the fixture wrote it, which is what can be found in the file
-                if (strlen($normalized) < $this->minimumCodeLength) {
+                // Counted in characters, like a code typed in the admin (GiftCardCodeLengthValidator), for a normalizer
+                // of an application's own that keeps letters beyond ASCII. Not Assert::minLength(), which would only
+                // quote the normalized code: the message also quotes the code the way the fixture wrote it, which is
+                // what can be found in the file
+                if (mb_strlen($normalized) < $this->minimumCodeLength) {
                     throw new \InvalidArgumentException(sprintf(
-                        'A gift card code must have at least %d letters and digits, so it cannot be guessed, got: "%s"',
+                        'A gift card code must have at least %d characters once it is normalized, so it cannot be guessed, got: "%s", normalized to "%s"',
                         $this->minimumCodeLength,
                         $code,
+                        $normalized,
                     ));
                 }
 
