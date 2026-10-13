@@ -17,6 +17,28 @@ final class TranslationFilesTest extends TestCase
     private const LOCALES = ['da', 'fr'];
 
     /**
+     * The placeholders the plugin fills with a formatted amount of money
+     */
+    private const AMOUNTS = ['%amount%', '%minimum%', '%maximum%', '{{ minimum }}', '{{ maximum }}', '{{ balance }}'];
+
+    /**
+     * Danish writes an amount in kroner with a period after it (1.000,00 kr.), so a period right after an amount in a
+     * Danish message shows the customer two (#497)
+     *
+     * @test
+     *
+     * @dataProvider domains
+     */
+    public function no_danish_amount_is_followed_by_a_period(string $domain): void
+    {
+        $amountAndPeriod = sprintf('/(%s)\./', implode('|', array_map(static fn (string $amount): string => preg_quote($amount, '/'), self::AMOUNTS)));
+
+        foreach ($this->translations($domain, 'da') as $key => $translation) {
+            self::assertDoesNotMatchRegularExpression($amountAndPeriod, $translation, sprintf('%s in %s.da.yml', $key, $domain));
+        }
+    }
+
+    /**
      * @test
      *
      * @dataProvider domains
