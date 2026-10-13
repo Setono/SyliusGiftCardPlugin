@@ -60,7 +60,7 @@ The suite lives in `tests/Playwright` and runs against `tests/Application` serve
 
 ```bash
 cd tests/Application
-export APP_ENV=test DATABASE_URL='mysql://root@127.0.0.1/setono_sylius_gift_card_e2e?serverVersion=5.7'
+export APP_ENV=test DATABASE_URL='mysql://root@127.0.0.1/setono_sylius_gift_card_e2e?serverVersion=11.6.2-MariaDB'
 bin/console doctrine:database:create && bin/console doctrine:schema:create && bin/console sylius:fixtures:load -n
 symfony serve -d --port=8080              # passes APP_ENV and DATABASE_URL on to the application
 cd ../Playwright && yarn install && npx playwright install chromium
