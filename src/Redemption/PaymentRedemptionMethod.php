@@ -20,7 +20,6 @@ use Setono\SyliusGiftCardPlugin\Provider\GiftCardPaymentMethodProviderInterface;
 use Setono\SyliusGiftCardPlugin\Repository\GiftCardRepositoryInterface;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Sylius\Component\Payment\Model\PaymentInterface as BasePaymentInterface;
 use Sylius\Component\Payment\PaymentTransitions;
@@ -68,13 +67,16 @@ final class PaymentRedemptionMethod extends RedemptionMethod
     }
 
     /**
-     * Once the order is placed, each card has paid what it covered with a payment of its own, and its balance says
-     * nothing about this order any more: it is spent, maybe on other orders by now (#498). So the coverage of a placed
-     * order is what its completed gift card payments took, and a card whose payment was refunded covers nothing
+     * Once commit() has run, each card has paid what it covered with a payment of its own, and its balance says nothing
+     * about this order any more: it is spent, maybe on other orders by now (#498). So the coverage of an order with gift
+     * card payments is what its completed ones took, and a card whose payment was refunded covers nothing.
+     *
+     * Until then it is what the balances cover, which is what commit() is about to charge: on a cart, and on an order
+     * whose checkout is completed before the redemption is committed, which Sylius does after it has created the order
      */
     public function getCoverage(OrderInterface $order): GiftCardCoverage
     {
-        if (OrderCheckoutStates::STATE_COMPLETED !== $order->getCheckoutState()) {
+        if (!$this->hasGiftCardPayments($order)) {
             return parent::getCoverage($order);
         }
 
@@ -267,6 +269,17 @@ final class PaymentRedemptionMethod extends RedemptionMethod
                 throw OptimisticLockException::lockFailed($giftCard);
             }
         }
+    }
+
+    private function hasGiftCardPayments(OrderInterface $order): bool
+    {
+        foreach ($order->getPayments() as $payment) {
+            if ($payment instanceof PaymentInterface && $this->paymentChecker->isGiftCardPayment($payment)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function hasPaymentForGiftCard(OrderInterface $order, GiftCardInterface $giftCard): bool

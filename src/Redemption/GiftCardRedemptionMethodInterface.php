@@ -27,9 +27,11 @@ interface GiftCardRedemptionMethodInterface
     public function remove(OrderInterface $order, GiftCardInterface $giftCard): void;
 
     /**
-     * What each gift card applied to the order pays on it, in the order's currency and in the card's. While the order is
-     * a cart, that is what their balances cover now. Once its checkout is completed, it is what they paid when it was
-     * placed, which their balances no longer tell (#498)
+     * What each gift card applied to the order pays on it, in the order's currency and in the card's. Until the order's
+     * redemption is committed (commit()), that is what their balances cover now: on a cart, and on an order whose checkout
+     * is completed before Sylius has created it and the plugin has committed it. From then on, it is what they paid when
+     * the order was placed, which their balances no longer tell (#498), and a card whose payment was refunded covers
+     * nothing
      */
     public function getCoverage(OrderInterface $order): GiftCardCoverage;
 

@@ -283,15 +283,20 @@ final class PaymentRedemptionMethodTest extends TestCase
     }
 
     /**
-     * While the order is a cart, the cards have paid nothing yet, and what they cover is what their balances cover now
+     * Until commit() has made the gift card payments, the cards have paid nothing yet, and what they cover is what their
+     * balances cover now, which is what commit() is about to charge. That holds for an order whose checkout is completed
+     * too, since Sylius completes the checkout and creates the order before the redemption is committed
      *
      * @test
+     *
+     * @dataProvider ordersWithoutGiftCardPayments
      */
-    public function it_tells_what_the_balances_of_the_gift_cards_of_a_cart_cover(): void
+    public function it_tells_what_the_balances_of_the_gift_cards_cover_until_the_redemption_is_committed(string $checkoutState, bool $withPaymentForTheRest): void
     {
-        $order = $this->prophesize(OrderInterface::class);
-        $order->getCheckoutState()->willReturn(OrderCheckoutStates::STATE_PAYMENT_SELECTED);
         $giftCard = $this->giftCard(1);
+        $order = $this->prophesize(OrderInterface::class);
+        $order->getCheckoutState()->willReturn($checkoutState);
+        $order->getPayments()->willReturn(new ArrayCollection($withPaymentForTheRest ? [$this->paymentFor($giftCard, PaymentInterface::STATE_NEW, 11077, giftCardPayment: false)] : []));
 
         $coverageCalculator = $this->prophesize(GiftCardCoverageCalculatorInterface::class);
         $coverageCalculator->calculate($order)->willReturn(new GiftCardCoverage([
@@ -303,6 +308,16 @@ final class PaymentRedemptionMethodTest extends TestCase
         self::assertSame(3000, $redemptionMethod->getCoverage($order->reveal())->getTotal());
         self::assertSame(3000, $redemptionMethod->getCoveredAmount($order->reveal()));
         self::assertSame(3000, $redemptionMethod->getCoveredAmountByGiftCard($order->reveal(), $giftCard));
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function ordersWithoutGiftCardPayments(): iterable
+    {
+        yield 'a cart' => [OrderCheckoutStates::STATE_CART, false];
+        yield 'a cart with a payment for the rest' => [OrderCheckoutStates::STATE_PAYMENT_SELECTED, true];
+        yield 'an order placed before its redemption is committed' => [OrderCheckoutStates::STATE_COMPLETED, true];
     }
 
     /**
@@ -321,7 +336,6 @@ final class PaymentRedemptionMethodTest extends TestCase
         $unused = $this->giftCard(4);
 
         $order = $this->prophesize(OrderInterface::class);
-        $order->getCheckoutState()->willReturn(OrderCheckoutStates::STATE_COMPLETED);
         $order->getGiftCards()->willReturn(new ArrayCollection([$spent, $heldInAnotherCurrency, $refunded, $unused]));
         $order->getPayments()->willReturn(new ArrayCollection([
             $this->paymentFor($unused, PaymentInterface::STATE_COMPLETED, 11077, giftCardPayment: false),

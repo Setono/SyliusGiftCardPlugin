@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Twig\Environment;
 
 /**
@@ -58,6 +59,38 @@ final class PlacedOrderGiftCardFiguresTest extends OrderLifecycleTestCase
             // the card keeps 5923, less than the order, so its balance would cover less than it paid
             yield 'a card paying the whole order, ' . $when => [20000, 14077, 14077, $inALaterRequest];
         }
+    }
+
+    /**
+     * Sylius completes the checkout and creates the order before the plugin commits its redemption, and an application
+     * may sum the order up in between, to export it, say. The card has paid nothing yet then, so the figures are what
+     * its balance covers, which is what is about to be charged. The listener runs before CommitRedemptionSubscriber
+     * (50); a winzou callback cannot be added at runtime, so this takes the Symfony Workflow adapter only
+     *
+     * @test
+     */
+    public function the_figures_of_an_order_created_but_not_yet_committed_are_what_its_gift_card_covers(): void
+    {
+        $this->useStateMachineAdapter(self::SYMFONY_WORKFLOW);
+
+        $giftCard = $this->createEnabledGiftCard('FIGURES000000002', 3000);
+        $order = $this->createCart();
+        $this->addItem($order, 'MUG', 14077);
+        $order->addGiftCard($giftCard);
+        $this->selectPayment($order, 11077);
+        $this->manager->flush();
+
+        $figures = null;
+        /** @var EventDispatcherInterface $dispatcher */
+        $dispatcher = self::getContainer()->get('event_dispatcher');
+        $dispatcher->addListener('workflow.sylius_order.completed.create', function () use ($order, &$figures): void {
+            $figures = $this->render($order);
+        }, 100);
+
+        $this->placeOrder($order);
+
+        self::assertSame($this->figures(3000, 11077), $figures);
+        self::assertSame($this->figures(3000, 11077), $this->render($order), 'precondition: the card paid what it covered');
     }
 
     private function render(Order $order): string
