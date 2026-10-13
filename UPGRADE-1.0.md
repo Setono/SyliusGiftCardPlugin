@@ -55,11 +55,39 @@ UPDATE setono_sylius_gift_card__gift_card SET delivery_type = 'virtual' WHERE de
 UPDATE setono_sylius_gift_card__gift_card SET initial_amount = amount WHERE initial_amount IS NULL OR initial_amount = 0;
 ```
 
+The ledger table (see below) is new, so the cards bought on `0.12.x` have no issuance on it, while every card `1.0` issues for an order has one. Without it, `1.0` cannot tell a card a customer paid for from one issued in the admin or still waiting for its order to be paid. Once its order is deleted (the order item unit is now set to `NULL` rather than deleting the card), it can be deleted. Once it is disabled, it reads as pending, so the grid hides it and offers to delete it. Give every card bought on an order that was paid the issuance `1.0` would have written, naming the order, after `initial_amount` is populated. On MySQL and MariaDB, where the ledger's `id` is `AUTO_INCREMENT`:
+
+```sql
+INSERT INTO setono_sylius_gift_card__gift_card_transaction (gift_card_id, order_id, order_number, amount, type, idempotency_key, created_at)
+SELECT c.id, o.id, o.number, c.initial_amount, 'issue', CONCAT('issue-', c.code), c.created_at
+FROM setono_sylius_gift_card__gift_card c
+JOIN sylius_order_item_unit u ON u.id = c.order_item_unit_id
+JOIN sylius_order_item i ON i.id = u.order_item_id
+JOIN sylius_order o ON o.id = i.order_id
+WHERE o.payment_state IN ('paid', 'partially_refunded', 'refunded')
+AND NOT EXISTS (SELECT 1 FROM setono_sylius_gift_card__gift_card_transaction t WHERE t.gift_card_id = c.id);
+```
+
+On PostgreSQL, Doctrine ORM 2 gives the `id` a sequence rather than a default, so the statement takes each id from it. That also moves the sequence along, so the next ledger row the plugin writes does not collide with one of these. An application that has PostgreSQL use identity columns instead (Doctrine's `identity_generation_preferences`) runs the statement above as it is.
+
+```sql
+INSERT INTO setono_sylius_gift_card__gift_card_transaction (id, gift_card_id, order_id, order_number, amount, type, idempotency_key, created_at)
+SELECT nextval('setono_sylius_gift_card__gift_card_transaction_id_seq'), c.id, o.id, o.number, c.initial_amount, 'issue', CONCAT('issue-', c.code), c.created_at
+FROM setono_sylius_gift_card__gift_card c
+JOIN sylius_order_item_unit u ON u.id = c.order_item_unit_id
+JOIN sylius_order_item i ON i.id = u.order_item_id
+JOIN sylius_order o ON o.id = i.order_id
+WHERE o.payment_state IN ('paid', 'partially_refunded', 'refunded')
+AND NOT EXISTS (SELECT 1 FROM setono_sylius_gift_card__gift_card_transaction t WHERE t.gift_card_id = c.id);
+```
+
+It reaches every card bought on `0.12.x`, since `0.12.x` deleted a card along with its order item unit, so a card that still exists still has its order. The cards of an order that was never paid are left alone: `1.0` only issues a card once its order is paid, and until then the card is pending. The issuance holds `initial_amount`, the amount the card was bought for. `0.12.x` kept no ledger of what was spent from a card, so on a card that was spent from, the ledger does not add up to its balance. Nothing in `1.0` adds the ledger up, but keep it in mind when reading one.
+
 Write a data migration for your own data as needed.
 
 ### The ledger table
 
-`setono_sylius_gift_card__gift_card_transaction` has the columns `amount`, `type`, `reason`, `idempotency_key` (nullable, unique), `created_by` (nullable), `created_at`, and the foreign keys `gift_card_id` (`CASCADE` on delete), `order_id` and `payment_id` (both `SET NULL` on delete).
+`setono_sylius_gift_card__gift_card_transaction` has the columns `amount`, `type`, `reason`, `idempotency_key` (nullable, unique), `created_by` (nullable), `order_number` (nullable), `created_at`, and the foreign keys `gift_card_id` (`CASCADE` on delete), `order_id` and `payment_id` (both `SET NULL` on delete).
 
 `created_by` holds the user identifier of the admin who adjusted a balance or issued a card in the admin. It is a copy of the identifier as text, not a foreign key to `sylius_admin_user`, so the ledger keeps naming the admin after their account is renamed or deleted. An application that created this table from a `1.x` development version before `created_by` existed gets this from `doctrine:migrations:diff`:
 
@@ -68,6 +96,19 @@ ALTER TABLE setono_sylius_gift_card__gift_card_transaction ADD created_by VARCHA
 ```
 
 The rows such an application already has keep `created_by` `NULL`, and the issuance rows of cards bought in the shop before then have no `order_id`. The card's order item still leads to that order.
+
+`order_number` holds the number of the order a row belongs to, copied when the row is written, so the ledger keeps naming the order once `order_id` is set to `NULL` because the order was deleted. It is also what keeps a card a customer paid for from becoming deletable then: an issuance that names an order is that of a bought card. An application that created this table from a `1.x` development version before `order_number` existed gets the column from `doctrine:migrations:diff`. It then fills the column for the rows it already has from the orders that still exist. The first `UPDATE` takes the order a row names. The second fills the issuance of a card bought before `order_id` was recorded (see above), `order_id` included, from the order the card's order item unit leads to:
+
+```sql
+ALTER TABLE setono_sylius_gift_card__gift_card_transaction ADD order_number VARCHAR(255) DEFAULT NULL;
+UPDATE setono_sylius_gift_card__gift_card_transaction SET order_number = (SELECT number FROM sylius_order WHERE sylius_order.id = setono_sylius_gift_card__gift_card_transaction.order_id) WHERE order_id IS NOT NULL;
+UPDATE setono_sylius_gift_card__gift_card_transaction
+SET order_id = (SELECT i.order_id FROM setono_sylius_gift_card__gift_card c JOIN sylius_order_item_unit u ON u.id = c.order_item_unit_id JOIN sylius_order_item i ON i.id = u.order_item_id WHERE c.id = setono_sylius_gift_card__gift_card_transaction.gift_card_id),
+    order_number = (SELECT o.number FROM setono_sylius_gift_card__gift_card c JOIN sylius_order_item_unit u ON u.id = c.order_item_unit_id JOIN sylius_order_item i ON i.id = u.order_item_id JOIN sylius_order o ON o.id = i.order_id WHERE c.id = setono_sylius_gift_card__gift_card_transaction.gift_card_id)
+WHERE type = 'issue' AND order_id IS NULL AND order_number IS NULL;
+```
+
+The issuances of cards issued in the admin or by the fixtures have no unit, and stay without an order. A row whose order was deleted before then has no number to copy.
 
 ### Column names
 

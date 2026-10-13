@@ -11,9 +11,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   Customers pick a design when buying a gift card
 - `GiftCardTransaction`, an append-only ledger recording every balance change, with nullable-unique
   idempotency keys so a replayed state machine transition cannot double-spend. Each row names the order it belongs
-  to (the issuance of a card bought in the shop names the order that paid for it) and, for a manual adjustment or a
-  card issued in the admin, the admin who made it (`createdBy`, a copy of their user identifier). The gift card's
-  show page lists both
+  to (the issuance of a card bought in the shop names the order that paid for it), with a copy of its number
+  (`orderNumber`) that stays when the order is deleted, and, for a manual adjustment or a card issued in the admin,
+  the admin who made it (`createdBy`, a copy of their user identifier). The gift card's show page lists both
 - Admin **Adjust balance** action, writing a manual ledger entry with a reason and the admin who made it, which
   leads back to the card's page where the ledger is. Its form type, `AdjustGiftCardBalanceType`, requires a
   `currency` option: the card's currency, which the amount is typed in. It has no default, so an application

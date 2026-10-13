@@ -298,6 +298,26 @@ final class GiftCardTest extends TestCase
     }
 
     /**
+     * A card a customer paid for has an issuance naming its order. Once the order is deleted, the card has no unit
+     * left, its balance may be intact and its ledger may hold nothing else, but the issuance still names the order by
+     * the number it copied (#494)
+     *
+     * @test
+     */
+    public function it_cannot_be_deleted_once_it_was_paid_for_even_after_its_order_is_gone(): void
+    {
+        $giftCard = new GiftCard();
+        $giftCard->enable();
+        $giftCard->setInitialAmount(5000);
+        $giftCard->setAmount(5000);
+        $issuance = $this->addTransaction($giftCard, GiftCardTransactionInterface::TYPE_ISSUE, 5000);
+        $issuance->setOrderNumber('000000042');
+
+        self::assertNull($giftCard->getOrderItemUnit(), 'precondition: deleting the order took the unit');
+        self::assertFalse($giftCard->isDeletable());
+    }
+
+    /**
      * Applied to an order, a card is linked to it even before the order is placed, and deleting the card would take
      * the link with it
      *
@@ -410,12 +430,14 @@ final class GiftCardTest extends TestCase
         self::assertTrue((new GiftCard())->getSendNotificationEmail());
     }
 
-    private function addTransaction(GiftCard $giftCard, string $type, int $amount): void
+    private function addTransaction(GiftCard $giftCard, string $type, int $amount): GiftCardTransaction
     {
         $transaction = new GiftCardTransaction();
         $transaction->setType($type);
         $transaction->setAmount($amount);
         $giftCard->addTransaction($transaction);
+
+        return $transaction;
     }
 
     private function boughtGiftCard(): GiftCard

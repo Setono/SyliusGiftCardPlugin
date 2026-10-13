@@ -15,6 +15,8 @@ class GiftCardTransaction implements GiftCardTransactionInterface
 
     protected ?OrderInterface $order = null;
 
+    protected ?string $orderNumber = null;
+
     protected ?PaymentInterface $payment = null;
 
     protected int $amount = 0;
@@ -52,6 +54,16 @@ class GiftCardTransaction implements GiftCardTransactionInterface
     public function setOrder(?OrderInterface $order): void
     {
         $this->order = $order;
+    }
+
+    public function getOrderNumber(): ?string
+    {
+        return $this->orderNumber;
+    }
+
+    public function setOrderNumber(?string $orderNumber): void
+    {
+        $this->orderNumber = $orderNumber;
     }
 
     public function getPayment(): ?PaymentInterface

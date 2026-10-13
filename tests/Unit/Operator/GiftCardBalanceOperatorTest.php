@@ -132,6 +132,7 @@ final class GiftCardBalanceOperatorTest extends TestCase
         $giftCard = new GiftCard();
         $giftCard->setAmount(5000);
         $order = new Order();
+        $order->setNumber('000000042');
         $payment = new Payment();
 
         $this->createOperator()->redeem($giftCard, 2000, $order, $payment, 'redeem:order:1:gift_card:1');
@@ -139,6 +140,7 @@ final class GiftCardBalanceOperatorTest extends TestCase
         $transaction = $this->firstTransaction($giftCard);
         self::assertSame(GiftCardTransactionInterface::TYPE_REDEEM, $transaction->getType());
         self::assertSame($order, $transaction->getOrder());
+        self::assertSame('000000042', $transaction->getOrderNumber(), 'a copy, which outlives the order');
         self::assertSame($payment, $transaction->getPayment());
         self::assertSame('redeem:order:1:gift_card:1', $transaction->getIdempotencyKey());
         self::assertNull($transaction->getReason());
@@ -152,6 +154,7 @@ final class GiftCardBalanceOperatorTest extends TestCase
         $giftCard = new GiftCard();
         $giftCard->setAmount(1000);
         $order = new Order();
+        $order->setNumber('000000042');
         $payment = new Payment();
 
         $this->createOperator()->restore($giftCard, 500, $order, $payment, 'restore:order:1:gift_card:1');
@@ -159,6 +162,7 @@ final class GiftCardBalanceOperatorTest extends TestCase
         $transaction = $this->firstTransaction($giftCard);
         self::assertSame(GiftCardTransactionInterface::TYPE_RESTORE, $transaction->getType());
         self::assertSame($order, $transaction->getOrder());
+        self::assertSame('000000042', $transaction->getOrderNumber());
         self::assertSame($payment, $transaction->getPayment());
         self::assertSame('restore:order:1:gift_card:1', $transaction->getIdempotencyKey());
         self::assertNull($transaction->getCreatedBy());
@@ -250,13 +254,15 @@ final class GiftCardBalanceOperatorTest extends TestCase
         self::assertSame(5000, $transaction->getAmount());
         self::assertSame('issue-ISSUEME', $transaction->getIdempotencyKey());
         self::assertNull($transaction->getOrder());
+        self::assertNull($transaction->getOrderNumber());
         self::assertNull($transaction->getPayment());
         self::assertNull($transaction->getReason());
         self::assertNull($transaction->getCreatedBy());
     }
 
     /**
-     * A card bought in the shop is money the shop took on an order, so its issuance leads back to that order
+     * A card bought in the shop is money the shop took on an order, so its issuance leads back to that order, and
+     * keeps its number for when the order is deleted (#494)
      *
      * @test
      */
@@ -266,6 +272,7 @@ final class GiftCardBalanceOperatorTest extends TestCase
         $giftCard->setCode('BOUGHT');
         $giftCard->setAmount(5000);
         $order = new Order();
+        $order->setNumber('000000042');
 
         $this->createOperator()->issue($giftCard, $order);
 
@@ -273,6 +280,7 @@ final class GiftCardBalanceOperatorTest extends TestCase
         self::assertSame(GiftCardTransactionInterface::TYPE_ISSUE, $transaction->getType());
         self::assertSame(5000, $transaction->getAmount());
         self::assertSame($order, $transaction->getOrder());
+        self::assertSame('000000042', $transaction->getOrderNumber());
         self::assertNull($transaction->getPayment(), 'the order paid for the card, but no payment of it moved the balance');
         self::assertNull($transaction->getCreatedBy());
         self::assertSame('issue-BOUGHT', $transaction->getIdempotencyKey());
@@ -295,6 +303,7 @@ final class GiftCardBalanceOperatorTest extends TestCase
         self::assertSame(GiftCardTransactionInterface::TYPE_ISSUE, $transaction->getType());
         self::assertSame('jane', $transaction->getCreatedBy());
         self::assertNull($transaction->getOrder());
+        self::assertNull($transaction->getOrderNumber());
     }
 
     /** @test */

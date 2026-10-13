@@ -134,6 +134,12 @@ class GiftCard implements GiftCardInterface
             if (GiftCardTransactionInterface::TYPE_ISSUE !== $transaction->getType()) {
                 return false;
             }
+
+            // An issuance naming an order is that of a card a customer paid for. Deleting the order sets the card's
+            // unit to null, which is all the check above sees, but the row keeps its copy of the order's number (#494)
+            if (null !== $transaction->getOrderNumber()) {
+                return false;
+            }
         }
 
         return true;

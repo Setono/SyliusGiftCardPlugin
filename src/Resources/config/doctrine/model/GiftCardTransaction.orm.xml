@@ -15,6 +15,9 @@
         <!-- The administrator's user identifier, copied rather than referenced, so the ledger keeps naming them after
              their account is renamed or deleted -->
         <field name="createdBy" column="created_by" nullable="true"/>
+        <!-- The number of the order the row belongs to, copied rather than referenced, so the ledger keeps naming the
+             order after order_id is set to NULL because the order was deleted -->
+        <field name="orderNumber" column="order_number" nullable="true"/>
 
         <field name="createdAt" column="created_at" type="datetime">
             <gedmo:timestampable on="create"/>

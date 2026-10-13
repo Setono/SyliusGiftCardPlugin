@@ -125,6 +125,8 @@ final class GiftCardBalanceOperator implements GiftCardBalanceOperatorInterface
         $transaction->setAmount($amount);
         $transaction->setType($type);
         $transaction->setOrder($order);
+        // A copy, which outlives the order: deleting the order sets the reference to null
+        $transaction->setOrderNumber($order?->getNumber());
         $transaction->setPayment($payment);
         $transaction->setIdempotencyKey($idempotencyKey);
         $transaction->setReason($reason);
