@@ -13,6 +13,7 @@ use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Core\Updater\UnpaidOrdersStateUpdaterInterface;
 use Sylius\Component\Order\Model\OrderInterface as BaseOrderInterface;
+use Sylius\Component\Order\OrderTransitions;
 use Sylius\Component\Payment\PaymentTransitions;
 
 /**
@@ -106,6 +107,66 @@ final class OrderPaidInPartByGiftCardTest extends OrderLifecycleTestCase
 
         self::assertSame(PaymentInterface::STATE_PROCESSING, $this->restPayment($order)->getState());
         self::assertSame(OrderPaymentStates::STATE_AWAITING_PAYMENT, $order->getPaymentState());
+    }
+
+    /**
+     * A payment provider that captures later, when the order ships, authorizes the rest at checkout. The gift card and
+     * the authorization then secure the whole order, which is authorized, as it would be without a gift card, so that
+     * whatever waits for authorized orders (a warehouse upload, the order confirmation) gets it. Capturing the rest
+     * pays it, and paying the order is what issues the gift cards bought with it (#499)
+     *
+     * @test
+     *
+     * @dataProvider adapters
+     */
+    public function an_order_whose_rest_is_authorized_is_authorized_until_the_rest_is_captured(string $adapter): void
+    {
+        $this->useStateMachineAdapter($adapter);
+
+        // the order of the issue: a 30.00 card on 140.77, the 3000 of it covered from the mug
+        $giftCard = $this->createEnabledGiftCard('PARTPAID00000006', 3000);
+        $order = $this->createCheckoutReadyOrder(10077, $giftCard, 11077);
+        $giftCardLine = $this->addItem($order, 'GIFT_CARD', 4000, giftCard: true);
+        $this->manager->flush();
+        $this->placeOrder($order);
+        self::assertSame(14077, $order->getTotal(), 'precondition: the order costs what the issue\'s did');
+        self::assertSame(OrderPaymentStates::STATE_AWAITING_PAYMENT, $order->getPaymentState(), 'precondition: the rest is not paid');
+
+        $this->apply($this->restPayment($order), PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_AUTHORIZE);
+
+        self::assertSame(PaymentInterface::STATE_AUTHORIZED, $this->restPayment($order)->getState());
+        self::assertSame(OrderPaymentStates::STATE_AUTHORIZED, $order->getPaymentState());
+        self::assertFalse($this->boughtGiftCard($giftCardLine)->isEnabled(), 'an authorization pays nothing yet');
+
+        $this->apply($this->restPayment($order), PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_COMPLETE);
+
+        self::assertSame(OrderPaymentStates::STATE_PAID, $order->getPaymentState());
+        self::assertTrue($this->boughtGiftCard($giftCardLine)->isEnabled(), 'paying the order should have issued the gift card it bought');
+    }
+
+    /**
+     * An order authorized for the rest is still open for cancelling, and cancelling it refunds the gift card payment,
+     * which gives the card its balance back
+     *
+     * @test
+     *
+     * @dataProvider adapters
+     */
+    public function cancelling_an_order_whose_rest_is_authorized_gives_the_gift_card_its_balance_back(string $adapter): void
+    {
+        $this->useStateMachineAdapter($adapter);
+
+        $giftCard = $this->createEnabledGiftCard('PARTPAID00000007', 6000);
+        $order = $this->createCheckoutReadyOrder(10000, $giftCard, 4000);
+        $this->placeOrder($order);
+        $this->apply($this->restPayment($order), PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_AUTHORIZE);
+        self::assertSame(OrderPaymentStates::STATE_AUTHORIZED, $order->getPaymentState(), 'precondition: the order is authorized');
+
+        $this->apply($order, OrderTransitions::GRAPH, OrderTransitions::TRANSITION_CANCEL);
+
+        self::assertSame(OrderPaymentStates::STATE_CANCELLED, $order->getPaymentState());
+        self::assertSame(PaymentInterface::STATE_REFUNDED, $this->giftCardPayment($order)->getState());
+        self::assertSame(6000, $this->persistedBalanceOf($giftCard), 'cancelling the order should have given the card its balance back');
     }
 
     /**
