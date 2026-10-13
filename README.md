@@ -8,7 +8,7 @@ Add gift card functionality to your Sylius store:
 
 - **Buy gift cards** — customers choose the amount, a design and an optional message, and pick whether the gift card is **virtual** (delivered by email as a PDF) or **physical** (shipped like a normal product).
 - **Redeem gift cards** — customers apply a gift card code in the cart, and it becomes a **real payment** against the order rather than a discount on it.
-- **Admin management** — a gift card grid showing each card's status with filters to find a card by, issuing gift cards with the design and delivery type of your choice, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger naming the admin who made each one), and an outstanding-balance dashboard.
+- **Admin management** — a gift card grid showing each card's status with filters to find a card by, issuing gift cards with the design and delivery type of your choice, gift card designs, a one-click "create gift card product" scaffold, manual balance adjustments (with an audit ledger naming the admin who made each one), and an outstanding-balance report.
 
 > This is the `1.x` line, for **Sylius 1.13 and up**. It is a ground-up rewrite of the `0.12.x` plugin. There is **no API layer** in 1.x — see [`UPGRADE-1.0.md`](UPGRADE-1.0.md) if you are coming from `0.12.x`.
 
@@ -52,7 +52,7 @@ A gift card is treated as a means of payment rather than a discount, because tha
 
 Gift cards cannot be used to buy other gift cards, balances are committed when the order is placed and restored, once per payment, when the gift card payment is refunded (cancelling the order refunds it), and every balance change is recorded in an append-only ledger.
 
-Below the order total, which the gift cards leave as it is, the customer sees what the gift cards cover and what remains to pay. The cart shows these figures, and so does every checkout step up to placing the order: below the summary in the sidebar of the address, shipping and payment steps, and below the order summary of the complete step. The complete step also lists the payment for the rest at the amount that is left (or no payment at all when the gift cards cover the whole order). The gift card payments are created when the order is placed, and from then on they are listed with the order's other payments, in the customer's account and in the admin. All of these figures come from one template, `@SetonoSyliusGiftCardPlugin/shop/cart/_gift_card_totals.html.twig`, rendered by the `setono_gift_card_totals` blocks (see [Moving or disabling the plugin's blocks](#moving-or-disabling-the-plugins-blocks)); in your own templates, the plugin's `setono_gift_card_covered_amount(order)` and `setono_gift_card_remaining_total(order)` Twig functions give the two figures, and `setono_gift_card_coverage(order)` what each card covers. They hold for a placed order as well, e.g. in the order confirmation email: until the order is placed they come from the cards' balances, and from then on from the gift card payments it was placed with, since placing the order takes what the cards pay off their balances. A card whose payment was refunded covers nothing.
+Below the order total, which the gift cards leave as it is, the customer sees what the gift cards cover and what remains to pay. The cart shows these figures, and so does every checkout step up to placing the order: below the summary in the sidebar of the address, shipping and payment steps, and below the order summary of the complete step. The complete step also lists the payment for the rest at the amount that is left (or no payment at all when the gift cards cover the whole order). The gift card payments are created when the order is placed, and from then on they are listed with the order's other payments, in the customer's account and in the admin. All of these figures come from one template, `@SetonoSyliusGiftCardPlugin/shop/cart/_gift_card_totals.html.twig`, rendered by the `setono_gift_card_totals` blocks (see [Moving or disabling the plugin's blocks](#moving-or-disabling-the-plugins-blocks)); in your own templates, the plugin's `setono_gift_card_covered_amount(order)` and `setono_gift_card_remaining_total(order)` Twig functions give the two figures, in the order's currency. `setono_gift_card_coverage(order)` gives what each card pays in the order's currency and what that takes off the card in the card's own; its `giftCardAmountTotal(currencyCode)` is what the template shows for cards held in the currency the customer browses in (see [Gift cards in other currencies](#gift-cards-in-other-currencies)). They hold for a placed order as well, e.g. in the order confirmation email: until the order is placed they come from the cards' balances, and from then on from the gift card payments it was placed with, since placing the order takes what the cards pay off their balances. A card whose payment was refunded covers nothing.
 
 An order the gift cards pay only in part stays *awaiting payment* until the rest is paid, although its gift card payments are completed when it is placed (Sylius alone would call it *partially paid*). Sylius' shop only lets a customer pay for an order, or change how to pay it, while the order awaits payment: from the thank you page, from the order in their account, and after a payment that did not go through at the payment provider. Sylius' unpaid order expiry (`sylius:cancel-unpaid-orders`) also only cancels orders that await payment, and cancelling one gives the gift cards their balance back. The plugin does this by decorating Sylius' order payment state resolver (`sylius.state_resolver.order_payment`); in the admin, such an order shows as awaiting payment with the completed gift card payment listed next to the payment for the rest. A payment provider that captures later (authorize now, capture when the order ships) authorizes the rest instead of paying it. The order is then *authorized*, as it would be without a gift card, rather than *partially paid*, so whatever waits for authorized orders, such as a warehouse integration or an order confirmation sent on authorization, gets it, and *partially authorized* while only part of the rest is. Capturing the rest pays the order. While such an order awaits payment or is (partially) authorized, its gift card payment cannot be refunded on its own, and the admin offers no Refund button for it: Sylius has no way from those states to a refunded order, so the order would never be paid or refunded. Cancel the order instead, which refunds its gift card payments and gives the cards their balance back.
 
@@ -104,7 +104,7 @@ The gift card grid and a card's page show one status per card:
 - **Pending**: created when the gift card was put in a cart, and waiting for its order to be paid
 - **Disabled**: disabled by an admin, or because the order that bought it was cancelled or refunded in full. A card is only issued once its order is paid, so the card of an order cancelled before then (as `sylius:cancel-unpaid-orders` cancels every expired one) was never issued, but it waits for nothing any more and is disabled too
 
-Where more than one would apply, the first of pending, disabled, spent and expired wins; `GiftCardInterface::getStatus()` gives it in your own code. The grid filters by code, part of the customer's email, channel, currency, delivery type, enabled, expired, spent and creation date, and sorts by code, customer, amount and creation date. Expired and spent look at the expiry date and the balance alone, so they also find a disabled card past its date or with nothing left. Pending cards are left out unless the *Pending gift cards* filter is set to show them, because most carts are never paid for and a pending card is no liability yet.
+Where more than one would apply, the first of pending, disabled, spent and expired wins; `GiftCardInterface::getStatus()` gives it in your own code. The grid filters by code, part of the customer's email, channel, currency, delivery type, enabled, expired, spent and creation date, and sorts by code, customer, amount, delivery type and creation date. Expired and spent look at the expiry date and the balance alone, so they also find a disabled card past its date or with nothing left. Pending cards are left out unless the *Pending gift cards* filter is set to show them, because most carts are never paid for and a pending card is no liability yet.
 
 A card can only be deleted while nothing has happened to it: a card issued in the admin or seeded by the fixtures that is not applied to any order and whose balance has never moved, or a card bought on an order that was never paid (pending, or disabled because that order was cancelled before it was paid). The grid only offers to delete those, the server refuses the others, and there is no bulk delete. A balance back where it started is not enough: a card whose balance was restored when an order it paid was cancelled or its gift card payment refunded, or that was adjusted down and up again, keeps its ledger and its orders. A card a customer paid for cannot be deleted either once its order is deleted (a shop purging old orders keeps the cards bought on them), since its ledger still names the order that paid for it. For a card bought on `0.12.x`, that takes the issuance the [upgrade guide](UPGRADE-1.0.md#entity--schema-changes) backfills. A card's page links the order it was bought with, the orders it was applied to and its design, and adjusting the balance leads back to it, where the ledger lists the adjustment. Each ledger row names its order by the number it had, so a row whose order was deleted still says which order it was.
 
@@ -112,7 +112,7 @@ A card can only be deleted while nothing has happened to it: a card issued in th
 
 | Requirement | Version                                    |
 |-------------|--------------------------------------------|
-| PHP         | >= 8.1                                      |
+| PHP         | >= 8.1, with the mbstring extension         |
 | Sylius      | 1.13 and up (the `1.x` line)                |
 | Symfony     | ^6.4 (symfony/form 6.4.31 and up)           |
 | Twig        | below 3.29 ([why](#twig-below-329))         |
@@ -173,9 +173,9 @@ $bundles = [
 ];
 ```
 
-The plugin auto-configures the state machine, grids, UI events, email templates and image filters for you — you do **not** need to import any bundle configuration manually. Its fixtures are the exception, see [Load the fixtures](#load-the-fixtures-optional).
+The plugin auto-configures the state machine, grids, UI events, email templates, image filters and the rate limiters that [protect codes from guessing](#protecting-codes-from-guessing) for you — you do **not** need to import any bundle configuration manually. Its fixtures are the exception, see [Load the fixtures](#load-the-fixtures-optional).
 
-What the plugin adds to Sylius' pages, the "Gift card" checkbox on the admin product form included, is rendered by blocks on Sylius' UI events, so you can move or disable each of them through your own `sylius_ui` configuration, see [Moving or disabling the plugin's blocks](#moving-or-disabling-the-plugins-blocks).
+What the plugin adds to Sylius' pages, the "Gift card" checkbox on the admin product form included, is rendered by blocks on Sylius' UI events, so you can move or disable each of them through your own `sylius_ui` configuration, see [Moving or disabling the plugin's blocks](#moving-or-disabling-the-plugins-blocks). The admin menu gets a **Gift cards** entry under *Catalog*, added on Sylius' `sylius.menu.admin.main` menu event; the gift card designs and the balance report are reached from the gift card index.
 
 #### State machine adapters
 
@@ -476,14 +476,15 @@ payment method stays off that list. A method an administrator has put in channel
 The method's **Enabled** switch means what it means for any payment method: whether customers can pay with it. While it
 is disabled the shop refuses gift cards just as it does while the method is missing. The cart keeps its gift card field
 but refuses every code ("Gift cards cannot be used in this shop at the moment"), and gift cards already on a cart are
-taken off when the customer places the order, and the customer is sent back to the cart to pay by other means. Customers
+taken off when the customer reaches the last step of the checkout, and the customer is sent back to the cart to pay by other means. Customers
 cannot spend the cards they hold, nor any they buy meanwhile, so every admin page warns about it, with a link to the
 method's edit page. Payments already made with gift cards are not affected: refunding one, or cancelling its order,
 gives the card its balance back as before. Checkout never offers the method to customers, so it does not need disabling
 to keep it out of checkout: disable it only to stop gift cards being redeemed for a while. The command leaves a disabled
 method disabled, and says so.
 
-The method's create and edit pages in the admin say so above Sylius' form: the plugin finds the method by its code, so
+The method's edit page in the admin says so above Sylius' form (and so does the create page, once a submission with the
+method's code comes back with errors): the plugin finds the method by its code, so
 the code has to stay `gift_card` (or whatever `redemption.payment_method_code` is), its channels make no difference to
 gift card payments, which work in every channel, it is in no channel by default because customers never choose it at
 checkout and Sylius RefundPlugin would otherwise list it as a refund destination, and disabling it stops customers
@@ -508,8 +509,11 @@ imports:
     - { resource: "@SetonoSyliusGiftCardPlugin/Resources/config/app/fixtures.yaml" }
 ```
 
-`bin/console sylius:fixtures:load` then also seeds the "Classic" design, a gift card product, 20 gift cards with a
-random balance and the gift card payment method, so a seeded shop needs none of the three steps above.
+`bin/console sylius:fixtures:load` then also seeds the "Classic" design (`setono_gift_card_design`), a gift card product
+(`setono_gift_card_product`), 20 gift cards with a random balance (`setono_gift_card`) and the gift card payment method
+(`setono_gift_card_payment_method`), so a seeded shop needs none of the three steps above. The design fixture takes its
+images from its own `front_image` and `back_image` options (the suite's "Classic" has artwork on both sides), so
+`setono_sylius_gift_card.default_design_image_path` only applies to the console command.
 
 Mind the units when you write fixtures of your own: the `amount` of a `setono_gift_card` fixture is in major units
 (`amount: 25` issues a card holding 25.00), while the `price` of a `setono_gift_card_product` fixture is in minor units
@@ -547,8 +551,10 @@ sylius_fixtures:
 bin/console assets:install
 ```
 
-The gift card product page loads the plugin's script and stylesheet straight from `public/bundles/setonosyliusgiftcardplugin`,
-which this command fills; nothing goes through your Webpack Encore build. See
+The gift card product page and the admin's gift card form load the plugin's scripts and stylesheets straight from
+`public/bundles/setonosyliusgiftcardplugin`, which this command fills; nothing goes through your Webpack Encore build.
+Without them the product page's preview does not follow what the customer types, and the admin form offers the
+currencies and designs of every channel rather than the chosen one's (saving still refuses the wrong ones). See
 [Assets and Content Security Policy](#assets-and-content-security-policy) if your shop sends a Content Security Policy.
 
 ## Configuration
@@ -632,8 +638,9 @@ currency, or per channel, decorate `Setono\SyliusGiftCardPlugin\Provider\GiftCar
 `purchase.maximum_amount` cannot be set below `purchase.minimum_amount`, since no amount would then be left for a
 customer to buy: the container refuses it with `The maximum_amount (500) must be at least the minimum_amount (1000)`.
 Setting both to the same amount sells gift cards of that one amount: the amount field starts out at it, whatever the
-gift card product is priced at, and its help text names it. An amount taken from an environment variable is only known
-at runtime, so the two are not compared when either is set that way.
+gift card product is priced at, and its help text names it. The amounts can be taken from environment variables too,
+from symfony/config 6.4.37 like the code lengths. Such a value is only known at runtime, so the two are not compared
+when either is set that way.
 
 `maximum_message_length` is what both forms allow: it sets the shop textarea's `maxlength` and remaining-characters
 counter, and it is the limit enforced by the `GiftCardMessageLength` constraint on the gift card and on the shop's
@@ -671,8 +678,8 @@ included. If you cannot configure trusted proxies, set `ip_rate_limiter: ~` and 
 
 Every rejected code gives the customer the same message, whatever the reason (unknown, disabled, expired,
 empty, wrong channel or currency), so the form cannot be used to find out which codes exist. The actual
-reason is written to the log at info level, with the code masked down to its last four characters
-(`************MNOP`): a code is a bearer token, and logs travel.
+reason is written to the log at info level, with the code masked down to its last four characters, or a third of it
+for a code shorter than 12 (`************MNOP`): a code is a bearer token, and logs travel.
 
 ## Customization
 
@@ -849,7 +856,7 @@ setono_sylius_gift_card:
 
 ### Customizing the emails
 
-The plugin sends two emails: `setono_sylius_gift_card__gift_card` (a single gift card, sent when one is created in the admin panel) and `setono_sylius_gift_card__gift_cards_from_order` (all gift cards from a paid order, sent to the buyer). Override their templates at `@SetonoSyliusGiftCardPlugin/email/gift_card.html.twig` and `@SetonoSyliusGiftCardPlugin/email/gift_cards_from_order.html.twig`, or redefine the emails under the `sylius_mailer` key to change the sender. Their subjects are the translations `setono_sylius_gift_card.email.new_gift_card` and `setono_sylius_gift_card.email.gift_cards_from_order_subject` (which gets the order number as `%number%`): Sylius takes the subject from the template's `subject` block, so override the translation, or the block, to change it. Both include `@SetonoSyliusGiftCardPlugin/email/_gift_cards.html.twig`, which renders the cards themselves — override that one to change how a card is presented in both emails at once.
+The plugin sends two emails: `setono_sylius_gift_card__gift_card` (a single gift card, sent when an admin issues a usable card to a customer with the notification email ticked, or uses **Send email** on a card) and `setono_sylius_gift_card__gift_cards_from_order` (all gift cards from a paid order, sent to the buyer). Override their templates at `@SetonoSyliusGiftCardPlugin/email/gift_card.html.twig` and `@SetonoSyliusGiftCardPlugin/email/gift_cards_from_order.html.twig`, or redefine the emails under the `sylius_mailer` key to change the sender. Their subjects are the translations `setono_sylius_gift_card.email.new_gift_card` and `setono_sylius_gift_card.email.gift_cards_from_order_subject` (which gets the order number as `%number%`): Sylius takes the subject from the template's `subject` block, so override the translation, or the block, to change it. Both include `@SetonoSyliusGiftCardPlugin/email/_gift_cards.html.twig`, which renders the cards themselves — override that one to change how a card is presented in both emails at once.
 
 ### Changing what gift cards may pay for
 
@@ -883,13 +890,13 @@ parameters:
     setono_sylius_gift_card.order.model.add_to_cart_command.class: App\Order\AddToCartCommand
 ```
 
-The plugin verifies this at container compile time and fails with an actionable message if the configured class does not implement the interface. Its factory decorator is idempotent and applied outermost, so it also composes cleanly with a decorator of your own on `sylius.factory.add_to_cart_command`.
+The plugin verifies this at container compile time and fails with an actionable message if the configured class does not implement the interface. The plugin creates the command with `AddToCartCommand`'s constructor arguments (the cart, the cart item and the gift card information), so a class that implements the interface without extending `AddToCartCommand` has to take the same three. Its factory decorator is idempotent and applied outermost, so it also composes cleanly with a decorator of your own on `sylius.factory.add_to_cart_command`.
 
 Sylius validates its own command with a stock check (`CartItemAvailability`: what is added, together with what the cart already holds of the variant, has to be in stock), mapped on its command class. The plugin maps the same check on `AddToCartCommandInterface`, so the add-to-cart form keeps it whichever command it is bound to, your own included. The stock check reads the line's variant without checking it, so the plugin runs it in sequence after `CartItemVariantRequired`, which refuses a line without a variant (a request that leaves out the variant choice of a product with several variants) on the variant field.
 
 ### Overriding models, repositories and factories
 
-The plugin's resources (`gift_card`, `gift_card_design` with its translation, `gift_card_design_image` and `gift_card_transaction`) follow the standard Sylius resource configuration, so you can swap any model, repository, controller or factory for your own class:
+The plugin's resources (`gift_card`, `gift_card_design` with its translation, `gift_card_design_image` and `gift_card_transaction`) follow the standard Sylius resource configuration, so you can swap any model, repository, controller, form or factory for your own class:
 
 ```yaml
 setono_sylius_gift_card:
@@ -944,11 +951,16 @@ setono_sylius_gift_card:
 
 ```bash
 composer install
-(cd tests/Application && yarn install && yarn build)
-composer phpunit        # unit + functional tests
+(cd tests/Application && nvm use && yarn install && yarn build)   # Node 20, as tests/Application/.nvmrc pins
+(cd tests/Application && bin/console doctrine:database:create --env=test && bin/console doctrine:schema:create --env=test)   # once, for the functional tests
+composer phpunit        # unit + functional tests (vendor/bin/phpunit --testsuite unit needs no database)
 composer analyse        # PHPStan (max level)
 composer check-style    # ECS
+composer rector         # Rector dry run
+composer lint           # container, Twig and YAML lint through the test application
 ```
+
+The functional tests and the test application use the MySQL database `DATABASE_URL` names in `tests/Application/.env`.
 
 See [`CLAUDE.md`](CLAUDE.md) for the full development workflow, including Playwright-based UI verification against the bundled `tests/Application`.
 
