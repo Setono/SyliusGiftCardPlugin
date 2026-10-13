@@ -65,5 +65,10 @@
             <argument type="service" id="setono_sylius_gift_card.redemption_method"/>
             <tag name="kernel.event_subscriber"/>
         </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\GuardGiftCardPaymentRefundSubscriber">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardPaymentRefundGuardInterface"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
     </services>
 </container>

@@ -15,6 +15,7 @@ use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Payment\VirtualGiftCardOrderPaymentCapturerInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\ValidityPeriod;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
+use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardPaymentRefundGuardInterface;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
 use Sylius\Component\Grid\Filter\StringFilter;
@@ -130,6 +131,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
         $capturer = '@' . VirtualGiftCardOrderPaymentCapturerInterface::class;
         $operator = '@' . OrderGiftCardOperatorInterface::class;
         $guard = '@' . GiftCardCoverageGuardInterface::class;
+        $refundGuard = '@' . GiftCardPaymentRefundGuardInterface::class;
 
         // winzou runs callbacks in ascending priority order and Sylius' own sit at -800..-100, so a callback
         // without a priority (0) always runs after everything Sylius does. Every callback below states where
@@ -199,6 +201,18 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                 ],
                 'sylius_payment' => [
                     'callbacks' => [
+                        'guard' => [
+                            'setono_sylius_gift_card__guard_gift_card_payment_refund' => [
+                                'on' => ['refund'],
+                                'do' => [$refundGuard, 'isSatisfiedBy'],
+                                'args' => ['object'],
+                                // A gift card payment refunded on its own while its order is not paid would leave the
+                                // order unpaid, or authorized, for good: Sylius' order payment graph leads to no refund
+                                // from there (#507). Cancelling the order refunds it instead. Sylius registers no guard
+                                // on refund, so there is nothing to order against
+                                'priority' => 0,
+                            ],
+                        ],
                         'after' => [
                             'setono_sylius_gift_card__rollback_payment' => [
                                 'on' => ['refund'],
