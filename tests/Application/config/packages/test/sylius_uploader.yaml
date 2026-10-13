@@ -1,0 +1,5 @@
+# As in Sylius-Standard's test environment, which names an uploaded image after the client's original name, so the
+# plugin's own uploads have to hand the uploader the kind of file Sylius' do (#501)
+services:
+    Sylius\Component\Core\Generator\ImagePathGeneratorInterface:
+        class: Sylius\Behat\Service\Generator\UploadedImagePathGenerator

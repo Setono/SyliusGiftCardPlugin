@@ -14,7 +14,7 @@ use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Uploader\ImageUploaderInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\Config\FileLocatorInterface;
-use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Webmozart\Assert\Assert;
@@ -93,7 +93,9 @@ class GiftCardDesignExampleFactory extends AbstractExampleFactory implements Exa
 
         $image = $this->designImageFactory->createNew();
         $image->setType($type);
-        $image->setFile(new File($located));
+        // An uploaded file, as Sylius' own fixtures hand the uploader, so an image path generator that names the file after
+        // the client's original name, as Sylius-Standard's test environment uses, can name it (#501)
+        $image->setFile(new UploadedFile($located, basename($located)));
 
         $design->addImage($image);
 

@@ -20,7 +20,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Webmozart\Assert\Assert;
 
@@ -112,7 +112,9 @@ final class CreateDefaultDesignCommand extends Command
 
         $image = $this->designImageFactory->createNew();
         $image->setType(GiftCardDesignImageInterface::TYPE_FRONT);
-        $image->setFile(new File($this->defaultImagePath));
+        // An uploaded file, as Sylius' own fixtures hand the uploader, so an image path generator that names the file after
+        // the client's original name, as Sylius-Standard's test environment uses, can name it (#501)
+        $image->setFile(new UploadedFile($this->defaultImagePath, basename($this->defaultImagePath)));
 
         $design->addImage($image);
 
