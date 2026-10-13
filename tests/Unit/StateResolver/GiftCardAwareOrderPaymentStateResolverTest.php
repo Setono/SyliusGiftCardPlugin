@@ -176,7 +176,30 @@ final class GiftCardAwareOrderPaymentStateResolverTest extends TestCase
     {
         yield 'the rest' => [[4000]];
         yield 'more than the rest' => [[4500]];
+        // the order is partially authorized after the first, from which it may be authorized
         yield 'the rest in two authorizations' => [[2500, 1500]];
+    }
+
+    /**
+     * Until the authorizations cover the rest, the order is partially authorized, as it would be without a gift card,
+     * rather than partially paid, from which it could not be authorized any more once the rest of the rest is: when the
+     * rest is authorized in two payments, or before a second gift card's payment completes (review of #504)
+     *
+     * @test
+     */
+    public function it_partially_authorizes_an_order_whose_rest_is_authorized_in_part(): void
+    {
+        $order = $this->order(10000, 6000, [
+            $this->giftCardPayment(PaymentInterface::STATE_COMPLETED, 6000),
+            $this->gatewayPayment(PaymentInterface::STATE_AUTHORIZED, 2500),
+            $this->gatewayPayment(PaymentInterface::STATE_NEW, 1500),
+        ]);
+        $this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_PARTIALLY_AUTHORIZE)->willReturn(true);
+
+        $this->resolver()->resolve($order->reveal());
+
+        $this->stateMachine->apply($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_PARTIALLY_AUTHORIZE)->shouldHaveBeenCalledOnce();
+        $this->decorated->resolve(Argument::any())->shouldNotHaveBeenCalled();
     }
 
     /**
@@ -199,9 +222,9 @@ final class GiftCardAwareOrderPaymentStateResolverTest extends TestCase
     }
 
     /**
-     * An authorization of less than the rest leaves part of the order unsecured. Without a gift card paying anything,
-     * or with the gift cards paying all of it, there is nothing for the plugin to add to what Sylius makes of the order.
-     * And once the rest is captured, or a payment of the customer's own refunded, Sylius resolves the order as always
+     * Without a gift card paying anything, or with the gift cards paying all of it, there is nothing for the plugin to
+     * add to what Sylius makes of the order. And once the rest is captured, or a payment of the customer's own refunded,
+     * Sylius resolves the order as always
      *
      * @test
      *
@@ -227,11 +250,6 @@ final class GiftCardAwareOrderPaymentStateResolverTest extends TestCase
      */
     public function ordersNotAuthorizedForTheRestByGiftCards(): iterable
     {
-        yield 'an authorization of less than the rest' => [6000, [
-            [PaymentInterface::STATE_COMPLETED, 6000, true],
-            [PaymentInterface::STATE_AUTHORIZED, 3999, false],
-        ]];
-
         yield 'an authorization of the whole order without a gift card' => [0, [
             [PaymentInterface::STATE_AUTHORIZED, 10000, false],
         ]];

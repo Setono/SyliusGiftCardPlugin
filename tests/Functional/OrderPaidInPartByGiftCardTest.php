@@ -14,6 +14,7 @@ use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Core\Updater\UnpaidOrdersStateUpdaterInterface;
 use Sylius\Component\Order\Model\OrderInterface as BaseOrderInterface;
 use Sylius\Component\Order\OrderTransitions;
+use Sylius\Component\Payment\Factory\PaymentFactoryInterface;
 use Sylius\Component\Payment\PaymentTransitions;
 
 /**
@@ -145,6 +146,67 @@ final class OrderPaidInPartByGiftCardTest extends OrderLifecycleTestCase
     }
 
     /**
+     * The rest may be authorized in more than one payment. The order is partially authorized until it all is, as it
+     * would be without a gift card, rather than partially paid, from which it could not be authorized any more
+     *
+     * @test
+     *
+     * @dataProvider adapters
+     */
+    public function an_order_whose_rest_is_authorized_in_two_payments_is_authorized_once_both_are(string $adapter): void
+    {
+        $this->useStateMachineAdapter($adapter);
+
+        $giftCard = $this->createEnabledGiftCard('PARTPAID00000008', 6000);
+        $order = $this->createCheckoutReadyOrder(10000, $giftCard, 4000);
+        $this->placeOrder($order);
+        $first = $this->restPayment($order);
+        $first->setAmount(2500);
+        $second = $this->addPayment($order, 1500);
+
+        $this->apply($first, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_AUTHORIZE);
+        self::assertSame(OrderPaymentStates::STATE_PARTIALLY_AUTHORIZED, $order->getPaymentState());
+
+        $this->apply($second, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_AUTHORIZE);
+        self::assertSame(OrderPaymentStates::STATE_AUTHORIZED, $order->getPaymentState());
+
+        $this->apply($first, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_COMPLETE);
+        $this->apply($second, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_COMPLETE);
+        self::assertSame(OrderPaymentStates::STATE_PAID, $order->getPaymentState());
+    }
+
+    /**
+     * Sylius' order payment graph leads to no refund from an order that awaits payment or is authorized, so refunding
+     * the gift card payment on its own would leave the order unpaid, or authorized, for good, and the expiry would
+     * cancel it once the customer has paid the rest (#507). Cancelling the order is how the card gets its balance back
+     * then. Once the order is paid, the gift card payment may be refunded as any other
+     *
+     * @test
+     *
+     * @dataProvider adapters
+     */
+    public function the_gift_card_payment_of_an_order_not_paid_yet_cannot_be_refunded_on_its_own(string $adapter): void
+    {
+        $this->useStateMachineAdapter($adapter);
+
+        $giftCard = $this->createEnabledGiftCard('PARTPAID00000009', 6000);
+        $order = $this->createCheckoutReadyOrder(10000, $giftCard, 4000);
+        $this->placeOrder($order);
+        $giftCardPayment = $this->giftCardPayment($order);
+
+        self::assertSame(OrderPaymentStates::STATE_AWAITING_PAYMENT, $order->getPaymentState());
+        self::assertFalse($this->stateMachine()->can($giftCardPayment, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_REFUND), 'awaiting payment');
+
+        $this->apply($this->restPayment($order), PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_AUTHORIZE);
+        self::assertSame(OrderPaymentStates::STATE_AUTHORIZED, $order->getPaymentState());
+        self::assertFalse($this->stateMachine()->can($giftCardPayment, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_REFUND), 'authorized');
+
+        $this->apply($this->restPayment($order), PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_COMPLETE);
+        self::assertSame(OrderPaymentStates::STATE_PAID, $order->getPaymentState());
+        self::assertTrue($this->stateMachine()->can($giftCardPayment, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_REFUND), 'paid');
+    }
+
+    /**
      * An order authorized for the rest is still open for cancelling, and cancelling it refunds the gift card payment,
      * which gives the card its balance back
      *
@@ -243,6 +305,23 @@ final class OrderPaidInPartByGiftCardTest extends OrderLifecycleTestCase
         $this->manager->flush();
 
         return $order;
+    }
+
+    /**
+     * Another payment for part of the rest, with the method of the one the customer chose, waiting to be paid
+     */
+    private function addPayment(Order $order, int $amount): PaymentInterface
+    {
+        /** @var PaymentFactoryInterface<PaymentInterface> $paymentFactory */
+        $paymentFactory = self::getContainer()->get('sylius.factory.payment');
+
+        $payment = $paymentFactory->createWithAmountAndCurrencyCode($amount, 'USD');
+        self::assertInstanceOf(PaymentInterface::class, $payment);
+        $payment->setMethod($this->restPayment($order)->getMethod());
+        $order->addPayment($payment);
+        $this->apply($payment, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_CREATE);
+
+        return $payment;
     }
 
     private function giftCardPayment(Order $order): PaymentInterface

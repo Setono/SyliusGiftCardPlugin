@@ -13,6 +13,7 @@ use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\CommitRedemptionSubscri
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\DisableGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\EnableGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\GuardCheckoutCompletionSubscriber;
+use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\GuardGiftCardPaymentRefundSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\ReconcileGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\RollbackPaymentSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\RollbackRedemptionSubscriber;
@@ -22,6 +23,7 @@ use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Payment\VirtualGiftCardOrderPaymentCapturerInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
+use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardPaymentRefundGuardInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\Workflow\Event\CompletedEvent;
 use Symfony\Component\Workflow\Event\GuardEvent;
@@ -226,6 +228,45 @@ final class WorkflowSubscriberTest extends TestCase
         (new GuardCheckoutCompletionSubscriber($guard->reveal()))($event);
 
         self::assertFalse($event->isBlocked());
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider refundGuardAnswers
+     */
+    public function it_blocks_refunding_a_payment_the_refund_guard_refuses(bool $satisfied): void
+    {
+        $payment = $this->prophesize(PaymentInterface::class)->reveal();
+
+        $guard = $this->prophesize(GiftCardPaymentRefundGuardInterface::class);
+        $guard->isSatisfiedBy($payment)->willReturn($satisfied);
+
+        $event = $this->guardEvent($payment);
+        (new GuardGiftCardPaymentRefundSubscriber($guard->reveal()))($event);
+
+        self::assertSame(!$satisfied, $event->isBlocked());
+        self::assertSame(['workflow.sylius_payment.guard.refund'], array_keys(GuardGiftCardPaymentRefundSubscriber::getSubscribedEvents()));
+    }
+
+    /**
+     * @return iterable<string, array{bool}>
+     */
+    public function refundGuardAnswers(): iterable
+    {
+        yield 'refused' => [false];
+        yield 'let through' => [true];
+    }
+
+    /** @test */
+    public function it_rejects_a_refunded_subject_that_is_not_a_payment(): void
+    {
+        $guard = $this->prophesize(GiftCardPaymentRefundGuardInterface::class);
+        $guard->isSatisfiedBy(Argument::cetera())->shouldNotBeCalled();
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        (new GuardGiftCardPaymentRefundSubscriber($guard->reveal()))($this->guardEvent($this->prophesize(OrderInterface::class)->reveal()));
     }
 
     private function guardEvent(object $subject): GuardEvent

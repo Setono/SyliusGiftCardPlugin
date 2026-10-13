@@ -167,11 +167,13 @@ final class ChannelWithoutGiftCardPaymentMethodTest extends AdminFunctionalTestC
 
         $this->logInAsAdministrator();
 
-        self::assertSame(['New Cash $20.00 Complete', 'Completed Gift card $30.00 Refund'], $this->paymentsOnTheAdminOrderPage($orderId));
+        // The gift card payment cannot be refunded on its own while the order awaits the rest (#507)
+        self::assertSame(['New Cash $20.00 Complete', 'Completed Gift card $30.00'], $this->paymentsOnTheAdminOrderPage($orderId));
 
         $this->press($orderId, sprintf('/admin/orders/%d/payments/%d/complete', $orderId, self::paymentIdOf($order, 'cash')));
 
         self::assertSame(OrderPaymentStates::STATE_PAID, $this->findOrder($orderId)->getPaymentState(), 'paying the rest should have paid the order');
+        self::assertSame(['Completed Cash $20.00 Refund', 'Completed Gift card $30.00 Refund'], $this->paymentsOnTheAdminOrderPage($orderId));
     }
 
     /**

@@ -16,6 +16,7 @@ use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
 use Setono\SyliusGiftCardPlugin\Payment\VirtualGiftCardOrderPaymentCapturerInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
+use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardPaymentRefundGuardInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Payment\PaymentTransitions;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -47,6 +48,7 @@ final class StateMachineCallbackParityTest extends TestCase
         VirtualGiftCardOrderPaymentCapturerInterface::class => '@' . VirtualGiftCardOrderPaymentCapturerInterface::class,
         GiftCardRedemptionMethodInterface::class => '@setono_sylius_gift_card.redemption_method',
         GiftCardCoverageGuardInterface::class => '@' . GiftCardCoverageGuardInterface::class,
+        GiftCardPaymentRefundGuardInterface::class => '@' . GiftCardPaymentRefundGuardInterface::class,
     ];
 
     /**

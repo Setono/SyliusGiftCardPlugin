@@ -26,24 +26,17 @@ use Sylius\Component\Order\StateResolver\StateResolverInterface;
  *
  * While the only payments that have gone through are gift card payments that do not cover the order, the order's
  * payment state is left as it is. A payment provider that captures later authorizes the rest rather than paying it,
- * and the gift card payments and the authorization then secure the whole order. Sylius weighs completed payments
+ * and the gift card payments and the authorizations then secure the whole order. Sylius weighs completed payments
  * before authorized ones, so it would call the order partially paid, which whatever waits for authorized orders (a
- * warehouse upload, the order confirmation) skips. The order is authorized instead, as it would be without a gift
- * card, and capturing the rest pays it (#499). Otherwise, once a payment of the customer's own has gone through, or
- * the gift cards cover the whole order, Sylius resolves the state as it always does
+ * warehouse upload, the order confirmation) skips, and from which it could not be authorized any more. So while the
+ * customer's own payments are at most authorized, the order is not Sylius' to resolve: it is authorized once the
+ * gift cards and the authorizations cover it, as it would be without a gift card, and partially authorized until then,
+ * whatever order the payments come in (#499). Capturing the rest pays it. Otherwise, once a payment of the customer's
+ * own is completed or refunded, or the gift cards cover the whole order or nothing of it, Sylius resolves the state as
+ * it always does
  */
 final class GiftCardAwareOrderPaymentStateResolver implements StateResolverInterface
 {
-    /**
-     * The states of a payment that has moved money (or, authorized, has it promised). A payment that is still new or
-     * processing, or that failed or was cancelled, has not paid anything
-     */
-    private const GONE_THROUGH = [
-        PaymentInterface::STATE_AUTHORIZED,
-        PaymentInterface::STATE_COMPLETED,
-        PaymentInterface::STATE_REFUNDED,
-    ];
-
     public function __construct(
         private readonly StateResolverInterface $decorated,
         private readonly GiftCardPaidAmountCalculatorInterface $paidAmountCalculator,
@@ -54,64 +47,73 @@ final class GiftCardAwareOrderPaymentStateResolver implements StateResolverInter
 
     public function resolve(BaseOrderInterface $order): void
     {
-        if ($order instanceof OrderInterface) {
-            if ($this->isPaidInPartByGiftCardsOnly($order)) {
-                return;
-            }
+        if (!$order instanceof OrderInterface || $this->hasPaymentOfTheCustomerGoneThrough($order)) {
+            $this->decorated->resolve($order);
 
-            if ($this->isAuthorizedForTheRest($order)) {
-                // An order authorized already stays so, rather than becoming partially paid
-                if ($this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_AUTHORIZE)) {
-                    $this->stateMachine->apply($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_AUTHORIZE);
-                }
-
-                return;
-            }
-        }
-
-        $this->decorated->resolve($order);
-    }
-
-    private function isPaidInPartByGiftCardsOnly(OrderInterface $order): bool
-    {
-        foreach ($order->getPayments() as $payment) {
-            if (!$payment instanceof PaymentInterface || $this->paymentChecker->isGiftCardPayment($payment)) {
-                continue;
-            }
-
-            if (in_array($payment->getState(), self::GONE_THROUGH, true)) {
-                return false;
-            }
+            return;
         }
 
         $paidByGiftCards = $this->paidAmountCalculator->getPaidAmount($order);
+        if (0 === $paidByGiftCards || $paidByGiftCards >= $order->getTotal()) {
+            $this->decorated->resolve($order);
 
-        return 0 < $paidByGiftCards && $paidByGiftCards < $order->getTotal();
+            return;
+        }
+
+        // Nothing of the rest has been authorized either, so the order keeps awaiting payment
+        $authorized = $this->getAuthorizedAmount($order);
+        if (0 === $authorized) {
+            return;
+        }
+
+        $transition = $paidByGiftCards + $authorized >= $order->getTotal()
+            ? OrderPaymentTransitions::TRANSITION_AUTHORIZE
+            : OrderPaymentTransitions::TRANSITION_PARTIALLY_AUTHORIZE;
+
+        // An order authorized already stays so, rather than becoming partially paid
+        if ($this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, $transition)) {
+            $this->stateMachine->apply($order, OrderPaymentTransitions::GRAPH, $transition);
+        }
     }
 
     /**
-     * Whether the gift cards have paid part of the order and authorized payments, not captured yet, cover the rest.
-     * Once a payment of the customer's own is completed or refunded, the order is Sylius' to resolve again
+     * Whether a payment of the customer's own has moved money: completed, or refunded since
      */
-    private function isAuthorizedForTheRest(OrderInterface $order): bool
+    private function hasPaymentOfTheCustomerGoneThrough(OrderInterface $order): bool
+    {
+        foreach ($this->getPaymentsOfTheCustomer($order) as $payment) {
+            if (in_array($payment->getState(), [PaymentInterface::STATE_COMPLETED, PaymentInterface::STATE_REFUNDED], true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * What the customer's own payments have authorized and not captured yet
+     */
+    private function getAuthorizedAmount(OrderInterface $order): int
     {
         $authorized = 0;
-        foreach ($order->getPayments() as $payment) {
-            if (!$payment instanceof PaymentInterface || $this->paymentChecker->isGiftCardPayment($payment)) {
-                continue;
-            }
-
-            if (in_array($payment->getState(), [PaymentInterface::STATE_COMPLETED, PaymentInterface::STATE_REFUNDED], true)) {
-                return false;
-            }
-
+        foreach ($this->getPaymentsOfTheCustomer($order) as $payment) {
             if (PaymentInterface::STATE_AUTHORIZED === $payment->getState()) {
                 $authorized += (int) $payment->getAmount();
             }
         }
 
-        $paidByGiftCards = $this->paidAmountCalculator->getPaidAmount($order);
+        return $authorized;
+    }
 
-        return 0 < $paidByGiftCards && $paidByGiftCards < $order->getTotal() && $paidByGiftCards + $authorized >= $order->getTotal();
+    /**
+     * @return iterable<PaymentInterface>
+     */
+    private function getPaymentsOfTheCustomer(OrderInterface $order): iterable
+    {
+        foreach ($order->getPayments() as $payment) {
+            if ($payment instanceof PaymentInterface && !$this->paymentChecker->isGiftCardPayment($payment)) {
+                yield $payment;
+            }
+        }
     }
 }

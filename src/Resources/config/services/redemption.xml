@@ -41,6 +41,13 @@
         <service id="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface"
                  alias="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuard" public="true"/>
 
+        <service id="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardPaymentRefundGuard">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface"/>
+        </service>
+        <!-- public because it is the guard the winzou state machine asks before refunding a payment, by this interface -->
+        <service id="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardPaymentRefundGuardInterface"
+                 alias="Setono\SyliusGiftCardPlugin\StateMachine\GiftCardPaymentRefundGuard" public="true"/>
+
         <service id="Setono\SyliusGiftCardPlugin\Applicator\GiftCardApplicator">
             <argument type="service" id="setono_sylius_gift_card.repository.gift_card"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeNormalizerInterface"/>
