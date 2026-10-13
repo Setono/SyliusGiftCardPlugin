@@ -41,6 +41,11 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\CaptureVirtualGiftCardOrderSubscriber">
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Payment\VirtualGiftCardOrderPaymentCapturerInterface"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <service id="Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\CommitRedemptionSubscriber">
             <argument type="service" id="setono_sylius_gift_card.redemption_method"/>
             <tag name="kernel.event_subscriber"/>

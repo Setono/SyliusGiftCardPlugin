@@ -12,6 +12,7 @@ use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardPendingFilter;
 use Setono\SyliusGiftCardPlugin\Grid\Filter\GiftCardSpentFilter;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
+use Setono\SyliusGiftCardPlugin\Payment\VirtualGiftCardOrderPaymentCapturerInterface;
 use Setono\SyliusGiftCardPlugin\Resolver\ValidityPeriod;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
 use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
@@ -45,7 +46,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
          *     minimum_code_length: int,
          *     default_validity_period: string|null,
          *     purchase: array{minimum_amount: int, maximum_amount: int|null, maximum_message_length: int},
-         *     delivery: array{email_physical_cards: bool},
+         *     delivery: array{email_physical_cards: bool, capture_virtual_orders: bool},
          *     redemption: array{payment_method_code: string, rate_limiter: string|null, ip_rate_limiter: string|null},
          *     pdf: array{page_size: string},
          *     resources: array<string, mixed>,
@@ -63,6 +64,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
         $container->setParameter('setono_sylius_gift_card.purchase.maximum_amount', $config['purchase']['maximum_amount']);
         $container->setParameter('setono_sylius_gift_card.purchase.maximum_message_length', $config['purchase']['maximum_message_length']);
         $container->setParameter('setono_sylius_gift_card.delivery.email_physical_cards', $config['delivery']['email_physical_cards']);
+        $container->setParameter('setono_sylius_gift_card.delivery.capture_virtual_orders', $config['delivery']['capture_virtual_orders']);
         $container->setParameter('setono_sylius_gift_card.redemption.payment_method_code', $config['redemption']['payment_method_code']);
         $container->setParameter('setono_sylius_gift_card.pdf.page_size', $config['pdf']['page_size']);
         $container->setParameter(
@@ -125,6 +127,7 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
      */
     public function prepend(ContainerBuilder $container): void
     {
+        $capturer = '@' . VirtualGiftCardOrderPaymentCapturerInterface::class;
         $operator = '@' . OrderGiftCardOperatorInterface::class;
         $guard = '@' . GiftCardCoverageGuardInterface::class;
 
@@ -207,6 +210,15 @@ final class SetonoSyliusGiftCardExtension extends AbstractResourceExtension impl
                                 // (-100) works out the order's payment state from the refunded payment, so the card
                                 // is whole again before anything reacts to the order being (partially) refunded
                                 'priority' => -150,
+                            ],
+                            'setono_sylius_gift_card__capture_virtual_gift_card_order' => [
+                                'on' => ['authorize'],
+                                'do' => [$capturer, 'capture'],
+                                'args' => ['object'],
+                                // Completes the authorized payment of an order of only virtual gift cards, when the
+                                // application asks for it (delivery.capture_virtual_orders). After sylius_resolve_state
+                                // (-100) has authorized the order, so completing the payment takes it on to paid
+                                'priority' => -50,
                             ],
                         ],
                     ],

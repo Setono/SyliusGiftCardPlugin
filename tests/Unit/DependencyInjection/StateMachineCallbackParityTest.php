@@ -13,6 +13,7 @@ use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\DependencyInjection\SetonoSyliusGiftCardExtension;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
+use Setono\SyliusGiftCardPlugin\Payment\VirtualGiftCardOrderPaymentCapturerInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -43,6 +44,7 @@ final class StateMachineCallbackParityTest extends TestCase
      */
     private const COLLABORATOR_SERVICES = [
         OrderGiftCardOperatorInterface::class => '@' . OrderGiftCardOperatorInterface::class,
+        VirtualGiftCardOrderPaymentCapturerInterface::class => '@' . VirtualGiftCardOrderPaymentCapturerInterface::class,
         GiftCardRedemptionMethodInterface::class => '@setono_sylius_gift_card.redemption_method',
         GiftCardCoverageGuardInterface::class => '@' . GiftCardCoverageGuardInterface::class,
     ];

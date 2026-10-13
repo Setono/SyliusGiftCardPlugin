@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\MethodProphecy;
+use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\CaptureVirtualGiftCardOrderSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\CommitRedemptionSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\DisableGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\EnableGiftCardsSubscriber;
@@ -18,6 +19,7 @@ use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\RollbackRedemptionSubsc
 use Setono\SyliusGiftCardPlugin\EventSubscriber\Workflow\SendGiftCardsSubscriber;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Operator\OrderGiftCardOperatorInterface;
+use Setono\SyliusGiftCardPlugin\Payment\VirtualGiftCardOrderPaymentCapturerInterface;
 use Setono\SyliusGiftCardPlugin\Redemption\GiftCardRedemptionMethodInterface;
 use Setono\SyliusGiftCardPlugin\StateMachine\GiftCardCoverageGuardInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -97,6 +99,34 @@ final class WorkflowSubscriberTest extends TestCase
         $redemptionMethod->rollbackPayment($payment)->shouldBeCalledOnce();
 
         (new RollbackPaymentSubscriber($redemptionMethod->reveal()))($this->completedEvent($payment));
+    }
+
+    /**
+     * The capturer decides whether the authorized payment's order is one of only virtual gift cards
+     *
+     * @test
+     */
+    public function it_forwards_the_authorized_payment_to_the_capturer(): void
+    {
+        $payment = $this->prophesize(PaymentInterface::class)->reveal();
+
+        $capturer = $this->prophesize(VirtualGiftCardOrderPaymentCapturerInterface::class);
+        $capturer->capture($payment)->shouldBeCalledOnce();
+
+        (new CaptureVirtualGiftCardOrderSubscriber($capturer->reveal()))($this->completedEvent($payment));
+
+        self::assertSame(['workflow.sylius_payment.completed.authorize'], array_keys(CaptureVirtualGiftCardOrderSubscriber::getSubscribedEvents()));
+    }
+
+    /** @test */
+    public function it_rejects_an_authorized_subject_that_is_not_a_payment(): void
+    {
+        $capturer = $this->prophesize(VirtualGiftCardOrderPaymentCapturerInterface::class);
+        $capturer->capture(Argument::cetera())->shouldNotBeCalled();
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        (new CaptureVirtualGiftCardOrderSubscriber($capturer->reveal()))($this->completedEvent($this->prophesize(OrderInterface::class)->reveal()));
     }
 
     /**

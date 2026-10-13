@@ -370,7 +370,7 @@ final class ConfigurationTest extends TestCase
     public function it_does_not_email_physical_gift_cards_by_default(): void
     {
         $this->assertProcessedConfigurationEquals([[]], [
-            'delivery' => ['email_physical_cards' => false],
+            'delivery' => ['email_physical_cards' => false, 'capture_virtual_orders' => false],
         ], 'delivery');
     }
 
@@ -378,7 +378,20 @@ final class ConfigurationTest extends TestCase
     public function it_allows_emailing_physical_gift_cards(): void
     {
         $this->assertProcessedConfigurationEquals([['delivery' => ['email_physical_cards' => true]]], [
-            'delivery' => ['email_physical_cards' => true],
+            'delivery' => ['email_physical_cards' => true, 'capture_virtual_orders' => false],
+        ], 'delivery');
+    }
+
+    /**
+     * Completing a payment only charges the customer with a payment plugin that captures on completion, so the plugin
+     * never does it unless the shop asks (#500)
+     *
+     * @test
+     */
+    public function it_allows_capturing_orders_of_only_virtual_gift_cards_when_they_are_authorized(): void
+    {
+        $this->assertProcessedConfigurationEquals([['delivery' => ['capture_virtual_orders' => true]]], [
+            'delivery' => ['email_physical_cards' => false, 'capture_virtual_orders' => true],
         ], 'delivery');
     }
 

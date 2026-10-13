@@ -9,6 +9,10 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 ### Added
 - `GiftCardDesign` resource: translatable, with front and back images, admin CRUD and an example-PDF preview.
   Customers pick a design when buying a gift card
+- `delivery.capture_virtual_orders`, off by default: the authorized payment of an order that buys only virtual gift
+  cards is completed as soon as it is authorized, so a shop that captures on shipment delivers them at once. Completing
+  the payment pays the order, which issues and emails the cards as always; they are never issued on an authorization.
+  Only for payment plugins that capture at the gateway when a payment is completed
 - `GiftCardTransaction`, an append-only ledger recording every balance change, with nullable-unique
   idempotency keys so a replayed state machine transition cannot double-spend. Each row names the order it belongs
   to (the issuance of a card bought in the shop names the order that paid for it), with a copy of its number
