@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Redemption;
 
+use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverage;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -26,12 +27,21 @@ interface GiftCardRedemptionMethodInterface
     public function remove(OrderInterface $order, GiftCardInterface $giftCard): void;
 
     /**
-     * The total amount (minor units) the applied gift cards cover on the order
+     * What each gift card applied to the order pays on it, in the order's currency and in the card's. Until the order's
+     * redemption is committed (commit()), that is what their balances cover now: on a cart, and on an order whose checkout
+     * is completed before Sylius has created it and the plugin has committed it. From then on, it is what they paid when
+     * the order was placed, which their balances no longer tell (#498), and a card whose payment was refunded covers
+     * nothing
+     */
+    public function getCoverage(OrderInterface $order): GiftCardCoverage;
+
+    /**
+     * The total amount (minor units) the applied gift cards cover on the order, as getCoverage() tells it
      */
     public function getCoveredAmount(OrderInterface $order): int;
 
     /**
-     * The amount (minor units) a single gift card covers on the order
+     * The amount (minor units) a single gift card covers on the order, as getCoverage() tells it
      */
     public function getCoveredAmountByGiftCard(OrderInterface $order, GiftCardInterface $giftCard): int;
 

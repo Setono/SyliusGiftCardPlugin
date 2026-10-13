@@ -9,6 +9,7 @@ use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\Persistence\ManagerRegistry;
 use Setono\Doctrine\ORMTrait;
+use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverage;
 use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
 use Setono\SyliusGiftCardPlugin\Exception\UnderpaidOrderException;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
@@ -63,6 +64,33 @@ final class PaymentRedemptionMethod extends RedemptionMethod
         parent::__construct($orderProcessor, $coverageCalculator);
 
         $this->managerRegistry = $managerRegistry;
+    }
+
+    /**
+     * Once commit() has run, each card has paid what it covered with a payment of its own, and its balance says nothing
+     * about this order any more: it is spent, maybe on other orders by now (#498). So the coverage of an order with gift
+     * card payments is what its completed ones took, and a card whose payment was refunded covers nothing.
+     *
+     * Until then it is what the balances cover, which is what commit() is about to charge: on a cart, and on an order
+     * whose checkout is completed before the redemption is committed, which Sylius does after it has created the order
+     */
+    public function getCoverage(OrderInterface $order): GiftCardCoverage
+    {
+        if (!$this->hasGiftCardPayments($order)) {
+            return parent::getCoverage($order);
+        }
+
+        $entries = [];
+        foreach ($order->getGiftCards() as $giftCard) {
+            // commit() makes one payment per card and never a second, so this is the one the card paid with, if any
+            $payment = $this->getPaymentForGiftCard($order, $giftCard);
+
+            $entries[] = null !== $payment && PaymentInterface::STATE_COMPLETED === $payment->getState()
+                ? ['giftCard' => $giftCard, 'amount' => (int) $payment->getAmount(), 'giftCardAmount' => self::getGiftCardAmount($payment)]
+                : ['giftCard' => $giftCard, 'amount' => 0, 'giftCardAmount' => 0];
+        }
+
+        return new GiftCardCoverage($entries);
     }
 
     public function commit(OrderInterface $order): void
@@ -243,7 +271,23 @@ final class PaymentRedemptionMethod extends RedemptionMethod
         }
     }
 
+    private function hasGiftCardPayments(OrderInterface $order): bool
+    {
+        foreach ($order->getPayments() as $payment) {
+            if ($payment instanceof PaymentInterface && $this->paymentChecker->isGiftCardPayment($payment)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function hasPaymentForGiftCard(OrderInterface $order, GiftCardInterface $giftCard): bool
+    {
+        return null !== $this->getPaymentForGiftCard($order, $giftCard);
+    }
+
+    private function getPaymentForGiftCard(OrderInterface $order, GiftCardInterface $giftCard): ?PaymentInterface
     {
         foreach ($order->getPayments() as $payment) {
             if (!$payment instanceof PaymentInterface || !$this->paymentChecker->isGiftCardPayment($payment)) {
@@ -251,11 +295,11 @@ final class PaymentRedemptionMethod extends RedemptionMethod
             }
 
             if (($payment->getDetails()[self::DETAIL_GIFT_CARD_ID] ?? null) === $giftCard->getId()) {
-                return true;
+                return $payment;
             }
         }
 
-        return false;
+        return null;
     }
 
     /**

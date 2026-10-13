@@ -32,6 +32,7 @@ use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Sylius\Component\Payment\PaymentTransitions;
 use Sylius\Component\Resource\Factory\FactoryInterface;
@@ -281,6 +282,83 @@ final class PaymentRedemptionMethodTest extends TestCase
         $this->rollbackRedemptionMethod()->rollback($order->reveal());
     }
 
+    /**
+     * Until commit() has made the gift card payments, the cards have paid nothing yet, and what they cover is what their
+     * balances cover now, which is what commit() is about to charge. That holds for an order whose checkout is completed
+     * too, since Sylius completes the checkout and creates the order before the redemption is committed
+     *
+     * @test
+     *
+     * @dataProvider ordersWithoutGiftCardPayments
+     */
+    public function it_tells_what_the_balances_of_the_gift_cards_cover_until_the_redemption_is_committed(string $checkoutState, bool $withPaymentForTheRest): void
+    {
+        $giftCard = $this->giftCard(1);
+        $order = $this->prophesize(OrderInterface::class);
+        $order->getCheckoutState()->willReturn($checkoutState);
+        $order->getPayments()->willReturn(new ArrayCollection($withPaymentForTheRest ? [$this->paymentFor($giftCard, PaymentInterface::STATE_NEW, 11077, giftCardPayment: false)] : []));
+
+        $coverageCalculator = $this->prophesize(GiftCardCoverageCalculatorInterface::class);
+        $coverageCalculator->calculate($order)->willReturn(new GiftCardCoverage([
+            ['giftCard' => $giftCard, 'amount' => 3000, 'giftCardAmount' => 3000],
+        ]));
+
+        $redemptionMethod = $this->coverageRedemptionMethod($coverageCalculator);
+
+        self::assertSame(3000, $redemptionMethod->getCoverage($order->reveal())->getTotal());
+        self::assertSame(3000, $redemptionMethod->getCoveredAmount($order->reveal()));
+        self::assertSame(3000, $redemptionMethod->getCoveredAmountByGiftCard($order->reveal(), $giftCard));
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function ordersWithoutGiftCardPayments(): iterable
+    {
+        yield 'a cart' => [OrderCheckoutStates::STATE_CART, false];
+        yield 'a cart with a payment for the rest' => [OrderCheckoutStates::STATE_PAYMENT_SELECTED, true];
+        yield 'an order placed before its redemption is committed' => [OrderCheckoutStates::STATE_COMPLETED, true];
+    }
+
+    /**
+     * Placing the order took what the cards paid off their balances, which may have been spent on other orders since,
+     * so on a placed order the balances tell nothing and the cards' payments tell what they paid (#498). A card whose
+     * payment was refunded, or that paid nothing, covers nothing, and only a gift card payment pays for a card, whatever
+     * another payment's details hold
+     *
+     * @test
+     */
+    public function it_tells_what_the_gift_cards_of_a_placed_order_paid(): void
+    {
+        $spent = $this->giftCard(1);
+        $heldInAnotherCurrency = $this->giftCard(2, 'DKK');
+        $refunded = $this->giftCard(3);
+        $unused = $this->giftCard(4);
+
+        $order = $this->prophesize(OrderInterface::class);
+        $order->getGiftCards()->willReturn(new ArrayCollection([$spent, $heldInAnotherCurrency, $refunded, $unused]));
+        $order->getPayments()->willReturn(new ArrayCollection([
+            $this->paymentFor($unused, PaymentInterface::STATE_COMPLETED, 11077, giftCardPayment: false),
+            $this->paymentFor($spent, PaymentInterface::STATE_COMPLETED, 3000),
+            $this->paymentFor($heldInAnotherCurrency, PaymentInterface::STATE_COMPLETED, 4021, 29997),
+            $this->paymentFor($refunded, PaymentInterface::STATE_REFUNDED, 2000),
+        ]));
+
+        $coverageCalculator = $this->prophesize(GiftCardCoverageCalculatorInterface::class);
+        $coverageCalculator->calculate(Argument::cetera())->shouldNotBeCalled();
+
+        $redemptionMethod = $this->coverageRedemptionMethod($coverageCalculator);
+
+        self::assertSame([
+            ['giftCard' => $spent, 'amount' => 3000, 'giftCardAmount' => 3000],
+            ['giftCard' => $heldInAnotherCurrency, 'amount' => 4021, 'giftCardAmount' => 29997],
+            ['giftCard' => $refunded, 'amount' => 0, 'giftCardAmount' => 0],
+            ['giftCard' => $unused, 'amount' => 0, 'giftCardAmount' => 0],
+        ], $redemptionMethod->getCoverage($order->reveal())->getEntries());
+        self::assertSame(7021, $redemptionMethod->getCoveredAmount($order->reveal()));
+        self::assertSame(4021, $redemptionMethod->getCoveredAmountByGiftCard($order->reveal(), $heldInAnotherCurrency));
+    }
+
     private function assertLostRaceOn(GiftCardInterface $giftCard): void
     {
         try {
@@ -371,6 +449,51 @@ final class PaymentRedemptionMethodTest extends TestCase
             $this->giftCardRepository->reveal(),
             $this->prophesize(ManagerRegistry::class)->reveal(),
         );
+    }
+
+    /**
+     * Built for the coverage tests, around the coverage calculator they set their expectations on
+     *
+     * @param ObjectProphecy<GiftCardCoverageCalculatorInterface> $coverageCalculator
+     */
+    private function coverageRedemptionMethod(ObjectProphecy $coverageCalculator): PaymentRedemptionMethod
+    {
+        /** @var ObjectProphecy<FactoryInterface<PaymentInterface>> $paymentFactory */
+        $paymentFactory = $this->prophesize(FactoryInterface::class);
+
+        return new PaymentRedemptionMethod(
+            $this->prophesize(OrderProcessorInterface::class)->reveal(),
+            $coverageCalculator->reveal(),
+            $this->balanceOperator->reveal(),
+            $this->prophesize(GiftCardPaymentMethodProviderInterface::class)->reveal(),
+            $this->paymentChecker->reveal(),
+            $paymentFactory->reveal(),
+            $this->stateMachine->reveal(),
+            $this->giftCardRepository->reveal(),
+            $this->prophesize(ManagerRegistry::class)->reveal(),
+        );
+    }
+
+    /**
+     * A payment whose details name the card the way commit() writes them
+     *
+     * @param int|null $giftCardAmount what the payment took off a card held in another currency than the order's
+     */
+    private function paymentFor(GiftCardInterface $giftCard, string $state, int $amount, ?int $giftCardAmount = null, bool $giftCardPayment = true): PaymentInterface
+    {
+        $payment = $this->prophesize(PaymentInterface::class);
+        $payment->getState()->willReturn($state);
+        $payment->getAmount()->willReturn($amount);
+        $payment->getDetails()->willReturn([
+            'setono_gift_card_id' => $giftCard->getId(),
+            'setono_gift_card_code' => $giftCard->getCode(),
+            'setono_gift_card_amount' => $giftCardAmount ?? $amount,
+            'setono_gift_card_currency_code' => $giftCard->getCurrencyCode(),
+        ]);
+
+        $this->paymentChecker->isGiftCardPayment($payment)->willReturn($giftCardPayment);
+
+        return $payment->reveal();
     }
 
     private function giftCard(int $id, string $currencyCode = 'USD'): GiftCardInterface

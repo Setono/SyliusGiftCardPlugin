@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Setono\SyliusGiftCardPlugin\Twig\Runtime;
 
 use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverage;
-use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
 use Setono\SyliusGiftCardPlugin\Controller\Action\AddGiftCardToOrderCommand;
 use Setono\SyliusGiftCardPlugin\Form\Type\AddGiftCardToOrderType;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
@@ -27,7 +26,6 @@ final class GiftCardRedemptionRuntime implements RuntimeExtensionInterface
         private readonly GiftCardRedemptionMethodInterface $redemptionMethod,
         private readonly FormFactoryInterface $formFactory,
         private readonly GiftCardPaymentCheckerInterface $paymentChecker,
-        private readonly GiftCardCoverageCalculatorInterface $coverageCalculator,
         private readonly GiftCardCurrencyProviderInterface $currencyProvider,
     ) {
     }
@@ -50,11 +48,12 @@ final class GiftCardRedemptionRuntime implements RuntimeExtensionInterface
 
     /**
      * What each gift card on the order pays, in the order's currency, and what that takes off the card, in the card's,
-     * so the cart can show a card held in the currency the customer browses in by its own amount
+     * so the cart can show a card held in the currency the customer browses in by its own amount. On a placed order, what
+     * the cards paid (#498)
      */
     public function getCoverage(OrderInterface $order): GiftCardCoverage
     {
-        return $this->coverageCalculator->calculate($order);
+        return $this->redemptionMethod->getCoverage($order);
     }
 
     public function getCoveredAmount(OrderInterface $order): int
