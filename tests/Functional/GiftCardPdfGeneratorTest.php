@@ -173,14 +173,16 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
 
     /**
      * The divider on the back used to be positioned on its own, as high as two lines of terms, so terms of three lines
-     * ran through it, as the plugin's own Danish terms of a card that expires do (#506). It is the top border of the
-     * terms now, above every line of them however many there are
+     * ran through it, as the plugin's own Danish terms of a card that expires do, and its French terms of any card
+     * (#506). It is the top border of the terms now, above every line of them however many there are. It ends where
+     * their column does, short of the brand mark in the corner: terms of one line would otherwise draw it through the
+     * mark, and how far it reaches does not depend on how many lines the terms take
      *
      * @test
      *
      * @dataProvider termsLocales
      */
-    public function it_keeps_the_divider_above_every_line_of_the_terms(string $localeCode, int $lines): void
+    public function it_keeps_the_divider_above_every_line_of_the_terms_and_clear_of_the_brand_mark(string $localeCode, int $lines): void
     {
         $giftCard = $this->createGiftCard();
         $giftCard->setExpiresAt(new \DateTime('2029-10-13'));
@@ -201,10 +203,12 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
         $terms = array_filter($back, static fn (array $run): bool => $run['size'] === $termsSize);
         self::assertCount($lines, $terms, sprintf('precondition: the %s terms take %d lines', $localeCode, $lines));
 
-        $divider = $this->dividerHeight($pdf);
+        $divider = $this->divider($pdf);
         foreach ($terms as $line) {
-            self::assertGreaterThan($line['y'] + $line['size'], $divider, sprintf('The divider runs through "%s"', $line['text']));
+            self::assertGreaterThan($line['y'] + $line['size'], $divider['y'], sprintf('The divider runs through "%s"', $line['text']));
         }
+
+        self::assertLessThan($this->brandMarkLeft($pdf), $divider['right'], 'The divider reaches the brand mark');
     }
 
     /**
@@ -214,15 +218,18 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
     {
         yield 'two lines of English' => ['en_US', 2];
         yield 'three lines of Danish' => ['da_DK', 3];
+        yield 'three lines of French' => ['fr_FR', 3];
     }
 
     /**
-     * How high the divider on the back is drawn, in the coordinates the text runs are in: the one line stroked in its
+     * Where the divider on the back is drawn, in the coordinates the text runs are in: the one line stroked in its
      * colour, #ddd8cc, as `x y m x y l S`
+     *
+     * @return array{y: float, right: float}
      */
-    private function dividerHeight(string $pdf): float
+    private function divider(string $pdf): array
     {
-        $heights = [];
+        $dividers = [];
 
         preg_match_all('#stream\r?\n(.*?)\r?\nendstream#s', $pdf, $streams);
         foreach ($streams[1] as $stream) {
@@ -231,16 +238,51 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
                 continue;
             }
 
-            preg_match_all('#0\.867 0\.847 0\.800 RG\s+(?:[^\n]*\bw\b[^\n]*\n)?\s*[\d.\-]+ ([\d.\-]+) m [\d.\-]+ ([\d.\-]+) l S#', $content, $matches, \PREG_SET_ORDER);
+            preg_match_all('#0\.867 0\.847 0\.800 RG\s+(?:[^\n]*\bw\b[^\n]*\n)?\s*[\d.\-]+ ([\d.\-]+) m ([\d.\-]+) ([\d.\-]+) l S#', $content, $matches, \PREG_SET_ORDER);
             foreach ($matches as $match) {
-                self::assertSame($match[1], $match[2], 'The divider should be horizontal');
-                $heights[] = (float) $match[1];
+                self::assertSame($match[1], $match[3], 'The divider should be horizontal');
+                $dividers[] = ['y' => (float) $match[1], 'right' => (float) $match[2]];
             }
         }
 
-        self::assertCount(1, $heights, 'The back should have exactly one divider');
+        self::assertCount(1, $dividers, 'The back should have exactly one divider');
 
-        return $heights[0];
+        return $dividers[0];
+    }
+
+    /**
+     * Where the brand mark in the corner of the back begins, in the coordinates the text runs are in: the leftmost point
+     * of the border stroked round its initial, in the mark's colour, #1c1b18
+     */
+    private function brandMarkLeft(string $pdf): float
+    {
+        $xs = [];
+        $page = 0;
+
+        preg_match_all('#stream\r?\n(.*?)\r?\nendstream#s', $pdf, $streams);
+        foreach ($streams[1] as $stream) {
+            $content = @gzuncompress($stream);
+            if (!is_string($content) || !str_contains($content, 'BT')) {
+                continue;
+            }
+
+            // the front has a brand mark of its own
+            if (2 !== ++$page) {
+                continue;
+            }
+
+            preg_match_all('#0\.110 0\.106 0\.094 RG\n(.*?)\n[^\n]*\b(?:RG|rg)\n#s', $content, $paths);
+            foreach ($paths[1] as $path) {
+                preg_match_all('#(-?[\d.]+) -?[\d.]+ [mlc]\b#', $path, $points);
+                foreach ($points[1] as $x) {
+                    $xs[] = (float) $x;
+                }
+            }
+        }
+
+        self::assertNotEmpty($xs, 'The back should have a brand mark');
+
+        return min($xs);
     }
 
     /**

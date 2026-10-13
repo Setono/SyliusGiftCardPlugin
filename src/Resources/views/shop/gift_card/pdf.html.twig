@@ -45,9 +45,10 @@
         .codebox { position: absolute; top: 126px; right: 42px; width: 210px; }
         .code-frame { border: 1px dashed #b9b3a5; border-radius: 6px; padding: 12px 6px; text-align: center; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; }
         /* The divider is the top border of the terms, so it moves up with them however many lines they take, rather
-           than running through the first lines of terms longer than two (#506). The terms span the width of the divider
-           and keep clear of the brand in the corner by their right padding, which leaves them as wide as they were */
-        .terms { position: absolute; left: 42px; right: 42px; bottom: 34px; padding-right: 178px; border-top: 1px solid #ddd8cc; font-size: 8.5px; line-height: 1.5; color: #8b8577; }
+           than running through the first lines of terms longer than two (#506). It spans the terms' column only: over the
+           brand in the corner, terms of one line would draw it through the brand mark, and dompdf gives this block no
+           minimum height that could keep it up there */
+        .terms { position: absolute; left: 42px; right: 220px; bottom: 34px; border-top: 1px solid #ddd8cc; font-size: 8.5px; line-height: 1.5; color: #8b8577; }
         .foot-brand { position: absolute; right: 42px; bottom: 34px; font-size: 9px; color: #4a463d; }
         .foot-brand .ssgc-card__mark { border-color: #1c1b18; color: #1c1b18; }
 
