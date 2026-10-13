@@ -33,7 +33,7 @@ CI runs `composer rector`, `composer lint:yaml`, `composer lint:twig` and `compo
 
 ## Test application
 
-`tests/Application/` contains a full Sylius app used as the kernel for PHPUnit (bootstrap `tests/Application/config/bootstrap.php`) and for manual/browser verification. Run its console with `(cd tests/Application && bin/console ...)`. It needs a MySQL database (`DATABASE_URL` in `tests/Application/.env`) and built assets (`yarn install && yarn build` inside tests/Application). Admin credentials after fixtures: username `sylius`, password `sylius`.
+`tests/Application/` contains a full Sylius app used as the kernel for PHPUnit (bootstrap `tests/Application/config/bootstrap.php`) and for manual/browser verification. Run its console with `(cd tests/Application && bin/console ...)`. Its test environment names uploaded images the way Sylius-Standard's does (`config/packages/test/sylius_uploader.yaml`, Sylius' Behat `UploadedImagePathGenerator`, which reads the client's original name), so code that hands an image to Sylius' uploader gives it an `UploadedFile`, as Sylius' own fixtures do, never a plain `File` (#501). It needs a MySQL database (`DATABASE_URL` in `tests/Application/.env`) and built assets (`yarn install && yarn build` inside tests/Application). Admin credentials after fixtures: username `sylius`, password `sylius`.
 
 **Always run the web server with `symfony serve`** (e.g. `(cd tests/Application && symfony serve -d --port=8080)`) — never `php -S` / `symfony php -S ... router.php`. `symfony serve` handles routing itself (no `router.php` needed) and serves from `public/` automatically.
 

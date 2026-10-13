@@ -11,7 +11,7 @@ use Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator;
 use Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface;
 use Sylius\Component\Core\Uploader\ImageUploaderInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
-use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
 use Twig\Environment;
 
@@ -457,7 +457,7 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
 
             $image = $imageFactory->createNew();
             $image->setType($type);
-            $image->setFile(new File($source));
+            $image->setFile(new UploadedFile($source, basename($source)));
             $design->addImage($image);
 
             $this->getImageUploader()->upload($image);
