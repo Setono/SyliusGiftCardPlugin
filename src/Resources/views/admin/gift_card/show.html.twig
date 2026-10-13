@@ -67,7 +67,14 @@
                             <td>
                                 {% set boughtWith = giftCard.order %}
                                 {% if boughtWith is null %}
-                                    -
+                                    {# Once the order is deleted, the card's issuance still names it by the number it
+                                       copied, which is also what keeps the card from being deleted #}
+                                    {% set issuance = giftCard.transactions|filter(transaction => transaction.type == constant('Setono\\SyliusGiftCardPlugin\\Model\\GiftCardTransactionInterface::TYPE_ISSUE') and transaction.orderNumber is not null)|first %}
+                                    {% if issuance %}
+                                        #{{ issuance.orderNumber }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
                                 {% elseif boughtWith.state == cartState %}
                                     {{ 'setono_sylius_gift_card.ui.in_cart'|trans }}
                                 {% else %}
@@ -172,7 +179,7 @@
                                     <td>
                                         {% if transaction.order %}
                                             <a href="{{ path('sylius_admin_order_show', {'id': transaction.order.id}) }}">#{{ transaction.order.number }}</a>
-                                        {% elseif transaction.orderNumber %}
+                                        {% elseif transaction.orderNumber is not null %}
                                             #{{ transaction.orderNumber }}
                                         {% else %}
                                             -

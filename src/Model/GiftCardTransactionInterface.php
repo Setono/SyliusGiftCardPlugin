@@ -47,7 +47,7 @@ interface GiftCardTransactionInterface extends ResourceInterface
      * null. It also keeps the issuance of a bought card telling it apart from one issued in the admin, which decides
      * whether the card may be deleted (GiftCardInterface::isDeletable()).
      *
-     * Null where getOrder() is, and for the rows written before the plugin kept the number
+     * Null for a row written without an order, and for the rows written before the plugin kept the number
      */
     public function getOrderNumber(): ?string;
 

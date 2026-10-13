@@ -247,15 +247,16 @@ final class GiftCardShowPageTest extends AdminFunctionalTestCase
     }
 
     /**
-     * A deleted order leaves its ledger rows without an order to link, but they keep naming it by the number they
-     * copied, as text since there is nothing left to link to (#494)
+     * A shop that purges old orders keeps the cards bought on them, with no unit left to lead to the order. The card's
+     * issuance still names the order by the number it copied, so the page says where the card came from, in its
+     * details and in its ledger, as text since there is nothing left to link to (#494)
      *
      * @test
      */
-    public function it_names_a_deleted_order_in_the_ledger_by_its_number(): void
+    public function it_names_the_deleted_order_a_card_was_bought_with_by_its_number(): void
     {
         $order = $this->persistOrder('000043');
-        $giftCard = $this->persistGiftCard('SHOWPAGELEDGER02', 5000);
+        $giftCard = $this->persistGiftCardBoughtWith($order, 'SHOWPAGEPURGED01');
 
         /** @var GiftCardBalanceOperatorInterface $balanceOperator */
         $balanceOperator = self::getContainer()->get(GiftCardBalanceOperatorInterface::class);
@@ -267,6 +268,9 @@ final class GiftCardShowPageTest extends AdminFunctionalTestCase
         $this->manager->clear();
 
         $response = $this->show($giftCard);
+
+        self::assertSame(['#000043'], $this->detail($response, 'Bought with order'));
+        self::assertSame([], self::textsOf($response, '//tr[td[1]/strong[normalize-space() = "Bought with order"]]/td[2]/a'), 'nothing is left to link to');
 
         $ledger = '//table[thead/tr/th[normalize-space() = "Created by"]]';
         self::assertSame(['Issued', '#000043', '-'], self::textsOf($response, $ledger . '/tbody/tr[1]/td[position() = 2 or position() >= 5]'));

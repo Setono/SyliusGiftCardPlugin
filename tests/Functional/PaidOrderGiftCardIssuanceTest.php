@@ -88,9 +88,13 @@ final class PaidOrderGiftCardIssuanceTest extends OrderLifecycleTestCase
      * intact and nothing else on its ledger, so its issuance keeps the number of the order that paid for it (#494)
      *
      * @test
+     *
+     * @dataProvider adapters
      */
-    public function a_paid_card_cannot_be_deleted_once_its_order_is_deleted(): void
+    public function a_paid_card_cannot_be_deleted_once_its_order_is_deleted(string $adapter): void
     {
+        $this->useStateMachineAdapter($adapter);
+
         $order = $this->createCart();
         $item = $this->addItem($order, 'GIFT_CARD', 5000, giftCard: true);
         $unit = $item->getUnits()->first();
