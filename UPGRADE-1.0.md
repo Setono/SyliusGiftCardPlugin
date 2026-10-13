@@ -55,11 +55,24 @@ UPDATE setono_sylius_gift_card__gift_card SET delivery_type = 'virtual' WHERE de
 UPDATE setono_sylius_gift_card__gift_card SET initial_amount = amount WHERE initial_amount IS NULL OR initial_amount = 0;
 ```
 
-The ledger table (see below) is new, so the cards bought on `0.12.x` have no issuance on it, while every card `1.0` issues for an order has one. Without it, `1.0` cannot tell a card a customer paid for from one issued in the admin or still waiting for its order to be paid. Once its order is deleted (the order item unit is now set to `NULL` rather than deleting the card), it can be deleted. Once it is disabled, it reads as pending, so the grid hides it and offers to delete it. Give every card bought on an order that was paid the issuance `1.0` would have written, naming the order, after `initial_amount` is populated:
+The ledger table (see below) is new, so the cards bought on `0.12.x` have no issuance on it, while every card `1.0` issues for an order has one. Without it, `1.0` cannot tell a card a customer paid for from one issued in the admin or still waiting for its order to be paid. Once its order is deleted (the order item unit is now set to `NULL` rather than deleting the card), it can be deleted. Once it is disabled, it reads as pending, so the grid hides it and offers to delete it. Give every card bought on an order that was paid the issuance `1.0` would have written, naming the order, after `initial_amount` is populated. On MySQL and MariaDB, where the ledger's `id` is `AUTO_INCREMENT`:
 
 ```sql
 INSERT INTO setono_sylius_gift_card__gift_card_transaction (gift_card_id, order_id, order_number, amount, type, idempotency_key, created_at)
 SELECT c.id, o.id, o.number, c.initial_amount, 'issue', CONCAT('issue-', c.code), c.created_at
+FROM setono_sylius_gift_card__gift_card c
+JOIN sylius_order_item_unit u ON u.id = c.order_item_unit_id
+JOIN sylius_order_item i ON i.id = u.order_item_id
+JOIN sylius_order o ON o.id = i.order_id
+WHERE o.payment_state IN ('paid', 'partially_refunded', 'refunded')
+AND NOT EXISTS (SELECT 1 FROM setono_sylius_gift_card__gift_card_transaction t WHERE t.gift_card_id = c.id);
+```
+
+On PostgreSQL, Doctrine ORM 2 gives the `id` a sequence rather than a default, so the statement takes each id from it. That also moves the sequence along, so the next ledger row the plugin writes does not collide with one of these. An application that has PostgreSQL use identity columns instead (Doctrine's `identity_generation_preferences`) runs the statement above as it is.
+
+```sql
+INSERT INTO setono_sylius_gift_card__gift_card_transaction (id, gift_card_id, order_id, order_number, amount, type, idempotency_key, created_at)
+SELECT nextval('setono_sylius_gift_card__gift_card_transaction_id_seq'), c.id, o.id, o.number, c.initial_amount, 'issue', CONCAT('issue-', c.code), c.created_at
 FROM setono_sylius_gift_card__gift_card c
 JOIN sylius_order_item_unit u ON u.id = c.order_item_unit_id
 JOIN sylius_order_item i ON i.id = u.order_item_id
