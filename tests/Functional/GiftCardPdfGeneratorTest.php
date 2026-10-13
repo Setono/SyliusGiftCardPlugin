@@ -9,6 +9,9 @@ use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Pdf\DompdfGiftCardPdfGenerator;
 use Setono\SyliusGiftCardPlugin\Pdf\GiftCardPdfGeneratorInterface;
+use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
+use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
+use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
 use Sylius\Component\Core\Uploader\ImageUploaderInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -166,6 +169,78 @@ final class GiftCardPdfGeneratorTest extends GiftCardFunctionalTestCase
         // the layout's 42px gutter on its 560px wide grid, i.e. 7.5% of the page - on both page sizes
         self::assertEqualsWithDelta(0.075, $this->leftmostTextOffset($a6) / 419.53, 0.005);
         self::assertEqualsWithDelta(0.075, $this->leftmostTextOffset($a4) / 841.89, 0.005);
+    }
+
+    /**
+     * The divider on the back used to be positioned on its own, as high as two lines of terms, so terms of three lines
+     * ran through it, as the plugin's own Danish terms of a card that expires do (#506). It is the top border of the
+     * terms now, above every line of them however many there are
+     *
+     * @test
+     *
+     * @dataProvider termsLocales
+     */
+    public function it_keeps_the_divider_above_every_line_of_the_terms(string $localeCode, int $lines): void
+    {
+        $giftCard = $this->createGiftCard();
+        $giftCard->setExpiresAt(new \DateTime('2029-10-13'));
+        // the PDF is in the language of the order the card was bought with
+        $order = new Order();
+        $order->setLocaleCode($localeCode);
+        $item = new OrderItem();
+        $order->addItem($item);
+        $giftCard->setOrderItemUnit(new OrderItemUnit($item));
+
+        $pdf = $this->generatePdf($giftCard, 'A6');
+
+        $back = array_values(array_filter($this->textRuns($pdf), static fn (array $run): bool => 2 === $run['page']));
+        $sizes = array_column($back, 'size');
+        self::assertNotEmpty($sizes, 'The back should have text');
+        // the terms are the smallest type on the back
+        $termsSize = min($sizes);
+        $terms = array_filter($back, static fn (array $run): bool => $run['size'] === $termsSize);
+        self::assertCount($lines, $terms, sprintf('precondition: the %s terms take %d lines', $localeCode, $lines));
+
+        $divider = $this->dividerHeight($pdf);
+        foreach ($terms as $line) {
+            self::assertGreaterThan($line['y'] + $line['size'], $divider, sprintf('The divider runs through "%s"', $line['text']));
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string, int}>
+     */
+    public static function termsLocales(): iterable
+    {
+        yield 'two lines of English' => ['en_US', 2];
+        yield 'three lines of Danish' => ['da_DK', 3];
+    }
+
+    /**
+     * How high the divider on the back is drawn, in the coordinates the text runs are in: the one line stroked in its
+     * colour, #ddd8cc, as `x y m x y l S`
+     */
+    private function dividerHeight(string $pdf): float
+    {
+        $heights = [];
+
+        preg_match_all('#stream\r?\n(.*?)\r?\nendstream#s', $pdf, $streams);
+        foreach ($streams[1] as $stream) {
+            $content = @gzuncompress($stream);
+            if (!is_string($content)) {
+                continue;
+            }
+
+            preg_match_all('#0\.867 0\.847 0\.800 RG\s+(?:[^\n]*\bw\b[^\n]*\n)?\s*[\d.\-]+ ([\d.\-]+) m [\d.\-]+ ([\d.\-]+) l S#', $content, $matches, \PREG_SET_ORDER);
+            foreach ($matches as $match) {
+                self::assertSame($match[1], $match[2], 'The divider should be horizontal');
+                $heights[] = (float) $match[1];
+            }
+        }
+
+        self::assertCount(1, $heights, 'The back should have exactly one divider');
+
+        return $heights[0];
     }
 
     /**
