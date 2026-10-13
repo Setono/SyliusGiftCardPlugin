@@ -9,7 +9,6 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverage;
-use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
 use Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface;
@@ -38,9 +37,6 @@ final class GiftCardRedemptionRuntimeTest extends TestCase
     /** @var ObjectProphecy<GiftCardPaymentCheckerInterface> */
     private ObjectProphecy $paymentChecker;
 
-    /** @var ObjectProphecy<GiftCardCoverageCalculatorInterface> */
-    private ObjectProphecy $coverageCalculator;
-
     /** @var ObjectProphecy<GiftCardCurrencyProviderInterface> */
     private ObjectProphecy $currencyProvider;
 
@@ -48,21 +44,20 @@ final class GiftCardRedemptionRuntimeTest extends TestCase
     {
         $this->redemptionMethod = $this->prophesize(GiftCardRedemptionMethodInterface::class);
         $this->paymentChecker = $this->prophesize(GiftCardPaymentCheckerInterface::class);
-        $this->coverageCalculator = $this->prophesize(GiftCardCoverageCalculatorInterface::class);
         $this->currencyProvider = $this->prophesize(GiftCardCurrencyProviderInterface::class);
     }
 
     /**
      * The cart shows a card held in the currency the customer browses in by what it gives in that currency, which the
-     * coverage tells (#488)
+     * coverage tells (#488). It is the redemption method's, which knows what the cards of a placed order paid (#498)
      *
      * @test
      */
-    public function it_hands_the_cart_the_coverage_of_the_order(): void
+    public function it_hands_the_cart_the_coverage_the_redemption_method_tells(): void
     {
         $order = $this->order(10000);
         $coverage = new GiftCardCoverage([]);
-        $this->coverageCalculator->calculate($order)->willReturn($coverage);
+        $this->redemptionMethod->getCoverage($order)->willReturn($coverage);
 
         self::assertSame($coverage, $this->runtime()->getCoverage($order));
     }
@@ -189,7 +184,6 @@ final class GiftCardRedemptionRuntimeTest extends TestCase
             $this->redemptionMethod->reveal(),
             $this->prophesize(FormFactoryInterface::class)->reveal(),
             $this->paymentChecker->reveal(),
-            $this->coverageCalculator->reveal(),
             $this->currencyProvider->reveal(),
         );
     }

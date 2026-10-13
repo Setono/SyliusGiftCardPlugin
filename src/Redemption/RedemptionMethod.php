@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Redemption;
 
+use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverage;
 use Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\OrderInterface;
@@ -35,13 +36,22 @@ abstract class RedemptionMethod implements GiftCardRedemptionMethodInterface
         $this->orderProcessor->process($order);
     }
 
+    /**
+     * What the cards' balances cover now. A redemption method that records what the cards paid when the order was
+     * placed tells that instead for a placed order
+     */
+    public function getCoverage(OrderInterface $order): GiftCardCoverage
+    {
+        return $this->coverageCalculator->calculate($order);
+    }
+
     public function getCoveredAmount(OrderInterface $order): int
     {
-        return $this->coverageCalculator->calculate($order)->getTotal();
+        return $this->getCoverage($order)->getTotal();
     }
 
     public function getCoveredAmountByGiftCard(OrderInterface $order, GiftCardInterface $giftCard): int
     {
-        return $this->coverageCalculator->calculate($order)->getAmountForGiftCard($giftCard);
+        return $this->getCoverage($order)->getAmountForGiftCard($giftCard);
     }
 }

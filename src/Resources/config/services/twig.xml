@@ -22,7 +22,6 @@
             <argument type="service" id="setono_sylius_gift_card.redemption_method"/>
             <argument type="service" id="form.factory"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Payment\GiftCardPaymentCheckerInterface"/>
-            <argument type="service" id="Setono\SyliusGiftCardPlugin\Calculator\GiftCardCoverageCalculatorInterface"/>
             <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface"/>
 
             <tag name="twig.runtime"/>
