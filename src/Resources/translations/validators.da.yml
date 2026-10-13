@@ -37,12 +37,12 @@ setono_sylius_gift_card:
             boolean: Send notifikationsmail skal være en boolsk værdi
         could_not_be_applied: Gavekortet kunne ikke tilføjes til din ordre.
         already_applied: Dette gavekort er allerede tilføjet til din ordre.
-        adjustment_makes_balance_negative: 'Du kan ikke trække mere fra, end gavekortet indeholder. Saldoen er {{ balance }}.'
-        adjustment_makes_balance_too_large: 'Et gavekort kan ikke rumme mere end {{ maximum }}. Saldoen er {{ balance }}.'
+        adjustment_makes_balance_negative: 'Du kan ikke trække mere fra, end gavekortet indeholder. Saldoen er {{ balance }}'
+        adjustment_makes_balance_too_large: 'Et gavekort kan højst rumme {{ maximum }}, og saldoen er {{ balance }}'
     gift_card_information:
         amount:
-            too_low: 'Gavekortets beløb skal være mindst {{ minimum }}.'
-            too_high: 'Gavekortets beløb må ikke være mere end {{ maximum }}.'
+            too_low: 'Gavekortets beløb skal være mindst {{ minimum }}'
+            too_high: 'Gavekortets beløb må ikke være mere end {{ maximum }}'
             too_large: Gavekortets beløb er større, end et gavekort kan rumme.
         currency_code:
             not_offered: 'Gavekort kan ikke købes i denne valuta her. Kontrollér venligst beløbet, og prøv igen.'
