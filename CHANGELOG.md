@@ -28,16 +28,29 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - A status for every gift card (`GiftCardInterface::getStatus()`: usable, expired, spent, pending or disabled), shown
   in the admin gift card grid in place of the enabled column and on the card's page
 - Admin gift card grid filters by customer email, channel, currency, delivery type, expired, spent and creation date,
-  and sorting by customer and amount. Pending cards stay hidden until the admin asks for them through the grid's
-  *Pending gift cards* filter, which is what hides them: `GiftCardRepositoryInterface::createListQueryBuilder()`
-  lists every card. Deleting is only offered for a card that may be deleted, and the gift card and design routes
-  register no bulk delete
+  and sorting by customer, amount and delivery type. Pending cards stay hidden until the admin asks for them through
+  the grid's *Pending gift cards* filter, which is what hides them:
+  `GiftCardRepositoryInterface::createListQueryBuilder()` lists every card. Deleting is only offered for a card that
+  may be deleted, and the gift card and design routes register no bulk delete
 - The admin gift card page links the order the card was bought with, the orders it was applied to and its design
 - The admin design grid sorts by name and lists each design's channels
-- Admin outstanding-balance dashboard, aggregating the balance of all usable gift cards per currency in SQL
+- Admin outstanding-balance report, aggregating the balance of all usable gift cards per currency in SQL
 - One-click **Create gift card product** admin scaffold, building the delivery option and both variants
+- `bin/console setono:gift-card:create-default-design`, which creates the bundled "Classic" design and adds it to every
+  channel it is not in yet, so it can be run again after a channel is added, and the `setono_gift_card_design` fixture
+- A setup warning in the top bar of every admin page while gift cards are at stake and something they need is missing:
+  an enabled design in a channel that sells gift cards, or the gift card payment method (see *Changed*)
 - Live preview on the gift card product page — the chosen design with the amount and message overlaid,
-  updating as the customer types
+  updating as the customer types. The amount field starts out at the gift card product's price, so the price is the
+  amount the shop suggests
+- What the applied gift cards cover and what remains to pay, below the order total in the cart and on every checkout
+  step, and, on the thank you page of an order the gift cards pay in part, the instructions for paying the rest. The
+  `setono_gift_card_covered_amount()`, `setono_gift_card_remaining_total()`, `setono_gift_card_coverage()` and
+  `setono_gift_card_remaining_payment()` Twig functions give the same figures to an application's own templates
+- The entity traits carry their Doctrine mapping as PHP 8 attributes as well as annotations, so they work in an
+  application that maps its entities with attributes, as Sylius-Standard does
+- `code_length`, `minimum_code_length`, `default_validity_period` and the purchase limits can be taken from environment
+  variables
 - A shop page of its own for a gift card product (`@SetonoSyliusGiftCardPlugin/shop/product/show.html.twig`), in
   place of Sylius' product page: the live preview of the card, and next to it the delivery type (when the product
   offers both), the amount, the design, the message and the quantity in Sylius' add to cart form. Sylius' image
@@ -61,19 +74,55 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   card payments instead
 - The customer always chooses the amount, within a configurable minimum and maximum. The
   `giftCardAmountConfigurable` product flag is gone — a product is a gift card product or it is not
-- Requires Sylius `1.13` and up, PHP `>= 8.1` and Symfony `^6.4` (Symfony 5.4 support dropped)
+- Requires Sylius `1.13` and up, PHP `>= 8.1` and Symfony `^6.4` (Symfony 5.4 support dropped), with symfony/form
+  `6.4.31` and up, from which a line break in a gift card message counts as one character
 - Conflicts with `twig/twig` `>=3.29`. On Twig 3.29 and newer, `sylius/mailer-bundle` up to 2.2.0 fails every email
   it sends, and the release that fixes it (2.2.1) requires PHP 8.2. The conflict stays until PHP 8.1 support is
   dropped; until then, `composer require` the plugin with `-W` where Twig 3.29 or newer is locked (see the README)
-- The plugin auto-configures the state machine, grids, UI events, emails and image filters via `prepend()`;
-  host applications no longer import any bundle configuration manually
+- The plugin auto-configures the state machine, grids, UI events, emails, image filters and rate limiters via
+  `prepend()`; host applications no longer import any bundle configuration manually
+- The admin routes sit under the application's admin path (`/%sylius_admin.path_name%`, behind the admin firewall)
+  instead of always under `/admin`. On the default admin path nothing moves
+- The **Gift card** checkbox on the admin product form is rendered by a block on `sylius.admin.product.tab_details`, so
+  the override of `@SyliusAdmin/Product/Tab/_details.html.twig` that 0.12 asked for is no longer needed
+- The plugin's services are registered under their class and their interface, and use each other through their
+  interfaces, so a decorator registered on an interface reaches the whole plugin, the state machine callbacks included.
+  The dotted ids 0.12 gave its services are gone; only the resource services keep theirs
+  (`setono_sylius_gift_card.repository.gift_card` and so on)
+- The plugin's templates, routes, emails, grids, state machine callbacks and translation keys were renamed or
+  rebuilt; `UPGRADE-1.0.md` lists them
+- Gift cards no longer pay for gift cards: what they may pay for leaves the gift card lines out
+  (`EligibleTotalCalculatorInterface`, replacing `OrderEligibleTotalProviderInterface`)
 - Gift card codes are generated in a grouped, unambiguous format (the alphabet excludes `0`, `O`, `1`, `I`
   and `L`), and lookups normalise case, dashes and spaces
+- A code is a bearer token, so every card is issued with a code of at least 12 significant characters: `code_length`
+  (16 by default, was 20) cannot be set below 12, and the new `minimum_code_length` holds a code typed in the admin or
+  given to the fixture to it too. Codes already issued keep working whatever their length
+- Applying a code is rate limited, per session and per client IP. Every code that cannot be used gets the same message,
+  whatever the reason, and the reason is logged with the code masked. The constraint is `GiftCardIsEligible`, with the
+  options `message` and `alreadyAppliedMessage`
+- The validity period is the `default_validity_period` setting, 3 years unless configured otherwise, rather than a
+  setting of each gift card configuration, which was empty by default so cards never expired. A bought card's period
+  counts from checkout completion rather than from when it was put in the cart
+- A physical gift card is no longer emailed with its code and PDF when its order is paid, as that would make it
+  spendable before it arrives: the email says it will be shipped. `delivery.email_physical_cards: true` emails them
+  anyway. The admin's **Send email** always includes them, and is only offered for a card the customer can use
 - `initialAmount` is set explicitly rather than seeded implicitly
+- Every column the plugin maps is named explicitly, whatever naming strategy the application configures; see
+  `UPGRADE-1.0.md` for the renames this can mean
 - PDFs render with `dompdf` — a normal Composer dependency — replacing the wkhtmltopdf/Snappy binary, and the
   template is an ordinary overridable Twig file rather than Twig stored in the database
-- Balances are committed when the order is placed and restored when it is cancelled or refunded, and every
-  mutation goes through the balance operator
+- Balances are committed when the order is placed and restored, once per payment, when the gift card payment is
+  refunded (cancelling the order refunds it), and every mutation goes through the balance operator. The cards an order
+  bought are disabled when it is cancelled or refunded in full
+- The checkout checks the applied gift cards again at its last step: a card that can no longer be used is taken off,
+  and a card that covers less than it did stays on for what it still holds; either way the customer is sent back to
+  the cart to pay the rest by other means
+- An order the gift cards pay in part stays *awaiting payment* until the rest is paid (Sylius alone would call it
+  *partially paid*), so the customer can pay the rest from Sylius' shop and Sylius' unpaid order expiry cancels it.
+  With a payment provider that captures later, it is *authorized* once the rest is authorized, and *partially
+  authorized* until then. The plugin decorates `sylius.state_resolver.order_payment` for this. Until such an order is
+  paid, its gift card payment cannot be refunded on its own: cancelling the order gives the cards their balance back
 - Promotions never discount a gift card line, so a card costs and holds exactly the amount chosen: unit
   discounts skip it, an order discount is taken from the other items only, and a gift card being bought no
   longer counts towards a promotion's "item total" rule. Promotions a shop already runs behave differently:
@@ -88,7 +137,7 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   `bin/console setono:gift-card:create-payment-method` in a deploy, or with the `setono_gift_card_payment_method`
   fixture; until it exists the shop refuses gift cards and every admin page warns about it. It is created in no channel,
   which is all it needs: gift card payments are made with it in every channel whichever channels it is in, and in a
-  channel Sylius RefundPlugin would list it as a refund destination. Its create and edit pages in the admin explain this
+  channel Sylius RefundPlugin would list it as a refund destination. Its edit page in the admin explains this
 - The gift card payment method's **Enabled** switch stops gift cards being redeemed: while the method is disabled the
   shop refuses gift cards as it does while the method is missing, and every admin page says so, with a link to the
   method's edit page. Gift card payments already made, and refunding them, are not affected
@@ -104,11 +153,20 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 ### Removed
 - **The API layer** — the whole API Platform / `sylius/api-bundle` integration. Stay on `0.12.x` if you need it
 - The `GiftCardConfiguration` entity family, along with the database-stored PDF template and its live editor
-- The public balance-lookup page and the shop account "my gift cards" section
+- The public balance-lookup page, the shop account "my gift cards" section and the shop's PDF download
 - The `origin` property on gift cards
 - `OrderRepositoryTrait` and `Repository\OrderRepositoryInterface`: nothing in the plugin used their queries any
   more, so an application no longer overrides Sylius' order repository for the plugin
 - The Behat and phpspec suites, replaced by PHPUnit and Playwright
+
+### Fixed
+- With an admin path other than `/admin`, 0.12 served the plugin's admin pages outside the admin firewall, where
+  anyone could open them, the gift card list with every code included. They now sit under the admin path, behind the
+  firewall (see *Changed* and `UPGRADE-1.0.md`)
+- The add to cart form checks the stock (Sylius' `CartItemAvailability`, now mapped on `AddToCartCommandInterface`).
+  0.12 mapped it on a container parameter the validator does not resolve, so the check never ran
+- Applying or removing a gift card only redirects back to the `Referer` when it is on the shop's own host; 0.12 followed
+  any `Referer`
 
 ## 0.6.0
 
