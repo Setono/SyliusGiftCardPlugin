@@ -8,6 +8,8 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Setono\SyliusGiftCardPlugin\Payment\VirtualGiftCardOrderPaymentCapturer;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItem;
@@ -113,9 +115,61 @@ final class VirtualGiftCardOrderPaymentCapturerTest extends TestCase
         $this->stateMachine->apply(Argument::cetera())->shouldNotHaveBeenCalled();
     }
 
-    private function capturer(bool $enabled): VirtualGiftCardOrderPaymentCapturer
+    /**
+     * A payment plugin captures in a callback before the payment is completed, and throws when the provider refuses
+     * the capture. The authorization it runs within has to be saved all the same, so the failure is logged rather than
+     * thrown, and the payment stays authorized (#511)
+     *
+     * @test
+     */
+    public function it_logs_a_failed_capture_and_leaves_the_payment_authorized(): void
     {
-        return new VirtualGiftCardOrderPaymentCapturer($this->stateMachine->reveal(), $enabled);
+        $payment = self::authorizedPaymentOf([self::VIRTUAL_GIFT_CARD]);
+        $payment->getOrder()?->setNumber('000000042');
+        $this->stateMachine->apply($payment, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_COMPLETE)
+            ->willThrow(new \RuntimeException('The capture was refused'));
+        $logger = $this->prophesize(LoggerInterface::class);
+
+        $this->capturer(true, $logger->reveal())->capture($payment);
+
+        self::assertSame(PaymentInterface::STATE_AUTHORIZED, $payment->getState());
+        $logger->error(
+            Argument::that(static fn (string $message): bool => str_contains($message, 'order 000000042') && str_contains($message, 'The capture was refused')),
+            Argument::withKey('exception'),
+        )->shouldHaveBeenCalledOnce();
+    }
+
+    /**
+     * Once the payment is completed the capture went through, so what fails after it, in paying the order, say, is
+     * no failed capture: it is thrown, so the transitions it broke off are not saved half applied
+     *
+     * @test
+     */
+    public function it_throws_what_fails_after_the_payment_is_completed(): void
+    {
+        $payment = self::authorizedPaymentOf([self::VIRTUAL_GIFT_CARD]);
+        $failure = new \RuntimeException('The email could not be sent');
+        $this->stateMachine->apply($payment, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_COMPLETE)
+            ->will(static function () use ($payment, $failure): never {
+                $payment->setState(PaymentInterface::STATE_COMPLETED);
+
+                throw $failure;
+            });
+        $logger = $this->prophesize(LoggerInterface::class);
+
+        try {
+            $this->capturer(true, $logger->reveal())->capture($payment);
+            self::fail('the failure should have been thrown');
+        } catch (\RuntimeException $exception) {
+            self::assertSame($failure, $exception);
+        }
+
+        $logger->error(Argument::cetera())->shouldNotHaveBeenCalled();
+    }
+
+    private function capturer(bool $enabled, LoggerInterface $logger = new NullLogger()): VirtualGiftCardOrderPaymentCapturer
+    {
+        return new VirtualGiftCardOrderPaymentCapturer($this->stateMachine->reveal(), $enabled, $logger);
     }
 
     /**

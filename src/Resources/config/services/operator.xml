@@ -19,6 +19,7 @@
         <service id="Setono\SyliusGiftCardPlugin\Payment\VirtualGiftCardOrderPaymentCapturer">
             <argument type="service" id="sylius_abstraction.state_machine"/>
             <argument>%setono_sylius_gift_card.delivery.capture_virtual_orders%</argument>
+            <argument type="service" id="logger" on-invalid="null"/>
         </service>
         <!-- public because the winzou state machine calls it, by this interface, like the operator above -->
         <service id="Setono\SyliusGiftCardPlugin\Payment\VirtualGiftCardOrderPaymentCapturerInterface"

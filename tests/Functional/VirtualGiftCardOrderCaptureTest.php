@@ -4,15 +4,22 @@ declare(strict_types=1);
 
 namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
+use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardTransactionInterface;
 use Setono\SyliusGiftCardPlugin\Payment\VirtualGiftCardOrderPaymentCapturer;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\Order;
 use Setono\SyliusGiftCardPlugin\Tests\Application\Model\OrderItemUnit;
+use SM\Event\SMEvents;
+use SM\Event\TransitionEvent;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Payment\PaymentTransitions;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Mime\Email;
 
 /**
@@ -24,6 +31,8 @@ use Symfony\Component\Mime\Email;
  */
 final class VirtualGiftCardOrderCaptureTest extends OrderLifecycleTestCase
 {
+    use ProphecyTrait;
+
     /**
      * @test
      *
@@ -76,6 +85,34 @@ final class VirtualGiftCardOrderCaptureTest extends OrderLifecycleTestCase
     }
 
     /**
+     * A payment plugin that captures on completion throws, before the payment is completed, when the provider refuses
+     * the capture or cannot be reached. The provider still holds the customer's money, so the authorization has to be
+     * saved all the same: the order stays authorized, as it does without the setting, for the shop to capture it by
+     * hand, and no card is issued until then (#511)
+     *
+     * @test
+     *
+     * @dataProvider adapters
+     */
+    public function a_capture_that_fails_leaves_the_order_authorized(string $adapter): void
+    {
+        $this->useStateMachineAdapter($adapter);
+        $logger = $this->prophesize(LoggerInterface::class);
+        $this->captureVirtualOrders($logger->reveal());
+        [$order, $giftCard, $payment] = $this->placeOrderBuyingAGiftCard('CAPTURED00000004');
+        $this->failCaptures();
+
+        $this->apply($payment, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_AUTHORIZE);
+
+        $this->assertWaitingForTheCapture($order, $giftCard, $payment);
+        $logger->error(Argument::containingString(sprintf('order %s', (string) $order->getNumber())), Argument::withKey('exception'))->shouldHaveBeenCalledOnce();
+
+        $order = $this->reload($order);
+        self::assertSame(OrderPaymentStates::STATE_AUTHORIZED, $order->getPaymentState(), 'the authorization should have been saved');
+        self::assertSame(PaymentInterface::STATE_AUTHORIZED, $order->getLastPayment()?->getState());
+    }
+
+    /**
      * Completing a payment only charges the customer with a payment plugin that captures on completion, so nothing is
      * completed unless the shop asks for it
      *
@@ -97,13 +134,32 @@ final class VirtualGiftCardOrderCaptureTest extends OrderLifecycleTestCase
      * Configures the application the way delivery.capture_virtual_orders: true does, before anything has used the
      * capturer. After useStateMachineAdapter(), whose state machine the capturer applies the transition through
      */
-    private function captureVirtualOrders(): void
+    private function captureVirtualOrders(LoggerInterface $logger = new NullLogger()): void
     {
         $container = self::getContainer();
 
         /** @var StateMachineInterface $stateMachine */
         $stateMachine = $container->get('sylius_abstraction.state_machine');
-        $container->set(VirtualGiftCardOrderPaymentCapturer::class, new VirtualGiftCardOrderPaymentCapturer($stateMachine, true));
+        $container->set(VirtualGiftCardOrderPaymentCapturer::class, new VirtualGiftCardOrderPaymentCapturer($stateMachine, true, $logger));
+    }
+
+    /**
+     * Has completing a payment fail the way a payment plugin that captures on completion fails when the provider refuses
+     * the capture: before the payment's state changes, as a winzou callback before the transition or a Symfony Workflow
+     * listener on the transition does
+     */
+    private function failCaptures(): void
+    {
+        /** @var EventDispatcherInterface $dispatcher */
+        $dispatcher = self::getContainer()->get('event_dispatcher');
+        $dispatcher->addListener(SMEvents::PRE_TRANSITION, static function (TransitionEvent $event): void {
+            if (PaymentTransitions::GRAPH === $event->getStateMachine()->getGraph() && PaymentTransitions::TRANSITION_COMPLETE === $event->getTransition()) {
+                throw new \RuntimeException('The payment provider refused the capture');
+            }
+        });
+        $dispatcher->addListener(sprintf('workflow.%s.transition.%s', PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_COMPLETE), static function (): void {
+            throw new \RuntimeException('The payment provider refused the capture');
+        });
     }
 
     /**
