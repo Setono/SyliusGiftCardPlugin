@@ -18,7 +18,8 @@ interface VirtualGiftCardOrderPaymentCapturerInterface
      * order is a gift card on a variant that requires no shipping, completes the payment, which a payment plugin that
      * captures on completion (setono/sylius-quickpay-plugin, say) captures at the gateway. Completing it pays the order,
      * and paying the order issues and emails its cards as always. The cards are never issued on the authorization
-     * itself: an authorization is a hold that can lapse or be cancelled, while a code that has been sent can be spent
+     * itself: an authorization is a hold that can lapse or be cancelled, while a code that has been sent can be spent.
+     * A capture that fails, before the payment is completed, leaves the payment and its order authorized, and is logged
      */
     public function capture(PaymentInterface $payment): void;
 }
