@@ -13,7 +13,7 @@ Version `1.0` is a ground-up rewrite. It is a **clean break**: there is no autom
 
 `0.12.x` paid an order with a gift card through a negative `order_gift_card` adjustment, and took the balance off the card when the order was placed. `1.0` pays with a gift card through a payment and knows nothing of those adjustments, so the orders in progress when you upgrade need attention.
 
-**Open carts.** `0.12.x` had Sylius remove the `order_gift_card` adjustments every time it recalculated a cart, and added them again. `1.0` does neither: a cart that has a gift card applied when you upgrade keeps its adjustment for good, while the card is still applied to it, so when the order is placed the card pays as a payment as well, and the customer gets the amount off twice. Upgrade while no customer is checking out, and remove the adjustments from carts, together with what they took off their totals (MySQL syntax):
+**Open carts.** `0.12.x` had Sylius remove the `order_gift_card` adjustments every time it recalculated a cart, and added them again. `1.0` does neither: a cart that has a gift card applied when you upgrade keeps its adjustment for good, while the card is still applied to it, so when the order is placed the card pays as a payment as well, and the customer gets the amount off twice. Remove the adjustments from carts, together with what they took off their totals (MySQL syntax):
 
 ```sql
 UPDATE sylius_order o
@@ -23,6 +23,8 @@ WHERE o.state = 'cart';
 
 DELETE a FROM sylius_adjustment a JOIN sylius_order o ON o.id = a.order_id WHERE a.type = 'order_gift_card' AND o.state = 'cart';
 ```
+
+When this runs decides whether it works, so do not run it ahead of the upgrade. Run it in the deploy, while neither version serves the shop (with the shop in maintenance mode, say): the migration `doctrine:migrations:diff` generates (see [Entity / schema changes](#entity--schema-changes)) is a good place for it. Run while `0.12.x` still serves the shop, it is undone as soon as the customer changes the cart or goes on with the checkout, as `0.12.x` adds the adjustment back every time it processes a cart. Run once `1.0` serves the shop, it comes too late for a customer who places the order first.
 
 The cards stay applied to the carts, and pay as payments once the orders are placed.
 
@@ -68,7 +70,9 @@ Two changes deserve a closer look, because a gift card code is a bearer token (w
 
 `@SetonoSyliusGiftCardPlugin/Resources/config/routes.yaml` now puts the admin routes under your admin path (`/%sylius_admin.path_name%`, which `SYLIUS_ADMIN_ROUTING_PATH_NAME` sets), where `0.12.x` always put them under `/admin`. So does `@SetonoSyliusGiftCardPlugin/Resources/config/routes_no_locale.yaml`, which a shop whose URLs carry no locale keeps importing instead, and which still puts the shop routes at the root of the shop. On the default admin path nothing moves.
 
-If your admin lives somewhere else, you will find the plugin's admin pages under your admin path, whichever of the two files you import: for an admin at `/backoffice`, `/admin/gift-cards/...` becomes `/backoffice/gift-cards/...` and `/admin/ajax/customer/...` becomes `/backoffice/ajax/customer/...`. Update any link or bookmark to the old addresses. Those were outside the admin firewall, where the customer search answered anyone and a signed in shop customer could download the PDF, with its code, of any card without a customer; under your admin path they sit behind it with the rest of the admin.
+If your admin lives somewhere else, you will find the plugin's admin pages under your admin path, whichever of the two files you import: for an admin at `/backoffice`, `/admin/gift-cards/...` becomes `/backoffice/gift-cards/...` and `/admin/ajax/customer/...` becomes `/backoffice/ajax/customer/...`. Update any link or bookmark to the old addresses. Under your admin path the pages sit behind the admin firewall with the rest of the admin.
+
+**With an admin path other than `/admin`, the gift card pages of `0.12.x` were open to anyone.** Their addresses were outside the admin firewall and outside Sylius' access control, which both cover only your admin path, and their `permission: true` does nothing with ResourceBundle's default authorization checker. Unless a security configuration of your own covered `/admin`, a visitor who was not signed in could list every gift card with its code, create, edit and delete cards and gift card configurations, resend a card's email and search your customers, and a signed in shop customer could download the PDF, with its code, of any card without a customer. If your shop ran that way, look in your access logs for requests to `/admin/gift-cards` and `/admin/ajax` from addresses that are not your administrators'.
 
 If you imported the plugin's route files yourself, to get the admin pages under your admin path or because `routes_no_locale.yaml` was missing from `1.x` development versions for a while, you can go back to importing `routes.yaml` or `routes_no_locale.yaml`.
 
@@ -119,7 +123,14 @@ On a database that refuses to add a `NOT NULL` column without a default to a tab
 UPDATE setono_sylius_gift_card__gift_card SET initial_amount = amount WHERE initial_amount = 0;
 ```
 
-**Codes** are looked up in capitals, with anything but letters and digits left out, the way a customer's typing is normalized. `0.12.x` generated codes that way, but stored a code an admin typed as it was typed, so such a code in lowercase or with dashes or spaces can no longer be found. Store those normalized, after checking that no two codes then collide (the unique index refuses the update if they do). This takes care of case, dashes and spaces; look for any other character yourself:
+**Codes** are looked up in capitals, with anything but letters and digits left out, the way a customer's typing is normalized. `0.12.x` generated codes that way, but stored a code an admin typed as it was typed, so such a code with dashes or spaces can no longer be found. One in lowercase can no longer be found on a database that compares text case sensitively, as PostgreSQL does; MySQL and MariaDB, with the case insensitive collations they and Sylius-Standard default to, still find it. Store those codes normalized either way, as the ledger rows below carry the code. First check that no two codes collide once normalized, as the unique index refuses the update if they do. This lists those that would:
+
+```sql
+SELECT UPPER(REPLACE(REPLACE(code, '-', ''), ' ', '')) AS normalized_code, COUNT(*)
+FROM setono_sylius_gift_card__gift_card GROUP BY normalized_code HAVING COUNT(*) > 1;
+```
+
+Then normalize them. This takes care of case, dashes and spaces; look for any other character yourself:
 
 ```sql
 UPDATE setono_sylius_gift_card__gift_card SET code = UPPER(REPLACE(REPLACE(code, '-', ''), ' ', ''));
@@ -202,7 +213,15 @@ The validation groups of the plugin's forms are parameters named after the form'
 
 ## Template overrides
 
-The `0.12.x` README had you copy templates from its test application. Remove those copies: they refer to what no longer exists, so they break pages rather than merely being unnecessary. That is every override that reads the `AdjustmentInterface::ORDER_GIFT_CARD_ADJUSTMENT` constant (the shop's `Cart/summary.html.twig`, `Cart/Summary/_totals.html.twig`, `Checkout/_summary.html.twig` and `Common/Order/Table/_totals.html.twig`, and the admin's `Order/Show/Summary/_totals.html.twig`), includes `@SetonoSyliusGiftCardPlugin/Cart/_giftCard.html.twig` (the shop's `Cart/Summary/_items.html.twig`), or links to a removed route (the shop's `layout.html.twig`, whose link to the balance search breaks every shop page). The admin's `Form/imagesTheme.html.twig` only styled the images of the gift card configurations, which are gone. The cart apply box and totals are now injected via `sylius_ui` events, so most host-app template overrides are no longer necessary.
+The `0.12.x` README had you copy templates from its test application. Remove those copies: they refer to what no longer exists, so they break pages rather than merely being unnecessary. You can tell them by what they pull in from the plugin, and searching your `templates/` directory for `setonosyliusgiftcardplugin` and `setono_sylius_gift_card`, ignoring case, finds every one of them:
+
+- The shop's `Cart/Summary/_totals.html.twig`, `Checkout/_summary.html.twig` and `Common/Order/Table/_totals.html.twig`, and the admin's `Order/Show/Summary/_totals.html.twig`, include the plugin's templates under `@SetonoSyliusGiftCardPlugin/templates/bundles/`, which `1.0` no longer has, so those pages fail with `Unable to find template`
+- The shop's `Cart/Summary/_items.html.twig` includes `@SetonoSyliusGiftCardPlugin/Cart/_giftCard.html.twig`, which is gone too
+- The shop's `Cart/summary.html.twig` loads `bundles/setonosyliusgiftcardplugin/setono-sylius-gift-card-add-gift-card-to-order.js`, which is gone, and calls the `addGiftCardToOrder()` it defined
+- The shop's `layout.html.twig` links to the removed balance search (`setono_sylius_gift_card_shop_search_gift_card`), which breaks every shop page
+- The admin's `Form/imagesTheme.html.twig` only styled the images of the gift card configurations, which are gone
+
+The cart apply box and totals are now injected via `sylius_ui` events, so most host-app template overrides are no longer necessary.
 
 That includes the override of `@SyliusAdmin/Product/Tab/_details.html.twig` that `0.12.x` asked for: the "Gift card" checkbox is now rendered by the plugin's `setono_gift_card` block on the `sylius.admin.product.tab_details` event, and the `giftCardAmountConfigurable` field the override rendered no longer exists, so a `form_row(form.giftCardAmountConfigurable)` left in it breaks the product form. Remove the override, or at least that line.
 
@@ -214,7 +233,7 @@ The emails were renamed: `gift_card_customer` is now `setono_sylius_gift_card__g
 
 ## Services and classes
 
-The plugin's services are registered under their class and their interface, and the dotted `0.12.x` ids (`setono_sylius_gift_card.applicator.gift_card`, `setono_sylius_gift_card.resolver.redirect_url`, `setono_sylius_gift_card.generator.gift_card_code` and the rest) are gone. Decorate or replace the interface instead; the plugin uses its services through their interfaces, so what you register there is what it uses everywhere.
+The plugin's services are registered under their class and their interface, and the dotted ids `0.12.x` gave them (`setono_sylius_gift_card.applicator.gift_card`, `setono_sylius_gift_card.resolver.redirect_url`, `setono_sylius_gift_card.generator.gift_card_code`, `setono_sylius_gift_card.operator.order_gift_card` and the rest) are gone. Only the services ResourceBundle registers for the plugin's resources keep theirs (`setono_sylius_gift_card.repository.gift_card`, `setono_sylius_gift_card.factory.gift_card`, `setono_sylius_gift_card.manager.gift_card` and so on). Decorate or replace the interface instead; the plugin uses its services through their interfaces, so what you register there is what it uses everywhere.
 
 Several extension points were renamed or replaced:
 
@@ -223,7 +242,13 @@ Several extension points were renamed or replaced:
 - `EmailManager\GiftCardEmailManagerInterface` is `Mailer\GiftCardEmailManagerInterface`
 - `Modifier\OrderGiftCardAmountModifierInterface` is replaced by `Operator\GiftCardBalanceOperatorInterface`, through which every balance change goes
 
-`Model\AdjustmentInterface`, `Security\GiftCardVoter`, the configuration, PDF rendering option and template providers, the locale and customer channel resolvers, the `setono_sylius_gift_card_string` grid field type and the `ssgc_get_base64_encoded_example_pdf_content` Twig function are removed. The model, repository and factory interfaces changed with the features (`GiftCardInterface` lost the origin and its `ORIGIN_*` constants, `GiftCardFactoryInterface` its order item unit and example methods, `GiftCardRepositoryInterface` `findEnabled()` and `createAccountListQueryBuilder()`), so a class of your own implementing one of them needs revisiting against the new interface.
+`Model\AdjustmentInterface`, `Security\GiftCardVoter`, the configuration, PDF rendering option and template providers, the locale and customer channel resolvers, the `setono_sylius_gift_card_string` grid field type and the `ssgc_get_base64_encoded_example_pdf_content` Twig function are removed. The model, repository and factory interfaces changed with the features (`GiftCardInterface` lost the origin and its `ORIGIN_*` constants, `GiftCardFactoryInterface` its order item unit and example methods, `GiftCardRepositoryInterface` `findEnabled()` and `createAccountListQueryBuilder()`). So did some of the other interfaces that kept their names:
+
+- `Operator\OrderGiftCardOperatorInterface` lost `associateToCustomer()` and gained `reconcile()`, `completeLines()` and `send()`. `0.12.x`'s state machine callbacks named its service, which made it the one to decorate
+- `Order\Factory\GiftCardInformationFactoryInterface::createNew()` takes the cart and the cart item instead of the order item
+- `Order\GiftCardInformationInterface` has a nullable amount, and carries the currency and the design as well
+
+A class of your own implementing one of these interfaces, a decorator included, needs revisiting against the new interface.
 
 ## State machine callbacks
 

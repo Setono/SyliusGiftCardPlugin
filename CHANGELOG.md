@@ -30,8 +30,8 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - Admin gift card grid filters by customer email, channel, currency, delivery type, expired, spent and creation date,
   and sorting by customer, amount and delivery type. Pending cards stay hidden until the admin asks for them through
   the grid's *Pending gift cards* filter, which is what hides them:
-  `GiftCardRepositoryInterface::createListQueryBuilder()` lists every card. Deleting is only offered for a card that may be deleted, and the gift card and design routes
-  register no bulk delete
+  `GiftCardRepositoryInterface::createListQueryBuilder()` lists every card. Deleting is only offered for a card that
+  may be deleted, and the gift card and design routes register no bulk delete
 - The admin gift card page links the order the card was bought with, the orders it was applied to and its design
 - The admin design grid sorts by name and lists each design's channels
 - Admin outstanding-balance report, aggregating the balance of all usable gift cards per currency in SQL
@@ -87,7 +87,8 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   the override of `@SyliusAdmin/Product/Tab/_details.html.twig` that 0.12 asked for is no longer needed
 - The plugin's services are registered under their class and their interface, and use each other through their
   interfaces, so a decorator registered on an interface reaches the whole plugin, the state machine callbacks included.
-  The dotted `setono_sylius_gift_card.*` service ids are gone
+  The dotted ids 0.12 gave its services are gone; only the resource services keep theirs
+  (`setono_sylius_gift_card.repository.gift_card` and so on)
 - The plugin's templates, routes, emails, grids, state machine callbacks and translation keys were renamed or
   rebuilt; `UPGRADE-1.0.md` lists them
 - Gift cards no longer pay for gift cards: what they may pay for leaves the gift card lines out
@@ -114,8 +115,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - Balances are committed when the order is placed and restored, once per payment, when the gift card payment is
   refunded (cancelling the order refunds it), and every mutation goes through the balance operator. The cards an order
   bought are disabled when it is cancelled or refunded in full
-- The checkout checks the applied gift cards again at its last step: a card spent, disabled or changed since it was
-  applied is taken off, and the customer is sent back to the cart to pay the rest by other means
+- The checkout checks the applied gift cards again at its last step: a card that can no longer be used is taken off,
+  and a card that covers less than it did stays on for what it still holds; either way the customer is sent back to
+  the cart to pay the rest by other means
 - An order the gift cards pay in part stays *awaiting payment* until the rest is paid (Sylius alone would call it
   *partially paid*), so the customer can pay the rest from Sylius' shop and Sylius' unpaid order expiry cancels it.
   With a payment provider that captures later, it is *authorized* once the rest is authorized, and *partially
@@ -158,6 +160,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - The Behat and phpspec suites, replaced by PHPUnit and Playwright
 
 ### Fixed
+- With an admin path other than `/admin`, 0.12 served the plugin's admin pages outside the admin firewall, where
+  anyone could open them, the gift card list with every code included. They now sit under the admin path, behind the
+  firewall (see *Changed* and `UPGRADE-1.0.md`)
 - The add to cart form checks the stock (Sylius' `CartItemAvailability`, now mapped on `AddToCartCommandInterface`).
   0.12 mapped it on a container parameter the validator does not resolve, so the check never ran
 - Applying or removing a gift card only redirects back to the `Referer` when it is on the shop's own host; 0.12 followed

@@ -476,19 +476,19 @@ payment method stays off that list. A method an administrator has put in channel
 The method's **Enabled** switch means what it means for any payment method: whether customers can pay with it. While it
 is disabled the shop refuses gift cards just as it does while the method is missing. The cart keeps its gift card field
 but refuses every code ("Gift cards cannot be used in this shop at the moment"), and gift cards already on a cart are
-taken off when the customer reaches the last step of the checkout, and the customer is sent back to the cart to pay by other means. Customers
-cannot spend the cards they hold, nor any they buy meanwhile, so every admin page warns about it, with a link to the
-method's edit page. Payments already made with gift cards are not affected: refunding one, or cancelling its order,
-gives the card its balance back as before. Checkout never offers the method to customers, so it does not need disabling
-to keep it out of checkout: disable it only to stop gift cards being redeemed for a while. The command leaves a disabled
-method disabled, and says so.
+taken off when the customer reaches the last step of the checkout, and the customer is sent back to the cart to pay by
+other means. Customers cannot spend the cards they hold, nor any they buy meanwhile, so every admin page warns about
+it, with a link to the method's edit page. Payments already made with gift cards are not affected: refunding one, or
+cancelling its order, gives the card its balance back as before. Checkout never offers the method to customers, so it
+does not need disabling to keep it out of checkout: disable it only to stop gift cards being redeemed for a while. The
+command leaves a disabled method disabled, and says so.
 
 The method's edit page in the admin says so above Sylius' form (and so does the create page, once a submission with the
-method's code comes back with errors): the plugin finds the method by its code, so
-the code has to stay `gift_card` (or whatever `redemption.payment_method_code` is), its channels make no difference to
-gift card payments, which work in every channel, it is in no channel by default because customers never choose it at
-checkout and Sylius RefundPlugin would otherwise list it as a refund destination, and disabling it stops customers
-paying with gift cards. No other payment method's pages show the message.
+method's code comes back with errors): the plugin finds the method by its code, so the code has to stay `gift_card` (or
+whatever `redemption.payment_method_code` is), its channels make no difference to gift card payments, which work in
+every channel, it is in no channel by default because customers never choose it at checkout and Sylius RefundPlugin
+would otherwise list it as a refund destination, and disabling it stops customers paying with gift cards. No other
+payment method's pages show the message.
 
 ### Create a gift card product
 
@@ -553,9 +553,11 @@ bin/console assets:install
 
 The gift card product page and the admin's gift card form load the plugin's scripts and stylesheets straight from
 `public/bundles/setonosyliusgiftcardplugin`, which this command fills; nothing goes through your Webpack Encore build.
-Without them the product page's preview does not follow what the customer types, and the admin form offers the
-currencies and designs of every channel rather than the chosen one's (saving still refuses the wrong ones). See
-[Assets and Content Security Policy](#assets-and-content-security-policy) if your shop sends a Content Security Policy.
+Without them the product page and the admin form lose their layout (the preview has no frame, and the design and
+delivery pickers are bare radio buttons), the preview does not follow what the customer types, and the admin form
+offers the currencies and designs of every channel rather than the chosen one's (saving still refuses the wrong ones).
+See [Assets and Content Security Policy](#assets-and-content-security-policy) if your shop sends a Content Security
+Policy.
 
 ## Configuration
 
