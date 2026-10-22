@@ -41,7 +41,7 @@ final class VirtualGiftCardOrderPaymentCapturer implements VirtualGiftCardOrderP
         } catch (\Throwable $exception) {
             // Something after the payment was completed failed, in paying the order, say. That is no failed capture,
             // and the transitions it broke off must not be saved half applied
-            if (PaymentInterface::STATE_AUTHORIZED !== $payment->getState()) {
+            if (!self::isAuthorized($payment)) {
                 throw $exception;
             }
 
@@ -57,6 +57,15 @@ final class VirtualGiftCardOrderPaymentCapturer implements VirtualGiftCardOrderP
                 $exception->getMessage(),
             ), ['exception' => $exception]);
         }
+    }
+
+    /**
+     * Reads the state afresh. PHPStan 2.1, which the lowest dependencies install, would otherwise still hold the state
+     * that the guard at the top of capture() narrowed it to, after the state machine has been handed the payment
+     */
+    private static function isAuthorized(PaymentInterface $payment): bool
+    {
+        return PaymentInterface::STATE_AUTHORIZED === $payment->getState();
     }
 
     /**
