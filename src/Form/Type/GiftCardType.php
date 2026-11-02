@@ -6,7 +6,6 @@ namespace Setono\SyliusGiftCardPlugin\Form\Type;
 
 use Setono\SyliusGiftCardPlugin\Generator\GiftCardCodeGeneratorInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
-use Sylius\Bundle\ResourceBundle\Form\EventSubscriber\AddCodeFormSubscriber;
 use Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Currency\Model\CurrencyInterface;
@@ -17,6 +16,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -37,7 +37,19 @@ final class GiftCardType extends AbstractResourceType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder->addEventSubscriber(new AddCodeFormSubscriber());
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
+            /** @var GiftCardInterface $giftCard */
+            $giftCard = $event->getData();
+
+            // The factory already generates a code, so AddCodeFormSubscriber would disable the
+            // field of a new gift card. A disabled field is not submitted, and the create
+            // request would save the code of a freshly created gift card instead of the one
+            // the form showed. Only a saved gift card keeps its code.
+            $event->getForm()->add('code', TextType::class, [
+                'label' => 'sylius.ui.code',
+                'disabled' => null !== $giftCard->getId(),
+            ]);
+        });
         $builder->add('customer', CustomerAutocompleteChoiceType::class, [
             'label' => 'sylius.ui.customer',
         ]);
