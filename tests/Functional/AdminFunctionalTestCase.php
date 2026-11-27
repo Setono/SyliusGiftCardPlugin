@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Session\SessionFactoryInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Sends requests through the booted test kernel, optionally as a signed in administrator.
@@ -174,6 +175,19 @@ abstract class AdminFunctionalTestCase extends GiftCardFunctionalTestCase
         }
 
         return $texts;
+    }
+
+    /**
+     * One of Symfony's form messages as the test application shows it. Recent symfony/form 6.4 releases reword their
+     * English messages ("Please enter a number." reads "This value is not a valid number."), so a test takes the
+     * wording from the translator rather than from one release
+     */
+    protected static function formMessage(string $message): string
+    {
+        /** @var TranslatorInterface $translator */
+        $translator = self::getContainer()->get('translator');
+
+        return $translator->trans($message, [], 'validators', 'en_US');
     }
 
     /**

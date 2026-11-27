@@ -182,7 +182,7 @@ final class AdjustGiftCardBalanceActionTest extends AdminFunctionalTestCase
         $response = $this->submit($giftCard, '184467440737095560', 'Goodwill');
 
         self::assertSame(422, $response->getStatusCode());
-        self::assertSame(['Please enter a valid money amount.'], self::amountErrors($response));
+        self::assertSame([self::formMessage('Please enter a valid money amount.')], self::amountErrors($response));
         $this->assertBalanceUntouched($giftCard, 5000);
     }
 
