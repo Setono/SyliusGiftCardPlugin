@@ -83,7 +83,7 @@
         "symfony/webpack-encore-bundle": "^1.17.2"
     },
     "conflict": {
-        "twig/twig": ">=3.29"
+        "twig/twig": "~3.29.0"
     },
     "prefer-stable": true,
     "autoload": {
