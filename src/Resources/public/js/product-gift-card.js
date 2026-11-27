@@ -126,9 +126,18 @@
             }
         }
 
+        // The stylesheet scales the card to the frame where the browser can divide one length by another. Scaling it
+        // here as well would scale it twice
+        var scaledByStylesheet = !!(window.CSS && window.CSS.supports && window.CSS.supports('scale', 'calc(100cqw / 560px)'));
+
         function scaleCard() {
-            if (card && frame) {
-                card.style.transform = 'scale(' + (frame.clientWidth / 560) + ')';
+            if (!card || !frame || scaledByStylesheet) {
+                return;
+            }
+            card.style.transform = 'scale(' + (frame.clientWidth / 560) + ')';
+            // Until it has this class, the stylesheet hides a card wider than its frame, rather than show a corner of it
+            if (card.className.indexOf('ssgc-card--scaled') === -1) {
+                card.className += ' ssgc-card--scaled';
             }
         }
 
