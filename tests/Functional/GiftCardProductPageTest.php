@@ -122,6 +122,8 @@ final class GiftCardProductPageTest extends AdminFunctionalTestCase
         self::assertCount(1, $sources);
         self::assertStringContainsString('/setono_sylius_gift_card_design_preview/ab/cd/birthday.png', $sources[0]);
         self::assertSame(['$50.00', '$50.00'], self::textsOf($page, $card . '//*[@data-js-gc-amount]'));
+        // The script shows the placeholder while the message is empty, so the card starts out with it too
+        self::assertSame(['Your message here', 'Your message here'], self::textsOf($page, $card . '//*[@data-js-gc-message]'));
     }
 
     /** @test */
