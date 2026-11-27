@@ -213,7 +213,8 @@ test.describe('shop gift card product', () => {
 
     /**
      * `<img src="">` resolves to the page itself, so the browser downloads the whole document again as an
-     * image. The preview image is filled in by the design picker and starts out without a src at all.
+     * image. The preview image starts out with the preselected design's image, or without a src at all when that
+     * design has none, and the design picker fills it in from there.
      *
      * Asserted against the response rather than the live DOM: by the time the page has settled the picker has
      * already set a src, while the wasted request happens as the document is parsed.

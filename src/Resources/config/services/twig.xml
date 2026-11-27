@@ -27,6 +27,20 @@
             <tag name="twig.runtime"/>
         </service>
 
+        <service id="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardProductPageExtension">
+            <tag name="twig.extension"/>
+        </service>
+
+        <service id="Setono\SyliusGiftCardPlugin\Twig\Runtime\GiftCardProductPageRuntime">
+            <argument type="service" id="sylius.context.channel"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardDesignProviderInterface"/>
+            <argument type="service" id="sylius.product_variant_resolver.default"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Resolver\InitialGiftCardAmountResolverInterface"/>
+
+            <tag name="twig.runtime"/>
+        </service>
+
         <service id="Setono\SyliusGiftCardPlugin\Twig\Extension\GiftCardSetupExtension">
             <tag name="twig.extension"/>
         </service>

@@ -43,7 +43,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   an enabled design in a channel that sells gift cards, or the gift card payment method (see *Changed*)
 - Live preview on the gift card product page — the chosen design with the amount and message overlaid,
   updating as the customer types. The amount field starts out at the gift card product's price, so the price is the
-  amount the shop suggests
+  amount the shop suggests (`InitialGiftCardAmountResolverInterface`, which can be decorated). The page renders the
+  preview as the form starts out, in the preselected design with that amount, so it shows no default card while its
+  script loads
 - What the applied gift cards cover and what remains to pay, below the order total in the cart and on every checkout
   step, and, on the thank you page of an order the gift cards pay in part, the instructions for paying the rest. The
   `setono_gift_card_covered_amount()`, `setono_gift_card_remaining_total()`, `setono_gift_card_coverage()` and

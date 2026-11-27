@@ -6,6 +6,7 @@ namespace Setono\SyliusGiftCardPlugin\Tests\Functional;
 
 use Setono\SyliusGiftCardPlugin\Factory\GiftCardProductFactoryInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDeliveryType;
+use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignImageInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardDesignInterface;
 use Setono\SyliusGiftCardPlugin\Model\GiftCardInterface;
 use Setono\SyliusGiftCardPlugin\Model\ProductInterface;
@@ -104,6 +105,38 @@ final class GiftCardProductPageTest extends AdminFunctionalTestCase
     }
 
     /**
+     * The script that keeps the preview in step with the form is deferred, so the page renders the preview as the form
+     * starts out: in the design the form preselects, with the amount the field starts at. Rendered blank, the page
+     * showed the framed default card and no amount until the script ran, and then jumped to the design
+     *
+     * @test
+     */
+    public function it_renders_the_preview_in_the_preselected_design_with_the_amount_the_field_starts_at(): void
+    {
+        $this->createDesign('birthday', 'ab/cd/birthday.png');
+        $page = $this->productPage($this->createGiftCardProduct('gift_card', [GiftCardDeliveryType::Virtual]));
+
+        $card = self::PAGE . '//*[@data-js-gc-card]';
+        self::assertSame(['ssgc-card ssgc-card--front ssgc-card--has-image'], self::textsOf($page, $card . '/@class'));
+        $sources = self::textsOf($page, $card . '//img[@data-js-gc-image]/@src');
+        self::assertCount(1, $sources);
+        self::assertStringContainsString('/setono_sylius_gift_card_design_preview/ab/cd/birthday.png', $sources[0]);
+        self::assertSame(['$50.00', '$50.00'], self::textsOf($page, $card . '//*[@data-js-gc-amount]'));
+    }
+
+    /** @test */
+    public function it_starts_the_preview_as_the_framed_default_card_when_the_preselected_design_has_no_image(): void
+    {
+        $this->createDesign('plain');
+        $page = $this->productPage($this->createGiftCardProduct('gift_card', [GiftCardDeliveryType::Virtual]));
+
+        $card = self::PAGE . '//*[@data-js-gc-card]';
+        self::assertSame(['ssgc-card ssgc-card--front'], self::textsOf($page, $card . '/@class'));
+        self::assertSame([], self::textsOf($page, $card . '//img[@data-js-gc-image]/@src'));
+        self::assertSame(['$50.00', '$50.00'], self::textsOf($page, $card . '//*[@data-js-gc-amount]'));
+    }
+
+    /**
      * A merchant may have the variant matched by its options instead of chosen from a list. The page then shows Sylius'
      * field per option, labelled with the option's name, and Sylius' map of the combinations its script disables the
      * button by
@@ -151,8 +184,8 @@ final class GiftCardProductPageTest extends AdminFunctionalTestCase
 
         self::assertCount(0, self::textsOf($page, '//body//*[normalize-space(text()) = "gift_card"]'), 'the page should not show the product code');
         self::assertCount(0, self::textsOf($page, '//body//*[contains(text(), "No description")]'));
-        // the amount field starts at the price instead
-        self::assertCount(0, self::textsOf($page, '//body//*[contains(text(), "$50.00")]'), 'the page should not print the price');
+        // the amount field starts at the price instead, which the preview's card shows as the amount, as the script would
+        self::assertCount(0, self::textsOf($page, '//body//*[not(ancestor-or-self::*[@data-js-gc-card])][contains(text(), "$50.00")]'), 'the page should not print the price');
         self::assertSame('50.00', self::valueOf($page, '//input[@name="sylius_add_to_cart[giftCardInformation][amount]"]'));
     }
 
@@ -352,7 +385,7 @@ final class GiftCardProductPageTest extends AdminFunctionalTestCase
         return $product;
     }
 
-    private function createDesign(string $code): GiftCardDesignInterface
+    private function createDesign(string $code, ?string $frontImagePath = null): GiftCardDesignInterface
     {
         /** @var FactoryInterface<GiftCardDesignInterface> $factory */
         $factory = self::getContainer()->get('setono_sylius_gift_card.factory.gift_card_design');
@@ -364,6 +397,15 @@ final class GiftCardProductPageTest extends AdminFunctionalTestCase
         $design->setName(ucfirst($code));
         $design->setEnabled(true);
         $design->addChannel($this->getChannel());
+
+        if (null !== $frontImagePath) {
+            /** @var FactoryInterface<GiftCardDesignImageInterface> $imageFactory */
+            $imageFactory = self::getContainer()->get('setono_sylius_gift_card.factory.gift_card_design_image');
+            $image = $imageFactory->createNew();
+            $image->setType(GiftCardDesignImageInterface::TYPE_FRONT);
+            $image->setPath($frontImagePath);
+            $design->addImage($image);
+        }
 
         $this->manager->persist($design);
         $this->manager->flush();
