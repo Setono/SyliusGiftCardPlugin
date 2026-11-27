@@ -83,12 +83,12 @@ class GiftCard implements GiftCardInterface
 
     public function isUsable(): bool
     {
-        return $this->enabled && !$this->isExpired() && $this->getAmount() > 0;
+        return $this->isEnabled() && !$this->isExpired() && $this->getAmount() > 0;
     }
 
     public function isPending(): bool
     {
-        return !$this->enabled && $this->transactions->isEmpty() && null !== $this->orderItemUnit;
+        return !$this->isEnabled() && $this->transactions->isEmpty() && null !== $this->orderItemUnit;
     }
 
     public function getStatus(?\DateTimeInterface $date = null): GiftCardStatus
@@ -100,7 +100,7 @@ class GiftCard implements GiftCardInterface
             return OrderInterface::STATE_CANCELLED === $this->getOrder()?->getState() ? GiftCardStatus::Disabled : GiftCardStatus::Pending;
         }
 
-        if (!$this->enabled) {
+        if (!$this->isEnabled()) {
             return GiftCardStatus::Disabled;
         }
 
