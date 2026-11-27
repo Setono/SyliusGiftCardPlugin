@@ -85,7 +85,7 @@ final class GiftCardProductPageAddToCartTest extends AdminFunctionalTestCase
         $response = $this->addToCart($this->createGiftCardProduct(), '184467440737095560');
 
         self::assertSame(400, $response->getStatusCode());
-        self::assertSame(['Please enter a valid money amount.'], self::amountErrors($response));
+        self::assertSame([self::formMessage('Please enter a valid money amount.')], self::amountErrors($response));
         self::assertSame([], $this->giftCards());
     }
 

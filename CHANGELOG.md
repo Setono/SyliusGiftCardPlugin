@@ -77,9 +77,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
   `giftCardAmountConfigurable` product flag is gone — a product is a gift card product or it is not
 - Requires Sylius `1.13` and up, PHP `>= 8.1` and Symfony `^6.4` (Symfony 5.4 support dropped), with symfony/form
   `6.4.31` and up, from which a line break in a gift card message counts as one character
-- Conflicts with `twig/twig` `>=3.29`. On Twig 3.29 and newer, `sylius/mailer-bundle` up to 2.2.0 fails every email
-  it sends, and the release that fixes it (2.2.1) requires PHP 8.2. The conflict stays until PHP 8.1 support is
-  dropped; until then, `composer require` the plugin with `-W` where Twig 3.29 or newer is locked (see the README)
+- Conflicts with `twig/twig` `~3.29.0` (any 3.29 release). On Twig 3.29, `sylius/mailer-bundle` up to 2.2.0 fails
+  every email it sends. Twig 3.30 made the call those releases make work again, so the plugin installs next to any
+  other Twig release (`1.0.0-alpha` conflicted with every Twig from 3.29 on; see the README)
 - The plugin auto-configures the state machine, grids, UI events, emails, image filters and rate limiters via
   `prepend()`; host applications no longer import any bundle configuration manually
 - The admin routes sit under the application's admin path (`/%sylius_admin.path_name%`, behind the admin firewall)

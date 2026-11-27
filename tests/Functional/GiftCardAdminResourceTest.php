@@ -465,7 +465,7 @@ final class GiftCardAdminResourceTest extends AdminFunctionalTestCase
         ]);
 
         self::assertSame(422, $response->getStatusCode());
-        self::assertSame(['Please enter a number.'], self::amountErrors($response));
+        self::assertSame([self::formMessage('Please enter a number.')], self::amountErrors($response));
 
         /** @var GiftCardRepositoryInterface $repository */
         $repository = self::getContainer()->get('setono_sylius_gift_card.repository.gift_card');

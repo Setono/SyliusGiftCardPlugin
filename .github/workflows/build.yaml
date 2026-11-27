@@ -176,7 +176,8 @@ jobs:
     functional-tests:
         name: "Functional tests (PHP ${{ matrix.php-version }} | Deps: ${{ matrix.dependencies }})"
 
-        runs-on: "ubuntu-latest"
+        # ubuntu-latest is Ubuntu 26.04 now, which no longer ships the MySQL the Start MySQL step starts
+        runs-on: "ubuntu-24.04"
 
         strategy:
             matrix:
@@ -237,7 +238,8 @@ jobs:
     end-to-end-tests:
         name: "End to end tests (PHP ${{ matrix.php-version }} | Shard ${{ matrix.shard }}/3)"
 
-        runs-on: "ubuntu-latest"
+        # ubuntu-latest is Ubuntu 26.04 now, which no longer ships the MySQL the Start MySQL step starts
+        runs-on: "ubuntu-24.04"
 
         # The test application is served in its test environment, the one Sylius renders the data-test-* hooks in
         # that the specs address, and which has no web debug toolbar to add tables of its own to every page. When
@@ -396,7 +398,8 @@ jobs:
     code-coverage:
         name: "Code Coverage (PHP ${{ matrix.php-version }})"
 
-        runs-on: "ubuntu-latest"
+        # ubuntu-latest is Ubuntu 26.04 now, which no longer ships the MySQL the Start MySQL step starts
+        runs-on: "ubuntu-24.04"
 
         strategy:
             matrix:
