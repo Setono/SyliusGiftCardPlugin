@@ -9,13 +9,15 @@
                                  so it passes the gift card's locale; null falls back to the translator's locale
      preview                   : true on the product page. Renders both layouts so the design picker can toggle
                                  between the merchant image and the framed default live; the .ssgc-card--has-image
-                                 class (added by JS) decides which one is visible. #}
+                                 class decides which one is visible. It starts out on when the preview is given the
+                                 image of the design the form preselects, and the script toggles it as the customer
+                                 picks a design. #}
 {% set preview = preview|default(false) %}
 {% set locale_code = locale_code|default(null) %}
 {% set image_url = front_image_url|default(null) %}
 {% set is_image = image_url is not null %}
 
-<div class="ssgc-card ssgc-card--front{{ (not preview and is_image) ? ' ssgc-card--has-image' : '' }}"{% if preview %} data-js-gc-card{% endif %}>
+<div class="ssgc-card ssgc-card--front{{ is_image ? ' ssgc-card--has-image' : '' }}"{% if preview %} data-js-gc-card{% endif %}>
     {% if preview or not is_image %}
         {# Framed default, used when a design has no image #}
         <div class="ssgc-card__frame"></div>

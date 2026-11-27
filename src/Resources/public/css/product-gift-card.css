@@ -77,6 +77,8 @@
     border-radius: 14px;
     background: #1c1b18;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+    /* The card scales to the frame's width, as 100cqw */
+    container-type: inline-size;
 }
 
 #setono-gift-card-information .ssgc-preview__frame .ssgc-card {
@@ -86,6 +88,24 @@
     width: 560px;
     height: 396px;
     transform-origin: top left;
+}
+
+/* A browser that can divide one length by another scales the card here, before any script has run, so the page shows
+   it at its size from the start */
+@supports (scale: calc(100cqw / 560px)) {
+    #setono-gift-card-information .ssgc-preview__frame .ssgc-card {
+        scale: calc(100cqw / 560px);
+    }
+}
+
+/* Elsewhere the script scales it (product-gift-card.js), so until it has, a frame narrower than the card would show a
+   corner of it at full size. The card stays hidden until then, and the frame, which keeps its size, stands in for it */
+@supports not (scale: calc(100cqw / 560px)) {
+    @container (max-width: 559.98px) {
+        #setono-gift-card-information .ssgc-preview__frame .ssgc-card:not(.ssgc-card--scaled) {
+            visibility: hidden;
+        }
+    }
 }
 
 /*

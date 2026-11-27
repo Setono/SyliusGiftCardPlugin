@@ -13,6 +13,7 @@ use Setono\SyliusGiftCardPlugin\Order\GiftCardInformation;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimits;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface;
 use Setono\SyliusGiftCardPlugin\Provider\GiftCardCurrencyProviderInterface;
+use Setono\SyliusGiftCardPlugin\Resolver\InitialGiftCardAmountResolver;
 use Setono\SyliusGiftCardPlugin\Tests\Unit\Currency\FixedRateCurrencyConverter;
 use Sylius\Component\Core\Calculator\ProductVariantPricesCalculatorInterface;
 use Sylius\Component\Core\Exception\MissingChannelConfigurationException;
@@ -228,16 +229,24 @@ final class GiftCardInformationFactoryTest extends TestCase
      */
     public function it_creates_the_configured_class(): void
     {
-        $factory = new GiftCardInformationFactory(CustomGiftCardInformation::class, $this->calculator->reveal(), $this->limitsProvider->reveal(), $this->currencyProvider->reveal(), new FixedRateCurrencyConverter());
+        $factory = new GiftCardInformationFactory(CustomGiftCardInformation::class, $this->currencyProvider->reveal(), $this->createResolver());
 
         $information = $factory->createNew(new Order(), new OrderItem());
 
         self::assertInstanceOf(CustomGiftCardInformation::class, $information);
     }
 
+    /**
+     * The real resolver, so the factory is tested together with how it suggests the amount the field starts out at
+     */
+    private function createResolver(): InitialGiftCardAmountResolver
+    {
+        return new InitialGiftCardAmountResolver($this->calculator->reveal(), $this->limitsProvider->reveal(), new FixedRateCurrencyConverter());
+    }
+
     private function createFactory(): GiftCardInformationFactory
     {
-        return new GiftCardInformationFactory(GiftCardInformation::class, $this->calculator->reveal(), $this->limitsProvider->reveal(), $this->currencyProvider->reveal(), new FixedRateCurrencyConverter());
+        return new GiftCardInformationFactory(GiftCardInformation::class, $this->currencyProvider->reveal(), $this->createResolver());
     }
 
     /**

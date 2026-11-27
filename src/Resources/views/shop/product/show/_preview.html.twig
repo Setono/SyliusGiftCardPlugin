@@ -1,7 +1,21 @@
 {# The live preview of the card, which product-gift-card.js fills in with what the customer chooses. The script works
-   within the element with the id setono-gift-card-information, which has to hold this preview and the form #}
+   within the element with the id setono-gift-card-information, which has to hold this preview and the form.
+
+   The script is deferred, so the preview starts out as the form does: in the design the form preselects, with the
+   amount the field starts at, and with the placeholder the script shows while the message is empty. Rendered blank
+   instead, the page would show the framed default card and no amount until the script ran, and then jump to the
+   design. #}
 {% set channel = sylius.channel %}
 {% set brand_name = channel ? channel.name : ('setono_sylius_gift_card.pdf.gift_card'|trans) %}
+
+{% set starting_preview = product is defined ? setono_gift_card_preview(product) : null %}
+{% set front_image_url = starting_preview and starting_preview.frontImagePath is not null
+    ? starting_preview.frontImagePath|imagine_filter('setono_sylius_gift_card_design_preview')
+    : null %}
+{# The script formats the amount in the same currency #}
+{% set formatted_amount = starting_preview and starting_preview.amount is not null and starting_preview.currencyCode is not null
+    ? starting_preview.amount|sylius_format_money(starting_preview.currencyCode, app.request.locale)
+    : '' %}
 
 {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card_style.html.twig') }}
 
@@ -11,10 +25,10 @@
         {{ include('@SetonoSyliusGiftCardPlugin/shop/gift_card/_card.html.twig', {
             brand_name: brand_name,
             brand_initial: brand_name|slice(0, 1)|upper,
-            formatted_amount: '',
+            formatted_amount: formatted_amount,
             formatted_code: null,
-            message: '',
-            front_image_url: null,
+            message: 'setono_sylius_gift_card.ui.your_message_here'|trans,
+            front_image_url: front_image_url,
             preview: true,
             locale_code: app.request.locale,
         }, false) }}

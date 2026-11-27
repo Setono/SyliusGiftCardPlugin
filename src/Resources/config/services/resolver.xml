@@ -15,5 +15,13 @@
         </service>
         <service id="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolverInterface"
                  alias="Setono\SyliusGiftCardPlugin\Resolver\GiftCardExpiryResolver"/>
+
+        <service id="Setono\SyliusGiftCardPlugin\Resolver\InitialGiftCardAmountResolver">
+            <argument type="service" id="sylius.calculator.product_variant_price"/>
+            <argument type="service" id="Setono\SyliusGiftCardPlugin\Provider\GiftCardAmountLimitsProviderInterface"/>
+            <argument type="service" id="sylius.currency_converter"/>
+        </service>
+        <service id="Setono\SyliusGiftCardPlugin\Resolver\InitialGiftCardAmountResolverInterface"
+                 alias="Setono\SyliusGiftCardPlugin\Resolver\InitialGiftCardAmountResolver"/>
     </services>
 </container>
