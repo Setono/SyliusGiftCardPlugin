@@ -66,7 +66,7 @@ final class DompdfGiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
         $options = new Options();
         $options->set('isRemoteEnabled', $this->remoteEnabled);
         $options->set('defaultFont', 'DejaVu Sans');
-        $options->set('chroot', $this->publicDir);
+        $options->set('chroot', $this->resolveChroot());
 
         $dompdf = new Dompdf($options);
         $dompdf->setPaper($paper);
@@ -104,6 +104,26 @@ final class DompdfGiftCardPdfGenerator implements GiftCardPdfGeneratorInterface
     {
         return $giftCard->getOrder()?->getLocaleCode()
             ?? $giftCard->getChannel()?->getDefaultLocale()?->getCode();
+    }
+
+    /**
+     * The directories dompdf may read files from: the public directory, and the media directory wherever it really
+     * is. A deploy tool may keep the media directory outside the release and link it in, as Deployer's shared
+     * directories do, and dompdf follows the link and checks where a file really is against its chroot, so without
+     * the media directory's own path it refuses every design image and draws its broken image placeholder instead
+     *
+     * @return list<string>
+     */
+    private function resolveChroot(): array
+    {
+        $chroot = [$this->publicDir];
+
+        $mediaDir = realpath(rtrim($this->publicDir, '/') . '/' . $this->mediaDir);
+        if (false !== $mediaDir) {
+            $chroot[] = $mediaDir;
+        }
+
+        return $chroot;
     }
 
     private function resolveImagePath(?GiftCardDesignImageInterface $image): ?string
