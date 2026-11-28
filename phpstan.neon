@@ -11,7 +11,7 @@ parameters:
         - tests/Playwright/*
 
     bootstrapFiles:
-        - vendor/autoload.php
+        - tests/PHPStan/bootstrap.php
 
     symfony:
         consoleApplicationLoader: tests/PHPStan/console_application.php
