@@ -114,7 +114,9 @@ read [`UPGRADE-1.0.md`](UPGRADE-1.0.md) before upgrading a live store.
 - Every column the plugin maps is named explicitly, whatever naming strategy the application configures; see
   `UPGRADE-1.0.md` for the renames this can mean
 - PDFs render with `dompdf` — a normal Composer dependency — replacing the wkhtmltopdf/Snappy binary, and the
-  template is an ordinary overridable Twig file rather than Twig stored in the database
+  template is an ordinary overridable Twig file rather than Twig stored in the database. Dompdf may read the public
+  directory and the media directory wherever it really is, so the design images also render when a deploy tool links
+  the media directory in from outside the release, as Deployer's shared directories do
 - Balances are committed when the order is placed and restored, once per payment, when the gift card payment is
   refunded (cancelling the order refunds it), and every mutation goes through the balance operator. The cards an order
   bought are disabled when it is cancelled or refunded in full

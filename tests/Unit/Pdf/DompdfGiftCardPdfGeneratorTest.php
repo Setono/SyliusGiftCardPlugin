@@ -31,6 +31,9 @@ final class DompdfGiftCardPdfGeneratorTest extends TestCase
 
     private const TEMPLATE = '@SetonoSyliusGiftCardPlugin/shop/gift_card/pdf.html.twig';
 
+    /** A 1 x 1 PNG, an image dompdf can embed */
+    private const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC';
+
     private string $publicDir;
 
     protected function setUp(): void
@@ -115,6 +118,37 @@ final class DompdfGiftCardPdfGeneratorTest extends TestCase
     }
 
     /**
+     * A deploy tool may keep the media directory outside the release and link it in, as Deployer's shared directories
+     * do. Dompdf follows the link and checks where a file really is against its chroot, so it refused every design
+     * image and drew its broken image placeholder in their place
+     *
+     * @test
+     */
+    public function it_embeds_a_design_image_from_a_media_directory_linked_in_from_outside_the_public_directory(): void
+    {
+        $filesystem = new Filesystem();
+        $shared = sys_get_temp_dir() . '/ssgc_pdf_shared_' . bin2hex(random_bytes(6));
+        $filesystem->mkdir($shared . '/image/ab/cd');
+        $png = base64_decode(self::PNG, true);
+        self::assertIsString($png);
+        file_put_contents($shared . '/image/ab/cd/front.png', $png);
+        $filesystem->remove($this->publicDir . '/media');
+        $filesystem->symlink($shared, $this->publicDir . '/media');
+
+        try {
+            $giftCard = $this->giftCard();
+            $giftCard->setDesign($this->design(front: 'ab/cd/front.png', back: 'ab/cd/missing.png'));
+
+            [$pdf, $context] = $this->generate($giftCard, drawFrontImage: true);
+
+            self::assertSame($this->publicDir . '/media/image/ab/cd/front.png', $context['frontImagePath']);
+            self::assertStringContainsString('/Subtype /Image', $pdf, 'dompdf should embed the image');
+        } finally {
+            $filesystem->remove($shared);
+        }
+    }
+
+    /**
      * An image whose file is gone (a copied database, a cleared media directory) would be drawn as dompdf's
      * broken image placeholder, so the card falls back to the look it has without artwork
      *
@@ -179,14 +213,20 @@ final class DompdfGiftCardPdfGeneratorTest extends TestCase
     /**
      * @return array{string, array<array-key, mixed>} the PDF, and the context the template was rendered with
      */
-    private function generate(GiftCard $giftCard, string $pageSize = 'A6'): array
+    private function generate(GiftCard $giftCard, string $pageSize = 'A6', bool $drawFrontImage = false): array
     {
         $context = [];
 
         $twig = $this->prophesize(Environment::class);
-        $twig->render(self::TEMPLATE, Argument::type('array'))->will(static function (array $arguments) use (&$context): string {
+        $twig->render(self::TEMPLATE, Argument::type('array'))->will(static function (array $arguments) use (&$context, $drawFrontImage): string {
             self::assertIsArray($arguments[1]);
             $context = $arguments[1];
+
+            if ($drawFrontImage) {
+                self::assertIsString($context['frontImagePath']);
+
+                return sprintf('<html><body><img src="%s" width="100" height="100"/></body></html>', $context['frontImagePath']);
+            }
 
             return '<html><body><p>Gift card</p></body></html>';
         })->shouldBeCalledOnce();
